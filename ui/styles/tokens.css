@@ -1,0 +1,63 @@
+:root {
+  /* ── Surfaces (near-black, layered) ── */
+  --bg:        #0b0c0e;
+  --surface:   #101216;
+  --surface-2: #16191f;
+  --surface-3: #1e222a;
+  --surface-4: #262b34;
+
+  /* ── Borders ── */
+  --border:      #22262e;
+  --border-soft: rgba(255,255,255,.05);
+  --border-mid:  rgba(255,255,255,.09);
+  --border-hi:   rgba(255,255,255,.16);
+
+  /* ── Text ── */
+  --text:   #edeef1;
+  --text-2: #9ca3af;
+  --text-3: #626976;
+  --text-4: #454b56;
+
+  /* ── Accent (emerald) ── */
+  --accent:      #37d99a;
+  --accent-2:    #29c088;
+  --accent-dim:  rgba(55,217,154,.14);
+  --accent-line: rgba(55,217,154,.35);
+  --on-accent:   #06120d;
+
+  /* ── Graph categories ── */
+  --cat-entry:    #fbbf24;
+  --cat-arch:     #60a5fa;
+  --cat-design:   #f472b6;
+  --cat-security: #fb7185;
+  --cat-process:  #94a3b8;
+  --cat-default:  #6b7280;
+
+  /* ── Annotation / note types ── */
+  --type-note:      #94a3b8;
+  --type-decision:  #60a5fa;
+  --type-question:  #fbbf24;
+  --type-todo:      #37d99a;
+  --type-warning:   #fb7185;
+  --type-reference: #a78bfa;
+  --type-general:   #94a3b8;
+
+  /* ── Typography ── */
+  --font-ui:   'Geist', 'Onest', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+
+  /* ── Metrics ── */
+  --rail-w:   60px;
+  --topbar-h: 54px;
+  --r-xs: 5px;
+  --r-sm: 7px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+
+  /* ── Elevation ── */
+  --sh-sm: 0 1px 2px rgba(0,0,0,.4);
+  --sh-md: 0 8px 24px rgba(0,0,0,.45);
+  --sh-lg: 0 20px 60px rgba(0,0,0,.6);
+  --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
+}

@@ -1,0 +1,31 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-read --allow-write scripts/bundle-ui.ts && deno run --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --unstable-kv src/main.ts",
+    "bundle-ui": "deno run --allow-read --allow-write scripts/bundle-ui.ts",
+    "build": "deno task bundle-ui && deno compile --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --unstable-kv --include src/worker.ts --output docmap-app src/main.ts",
+    "release": "deno task bundle-ui && deno compile --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --unstable-kv --include src/worker.ts --include src/server/handlers/ui-bundle.gen.ts --output ../docmap-release/docmap-macos-aarch64 src/main.ts && cp install.sh ../docmap-release/install.sh && echo '\\n✓ Release gerado em ../docmap-release/'",
+    "lint": "deno lint src/",
+    "fmt": "deno fmt src/ ui/",
+    "check": "deno check src/main.ts"
+  },
+  "imports": {
+    "webview": "https://deno.land/x/webview@0.7.6/mod.ts"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    },
+    "exclude": ["ui/"]
+  },
+  "fmt": {
+    "indentWidth": 2,
+    "singleQuote": true,
+    "exclude": ["ui/scripts/"]
+  }
+}

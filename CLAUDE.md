@@ -1,0 +1,123 @@
+# DocMap Desktop — Guia de Arquitetura
+
+## Stack
+
+- **Runtime**: Deno (TypeScript strict)
+- **Desktop**: webview_deno — janela nativa via WebKit (macOS) / WebView2 (Windows)
+- **Persistência**: Deno KV built-in — zero dependências externas
+- **Frontend**: D3.js + markmap-autoloader via CDN, CSS puro, JS vanilla
+
+## Servidores
+
+| Porta | Propósito | Acesso |
+|-------|-----------|--------|
+| 3333  | UI (serve HTML/CSS/JS + API da interface) | loopback |
+| 3334  | AI API (CRUD de notas para agentes) | loopback only |
+
+## Estrutura de módulos
+
+```
+src/
+  main.ts              ← entry: inicializa KV, sobe servidores, abre janela
+  kv.ts                ← singleton Deno KV (única exceção ao estado global)
+  workspace/           ← tipos e ref mutável do workspace atual
+  notes/               ← tipos, store KV, busca, exportação
+  comments/            ← tipos, store KV (comentários nos nós do markmap)
+  fs/                  ← walker e extração de links (funções puras)
+  graph/               ← construção do grafo (função pura)
+  search/              ← busca full-text nos .md (função pura)
+  server/              ← servidor :3333 (handlers da UI)
+  api/                 ← servidor :3334 (handlers da AI API)
+  window/              ← webview e folder picker
+ui/
+  styles/              ← CSS por camada (tokens → layout → componentes)
+  scripts/             ← JS por domínio (sem frameworks, sem bundler)
+```
+
+## Princípios
+
+### Programação Funcional
+
+- **Funções puras** para toda transformação de dados: `fs/`, `graph/`, `search/`, `notes/search.ts`, `notes/export.ts`
+- **Side effects isolados** em: `notes/store.ts`, `comments/store.ts`, `server/handlers/`, `api/handlers/`, `window/`
+- **Sem classes** — objetos simples + funções
+- **Sem mutação** fora dos módulos de store e do `workspace/ref.ts`
+
+### Isolamento de responsabilidade
+
+Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100 linhas, é sinal de que precisa ser dividido.
+
+### Tipagem
+
+- `strict: true` em todos os arquivos
+- Sem `any` — use `unknown` quando necessário e faça type narrowing explícito
+- Tipos de domínio ficam em `types.ts` dentro do módulo correspondente
+- Prefira `readonly` em tipos imutáveis
+
+### Chaves do Deno KV
+
+```
+["notes",    workspacePath, noteId]     → Note
+["comments", workspacePath, fileId]     → Comment[]
+["workspace", "recent"]                 → string[]
+["workspace", "last"]                   → string
+```
+
+## Persistência e atualização
+
+**Local dos dados (fixo, sobrevive a updates):**
+```
+macOS:   ~/Library/Application Support/docmap/data.sqlite3
+Linux:   ~/.local/share/docmap/data.sqlite3
+Windows: %APPDATA%\docmap\data.sqlite3
+```
+Definido em `src/config.ts`. NUNCA usar `Deno.openKv()` sem caminho — o default é um hash do caminho do binário e muda a cada build, órfãozando os dados. Sempre `openAppKv()` de `src/kv/path.ts`.
+
+**Migração de schema:** `src/kv/migrate.ts` — chave `["_meta","schemaVersion"]`. Cada migração leva de N para N+1. Adicione novas ao array `migrations`, nunca edite as antigas.
+
+**Backup/restore:** `src/kv/backup.ts` — exporta/importa todo o KV em JSON. Endpoints `/system/backup` e `/system/restore`.
+
+**Auto-update:** `src/update/github.ts` checa GitHub Releases no boot; `src/update/apply.ts` baixa o binário e renomeia por cima do atual. Configurar repo via `GITHUB_REPO` (env `DOCMAP_REPO`). Assets devem se chamar `docmap-<os>-<arch>` (ex.: `docmap-macos-aarch64`). Bump `APP_VERSION` a cada release.
+
+## Segurança
+
+- **Path traversal**: todo caminho de arquivo DEVE ser validado com `isPathSafe(root, resolved)` antes de ler
+- **Permissões Deno mínimas**: `--allow-read=<ROOT>` em produção, não `--allow-read` global
+- **AI API** (`:3334`) bind exclusivo em `127.0.0.1` — nunca em `0.0.0.0`
+- **Sem eval()** em qualquer módulo — especialmente nos handlers HTTP
+- **Sanitização de HTML** obrigatória antes de inserir dados do usuário no DOM (`escHtml` em `dom.js`)
+
+## Antipatterns — não faça isso
+
+- ❌ Estado global mutável fora de `kv.ts` e `workspace/ref.ts`
+- ❌ Escrever qualquer arquivo na pasta do projeto monitorado (read-only)
+- ❌ Funções com mais de 30 linhas que fazem múltiplas coisas
+- ❌ `default export` — use named exports para rastreabilidade
+- ❌ Misturar lógica de domínio com lógica de HTTP nos handlers
+- ❌ Inline styles via JS — toda estética fica no CSS
+- ❌ `fetch` sem validação de path no servidor
+- ❌ Commits de `deno.lock` modificado sem rodar `deno cache` antes
+- ❌ Handlers que retornam dados sem `Content-Type` correto
+
+## Padrão de handler HTTP
+
+```ts
+// Separar: lógica de domínio fica no store/engine, handler só orquestra
+export const createNotesHandler = (deps: HandlerDeps) =>
+  async (req: Request): Promise<Response> => {
+    const { kv, getWorkspace } = deps;
+    const workspace = getWorkspace();
+    if (!workspace) return json({ error: 'no workspace' }, 400);
+    // ...
+  };
+```
+
+## Padrão de resposta JSON
+
+```ts
+const json = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+  });
+```
