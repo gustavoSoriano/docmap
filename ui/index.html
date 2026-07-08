@@ -504,13 +504,19 @@
 </div>
 
 <!-- ════ AI Chat FAB ════ -->
-<button id="chat-fab" onclick="toggleChat()" title="Chat com gpt-oss:20b">
+<button id="chat-fab" onclick="toggleChat()" title="Chat com IA">
   <span data-icon="bot"></span>
 </button>
 
 <div id="chat-panel">
   <div id="chat-header">
-    <span id="chat-title"><span data-icon="bot"></span> gemma4:12b</span>
+    <span id="chat-title">
+      <span data-icon="bot"></span>
+      <select id="chat-provider" title="Provedor de IA">
+        <option value="ollama">Ollama (local)</option>
+        <option value="deepseek">DeepSeek</option>
+      </select>
+    </span>
     <div id="chat-header-actions">
       <button class="ghost-btn" onclick="clearChat()">limpar</button>
       <button class="ghost-btn" onclick="toggleChat()"><span data-icon="x"></span></button>

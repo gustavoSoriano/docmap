@@ -10,6 +10,11 @@ type Migration = (kv: Deno.Kv) => Promise<void>;
 const migrations: Migration[] = [
   // v1 — baseline. Nada a fazer; estrutura inicial já é a corrente.
   async (_kv) => {},
+
+  // v2 — adiciona config de AI. Default: ollama (provider local).
+  async (kv) => {
+    await kv.set(['ai', 'config'], { provider: 'ollama' });
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

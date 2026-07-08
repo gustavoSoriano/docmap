@@ -1266,6 +1266,24 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   font-size: 13px; font-weight: 700; color: var(--text); flex: 1;
 }
 #chat-title .ico { width: 16px; height: 16px; color: var(--accent); }
+#chat-provider {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  padding: 3px 6px;
+  border-radius: var(--r-sm);
+  transition: background .12s, border .12s;
+  max-width: 200px;
+}
+#chat-provider:hover { background: var(--surface-3); }
+#chat-provider:focus-visible { border-color: var(--accent-line); }
+#chat-provider option { background: var(--surface-2); color: var(--text); }
+#chat-provider:disabled { opacity: .5; cursor: not-allowed; }
 #chat-header-actions { display: flex; gap: 4px; }
 #chat-header-actions .ghost-btn { padding: 4px 8px; font-size: 11px; }
 #chat-header-actions .ico { width: 14px; height: 14px; }
@@ -2751,13 +2769,19 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 </div>
 
 <!-- ════ AI Chat FAB ════ -->
-<button id="chat-fab" onclick="toggleChat()" title="Chat com gpt-oss:20b">
+<button id="chat-fab" onclick="toggleChat()" title="Chat com IA">
   <span data-icon="bot"></span>
 </button>
 
 <div id="chat-panel">
   <div id="chat-header">
-    <span id="chat-title"><span data-icon="bot"></span> gemma4:12b</span>
+    <span id="chat-title">
+      <span data-icon="bot"></span>
+      <select id="chat-provider" title="Provedor de IA">
+        <option value="ollama">Ollama (local)</option>
+        <option value="deepseek">DeepSeek</option>
+      </select>
+    </span>
     <div id="chat-header-actions">
       <button class="ghost-btn" onclick="clearChat()">limpar</button>
       <button class="ghost-btn" onclick="toggleChat()"><span data-icon="x"></span></button>
@@ -4896,13 +4920,11 @@ document.addEventListener('DOMContentLoaded', initSystem);
 
 </script>
 <script>
-// ════ AI Chat — Ollama local com http_request tool ════
+// ════ AI Chat — provider-agnostic via proxy /ai/chat ════
+// Backend escolhe adapter (ollama | deepseek) e devolve NDJSON normalizado.
+// A chave da DeepSeek nunca chega ao webview.
 
-const OLLAMA_URL  = 'http://localhost:11434/api/chat';
-const OLLAMA_MODEL = 'gemma4:12b';
-// usa :3333 (UI server) — garantido no ar se o app está rodando
-// :3334 é pra IAs externas; o chat embutido não precisa depender dele
-const DOCMAP_API  = 'http://127.0.0.1:3333';
+const DOCMAP_API = 'http://127.0.0.1:3333';
 
 // DELETE bloqueado — proteção contra ações destrutivas acidentais
 const BLOCKED_METHODS = ['DELETE'];
@@ -4938,10 +4960,50 @@ const getSystemPrompt = async () => {
 };
 
 // ── Estado ──
-let chatMessages  = []; // histórico da conversa
+let chatMessages  = [];
 let chatOpen      = false;
-let chatStreaming  = false;
+let chatStreaming = false;
 let chatAbort     = null;
+let chatProvider  = 'ollama';  // default; sobrescrito no boot por /ai/config
+
+// ── Provider config (persiste no KV) ──
+const loadProvider = async () => {
+  try {
+    const res = await fetch('/ai/config');
+    if (!res.ok) return;
+    const cfg = await res.json();
+    chatProvider = cfg.provider ?? 'ollama';
+    const sel = $('chat-provider');
+    if (sel) sel.value = chatProvider;
+    // se deepseek não tem chave, desabilita a opção
+    if (cfg.deepseekKey === false) {
+      const opt = sel?.querySelector('option[value="deepseek"]');
+      if (opt) opt.disabled = true;
+    }
+  } catch { /* ignora — fica no default */ }
+};
+
+const changeProvider = async (provider) => {
+  if (provider === chatProvider) return;
+  if (chatStreaming) return; // não troca com stream rolando
+  try {
+    const res = await fetch('/ai/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider }),
+    });
+    if (!res.ok) {
+      const sel = $('chat-provider');
+      if (sel) sel.value = chatProvider;
+      return;
+    }
+    chatProvider = provider;
+    // ao trocar de provider, zera o histórico (modelos têm schemas de tool diferentes)
+    chatMessages = [];
+    $('chat-feed').innerHTML = '';
+    appendChatBubble('assistant', \`Provider trocado para \${provider}. Histórico limpo. Como posso ajudar?\`);
+  } catch { /* ignora */ }
+};
 
 // ── Executar tool ──
 const executeTool = async (toolCall) => {
@@ -4968,24 +5030,23 @@ const executeTool = async (toolCall) => {
   }
 };
 
-// ── Chamar Ollama com tool loop ──
-const callOllama = async (messages) => {
+// ── Chamar o proxy /ai/chat (provider-agnostic, stream NDJSON) ──
+const callProvider = async (messages) => {
   const controller = new AbortController();
   chatAbort = controller;
 
-  const res = await fetch(OLLAMA_URL, {
+  const res = await fetch('/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     signal: controller.signal,
     body: JSON.stringify({
-      model:    OLLAMA_MODEL,
       messages,
-      tools:    [HTTP_TOOL],
-      stream:   true,
+      tools: [HTTP_TOOL],
+      provider: chatProvider,
     }),
   });
 
-  if (!res.ok) throw new Error(\`Ollama \${res.status}: \${await res.text()}\`);
+  if (!res.ok) throw new Error(\`proxy /ai/chat \${res.status}: \${await res.text()}\`);
 
   const reader = res.body.getReader();
   const dec    = new TextDecoder();
@@ -5004,17 +5065,18 @@ const callOllama = async (messages) => {
       if (!line.trim()) continue;
       try {
         const chunk = JSON.parse(line);
-        const msg = chunk.message;
-        if (!msg) continue;
-
-        if (msg.content) {
-          fullContent += msg.content;
-          streamToChat(msg.content);
+        if (chunk.error) throw new Error(chunk.error);
+        if (chunk.content) {
+          fullContent += chunk.content;
+          streamToChat(chunk.content);
         }
-        if (msg.tool_calls?.length) {
-          toolCalls = toolCalls.concat(msg.tool_calls);
+        if (chunk.toolCalls?.length) {
+          toolCalls = toolCalls.concat(chunk.toolCalls);
         }
-      } catch { /* linha incompleta */ }
+      } catch (err) {
+        // linha incompleta OU erro embutido no stream — relança erros explícitos
+        if (err.message && err.message !== 'Unexpected end of JSON input') throw err;
+      }
     }
   }
 
@@ -5047,7 +5109,7 @@ const sendChatMessage = async () => {
 
     // loop de tool calling
     while (true) {
-      const { content, toolCalls } = await callOllama(messages);
+      const { content, toolCalls } = await callProvider(messages);
 
       if (!toolCalls.length) {
         // resposta final — já foi streamada, só registra no histórico
@@ -5062,8 +5124,9 @@ const sendChatMessage = async () => {
       for (const tc of toolCalls) {
         const result = await executeTool(tc);
         appendToolCall(assistantEl, tc.function.name, tc.function.arguments, result);
-        messages.push({ role: 'tool', content: JSON.stringify(result) });
-        chatMessages.push({ role: 'tool', content: JSON.stringify(result) });
+        // deepseek exige tool_call_id casando com o id do tool_call original
+        messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
+        chatMessages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
       }
 
       // pede pro modelo continuar depois dos tool results
@@ -5152,6 +5215,10 @@ const clearChat = async () => {
 
 // ── Event listeners ──
 document.addEventListener('DOMContentLoaded', () => {
+  loadProvider();
+  const sel = $('chat-provider');
+  if (sel) sel.addEventListener('change', (e) => changeProvider(e.target.value));
+
   $('chat-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
   });

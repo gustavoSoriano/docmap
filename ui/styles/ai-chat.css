@@ -52,6 +52,24 @@
   font-size: 13px; font-weight: 700; color: var(--text); flex: 1;
 }
 #chat-title .ico { width: 16px; height: 16px; color: var(--accent); }
+#chat-provider {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  padding: 3px 6px;
+  border-radius: var(--r-sm);
+  transition: background .12s, border .12s;
+  max-width: 200px;
+}
+#chat-provider:hover { background: var(--surface-3); }
+#chat-provider:focus-visible { border-color: var(--accent-line); }
+#chat-provider option { background: var(--surface-2); color: var(--text); }
+#chat-provider:disabled { opacity: .5; cursor: not-allowed; }
 #chat-header-actions { display: flex; gap: 4px; }
 #chat-header-actions .ghost-btn { padding: 4px 8px; font-size: 11px; }
 #chat-header-actions .ico { width: 14px; height: 14px; }
