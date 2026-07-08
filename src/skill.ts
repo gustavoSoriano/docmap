@@ -53,6 +53,37 @@ Use o nome que o usuário te passar: \`GET /skills/analyze-pr\`
 
 ---
 
+## Tasks — Kanban global
+
+Colunas fixas: \`todo\` (A Fazer) · \`in-progress\` (Em Andamento) · \`done\` (Concluído).
+Ordem dentro da coluna = prioridade (menor \`order\` = mais prioritário).
+
+- \`GET /tasks\` — lista todas as tasks
+- \`GET /tasks/:id\` — task completa + \`deepLink\`
+- \`POST /tasks\` — cria. Body: \`{ title, description?, status?, dueDate?, noteId? }\`
+- \`PUT /tasks/:id\` — edita campos (parcial). \`dueDate: null\` e \`noteId: null\` removem o campo
+- \`DELETE /tasks/:id\` — remove
+- \`PUT /tasks/reorder\` — reordena coluna: \`{ status, ids: string[] }\`
+
+Campos:
+- \`title\` (string, obrigatório)
+- \`description\` (markdown, opcional)
+- \`status\`: \`"todo"\` | \`"in-progress"\` | \`"done"\`
+- \`dueDate\` (YYYY-MM-DD, opcional)
+- \`noteId\` (UUID de uma nota vinculada, opcional)
+
+Deep link: \`GET /tasks/:id\` retorna \`{ deepLink: "http://127.0.0.1:3333/#task/<id>" }\`.
+
+Fluxos comuns:
+- Criar task vinculada a uma nota:
+  1. \`GET /notes\` → encontra o ID da nota
+  2. \`POST /tasks { title, description, status: "todo", noteId: "<id>" }\`
+- Mover task para outra coluna: \`PUT /tasks/:id { status: "in-progress" }\`
+- Reordenar prioridades: \`GET /tasks\` → \`PUT /tasks/reorder { status: "todo", ids: ["<X>", "<A>", "<B>"] }\`
+- Listar pendentes: \`GET /tasks\` → filtre \`status !== "done"\`
+
+---
+
 ## Fluxo sugerido
 
 ### Notas
@@ -64,4 +95,9 @@ Use o nome que o usuário te passar: \`GET /skills/analyze-pr\`
 1. \`GET /diagrams\` — veja o que existe
 2. \`POST /diagrams\` — crie com Mermaid
 3. Retorne o \`deepLink\` para o usuário abrir no app
+
+### Tasks
+1. \`GET /tasks\` — veja o estado atual do Kanban
+2. \`POST /tasks\` — crie novas tasks, vincule a notas quando relevante
+3. \`PUT /tasks/:id\` — mova entre colunas ou edite dados
 `;

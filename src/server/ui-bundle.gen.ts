@@ -1350,6 +1350,7 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   font-family: var(--font-ui); font-size: 13px;
   padding: 8px 12px; outline: none; resize: none;
   line-height: 1.5; max-height: 140px;
+  overflow-y: hidden; box-sizing: border-box;
   transition: border .12s;
 }
 #chat-input:focus { border-color: var(--accent-line); }
@@ -2205,7 +2206,7 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   <div id="chat-feed"></div>
   <div id="chat-composer">
     <button id="chat-stop" onclick="stopChat()" style="display:none"><span data-icon="x"></span> Parar</button>
-    <textarea id="chat-input" placeholder="Pergunte qualquer coisa… (Enter envia, Shift+Enter quebra linha)" rows="1"></textarea>
+    <textarea id="chat-input" placeholder="Pergunte qualquer coisa…" rows="1"></textarea>
     <button id="chat-send" onclick="sendChatMessage()" data-icon="sparkles"></button>
   </div>
 </div>

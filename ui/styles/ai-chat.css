@@ -154,6 +154,7 @@
   font-family: var(--font-ui); font-size: 13px;
   padding: 8px 12px; outline: none; resize: none;
   line-height: 1.5; max-height: 140px;
+  overflow-y: hidden; box-sizing: border-box;
   transition: border .12s;
 }
 #chat-input:focus { border-color: var(--accent-line); }
