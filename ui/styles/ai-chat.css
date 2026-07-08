@@ -137,15 +137,12 @@
   max-width: 92%;
   word-break: break-all;
 }
-.tool-method {
+.tool-name {
   font-weight: 700; padding: 1px 7px;
   border-radius: 4px; font-size: 10px;
+  background: rgba(55,217,154,.12); color: var(--accent);
 }
-.tool-method.get  { background: rgba(96,165,250,.15); color: #60a5fa; }
-.tool-method.post { background: rgba(55,217,154,.15); color: var(--accent); }
-.tool-method.put  { background: rgba(251,191,36,.15); color: #fbbf24; }
-.tool-path   { color: var(--text-2); }
-.tool-body   { color: var(--text-3); margin-top: 4px; white-space: pre-wrap; }
+.tool-summary { color: var(--text-2); margin-left: 4px; }
 .tool-result { color: var(--text-3); margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
 
 /* ── Composer ── */

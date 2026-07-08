@@ -249,6 +249,17 @@ body::before {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+#topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.qa-review-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px; font-weight: 600;
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+  color: var(--accent-2);
+}
+.qa-review-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.qa-review-btn .ico { width: 14px; height: 14px; }
 
 /* ════════ Modes (fill remaining height) ════════ */
 .mode { flex: 1; min-height: 0; overflow: hidden; }
@@ -1389,15 +1400,12 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   max-width: 92%;
   word-break: break-all;
 }
-.tool-method {
+.tool-name {
   font-weight: 700; padding: 1px 7px;
   border-radius: 4px; font-size: 10px;
+  background: rgba(55,217,154,.12); color: var(--accent);
 }
-.tool-method.get  { background: rgba(96,165,250,.15); color: #60a5fa; }
-.tool-method.post { background: rgba(55,217,154,.15); color: var(--accent); }
-.tool-method.put  { background: rgba(251,191,36,.15); color: #fbbf24; }
-.tool-path   { color: var(--text-2); }
-.tool-body   { color: var(--text-3); margin-top: 4px; white-space: pre-wrap; }
+.tool-summary { color: var(--text-2); margin-left: 4px; }
 .tool-result { color: var(--text-3); margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
 
 /* ── Composer ── */
@@ -2400,6 +2408,11 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
       <span id="topbar-sep">/</span>
       <span id="topbar-path">nenhuma pasta</span>
     </div>
+    <div id="topbar-actions">
+      <button id="qa-review-btn" class="tool-btn qa-review-btn" onclick="startQaReview()" title="Revisão de QA: comparar documentação com código">
+        <span data-icon="scan-line"></span> QA Review
+      </button>
+    </div>
     <div id="search-wrap">
       <span id="search-icon" data-icon="search"></span>
       <input id="search-input" type="text" placeholder="Buscar nos documentos…" autocomplete="off" spellcheck="false"/>
@@ -2894,6 +2907,7 @@ const ICON_PATHS = {
   kanban: '<rect width="5" height="6" x="3" y="15" rx="1"/><rect width="5" height="9" x="9" y="12" rx="1"/><rect width="5" height="14" x="15" y="7" rx="1"/><path d="M3 4h5"/><path d="M9 4h5"/><path d="M15 4h5"/>',
   minus: '<path d="M5 12h14"/>',
   maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  'scan-line': '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="4" x2="20" y1="12" y2="12"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -5037,27 +5051,141 @@ document.addEventListener('DOMContentLoaded', initSystem);
 
 const DOCMAP_API = 'http://127.0.0.1:3333';
 
-// DELETE bloqueado — proteção contra ações destrutivas acidentais
+// DELETE bloqueado em http_request — proteção contra ações destrutivas acidentais
 const BLOCKED_METHODS = ['DELETE'];
 
-const HTTP_TOOL = {
-  type: 'function',
-  function: {
-    name: 'http_request',
-    description: 'Faz uma requisição HTTP para a API do docmap. Use para ler e criar notas, diagramas, skills e macros.',
-    parameters: {
-      type: 'object',
-      required: ['method', 'path'],
-      properties: {
-        method: { type: 'string', enum: ['GET', 'POST', 'PUT'], description: 'Método HTTP. DELETE não é permitido.' },
-        path:   { type: 'string', description: 'Caminho da API. Ex: /notes, /diagrams, /skills/nome' },
-        body:   { type: 'object', description: 'Body JSON para POST e PUT (opcional)' },
+const TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'http_request',
+      description: 'Faz uma requisição HTTP para a API do docmap. Use para ler e criar notas, diagramas, skills e macros.',
+      parameters: {
+        type: 'object',
+        required: ['method', 'path'],
+        properties: {
+          method: { type: 'string', enum: ['GET', 'POST', 'PUT'], description: 'Método HTTP. DELETE não é permitido.' },
+          path:   { type: 'string', description: 'Caminho da API. Ex: /notes, /diagrams, /skills/nome' },
+          body:   { type: 'object', description: 'Body JSON para POST e PUT (opcional)' },
+        },
       },
     },
   },
-};
+  {
+    type: 'function',
+    function: {
+      name: 'read_file',
+      description: 'Lê o conteúdo bruto de um arquivo no workspace atual.',
+      parameters: {
+        type: 'object',
+        required: ['file'],
+        properties: {
+          file: { type: 'string', description: 'Caminho relativo do arquivo no workspace. Ex: src/main.ts' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_files',
+      description: 'Lista todos os arquivos do workspace atual, opcionalmente filtrados por padrão.',
+      parameters: {
+        type: 'object',
+        properties: {
+          pattern: { type: 'string', description: 'Regex opcional para filtrar caminhos. Ex: \\\\.md$, src/.*\\\\.ts' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_code',
+      description: 'Busca texto em qualquer arquivo do workspace (não só markdown).',
+      parameters: {
+        type: 'object',
+        required: ['q'],
+        properties: {
+          q:     { type: 'string', description: 'Termo de busca' },
+          glob:  { type: 'string', description: 'Filtro de caminho estilo glob. Ex: src/**/*.ts' },
+          regex: { type: 'boolean', description: 'Se true, trata q como regex' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'git_status',
+      description: 'Retorna git status --porcelain do workspace.',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'git_diff',
+      description: 'Retorna git diff do workspace (alterações não commitadas).',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'git_log',
+      description: 'Retorna git log --oneline recente.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', description: 'Quantidade de commits (default 20)' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'run_command',
+      description: 'Executa um comando no terminal dentro do workspace. SEMPRE peça aprovação do usuário antes de usar. Use apenas para linters ou comandos de análise (ex: deno lint, eslint).',
+      parameters: {
+        type: 'object',
+        required: ['command'],
+        properties: {
+          command: { type: 'string', description: 'Comando principal. Ex: deno' },
+          args:    { type: 'array', items: { type: 'string' }, description: 'Argumentos. Ex: ["lint", "src/"]' },
+        },
+      },
+    },
+  },
+];
 
-// system prompt vem do endpoint /system/skill
+const QA_AGENT_PROMPT = \`Você é um agente de QA (Quality Assurance) do DocMap. Sua missão é revisar o workspace atual de forma objetiva e baseada em evidências.
+
+REGRAS FUNDAMENTAIS:
+1. NÃO ASSUMA que o código ou a documentação está "errado". Documente apenas INCONSISTÊNCIAS observáveis entre o que está documento e o que o código faz.
+2. Para cada inconsistência, cite ARQUIVOS, LINHAS e TRECHOS EXATOS de ambos os lados (doc e código).
+3. Também identifique: dead code, anti-patterns, bugs potenciais, crashes e comportamentos inesperados.
+4. Use as ferramentas disponíveis para coletar evidências reais.
+5. Ao final, OBRIGATORIAMENTE salve o relatório como uma NOTA no DocMap via POST /notes com:
+   - title: "QA Review — <nome do workspace> — <data ISO>"
+   - category: "qa-review"
+   - tags: ["qa", "review"] + outras tags conforme achados
+   - content: relatório completo em markdown
+
+FLUXO RECOMENDADO:
+1. git_status — veja o que mudou recentemente.
+2. list_files — mapeie arquivos relevantes.
+3. Identifique documentos principais (README, docs, ADRs, .md).
+4. Para cada doc relevante, busque no código símbolos/termos mencionados com search_code.
+5. Leia os docs e arquivos de código correspondentes com read_file.
+6. Compare: o doc diz X, o código faz Y.
+7. Analise o código em busca de anti-patterns, dead code e bugs.
+8. Gere a nota final com o relatório.
+
+Seja preciso, objetivo e baseado em evidências. Não julgue — apenas exponha inconsistências.\`;
+
+// system prompt normal vem do endpoint /system/skill
 let systemPrompt = null;
 const getSystemPrompt = async () => {
   if (systemPrompt) return systemPrompt;
@@ -5065,7 +5193,7 @@ const getSystemPrompt = async () => {
     const res = await fetch('/system/skill');
     systemPrompt = await res.text();
   } catch {
-    systemPrompt = 'Você é um assistente do docmap. Use http_request para interagir com a API em http://127.0.0.1:3334.';
+    systemPrompt = 'Você é um assistente do docmap. Use as ferramentas disponíveis para interagir com o workspace, notas e diagramas.';
   }
   return systemPrompt;
 };
@@ -5079,6 +5207,7 @@ let chatProvider  = 'ollama';  // default; sobrescrito no boot por /ai/config
 let chatMinimized = false;
 let chatDragged   = false;
 let chatDrag      = { active: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 };
+let isQaSession   = false;
 
 const CHAT_LAYOUT_KEY = 'docmap-chat-layout';
 
@@ -5091,7 +5220,6 @@ const loadProvider = async () => {
     chatProvider = cfg.provider ?? 'ollama';
     const sel = $('chat-provider');
     if (sel) sel.value = chatProvider;
-    // se deepseek não tem chave, desabilita a opção
     if (cfg.deepseekKey === false) {
       const opt = sel?.querySelector('option[value="deepseek"]');
       if (opt) opt.disabled = true;
@@ -5101,7 +5229,7 @@ const loadProvider = async () => {
 
 const changeProvider = async (provider) => {
   if (provider === chatProvider) return;
-  if (chatStreaming) return; // não troca com stream rolando
+  if (chatStreaming) return;
   try {
     const res = await fetch('/ai/config', {
       method: 'POST',
@@ -5114,7 +5242,6 @@ const changeProvider = async (provider) => {
       return;
     }
     chatProvider = provider;
-    // ao trocar de provider, zera o histórico (modelos têm schemas de tool diferentes)
     chatMessages = [];
     $('chat-feed').innerHTML = '';
     appendChatBubble('assistant', \`Provider trocado para \${provider}. Histórico limpo. Como posso ajudar?\`);
@@ -5125,25 +5252,115 @@ const changeProvider = async (provider) => {
 const executeTool = async (toolCall) => {
   const args = toolCall.function.arguments;
   const params = typeof args === 'string' ? JSON.parse(args) : args;
-  const method = (params.method || 'GET').toUpperCase();
-  const path   = params.path || '/';
-  const body   = params.body;
+  const name = toolCall.function.name;
 
-  if (BLOCKED_METHODS.includes(method)) {
-    return { error: \`Método \${method} bloqueado por segurança.\` };
+  if (name === 'http_request') {
+    const method = (params.method || 'GET').toUpperCase();
+    const path   = params.path || '/';
+    const body   = params.body;
+
+    if (BLOCKED_METHODS.includes(method)) {
+      return { error: \`Método \${method} bloqueado por segurança.\` };
+    }
+
+    try {
+      const res = await fetch(\`\${DOCMAP_API}\${path}\`, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : {},
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { return { response: text }; }
+    } catch (err) {
+      return { error: err.message };
+    }
   }
 
-  try {
-    const res = await fetch(\`\${DOCMAP_API}\${path}\`, {
-      method,
-      headers: body ? { 'Content-Type': 'application/json' } : {},
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const text = await res.text();
-    try { return JSON.parse(text); } catch { return { response: text }; }
-  } catch (err) {
-    return { error: err.message };
+  if (name === 'read_file') {
+    const file = params.file;
+    if (!file) return { error: 'file é obrigatório' };
+    try {
+      const res = await fetch(\`\${DOCMAP_API}/content?file=\${encodeURIComponent(file)}\`);
+      return await res.json();
+    } catch (err) {
+      return { error: err.message };
+    }
   }
+
+  if (name === 'list_files') {
+    const qs = params.pattern ? \`?pattern=\${encodeURIComponent(params.pattern)}\` : '';
+    try {
+      const res = await fetch(\`\${DOCMAP_API}/workspace/files\${qs}\`);
+      return await res.json();
+    } catch (err) {
+      return { error: err.message };
+    }
+  }
+
+  if (name === 'search_code') {
+    const q = params.q;
+    if (!q) return { error: 'q é obrigatório' };
+    const qp = new URLSearchParams({ q });
+    if (params.glob) qp.set('glob', params.glob);
+    if (params.regex) qp.set('regex', 'true');
+    try {
+      const res = await fetch(\`\${DOCMAP_API}/code/search?\${qp.toString()}\`);
+      return await res.json();
+    } catch (err) {
+      return { error: err.message };
+    }
+  }
+
+  if (name === 'git_status') {
+    try {
+      const res = await fetch(\`\${DOCMAP_API}/git/status\`);
+      return await res.json();
+    } catch (err) {
+      return { error: err.message };
+    }
+  }
+
+  if (name === 'git_diff') {
+    try {
+      const res = await fetch(\`\${DOCMAP_API}/git/diff\`);
+      return await res.json();
+    } catch (err) {
+      return { error: err.message };
+    }
+  }
+
+  if (name === 'git_log') {
+    const limit = params.limit ?? 20;
+    try {
+      const res = await fetch(\`\${DOCMAP_API}/git/log?limit=\${limit}\`);
+      return await res.json();
+    } catch (err) {
+      return { error: err.message };
+    }
+  }
+
+  if (name === 'run_command') {
+    const command = params.command;
+    const args    = params.args || [];
+    if (!command) return { error: 'command é obrigatório' };
+
+    const fullCmd = [command, ...args].join(' ');
+    const ok = await confirmDialog(\`Permitir execução do comando?\\n\\n\${fullCmd}\`, { okLabel: 'Executar' });
+    if (!ok) return { blocked: true, reason: 'Usuário cancelou a execução.' };
+
+    try {
+      const res = await fetch(\`\${DOCMAP_API}/run\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command, args }),
+      });
+      return await res.json();
+    } catch (err) {
+      return { error: err.message };
+    }
+  }
+
+  return { error: \`Tool desconhecida: \${name}\` };
 };
 
 // ── Chamar o proxy /ai/chat (provider-agnostic, stream NDJSON) ──
@@ -5157,7 +5374,7 @@ const callProvider = async (messages) => {
     signal: controller.signal,
     body: JSON.stringify({
       messages,
-      tools: [HTTP_TOOL],
+      tools: TOOLS,
       provider: chatProvider,
     }),
   });
@@ -5190,7 +5407,6 @@ const callProvider = async (messages) => {
           toolCalls = toolCalls.concat(chunk.toolCalls);
         }
       } catch (err) {
-        // linha incompleta OU erro embutido no stream — relança erros explícitos
         if (err.message && err.message !== 'Unexpected end of JSON input') throw err;
       }
     }
@@ -5223,29 +5439,24 @@ const sendChatMessage = async () => {
   try {
     let messages = [...chatMessages];
 
-    // loop de tool calling
     while (true) {
       const { content, toolCalls } = await callProvider(messages);
 
       if (!toolCalls.length) {
-        // resposta final — já foi streamada, só registra no histórico
         chatMessages.push({ role: 'assistant', content });
         break;
       }
 
-      // tem tool calls — executa e continua
       messages.push({ role: 'assistant', content, tool_calls: toolCalls });
       chatMessages.push({ role: 'assistant', content, tool_calls: toolCalls });
 
       for (const tc of toolCalls) {
         const result = await executeTool(tc);
-        appendToolCall(assistantEl, tc.function.name, tc.function.arguments, result);
-        // deepseek exige tool_call_id casando com o id do tool_call original
+        appendToolCall(tc.function.name, tc.function.arguments, result);
         messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
         chatMessages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
       }
 
-      // pede pro modelo continuar depois dos tool results
       streamToChat('\\n');
     }
   } catch (err) {
@@ -5255,7 +5466,43 @@ const sendChatMessage = async () => {
   } finally {
     chatAbort = null;
     setChatStreaming(false);
+    isQaSession = false;
   }
+};
+
+// ── Iniciar sessão de QA Review ──
+const startQaReview = async () => {
+  if (chatStreaming) return;
+
+  let workspaceName = 'workspace';
+  try {
+    const res = await fetch('/workspace');
+    const data = await res.json();
+    if (!data.root) {
+      toast('Selecione um workspace primeiro');
+      return;
+    }
+    workspaceName = data.name || data.root.split('/').pop() || 'workspace';
+  } catch {
+    toast('Não foi possível verificar o workspace');
+    return;
+  }
+
+  if (!chatOpen) toggleChat();
+  chatMinimized = false;
+  applyMinimizeState();
+
+  const prompt = QA_AGENT_PROMPT.replace(/<nome do workspace>/g, workspaceName);
+  chatMessages = [
+    { role: 'system', content: prompt },
+  ];
+  $('chat-feed').innerHTML = '';
+  appendChatBubble('assistant', \`Iniciando revisão de QA em “\${workspaceName}”…\`);
+
+  isQaSession = true;
+
+  $('chat-input').value = 'Execute uma revisão de QA completa deste workspace. Analise documentação vs código, identifique inconsistências, dead code, anti-patterns e bugs potenciais. Ao final, salve o relatório como uma nota com category "qa-review".';
+  await sendChatMessage();
 };
 
 // ── UI helpers ──
@@ -5278,22 +5525,31 @@ const streamToChat = (chunk) => {
   $('chat-feed').scrollTop = $('chat-feed').scrollHeight;
 };
 
-const appendToolCall = (parentEl, name, args, result) => {
+const appendToolCall = (name, args, result) => {
+  const feed = $('chat-feed');
   const div = document.createElement('div');
   div.className = 'chat-tool-call';
   const argsObj = typeof args === 'string' ? JSON.parse(args) : args;
-  const method = argsObj.method || 'GET';
-  const path   = argsObj.path   || '';
+  const summary = toolCallSummary(name, argsObj);
   div.innerHTML =
-    \`<span class="tool-method \${method.toLowerCase()}">\${escHtml(method)}</span> \` +
-    \`<span class="tool-path">\${escHtml(path)}</span>\` +
-    (argsObj.body ? \`<div class="tool-body">\${escHtml(JSON.stringify(argsObj.body, null, 2))}</div>\` : '') +
-    \`<div class="tool-result">\${escHtml(JSON.stringify(result).slice(0, 300))}\${JSON.stringify(result).length > 300 ? '…' : ''}</div>\`;
+    \`<span class="tool-name">\${escHtml(name)}</span> \` +
+    \`<span class="tool-summary">\${escHtml(summary)}</span>\` +
+    \`<div class="tool-result">\${escHtml(JSON.stringify(result).slice(0, 360))}\${JSON.stringify(result).length > 360 ? '…' : ''}</div>\`;
 
-  // insere antes do texto já streamado (ou no final)
-  const feed = $('chat-feed');
   feed.appendChild(div);
   feed.scrollTop = feed.scrollHeight;
+};
+
+const toolCallSummary = (name, args) => {
+  if (name === 'http_request') return \`\${args.method || 'GET'} \${args.path || '/'}\`;
+  if (name === 'read_file')    return args.file;
+  if (name === 'list_files')   return args.pattern || 'todos';
+  if (name === 'search_code')  return \`\${args.q}\${args.glob ? \` glob:\${args.glob}\` : ''}\`;
+  if (name === 'git_status')   return 'git status';
+  if (name === 'git_diff')     return 'git diff';
+  if (name === 'git_log')      return \`git log -n\${args.limit || 20}\`;
+  if (name === 'run_command')  return \`\${args.command} \${(args.args || []).join(' ')}\`;
+  return JSON.stringify(args);
 };
 
 const setChatStreaming = (on) => {
@@ -5357,7 +5613,7 @@ const toggleMinimizeChat = () => {
 const clampChatPosition = (left, top) => {
   const panel = $('chat-panel');
   const rect = panel.getBoundingClientRect();
-  const minVisible = 48; // área mínima visível
+  const minVisible = 48;
   const maxLeft = window.innerWidth - minVisible;
   const maxTop = window.innerHeight - minVisible;
   return {
@@ -5368,7 +5624,6 @@ const clampChatPosition = (left, top) => {
 
 const startChatDrag = (e) => {
   if (e.button !== 0) return;
-  // não arrasta ao interagir com controles do header
   if (e.target.closest('#chat-provider, .ghost-btn')) return;
 
   const panel = $('chat-panel');
@@ -5438,6 +5693,7 @@ const clearChat = async () => {
   if (!ok) return;
   chatMessages = [];
   $('chat-feed').innerHTML = '';
+  isQaSession = false;
   appendChatBubble('assistant', 'Histórico limpo. Como posso ajudar?');
 };
 
@@ -5445,6 +5701,8 @@ const clearChat = async () => {
 document.addEventListener('DOMContentLoaded', () => {
   loadProvider();
   loadChatLayout();
+
+  window.startQaReview = startQaReview;
 
   const sel = $('chat-provider');
   if (sel) sel.addEventListener('change', (e) => changeProvider(e.target.value));
@@ -5454,12 +5712,10 @@ document.addEventListener('DOMContentLoaded', () => {
   $('chat-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
   });
-  // auto-resize textarea
   $('chat-input').addEventListener('input', function() {
     this.style.height = '';
     this.style.height = Math.min(this.scrollHeight, 140) + 'px';
   });
-  // fechar com Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && chatOpen) toggleChat();
   });
