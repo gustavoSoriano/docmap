@@ -1,3 +1,4 @@
+import './env.ts';
 import { openWindow } from './window/app.ts';
 import { UI_PORT } from './server/server.ts';
 

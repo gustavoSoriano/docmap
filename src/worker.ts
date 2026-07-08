@@ -2,6 +2,7 @@
 // Necessário porque webview.run() (thread principal) bloqueia o event loop
 // do Deno; mantendo os servidores aqui, eles seguem respondendo.
 
+import './env.ts';
 import { startUiServer, UI_PORT } from './server/server.ts';
 import { startApiServer, API_PORT } from './api/server.ts';
 import { createWorkspaceRef, restoreLastWorkspace } from './workspace/manager.ts';

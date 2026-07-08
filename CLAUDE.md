@@ -77,6 +77,8 @@ Definido em `src/config.ts`. NUNCA usar `Deno.openKv()` sem caminho — o defaul
 
 **Backup/restore:** `src/kv/backup.ts` — exporta/importa todo o KV em JSON. Endpoints `/system/backup` e `/system/restore`.
 
+**Env vars e `.env`:** apps GUI no macOS não herdam variáveis do shell (`~/.zshrc`). `src/env.ts` lê um arquivo `.env` no diretório de dados do app (ex.: `~/Library/Application Support/docmap/.env`) e define as vars via `Deno.env.set()` antes de `config.ts` ser avaliado. Deve ser importado como primeiro módulo em `main.ts` e `worker.ts`. Valores já definidas no ambiente têm precedência.
+
 **Auto-update:** `src/update/github.ts` checa GitHub Releases no boot; `src/update/apply.ts` baixa o binário e renomeia por cima do atual. Configurar repo via `GITHUB_REPO` (env `DOCMAP_REPO`). Assets devem se chamar `docmap-<os>-<arch>` (ex.: `docmap-macos-aarch64`). Bump `APP_VERSION` a cada release.
 
 ## Segurança
