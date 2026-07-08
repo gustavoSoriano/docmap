@@ -1322,7 +1322,7 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 .tool-method.post { background: rgba(55,217,154,.15); color: var(--accent); }
 .tool-method.put  { background: rgba(251,191,36,.15); color: #fbbf24; }
 .tool-path   { color: var(--text-2); }
-.tool-body   { color: var(--text-3); margin-top: 4px; white-space: pre; }
+.tool-body   { color: var(--text-3); margin-top: 4px; white-space: pre-wrap; }
 .tool-result { color: var(--text-3); margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
 
 /* ── Composer ── */

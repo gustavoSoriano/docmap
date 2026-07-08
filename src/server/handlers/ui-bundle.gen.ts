@@ -568,18 +568,25 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 .pill-btn.active .pill-count { background: var(--accent); color: var(--on-accent); }
 
-#markmap-container { flex: 1; min-height: 0; overflow: hidden; position: relative; }
-#markmap-container svg { width: 100% !important; height: 100% !important; }
+#markmap-container,
+#note-markmap { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+#markmap-container svg,
+#note-markmap svg { width: 100% !important; height: 100% !important; }
 
 /* markmap tem tema claro por padrão — forçar legibilidade no dark */
 #markmap-container .markmap-node > text,
 #markmap-container .markmap-foreign,
-#markmap-container .markmap-foreign div {
+#markmap-container .markmap-foreign div,
+#note-markmap .markmap-node > text,
+#note-markmap .markmap-foreign,
+#note-markmap .markmap-foreign div {
   fill: var(--text) !important;
   color: var(--text) !important;
 }
-#markmap-container .markmap-foreign a { color: var(--accent) !important; }
-#markmap-container .markmap-foreign code {
+#markmap-container .markmap-foreign a,
+#note-markmap .markmap-foreign a { color: var(--accent) !important; }
+#markmap-container .markmap-foreign code,
+#note-markmap .markmap-foreign code {
   font-family: var(--font-mono);
   background: var(--surface-3);
   color: var(--accent);
@@ -1105,6 +1112,33 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 #note-id-badge:hover { color: var(--accent); border-color: var(--accent-line); }
 
+.note-head-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .12s;
+  flex-shrink: 0;
+}
+.note-head-btn:hover { border-color: var(--accent-line); color: var(--accent); }
+.note-head-btn.active { color: var(--accent); border-color: var(--accent-line); background: var(--accent-dim); }
+.note-head-btn .ico { width: 14px; height: 14px; }
+
+#note-markmap {
+  flex: 1;
+  display: none;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+#note-markmap.visible { display: block; }
+
 #note-toolbar {
   display: flex;
   align-items: center;
@@ -1344,7 +1378,7 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 .tool-method.post { background: rgba(55,217,154,.15); color: var(--accent); }
 .tool-method.put  { background: rgba(251,191,36,.15); color: #fbbf24; }
 .tool-path   { color: var(--text-2); }
-.tool-body   { color: var(--text-3); margin-top: 4px; white-space: pre; }
+.tool-body   { color: var(--text-3); margin-top: 4px; white-space: pre-wrap; }
 .tool-result { color: var(--text-3); margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
 
 /* ── Composer ── */
@@ -2472,6 +2506,7 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
         <div id="note-head">
           <input id="note-title-input" type="text" placeholder="Título da nota…"/>
           <span id="note-id-badge" style="display:none" onclick="copyNoteId()" title="Clique para copiar o ID (use numa IA)"></span>
+          <button class="note-head-btn" id="btn-note-markmap" style="display:none" onclick="toggleNoteMarkmap()" title="Ver como mapa mental"><span data-icon="tree"></span></button>
         </div>
         <div id="note-toolbar">
           <div id="note-cat-field">
@@ -2488,6 +2523,7 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
         <div id="note-body">
           <textarea id="note-content-textarea" placeholder="Escreva em markdown…"></textarea>
           <div id="note-preview"></div>
+          <div id="note-markmap"></div>
         </div>
       </div>
     </section>
@@ -3540,9 +3576,10 @@ document.addEventListener('mousedown', (e) => {
 <script>
 // ════ Notas — base de conhecimento (CRUD, exposta à IA via API) ════
 
-let allNotes    = [];
-let currentNote = null;
-let previewMode = false;
+let allNotes           = [];
+let currentNote        = null;
+let previewMode        = false;
+let noteMarkmapVisible = false;
 
 // ── Lista ──
 const loadNotesList = async () => {
@@ -3650,10 +3687,12 @@ const newNote = () => {
   $('note-cat-input').value = '';
   updateCatDot();
   $('note-id-badge').style.display = 'none';
+  $('btn-note-markmap').style.display = 'none';
   $('btn-copy-note').style.display = 'none';
   $('btn-delete-note').style.display = 'none';
   showEditor();
   setPreviewMode(false);
+  setNoteMarkmapVisible(false);
   $('note-title-input').focus();
 };
 
@@ -3666,10 +3705,12 @@ const fillEditor = (note) => {
   const badge = $('note-id-badge');
   badge.textContent = note.id.slice(0, 8);
   badge.style.display = 'inline-block';
+  $('btn-note-markmap').style.display = 'inline-flex';
   $('btn-copy-note').style.display = 'inline-flex';
   $('btn-delete-note').style.display = 'inline-flex';
   showEditor();
   setPreviewMode(true); // abre em preview; usuário clica "Editar" se quiser modificar
+  if (noteMarkmapVisible) renderNoteMarkmap();
 };
 
 // ── Salvar / excluir ──
@@ -3690,6 +3731,7 @@ const saveCurrentNote = async () => {
     });
     currentNote = await res.json();
     fillEditor(currentNote);
+    if (noteMarkmapVisible) renderNoteMarkmap();
     const listRes = await fetch('/notes');
     allNotes = await listRes.json();
     refreshCategoryOptions();
@@ -3720,6 +3762,7 @@ const setPreviewMode = (on) => {
   const pv = $('note-preview');
   const btn = $('btn-preview');
   if (on) {
+    setNoteMarkmapVisible(false);
     pv.innerHTML = window.marked ? marked.parse(ta.value) : \`<pre>\${escHtml(ta.value)}</pre>\`;
     ta.style.display = 'none';
     pv.classList.add('visible');
@@ -3731,6 +3774,45 @@ const setPreviewMode = (on) => {
   }
 };
 const toggleNotePreview = () => setPreviewMode(!previewMode);
+
+// ── Mapa mental da nota (renderiza o markdown da nota ali mesmo) ──
+const setNoteMarkmapVisible = (on) => {
+  noteMarkmapVisible = on;
+  const mm  = $('note-markmap');
+  const ta  = $('note-content-textarea');
+  const pv  = $('note-preview');
+  const btn = $('btn-note-markmap');
+  if (on) {
+    pv.classList.remove('visible');
+    ta.style.display = 'none';
+    mm.classList.add('visible');
+    btn?.classList.add('active');
+    renderNoteMarkmap();
+  } else {
+    ta.style.display = '';
+    mm.classList.remove('visible');
+    btn?.classList.remove('active');
+    if (previewMode) pv.classList.add('visible');
+  }
+};
+
+const renderNoteMarkmap = () => {
+  const mk = window.markmap;
+  if (!mk?.Markmap || !mk?.Transformer) return toast('markmap não carregou (sem internet?)');
+  if (!currentNote) return;
+  const container = $('note-markmap');
+  container.querySelectorAll('svg.markmap-svg').forEach((el) => el.remove());
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.classList.add('markmap-svg');
+  svg.style.cssText = 'width:100%;height:100%;display:block;';
+  container.appendChild(svg);
+  const { root } = new mk.Transformer().transform(currentNote.content || '# ' + (currentNote.title || 'Nota'));
+  if (window._noteMarkmap) { try { window._noteMarkmap.destroy(); } catch { /* noop */ } }
+  window._noteMarkmap = mk.Markmap.create(svg, { autoFit: false }, root);
+  setTimeout(() => window._noteMarkmap?.fit?.(), 100);
+};
+
+const toggleNoteMarkmap = () => setNoteMarkmapVisible(!noteMarkmapVisible);
 
 // ── Atualiza o pontinho de cor ao digitar a categoria ──
 $('note-cat-input').addEventListener('input', updateCatDot);

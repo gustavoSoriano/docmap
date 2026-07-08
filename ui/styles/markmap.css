@@ -60,18 +60,25 @@
 }
 .pill-btn.active .pill-count { background: var(--accent); color: var(--on-accent); }
 
-#markmap-container { flex: 1; min-height: 0; overflow: hidden; position: relative; }
-#markmap-container svg { width: 100% !important; height: 100% !important; }
+#markmap-container,
+#note-markmap { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+#markmap-container svg,
+#note-markmap svg { width: 100% !important; height: 100% !important; }
 
 /* markmap tem tema claro por padrão — forçar legibilidade no dark */
 #markmap-container .markmap-node > text,
 #markmap-container .markmap-foreign,
-#markmap-container .markmap-foreign div {
+#markmap-container .markmap-foreign div,
+#note-markmap .markmap-node > text,
+#note-markmap .markmap-foreign,
+#note-markmap .markmap-foreign div {
   fill: var(--text) !important;
   color: var(--text) !important;
 }
-#markmap-container .markmap-foreign a { color: var(--accent) !important; }
-#markmap-container .markmap-foreign code {
+#markmap-container .markmap-foreign a,
+#note-markmap .markmap-foreign a { color: var(--accent) !important; }
+#markmap-container .markmap-foreign code,
+#note-markmap .markmap-foreign code {
   font-family: var(--font-mono);
   background: var(--surface-3);
   color: var(--accent);

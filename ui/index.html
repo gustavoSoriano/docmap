@@ -203,6 +203,7 @@
         <div id="note-head">
           <input id="note-title-input" type="text" placeholder="Título da nota…"/>
           <span id="note-id-badge" style="display:none" onclick="copyNoteId()" title="Clique para copiar o ID (use numa IA)"></span>
+          <button class="note-head-btn" id="btn-note-markmap" style="display:none" onclick="toggleNoteMarkmap()" title="Ver como mapa mental"><span data-icon="tree"></span></button>
         </div>
         <div id="note-toolbar">
           <div id="note-cat-field">
@@ -219,6 +220,7 @@
         <div id="note-body">
           <textarea id="note-content-textarea" placeholder="Escreva em markdown…"></textarea>
           <div id="note-preview"></div>
+          <div id="note-markmap"></div>
         </div>
       </div>
     </section>

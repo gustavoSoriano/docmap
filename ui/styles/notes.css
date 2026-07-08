@@ -213,6 +213,33 @@
 }
 #note-id-badge:hover { color: var(--accent); border-color: var(--accent-line); }
 
+.note-head-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .12s;
+  flex-shrink: 0;
+}
+.note-head-btn:hover { border-color: var(--accent-line); color: var(--accent); }
+.note-head-btn.active { color: var(--accent); border-color: var(--accent-line); background: var(--accent-dim); }
+.note-head-btn .ico { width: 14px; height: 14px; }
+
+#note-markmap {
+  flex: 1;
+  display: none;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+#note-markmap.visible { display: block; }
+
 #note-toolbar {
   display: flex;
   align-items: center;

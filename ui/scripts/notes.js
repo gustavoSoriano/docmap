@@ -1,8 +1,9 @@
 // ════ Notas — base de conhecimento (CRUD, exposta à IA via API) ════
 
-let allNotes    = [];
-let currentNote = null;
-let previewMode = false;
+let allNotes           = [];
+let currentNote        = null;
+let previewMode        = false;
+let noteMarkmapVisible = false;
 
 // ── Lista ──
 const loadNotesList = async () => {
@@ -110,10 +111,12 @@ const newNote = () => {
   $('note-cat-input').value = '';
   updateCatDot();
   $('note-id-badge').style.display = 'none';
+  $('btn-note-markmap').style.display = 'none';
   $('btn-copy-note').style.display = 'none';
   $('btn-delete-note').style.display = 'none';
   showEditor();
   setPreviewMode(false);
+  setNoteMarkmapVisible(false);
   $('note-title-input').focus();
 };
 
@@ -126,10 +129,12 @@ const fillEditor = (note) => {
   const badge = $('note-id-badge');
   badge.textContent = note.id.slice(0, 8);
   badge.style.display = 'inline-block';
+  $('btn-note-markmap').style.display = 'inline-flex';
   $('btn-copy-note').style.display = 'inline-flex';
   $('btn-delete-note').style.display = 'inline-flex';
   showEditor();
   setPreviewMode(true); // abre em preview; usuário clica "Editar" se quiser modificar
+  if (noteMarkmapVisible) renderNoteMarkmap();
 };
 
 // ── Salvar / excluir ──
@@ -150,6 +155,7 @@ const saveCurrentNote = async () => {
     });
     currentNote = await res.json();
     fillEditor(currentNote);
+    if (noteMarkmapVisible) renderNoteMarkmap();
     const listRes = await fetch('/notes');
     allNotes = await listRes.json();
     refreshCategoryOptions();
@@ -180,6 +186,7 @@ const setPreviewMode = (on) => {
   const pv = $('note-preview');
   const btn = $('btn-preview');
   if (on) {
+    setNoteMarkmapVisible(false);
     pv.innerHTML = window.marked ? marked.parse(ta.value) : `<pre>${escHtml(ta.value)}</pre>`;
     ta.style.display = 'none';
     pv.classList.add('visible');
@@ -191,6 +198,45 @@ const setPreviewMode = (on) => {
   }
 };
 const toggleNotePreview = () => setPreviewMode(!previewMode);
+
+// ── Mapa mental da nota (renderiza o markdown da nota ali mesmo) ──
+const setNoteMarkmapVisible = (on) => {
+  noteMarkmapVisible = on;
+  const mm  = $('note-markmap');
+  const ta  = $('note-content-textarea');
+  const pv  = $('note-preview');
+  const btn = $('btn-note-markmap');
+  if (on) {
+    pv.classList.remove('visible');
+    ta.style.display = 'none';
+    mm.classList.add('visible');
+    btn?.classList.add('active');
+    renderNoteMarkmap();
+  } else {
+    ta.style.display = '';
+    mm.classList.remove('visible');
+    btn?.classList.remove('active');
+    if (previewMode) pv.classList.add('visible');
+  }
+};
+
+const renderNoteMarkmap = () => {
+  const mk = window.markmap;
+  if (!mk?.Markmap || !mk?.Transformer) return toast('markmap não carregou (sem internet?)');
+  if (!currentNote) return;
+  const container = $('note-markmap');
+  container.querySelectorAll('svg.markmap-svg').forEach((el) => el.remove());
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.classList.add('markmap-svg');
+  svg.style.cssText = 'width:100%;height:100%;display:block;';
+  container.appendChild(svg);
+  const { root } = new mk.Transformer().transform(currentNote.content || '# ' + (currentNote.title || 'Nota'));
+  if (window._noteMarkmap) { try { window._noteMarkmap.destroy(); } catch { /* noop */ } }
+  window._noteMarkmap = mk.Markmap.create(svg, { autoFit: false }, root);
+  setTimeout(() => window._noteMarkmap?.fit?.(), 100);
+};
+
+const toggleNoteMarkmap = () => setNoteMarkmapVisible(!noteMarkmapVisible);
 
 // ── Atualiza o pontinho de cor ao digitar a categoria ──
 $('note-cat-input').addEventListener('input', updateCatDot);
