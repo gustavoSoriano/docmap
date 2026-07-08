@@ -1165,6 +1165,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   cursor: pointer;
   transition: all .12s;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 .tool-btn:hover { border-color: var(--border-hi); color: var(--text); }
 .tool-btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
