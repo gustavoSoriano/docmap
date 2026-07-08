@@ -1,9 +1,33 @@
 import { API_PORT } from './api/server.ts';
 
-export const skillMarkdown = (): string => `# docmap — API local (para IA)
+export const skillMarkdown = (): string =>
+  `# docmap — API local (para IA)
 
 Base URL: http://127.0.0.1:${API_PORT}
 Formato: JSON. Todos os endpoints são REST.
+
+---
+
+## Workspace (grafos e arquivos .md)
+
+Estes endpoints leem a pasta de trabalho que o usuário abriu no docmap.
+Retornam erro se nenhum workspace estiver selecionado.
+
+- \`GET /graph\` — retorna o grafo de links entre arquivos \`.md\`
+  - \`nodes\`: \`{ id, label, group }\` — o \`id\` é o caminho relativo do arquivo
+  - \`links\`: \`{ source, target }\` — conexões baseadas em links \`[[...]]\` e \`[texto](arquivo.md)\`
+- \`GET /content?file=<caminho/relativo.md>\` — lê o conteúdo bruto de um arquivo
+  - Exemplo: \`GET /content?file=README.md\`
+  - Resposta: \`{ path, raw }\` onde \`raw\` é o markdown completo
+- \`GET /docs/search?q=termo\` — busca ocorrências nos arquivos \`.md\` do workspace
+  - Resposta: array de \`{ file, line, heading, snippet }\`
+
+Para explorar o workspace, use este fluxo:
+1. \`GET /graph\` — entenda a estrutura e os arquivos disponíveis
+2. \`GET /docs/search?q=termo\` — localize onde um assunto é mencionado
+3. \`GET /content?file=<caminho>\` — leia o arquivo completo quando precisar de contexto
+
+Se o usuário pedir para alterar um arquivo, você já tem o caminho relativo no \`id\` do grafo ou no campo \`file\` da busca. A edição em si deve ser feita pelo canal de escrita que o usuário indicar (o docmap não expõe escrita de arquivos por esta API).
 
 ---
 
