@@ -2,7 +2,7 @@
 // Streaming NDJSON. tool_calls chegam completos em um único chunk (não fragmentados).
 
 import { OLLAMA_MODEL, OLLAMA_URL } from '../../config.ts';
-import type { ChatChunk, ChatMessage, ToolDefinition } from '../types.ts';
+import type { ChatChunk, ChatMessage, ToolCall, ToolDefinition } from '../types.ts';
 
 export async function* callOllama(
   messages: readonly ChatMessage[],
