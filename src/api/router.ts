@@ -1,6 +1,7 @@
 import { createApiNotesHandler } from './handlers/notes.ts';
 import { createApiSearchHandler } from './handlers/search.ts';
 import { createApiGraphHandler } from './handlers/graph.ts';
+import { createApiGraphRelationsHandler } from './handlers/graph-relations.ts';
 import { createApiContentHandler } from './handlers/content.ts';
 import { createApiSearchDocsHandler } from './handlers/search-docs.ts';
 import { diagramsHandler } from '../diagrams/handler.ts';
@@ -22,11 +23,12 @@ const withCors = (res: Response): Response => {
 };
 
 export const createApiRouter = (deps: HandlerDeps) => {
-  const notes = createApiNotesHandler(deps);
-  const search = createApiSearchHandler(deps);
-  const graph = createApiGraphHandler(deps);
-  const content = createApiContentHandler(deps);
-  const searchDocs = createApiSearchDocsHandler(deps);
+  const notes            = createApiNotesHandler(deps);
+  const search           = createApiSearchHandler(deps);
+  const graph            = createApiGraphHandler(deps);
+  const graphRelations   = createApiGraphRelationsHandler(deps);
+  const content          = createApiContentHandler(deps);
+  const searchDocs       = createApiSearchDocsHandler(deps);
   const diagrams = diagramsHandler(deps.kv);
   const skills = skillsApiHandler(deps.kv);
   const tasks = tasksHandler(deps.kv);
@@ -45,8 +47,9 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/skills')) res = await skills(req, url);
     else if (pathname.startsWith('/tasks')) res = await tasks(req, url);
     else if (pathname === '/search') res = await search(req, url);
-    else if (pathname === '/graph') res = await graph(req, url);
-    else if (pathname === '/content') res = await content(req, url);
+    else if (pathname === '/graph')            res = await graph(req, url);
+    else if (pathname === '/graph/relations')  res = await graphRelations(req, url);
+    else if (pathname === '/content')          res = await content(req, url);
     else if (pathname === '/docs/search') res = await searchDocs(req, url);
     else res = notFound();
 

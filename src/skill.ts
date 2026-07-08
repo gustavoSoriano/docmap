@@ -16,6 +16,11 @@ Retornam erro se nenhum workspace estiver selecionado.
 - \`GET /graph\` — retorna o grafo de links entre arquivos \`.md\`
   - \`nodes\`: \`{ id, label, group }\` — o \`id\` é o caminho relativo do arquivo
   - \`links\`: \`{ source, target }\` — conexões baseadas em links \`[[...]]\` e \`[texto](arquivo.md)\`
+- \`GET /graph/relations?file=<caminho/relativo.md>\` — retorna as relações de um arquivo
+  - Exemplo: \`GET /graph/relations?file=README.md\`
+  - Resposta: \`{ file, outgoing: [...], incoming: [...] }\`
+  - \`outgoing\`: arquivos para os quais este arquivo aponta
+  - \`incoming\`: arquivos que apontam para este arquivo
 - \`GET /content?file=<caminho/relativo.md>\` — lê o conteúdo bruto de um arquivo
   - Exemplo: \`GET /content?file=README.md\`
   - Resposta: \`{ path, raw }\` onde \`raw\` é o markdown completo
@@ -24,10 +29,11 @@ Retornam erro se nenhum workspace estiver selecionado.
 
 Para explorar o workspace, use este fluxo:
 1. \`GET /graph\` — entenda a estrutura e os arquivos disponíveis
-2. \`GET /docs/search?q=termo\` — localize onde um assunto é mencionado
-3. \`GET /content?file=<caminho>\` — leia o arquivo completo quando precisar de contexto
+2. \`GET /graph/relations?file=<caminho>\` — veja quem se relaciona com um arquivo
+3. \`GET /docs/search?q=termo\` — localize onde um assunto é mencionado
+4. \`GET /content?file=<caminho>\` — leia o arquivo completo quando precisar de contexto
 
-Se o usuário pedir para alterar um arquivo, você já tem o caminho relativo no \`id\` do grafo ou no campo \`file\` da busca. A edição em si deve ser feita pelo canal de escrita que o usuário indicar (o docmap não expõe escrita de arquivos por esta API).
+Se o usuário pedir para alterar um arquivo, você já tem o caminho relativo no \`id\` do grafo, no \`file\` das relações ou no campo \`file\` da busca. A edição em si deve ser feita pelo canal de escrita que o usuário indicar (o docmap não expõe escrita de arquivos por esta API).
 
 ---
 
