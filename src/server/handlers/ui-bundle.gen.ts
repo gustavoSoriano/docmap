@@ -250,16 +250,6 @@ body::before {
   white-space: nowrap;
 }
 #topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
-.qa-review-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 12px;
-  font-size: 12px; font-weight: 600;
-  border-color: var(--accent-line);
-  background: var(--accent-dim);
-  color: var(--accent-2);
-}
-.qa-review-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.qa-review-btn .ico { width: 14px; height: 14px; }
 
 /* ════════ Modes (fill remaining height) ════════ */
 .mode { flex: 1; min-height: 0; overflow: hidden; }
@@ -2409,9 +2399,6 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
       <span id="topbar-path">nenhuma pasta</span>
     </div>
     <div id="topbar-actions">
-      <button id="qa-review-btn" class="tool-btn qa-review-btn" onclick="startQaReview()" title="Revisão de QA: comparar documentação com código">
-        <span data-icon="scan-line"></span> QA Review
-      </button>
     </div>
     <div id="search-wrap">
       <span id="search-icon" data-icon="search"></span>
@@ -5066,7 +5053,7 @@ const TOOLS = [
         properties: {
           method: { type: 'string', enum: ['GET', 'POST', 'PUT'], description: 'Método HTTP. DELETE não é permitido.' },
           path:   { type: 'string', description: 'Caminho da API. Ex: /notes, /diagrams, /skills/nome' },
-          body:   { type: 'object', description: 'Body JSON para POST e PUT (opcional)' },
+          body:   { type: 'object', description: 'Body JSON para POST e PUT (opcional)', properties: {}, additionalProperties: true },
         },
       },
     },
@@ -5160,31 +5147,6 @@ const TOOLS = [
   },
 ];
 
-const QA_AGENT_PROMPT = \`Você é um agente de QA (Quality Assurance) do DocMap. Sua missão é revisar o workspace atual de forma objetiva e baseada em evidências.
-
-REGRAS FUNDAMENTAIS:
-1. NÃO ASSUMA que o código ou a documentação está "errado". Documente apenas INCONSISTÊNCIAS observáveis entre o que está documento e o que o código faz.
-2. Para cada inconsistência, cite ARQUIVOS, LINHAS e TRECHOS EXATOS de ambos os lados (doc e código).
-3. Também identifique: dead code, anti-patterns, bugs potenciais, crashes e comportamentos inesperados.
-4. Use as ferramentas disponíveis para coletar evidências reais.
-5. Ao final, OBRIGATORIAMENTE salve o relatório como uma NOTA no DocMap via POST /notes com:
-   - title: "QA Review — <nome do workspace> — <data ISO>"
-   - category: "qa-review"
-   - tags: ["qa", "review"] + outras tags conforme achados
-   - content: relatório completo em markdown
-
-FLUXO RECOMENDADO:
-1. git_status — veja o que mudou recentemente.
-2. list_files — mapeie arquivos relevantes.
-3. Identifique documentos principais (README, docs, ADRs, .md).
-4. Para cada doc relevante, busque no código símbolos/termos mencionados com search_code.
-5. Leia os docs e arquivos de código correspondentes com read_file.
-6. Compare: o doc diz X, o código faz Y.
-7. Analise o código em busca de anti-patterns, dead code e bugs.
-8. Gere a nota final com o relatório.
-
-Seja preciso, objetivo e baseado em evidências. Não julgue — apenas exponha inconsistências.\`;
-
 // system prompt normal vem do endpoint /system/skill
 let systemPrompt = null;
 const getSystemPrompt = async () => {
@@ -5207,7 +5169,6 @@ let chatProvider  = 'ollama';  // default; sobrescrito no boot por /ai/config
 let chatMinimized = false;
 let chatDragged   = false;
 let chatDrag      = { active: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 };
-let isQaSession   = false;
 
 const CHAT_LAYOUT_KEY = 'docmap-chat-layout';
 
@@ -5466,43 +5427,7 @@ const sendChatMessage = async () => {
   } finally {
     chatAbort = null;
     setChatStreaming(false);
-    isQaSession = false;
   }
-};
-
-// ── Iniciar sessão de QA Review ──
-const startQaReview = async () => {
-  if (chatStreaming) return;
-
-  let workspaceName = 'workspace';
-  try {
-    const res = await fetch('/workspace');
-    const data = await res.json();
-    if (!data.root) {
-      toast('Selecione um workspace primeiro');
-      return;
-    }
-    workspaceName = data.name || data.root.split('/').pop() || 'workspace';
-  } catch {
-    toast('Não foi possível verificar o workspace');
-    return;
-  }
-
-  if (!chatOpen) toggleChat();
-  chatMinimized = false;
-  applyMinimizeState();
-
-  const prompt = QA_AGENT_PROMPT.replace(/<nome do workspace>/g, workspaceName);
-  chatMessages = [
-    { role: 'system', content: prompt },
-  ];
-  $('chat-feed').innerHTML = '';
-  appendChatBubble('assistant', \`Iniciando revisão de QA em “\${workspaceName}”…\`);
-
-  isQaSession = true;
-
-  $('chat-input').value = 'Execute uma revisão de QA completa deste workspace. Analise documentação vs código, identifique inconsistências, dead code, anti-patterns e bugs potenciais. Ao final, salve o relatório como uma nota com category "qa-review".';
-  await sendChatMessage();
 };
 
 // ── UI helpers ──
@@ -5693,7 +5618,6 @@ const clearChat = async () => {
   if (!ok) return;
   chatMessages = [];
   $('chat-feed').innerHTML = '';
-  isQaSession = false;
   appendChatBubble('assistant', 'Histórico limpo. Como posso ajudar?');
 };
 
@@ -5701,8 +5625,6 @@ const clearChat = async () => {
 document.addEventListener('DOMContentLoaded', () => {
   loadProvider();
   loadChatLayout();
-
-  window.startQaReview = startQaReview;
 
   const sel = $('chat-provider');
   if (sel) sel.addEventListener('change', (e) => changeProvider(e.target.value));

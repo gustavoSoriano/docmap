@@ -1,8 +1,35 @@
 // ════ Adapter Ollama (local) ════
 // Streaming NDJSON. tool_calls chegam completos em um único chunk (não fragmentados).
+//
+// Diferenças do formato Ollama vs OpenAI:
+// - tool_calls[].function.arguments deve ser objeto (não string JSON)
+// - mensagens role:'tool' não aceitam tool_call_id
 
 import { OLLAMA_MODEL, OLLAMA_URL } from '../../config.ts';
 import type { ChatChunk, ChatMessage, ToolCall, ToolDefinition } from '../types.ts';
+
+// Converte mensagens do formato OpenAI interno para o formato nativo do Ollama.
+const toOllamaMessages = (messages: readonly ChatMessage[]): unknown[] =>
+  messages.map((m) => {
+    if (m.role === 'tool') {
+      // Ollama não suporta tool_call_id — remove o campo
+      return { role: 'tool', content: m.content };
+    }
+    if (m.tool_calls?.length) {
+      // arguments deve ser objeto, não string JSON
+      const tool_calls = m.tool_calls.map((tc) => ({
+        ...tc,
+        function: {
+          ...tc.function,
+          arguments: typeof tc.function.arguments === 'string'
+            ? (() => { try { return JSON.parse(tc.function.arguments); } catch { return {}; } })()
+            : tc.function.arguments,
+        },
+      }));
+      return { ...m, tool_calls };
+    }
+    return m;
+  });
 
 export async function* callOllama(
   messages: readonly ChatMessage[],
@@ -15,7 +42,7 @@ export async function* callOllama(
     signal,
     body: JSON.stringify({
       model: OLLAMA_MODEL,
-      messages,
+      messages: toOllamaMessages(messages),
       tools,
       stream: true,
     }),

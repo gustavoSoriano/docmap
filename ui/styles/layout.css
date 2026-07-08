@@ -168,16 +168,6 @@ body::before {
   white-space: nowrap;
 }
 #topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
-.qa-review-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 12px;
-  font-size: 12px; font-weight: 600;
-  border-color: var(--accent-line);
-  background: var(--accent-dim);
-  color: var(--accent-2);
-}
-.qa-review-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.qa-review-btn .ico { width: 14px; height: 14px; }
 
 /* ════════ Modes (fill remaining height) ════════ */
 .mode { flex: 1; min-height: 0; overflow: hidden; }
