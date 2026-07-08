@@ -34,19 +34,38 @@
   display: flex; flex-direction: column;
   z-index: 799;
   overflow: hidden;
-  transform: translateY(16px) scale(.97);
   opacity: 0;
   pointer-events: none;
-  transition: all .22s cubic-bezier(.2,.8,.2,1);
+  transition: opacity .22s cubic-bezier(.2,.8,.2,1), transform .22s cubic-bezier(.2,.8,.2,1);
 }
 #chat-panel.open { transform: translateY(-50%); opacity: 1; pointer-events: all; }
+
+/* posicionamento livre via JS drag */
+#chat-panel.dragged {
+  top: auto; right: auto;
+  transform: none;
+  transition: none;
+}
+
+/* painel minimizado: só o header fica visível */
+#chat-panel.minimized {
+  height: auto !important;
+  max-height: none;
+}
+#chat-panel.minimized #chat-feed,
+#chat-panel.minimized #chat-composer { display: none; }
 
 #chat-header {
   display: flex; align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0; gap: 10px;
+  cursor: grab;
+  user-select: none;
 }
+#chat-header:active { cursor: grabbing; }
+#chat-header #chat-provider,
+#chat-header .ghost-btn { cursor: pointer; }
 #chat-title {
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; font-weight: 700; color: var(--text); flex: 1;

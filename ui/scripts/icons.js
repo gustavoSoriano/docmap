@@ -28,6 +28,8 @@ const ICON_PATHS = {
   bot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
   robot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
   kanban: '<rect width="5" height="6" x="3" y="15" rx="1"/><rect width="5" height="9" x="9" y="12" rx="1"/><rect width="5" height="14" x="15" y="7" rx="1"/><path d="M3 4h5"/><path d="M9 4h5"/><path d="M15 4h5"/>',
+  minus: '<path d="M5 12h14"/>',
+  maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
 };
 
 const ICON = (name, cls = '') =>

@@ -1286,19 +1286,38 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   display: flex; flex-direction: column;
   z-index: 799;
   overflow: hidden;
-  transform: translateY(16px) scale(.97);
   opacity: 0;
   pointer-events: none;
-  transition: all .22s cubic-bezier(.2,.8,.2,1);
+  transition: opacity .22s cubic-bezier(.2,.8,.2,1), transform .22s cubic-bezier(.2,.8,.2,1);
 }
 #chat-panel.open { transform: translateY(-50%); opacity: 1; pointer-events: all; }
+
+/* posicionamento livre via JS drag */
+#chat-panel.dragged {
+  top: auto; right: auto;
+  transform: none;
+  transition: none;
+}
+
+/* painel minimizado: só o header fica visível */
+#chat-panel.minimized {
+  height: auto !important;
+  max-height: none;
+}
+#chat-panel.minimized #chat-feed,
+#chat-panel.minimized #chat-composer { display: none; }
 
 #chat-header {
   display: flex; align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0; gap: 10px;
+  cursor: grab;
+  user-select: none;
 }
+#chat-header:active { cursor: grabbing; }
+#chat-header #chat-provider,
+#chat-header .ghost-btn { cursor: pointer; }
 #chat-title {
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; font-weight: 700; color: var(--text); flex: 1;
@@ -2824,6 +2843,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
       </select>
     </span>
     <div id="chat-header-actions">
+      <button class="ghost-btn" id="chat-minimize" onclick="toggleMinimizeChat()" title="Minimizar">
+        <span data-icon="minus" id="chat-minimize-icon"></span>
+      </button>
       <button class="ghost-btn" onclick="clearChat()">limpar</button>
       <button class="ghost-btn" onclick="toggleChat()"><span data-icon="x"></span></button>
     </div>
@@ -2870,6 +2892,8 @@ const ICON_PATHS = {
   bot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
   robot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
   kanban: '<rect width="5" height="6" x="3" y="15" rx="1"/><rect width="5" height="9" x="9" y="12" rx="1"/><rect width="5" height="14" x="15" y="7" rx="1"/><path d="M3 4h5"/><path d="M9 4h5"/><path d="M15 4h5"/>',
+  minus: '<path d="M5 12h14"/>',
+  maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -5052,6 +5076,11 @@ let chatOpen      = false;
 let chatStreaming = false;
 let chatAbort     = null;
 let chatProvider  = 'ollama';  // default; sobrescrito no boot por /ai/config
+let chatMinimized = false;
+let chatDragged   = false;
+let chatDrag      = { active: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 };
+
+const CHAT_LAYOUT_KEY = 'docmap-chat-layout';
 
 // ── Provider config (persiste no KV) ──
 const loadProvider = async () => {
@@ -5275,15 +5304,127 @@ const setChatStreaming = (on) => {
   stop.style.display = on ? 'flex' : 'none';
 };
 
+// ── Layout: posição e minimização ──
+const loadChatLayout = () => {
+  try {
+    const raw = localStorage.getItem(CHAT_LAYOUT_KEY);
+    if (!raw) return;
+    const layout = JSON.parse(raw);
+    if (typeof layout.minimized === 'boolean') chatMinimized = layout.minimized;
+    if (layout.left != null && layout.top != null) {
+      const panel = $('chat-panel');
+      panel.classList.add('dragged');
+      panel.style.left = \`\${layout.left}px\`;
+      panel.style.top = \`\${layout.top}px\`;
+      chatDragged = true;
+    }
+    applyMinimizeState();
+  } catch { /* ignora layout corrompido */ }
+};
+
+const saveChatLayout = () => {
+  try {
+    const panel = $('chat-panel');
+    const layout = { minimized: chatMinimized };
+    if (chatDragged) {
+      layout.left = parseInt(panel.style.left || '0', 10);
+      layout.top = parseInt(panel.style.top || '0', 10);
+    }
+    localStorage.setItem(CHAT_LAYOUT_KEY, JSON.stringify(layout));
+  } catch { /* ignora quota excedida */ }
+};
+
+const applyMinimizeState = () => {
+  const panel = $('chat-panel');
+  const icon = $('chat-minimize-icon');
+  panel.classList.toggle('minimized', chatMinimized);
+  if (icon) {
+    icon.dataset.icon = chatMinimized ? 'maximize' : 'minus';
+    icon.dataset.hydrated = '';
+    icon.innerHTML = ICON(chatMinimized ? 'maximize' : 'minus');
+    icon.dataset.hydrated = '1';
+  }
+  const btn = $('chat-minimize');
+  if (btn) btn.title = chatMinimized ? 'Expandir' : 'Minimizar';
+};
+
+const toggleMinimizeChat = () => {
+  chatMinimized = !chatMinimized;
+  applyMinimizeState();
+  saveChatLayout();
+};
+
+const clampChatPosition = (left, top) => {
+  const panel = $('chat-panel');
+  const rect = panel.getBoundingClientRect();
+  const minVisible = 48; // área mínima visível
+  const maxLeft = window.innerWidth - minVisible;
+  const maxTop = window.innerHeight - minVisible;
+  return {
+    left: Math.max(minVisible - rect.width, Math.min(left, maxLeft)),
+    top: Math.max(minVisible - rect.height, Math.min(top, maxTop)),
+  };
+};
+
+const startChatDrag = (e) => {
+  if (e.button !== 0) return;
+  // não arrasta ao interagir com controles do header
+  if (e.target.closest('#chat-provider, .ghost-btn')) return;
+
+  const panel = $('chat-panel');
+  const rect = panel.getBoundingClientRect();
+  chatDrag.active = true;
+  chatDrag.startX = e.clientX;
+  chatDrag.startY = e.clientY;
+  chatDrag.startLeft = rect.left;
+  chatDrag.startTop = rect.top;
+
+  panel.classList.add('dragged');
+  panel.style.left = \`\${rect.left}px\`;
+  panel.style.top = \`\${rect.top}px\`;
+  panel.style.right = 'auto';
+  panel.style.transform = 'none';
+
+  window.addEventListener('mousemove', onChatDrag);
+  window.addEventListener('mouseup', stopChatDrag);
+  e.preventDefault();
+};
+
+const onChatDrag = (e) => {
+  if (!chatDrag.active) return;
+  const dx = e.clientX - chatDrag.startX;
+  const dy = e.clientY - chatDrag.startY;
+  const { left, top } = clampChatPosition(chatDrag.startLeft + dx, chatDrag.startTop + dy);
+  const panel = $('chat-panel');
+  panel.style.left = \`\${left}px\`;
+  panel.style.top = \`\${top}px\`;
+};
+
+const stopChatDrag = () => {
+  if (!chatDrag.active) return;
+  chatDrag.active = false;
+  chatDragged = true;
+  window.removeEventListener('mousemove', onChatDrag);
+  window.removeEventListener('mouseup', stopChatDrag);
+  saveChatLayout();
+};
+
 // ── Abrir / fechar FAB ──
 const toggleChat = () => {
   chatOpen = !chatOpen;
-  $('chat-panel').classList.toggle('open', chatOpen);
+  const panel = $('chat-panel');
+  panel.classList.toggle('open', chatOpen);
   $('chat-fab').classList.toggle('active', chatOpen);
-  if (chatOpen && !chatMessages.length) {
-    appendChatBubble('assistant', 'Olá! Posso acessar suas notas, diagramas, skills e macros. Como posso ajudar?');
+  if (chatOpen) {
+    if (chatDragged) {
+      panel.style.transform = 'none';
+      panel.style.right = 'auto';
+    }
+    if (!chatMessages.length) {
+      appendChatBubble('assistant', 'Olá! Posso acessar suas notas, diagramas, skills e macros. Como posso ajudar?');
+    }
+    setTimeout(() => $('chat-input').focus(), 150);
   }
-  if (chatOpen) setTimeout(() => $('chat-input').focus(), 150);
 };
 
 const stopChat = () => {
@@ -5303,8 +5444,12 @@ const clearChat = async () => {
 // ── Event listeners ──
 document.addEventListener('DOMContentLoaded', () => {
   loadProvider();
+  loadChatLayout();
+
   const sel = $('chat-provider');
   if (sel) sel.addEventListener('change', (e) => changeProvider(e.target.value));
+
+  $('chat-header').addEventListener('mousedown', startChatDrag);
 
   $('chat-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
