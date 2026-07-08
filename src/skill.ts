@@ -1,4 +1,5 @@
 import { API_PORT } from './api/server.ts';
+import { MOCK_PORT } from './mocks/server.ts';
 
 export const skillMarkdown = (): string =>
   `# docmap — API local (para IA)
@@ -130,4 +131,139 @@ Fluxos comuns:
 1. \`GET /tasks\` — veja o estado atual do Kanban
 2. \`POST /tasks\` — crie novas tasks, vincule a notas quando relevante
 3. \`PUT /tasks/:id\` — mova entre colunas ou edite dados
+
+### Mocks
+1. \`GET /mocks/collections\` + \`GET /mocks\` — descubra o que já existe **antes** de criar qualquer coisa
+2. Crie a collection se não existir, depois os mocks com script adequado
+3. Teste com \`curl http://127.0.0.1:${MOCK_PORT}/seu-path\` para confirmar
+
+---
+
+## Mocks — Servidor HTTP em :${MOCK_PORT}
+
+O docmap sobe um servidor de mocks em \`http://127.0.0.1:${MOCK_PORT}\`.
+Cada mock tem um script JS executado a cada request. Os scripts recebem
+\`ctx\` (request) e \`db\` (banco in-memory da collection) e devem retornar
+\`{ status?, headers?, body? }\`.
+
+### Protocolo para agentes — siga esta ordem
+
+**Passo 1 — Descubra o estado atual (sempre, antes de criar qualquer coisa)**
+\`\`\`bash
+curl http://127.0.0.1:${API_PORT}/mocks/collections  # collections existentes
+curl http://127.0.0.1:${API_PORT}/mocks              # todos os mocks existentes
+\`\`\`
+
+**Passo 2 — Crie a collection se não existir**
+\`\`\`bash
+curl -X POST http://127.0.0.1:${API_PORT}/mocks/collections \\
+  -H 'Content-Type: application/json' -d '{"name":"Minha API"}'
+# guarde o id retornado
+\`\`\`
+
+**Passo 3 — Crie os mocks**
+Use \`db\` para mocks que precisam compartilhar estado (ex.: POST cria, GET lê).
+Use dados hardcoded para mocks simples e estáticos.
+
+**Passo 4 — Valide**
+\`\`\`bash
+curl http://127.0.0.1:${MOCK_PORT}/seu-path
+\`\`\`
+
+**Regras:**
+- Nunca crie uma collection duplicada — verifique no passo 1
+- Prefira \`group\` para organizar mocks do mesmo recurso (ex.: \`"group": "Users"\`)
+- Scripts com lógica condicional (404, validação) são muito melhores que retornos estáticos
+- Use \`db\` sempre que um mock precisar ler dados que outro escreveu
+
+### Gerenciamento de Collections (via AI API :${API_PORT})
+
+- \`GET /mocks/collections\` — lista collections
+- \`GET /mocks/collections/:id\` — collection + seus mocks
+- \`POST /mocks/collections\` — cria. Body: \`{ name }\`
+- \`PUT /mocks/collections/:id\` — renomeia. Body: \`{ name }\`
+- \`DELETE /mocks/collections/:id\` — remove collection e todos seus mocks
+- \`DELETE /mocks/collections/:id/clear\` — zera os mocks da collection, **mantém a collection**
+- \`DELETE /mocks/clear\` — apaga **tudo** (todas as collections e mocks)
+
+### Gerenciamento de Mocks (via AI API :${API_PORT})
+
+- \`GET /mocks\` — lista todos os mocks
+- \`GET /mocks?collectionId=<id>\` — lista mocks de uma collection
+- \`GET /mocks/:id\` — mock completo
+- \`POST /mocks\` — cria mock. Body:
+  \`\`\`json
+  {
+    "collectionId": "<uuid>",
+    "method": "GET",
+    "path": "/users/:id",
+    "name": "Get user by ID",
+    "group": "Users",
+    "script": "return { status: 200, body: { id: ctx.params.id, name: 'Alice' } };"
+  }
+  \`\`\`
+- \`PUT /mocks/:id\` — edita campos (parcial)
+- \`DELETE /mocks/:id\` — remove
+
+Campos:
+- \`method\`: GET | POST | PUT | PATCH | DELETE | HEAD | OPTIONS
+- \`path\`: padrão com params (\`/users/:id\`, \`/posts/:postId/comments\`)
+- \`name\`: label legível (opcional)
+- \`group\`: agrupador visual dentro da collection (opcional)
+- \`script\`: corpo de função JS que recebe \`ctx\` e retorna a resposta
+
+### Script do mock
+
+O script recebe **dois argumentos**: \`ctx\` (request) e \`db\` (banco in-memory da collection).
+
+**\`ctx\`**: \`{ method, path, params, query, headers, body }\`
+
+**\`db\`** — store in-memory compartilhado por todos os mocks da mesma collection (reseta ao reiniciar o app):
+- \`db.set(key, value)\` — persiste um valor
+- \`db.get(key)\` — retorna o valor ou \`undefined\`
+- \`db.delete(key)\` — remove, retorna \`true\` se existia
+- \`db.has(key)\` — verifica existência
+- \`db.list(prefix)\` — array de todos os valores cujas chaves começam com \`prefix\`
+- \`db.keys(prefix)\` — array de chaves com \`prefix\`
+- \`db.clear()\` — apaga tudo desta collection
+- \`db.size()\` — número de entradas
+
+Exemplo — CRUD real entre mocks:
+\`\`\`js
+// POST /users — cria e persiste
+const user = { id: String(db.size() + 1), ...ctx.body };
+db.set('user:' + user.id, user);
+return { status: 201, body: user };
+
+// GET /users/:id — lê do db
+const user = db.get('user:' + ctx.params.id);
+if (!user) return { status: 404, body: { error: 'not_found' } };
+return { status: 200, body: user };
+
+// GET /users — lista todos
+return { status: 200, body: db.list('user:') };
+
+// DELETE /users/:id
+db.delete('user:' + ctx.params.id);
+return { status: 204 };
+\`\`\`
+
+Suporta async/await:
+\`\`\`js
+await new Promise(r => setTimeout(r, 200));
+return { status: 200, body: db.list('user:') };
+\`\`\`
+
+### Chamando o servidor de mocks
+
+\`\`\`bash
+# Após criar o mock acima:
+curl http://127.0.0.1:${MOCK_PORT}/users/42
+# → { "id": "42", "name": "Alice" }
+\`\`\`
+
+Fluxo para criar um mock do zero:
+1. \`POST /mocks/collections { "name": "Users API" }\` → obtém collectionId
+2. \`POST /mocks { collectionId, method: "GET", path: "/users/:id", script: "..." }\`
+3. \`curl http://127.0.0.1:${MOCK_PORT}/users/99\` — resposta do mock
 `;

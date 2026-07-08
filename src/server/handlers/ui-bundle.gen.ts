@@ -13,6 +13,10 @@ export const UI_HTML = `<!DOCTYPE html>
 <script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
 <script src="https://cdn.jsdelivr.net/npm/markmap-lib/dist/browser/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
 <style>
 :root {
   /* ── Surfaces (near-black, layered) ── */
@@ -2345,6 +2349,819 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 </style>
+<style>
+/* ════ Mocks ════ */
+
+#mode-mocks {
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* ────────────────────────────
+   Coluna esquerda
+──────────────────────────── */
+
+#mocks-col {
+  width: 256px;
+  min-width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* ── Cabeçalhos de seção ── */
+
+#mocks-col-head,
+#mocks-list-head {
+  display: flex;
+  align-items: center;
+  padding: 9px 10px 9px 14px;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#mocks-col-head {
+  border-bottom: 1px solid var(--border);
+}
+
+#mocks-list-head {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.mocks-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-4);
+  flex: 1;
+}
+
+#mocks-list-heading {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-3);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mocks-hd-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-4);
+  border-radius: var(--r-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.mocks-hd-btn:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ── Lista de collections ── */
+
+#mocks-col-list {
+  padding: 5px;
+  flex-shrink: 0;
+  max-height: 210px;
+  overflow-y: auto;
+}
+
+.mocks-col-empty {
+  font-size: 0.75rem;
+  color: var(--text-4);
+  text-align: center;
+  padding: 18px 10px;
+  line-height: 1.6;
+}
+
+.mocks-col-item {
+  display: flex;
+  align-items: center;
+  border-radius: var(--r-sm);
+  transition: background 0.1s;
+}
+.mocks-col-item:hover { background: var(--surface-3); }
+.mocks-col-item.active { background: var(--accent-dim); }
+
+.mocks-col-item-inner {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 7px 8px;
+  cursor: pointer;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mocks-col-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-4);
+  flex-shrink: 0;
+  transition: background 0.12s, box-shadow 0.12s;
+}
+.mocks-col-item.active .mocks-col-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.mocks-col-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-2);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.12s;
+}
+.mocks-col-item.active .mocks-col-name { color: var(--accent); }
+
+.mocks-col-count {
+  font-size: 0.65rem;
+  color: var(--text-4);
+  background: var(--surface-4);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.mocks-col-actions {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding-right: 5px;
+}
+.mocks-col-item:hover .mocks-col-actions { display: flex; }
+
+.mocks-col-action-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-4);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.12s, background 0.12s;
+}
+.mocks-col-action-btn:hover        { color: var(--text-2); background: var(--surface-4); }
+.mocks-col-action-btn.warn:hover   { color: #f59e0b; }
+.mocks-col-action-btn.danger:hover { color: #fb7185; }
+
+/* ── Inline new/rename inputs ── */
+
+.mocks-col-new-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 6px;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  margin-bottom: 4px;
+}
+
+.mocks-col-new-input,
+.mocks-col-rename-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-family: var(--font-ui);
+  padding: 2px 4px;
+  min-width: 0;
+}
+.mocks-col-new-input::placeholder { color: var(--text-4); }
+
+.mocks-col-rename-input {
+  flex: 1;
+  border-bottom: 1px solid var(--accent-line);
+}
+
+.mocks-col-new-ok {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+.mocks-col-new-ok:hover { background: var(--accent-2); }
+
+/* ── Lista de mocks ── */
+
+#mocks-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 5px;
+}
+
+.mocks-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-4);
+  font-size: 0.75rem;
+  padding: 28px 14px;
+  text-align: center;
+  line-height: 1.55;
+}
+.mocks-list-empty .ico { width: 22px; height: 22px; opacity: 0.35; }
+
+/* ── Separadores de grupo ── */
+
+.mocks-group-sep {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 6px 4px;
+  user-select: none;
+}
+
+.mocks-group-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border) 30%, var(--border) 70%, transparent);
+}
+
+.mocks-group-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-4);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Item de mock ── */
+
+.mocks-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.1s, box-shadow 0.1s;
+  min-width: 0;
+}
+.mocks-item:hover { background: var(--surface-2); }
+.mocks-item.active {
+  background: var(--surface-2);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* ── Badges HTTP ── */
+
+.mock-method-badge {
+  font-family: var(--font-mono);
+  font-size: 0.595rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  line-height: 1;
+  text-transform: uppercase;
+  min-width: 38px;
+  text-align: center;
+}
+
+.method-get    { color: var(--accent); background: var(--accent-dim); }
+.method-post   { color: #60a5fa;       background: rgba(96,165,250,.13); }
+.method-put    { color: #f59e0b;       background: rgba(245,158,11,.12); }
+.method-patch  { color: #a78bfa;       background: rgba(167,139,250,.13); }
+.method-delete { color: #fb7185;       background: rgba(251,113,133,.13); }
+.method-gray   { color: var(--text-3); background: var(--surface-3); }
+
+.mock-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mock-item-path {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mock-item-name {
+  font-size: 0.65rem;
+  color: var(--text-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mock-item-col {
+  font-size: 0.6rem;
+  color: var(--text-4);
+  background: var(--surface-3);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Rodapé da coluna ── */
+
+#mocks-col-footer {
+  border-top: 1px solid var(--border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+#mocks-server-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.mocks-server-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 var(--accent-dim);
+  animation: pulse-dot 2.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(55,217,154,.5); }
+  50%       { box-shadow: 0 0 0 5px rgba(55,217,154,0); }
+}
+
+.mocks-server-url {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-3);
+  flex: 1;
+}
+
+#mocks-server-count {
+  font-size: 0.65rem;
+  color: var(--text-4);
+}
+#mocks-server-count::before {
+  content: attr(data-count) ' mock(s)';
+}
+
+#mocks-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: #fb7185;
+  background: rgba(251,113,133,.07);
+  border: 1px solid rgba(251,113,133,.18);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  width: 100%;
+  font-family: var(--font-ui);
+}
+#mocks-clear-btn:hover {
+  background: rgba(251,113,133,.15);
+  border-color: rgba(251,113,133,.38);
+}
+
+/* ────────────────────────────
+   Editor
+──────────────────────────── */
+
+#mocks-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+#mocks-editor-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+#mocks-editor-empty-mark .ico {
+  width: 38px;
+  height: 38px;
+  color: var(--text-4);
+  opacity: 0.28;
+}
+
+#mocks-editor-empty-text {
+  font-size: 0.875rem;
+  color: var(--text-4);
+}
+
+#mocks-editor-form {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+  gap: 14px;
+}
+
+/* ── Cabeçalho do mock ── */
+
+#mock-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+#mock-id-badge {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-3);
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  display: inline-flex;
+}
+
+/* Cor do badge de método no cabeçalho */
+#mock-id-badge[data-method="GET"]     { color: var(--accent); background: var(--accent-dim); }
+#mock-id-badge[data-method="POST"]    { color: #60a5fa;       background: rgba(96,165,250,.12); }
+#mock-id-badge[data-method="PUT"]     { color: #f59e0b;       background: rgba(245,158,11,.12); }
+#mock-id-badge[data-method="PATCH"]   { color: #a78bfa;       background: rgba(167,139,250,.12); }
+#mock-id-badge[data-method="DELETE"]  { color: #fb7185;       background: rgba(251,113,133,.12); }
+
+#mock-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Campos do form ── */
+
+.mock-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mock-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.mock-input,
+.mock-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--r-sm);
+  padding: 7px 10px;
+  font-size: 0.845rem;
+  font-family: var(--font-ui);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.mock-input:focus,
+.mock-select:focus { border-color: var(--accent-line); }
+.mock-input::placeholder { color: var(--text-4); }
+
+#mock-path-input {
+  font-family: var(--font-mono);
+  font-size: 0.845rem;
+  letter-spacing: 0.01em;
+}
+
+#mock-meta-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+#mock-meta-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Method select colorido */
+#mock-method-select {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 8px;
+  cursor: pointer;
+  min-width: 90px;
+}
+#mock-method-select[data-method="GET"]    { color: var(--accent); }
+#mock-method-select[data-method="POST"]   { color: #60a5fa; }
+#mock-method-select[data-method="PUT"]    { color: #f59e0b; }
+#mock-method-select[data-method="PATCH"]  { color: #a78bfa; }
+#mock-method-select[data-method="DELETE"] { color: #fb7185; }
+
+/* ── Script editor (CodeMirror) ── */
+
+.mock-field-script {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Encaixa CodeMirror no tema dark do app.
+   \`color\` sem !important: garante texto legível se o tema CDN não carregar,
+   mas perde para o seletor mais específico \`.cm-s-one-dark.CodeMirror\`
+   quando o tema estiver presente — os tokens de sintaxe usam color nos
+   próprios spans e ganham de qualquer jeito. */
+.mock-field-script .CodeMirror {
+  background: var(--surface) !important;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-family: var(--font-mono) !important;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  height: auto;
+  min-height: 160px;
+  flex: 1;
+  transition: border-color 0.15s;
+}
+.mock-field-script .CodeMirror-focused {
+  border-color: var(--accent-line);
+}
+.mock-field-script .CodeMirror-scroll {
+  min-height: 160px;
+}
+.mock-field-script .CodeMirror-gutters {
+  background: var(--surface-2) !important;
+  border-right: 1px solid var(--border) !important;
+}
+.mock-field-script .CodeMirror-linenumber {
+  color: var(--text-4) !important;
+  font-size: 0.72rem;
+}
+.mock-field-script .CodeMirror-cursor {
+  border-left-color: var(--accent) !important;
+}
+.mock-field-script .CodeMirror-selectedtext,
+.mock-field-script .CodeMirror-selected {
+  background: rgba(55,217,154,.15) !important;
+}
+
+/* ── Sintaxe JS embutida (paleta one-dark, sem CDN) ── */
+.mock-field-script .cm-keyword               { color: #c678dd; }
+.mock-field-script .cm-operator              { color: #c678dd; }
+.mock-field-script .cm-string               { color: #98c379; }
+.mock-field-script .cm-string-2             { color: #98c379; }
+.mock-field-script .cm-number               { color: #d19a66; }
+.mock-field-script .cm-atom                 { color: #d19a66; }
+.mock-field-script .cm-comment              { color: #5c6370; font-style: italic; }
+.mock-field-script .cm-def                  { color: #61afef; }
+.mock-field-script .cm-variable             { color: #e06c75; }
+.mock-field-script .cm-variable-2           { color: #abb2bf; }
+.mock-field-script .cm-property             { color: #e5c07b; }
+.mock-field-script .cm-qualifier            { color: #e5c07b; }
+.mock-field-script .cm-builtin              { color: #56b6c2; }
+.mock-field-script .cm-tag                  { color: #e06c75; }
+.mock-field-script .cm-bracket              { color: #abb2bf; }
+.mock-field-script .cm-punctuation          { color: #abb2bf; }
+.mock-field-script .cm-meta                 { color: #abb2bf; }
+
+#mock-script-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+#mock-script-hint {
+  font-size: 0.63rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-4);
+  flex: 1;
+}
+
+#btn-format-script {
+  font-size: 0.7rem;
+  color: var(--text-4);
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  transition: color 0.12s, background 0.12s;
+}
+#btn-format-script:hover {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* Textarea fica escondido após CodeMirror assumir; estilos de fallback caso CDN falhe */
+#mock-script-textarea {
+  flex: 1;
+  min-height: 160px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.65;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s;
+  tab-size: 2;
+  caret-color: var(--accent);
+}
+#mock-script-textarea:focus { border-color: var(--accent-line); }
+/* CodeMirror esconde o textarea original — não quebramos o layout */
+#mock-script-textarea + .CodeMirror { flex: 1; }
+
+/* ────────────────────────────
+   Painel de teste
+──────────────────────────── */
+
+#mock-test-panel {
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: border-color 0.12s;
+}
+#mock-test-panel:focus-within { border-color: var(--border-mid); }
+
+.test-panel-head {
+  display: flex;
+  align-items: center;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  background: var(--surface-2);
+}
+
+.test-panel-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-4);
+  flex: 1;
+}
+
+#mock-test-params {
+  padding: 10px 12px 4px;
+}
+
+.test-params-label {
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-4);
+  margin-bottom: 8px;
+}
+
+.test-param-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.test-param-name {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.test-param-input {
+  flex: 1;
+  max-width: 180px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--r-xs);
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  outline: none;
+  transition: border-color 0.12s;
+}
+.test-param-input:focus { border-color: var(--accent-line); }
+
+#btn-test-run {
+  margin: 8px 12px 10px;
+  align-self: flex-start;
+}
+
+#mock-test-result {
+  flex-direction: column;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+
+.test-result-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.test-status-badge {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.test-status-ok  { color: var(--accent); background: var(--accent-dim); }
+.test-status-err { color: #fb7185;       background: rgba(251,113,133,.13); }
+
+.test-ms {
+  font-size: 0.7rem;
+  color: var(--text-4);
+  font-family: var(--font-mono);
+}
+
+.test-body {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  max-height: 190px;
+  overflow-y: auto;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+}
+
+</style>
 </head>
 <body>
 
@@ -2368,6 +3185,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   </button>
   <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')" title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
+  </button>
+  <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')" title="Mocks HTTP">
+    <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
   </button>
   <div class="rail-spacer"></div>
   <button class="rail-btn" id="rail-backup" onclick="downloadBackup()" title="Backup completo (notas, skills, diagramas, anotações)">
@@ -2703,6 +3523,126 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 
   </main>
 
+  <!-- ═══ MODE: MOCKS ═══ -->
+  <main id="mode-mocks" class="mode">
+
+    <section id="mocks-col">
+
+      <div id="mocks-col-head">
+        <span class="mocks-section-label">Collections</span>
+        <button class="mocks-hd-btn" onclick="newCollection()" title="Nova collection" data-icon="plus"></button>
+      </div>
+      <div id="mocks-col-list"></div>
+
+      <div id="mocks-list-head">
+        <span id="mocks-list-heading">Todos os mocks</span>
+        <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock" data-icon="plus"></button>
+      </div>
+      <div id="mocks-list"></div>
+
+      <footer id="mocks-col-footer">
+        <div id="mocks-server-badge">
+          <span class="mocks-server-pulse"></span>
+          <span class="mocks-server-url">127.0.0.1:3335</span>
+          <span id="mocks-server-count" data-count="0"></span>
+        </div>
+        <button id="mocks-clear-btn" onclick="clearMockDatabase()">
+          <span data-icon="trash"></span>
+          <span class="mocks-clear-label">Zerar tudo</span>
+        </button>
+      </footer>
+
+    </section>
+
+    <section id="mocks-editor">
+
+      <div id="mocks-editor-empty">
+        <div id="mocks-editor-empty-mark" data-icon="share"></div>
+        <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
+      </div>
+
+      <div id="mocks-editor-form">
+
+        <div id="mock-head">
+          <span id="mock-id-badge" data-method="GET">— novo mock —</span>
+          <div id="mock-head-actions">
+            <button class="tool-btn danger" id="btn-mock-delete" style="display:none" onclick="deleteCurrentMock()">
+              <span data-icon="trash"></span>
+            </button>
+            <button class="tool-btn" id="btn-mock-curl" onclick="copyCurl()" title="Copiar curl">
+              <span data-icon="copy"></span> curl
+            </button>
+            <button class="tool-btn" id="btn-mock-test" onclick="showTestPanel()">
+              <span data-icon="scan-line"></span> Testar
+            </button>
+            <button class="tool-btn primary" onclick="saveMock()">Salvar</button>
+          </div>
+        </div>
+
+        <div id="mock-meta-row">
+          <div class="mock-field">
+            <label class="mock-label">Collection</label>
+            <select id="mock-collection-select" class="mock-select"></select>
+          </div>
+          <div class="mock-field">
+            <label class="mock-label">Método</label>
+            <select id="mock-method-select" class="mock-select" data-method="GET" onchange="onMethodChange(this)">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>PATCH</option>
+              <option>DELETE</option>
+              <option>HEAD</option>
+              <option>OPTIONS</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mock-field">
+          <label class="mock-label">Path</label>
+          <input id="mock-path-input" type="text" class="mock-input" placeholder="/users/:id" spellcheck="false" autocomplete="off"/>
+        </div>
+
+        <div id="mock-meta-row-2">
+          <div class="mock-field">
+            <label class="mock-label">Nome</label>
+            <input id="mock-name-input" type="text" class="mock-input" placeholder="Get user by ID" autocomplete="off"/>
+          </div>
+          <div class="mock-field">
+            <label class="mock-label">Grupo</label>
+            <input id="mock-group-input" type="text" class="mock-input" placeholder="Authentication" autocomplete="off" list="mock-groups-list"/>
+            <datalist id="mock-groups-list"></datalist>
+          </div>
+        </div>
+
+        <div class="mock-field mock-field-script">
+          <div id="mock-script-label-row">
+            <label class="mock-label">Script JS</label>
+            <span id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
+            <button class="ghost-btn" id="btn-format-script" onclick="formatScript()" title="Formatar código">
+              <span data-icon="sparkles"></span> formatar
+            </button>
+          </div>
+          <textarea id="mock-script-textarea" spellcheck="false"
+            placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
+        </div>
+
+        <!-- Painel de teste -->
+        <div id="mock-test-panel" style="display:none">
+          <div class="test-panel-head">
+            <span class="test-panel-title">Testar mock</span>
+            <button class="ghost-btn" onclick="hideTestPanel()"><span data-icon="x"></span></button>
+          </div>
+          <div id="mock-test-params"></div>
+          <button class="tool-btn" id="btn-test-run" onclick="runTest()">Executar</button>
+          <div id="mock-test-result" style="display:none"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
   <!-- ═══ MODE: TASKS / KANBAN ═══ -->
   <main id="mode-tasks" class="mode">
     <div id="kanban-board">
@@ -3000,7 +3940,7 @@ const confirmDialog = (message, opts = {}) =>
 
 let currentMode = 'map';
 
-const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban' };
+const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks' };
 
 const setMode = (mode) => {
   currentMode = mode;
@@ -3026,6 +3966,7 @@ const setMode = (mode) => {
   else if (mode === 'skills')   loadSkillsList();
   else if (mode === 'diagrams') loadDiagramsList();
   else if (mode === 'tasks')    loadTasks();
+  else if (mode === 'mocks')    loadMocksData();
   else if (sim) requestAnimationFrame(fitGraph);
 };
 
@@ -4938,6 +5879,669 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.kanban-col').forEach(bindColumnDrop);
   document.addEventListener('click', closeNoteDropdown);
 });
+
+</script>
+<script>
+// ════ Mocks — HTTP Mock Server Manager ════
+
+const MOCK_SERVER = 'http://127.0.0.1:3335';
+
+let allCollections = [];
+let allMocks       = [];
+let activeColId    = null;   // null = show all
+let currentMockId  = null;
+let scriptEditor   = null;   // instância CodeMirror (lazy init)
+
+// Inicializa o editor de script uma única vez, quando o form fica visível.
+const initScriptEditor = () => {
+  if (scriptEditor || typeof CodeMirror === 'undefined') return;
+  const ta = $('mock-script-textarea');
+  if (!ta) return;
+
+  scriptEditor = CodeMirror.fromTextArea(ta, {
+    mode:           'javascript',
+    theme:          'default',
+    lineNumbers:    true,
+    tabSize:        2,
+    indentWithTabs: false,
+    lineWrapping:   true,
+    viewportMargin: Infinity,   // altura automática, sem scroll interno
+    extraKeys: {
+      Tab: (cm) => cm.replaceSelection('  '),
+    },
+  });
+};
+
+const editorGet = () =>
+  scriptEditor ? scriptEditor.getValue() : ($('mock-script-textarea')?.value ?? '');
+
+const editorSet = (value) => {
+  if (scriptEditor) {
+    scriptEditor.setValue(value);
+    requestAnimationFrame(() => scriptEditor.refresh());
+  } else if ($('mock-script-textarea')) {
+    $('mock-script-textarea').value = value;
+  }
+};
+
+const editorFocus = () =>
+  scriptEditor ? scriptEditor.focus() : $('mock-script-textarea')?.focus();
+
+// ══════════════════════════════════════════
+// Data
+// ══════════════════════════════════════════
+
+const loadMocksData = async () => {
+  try {
+    const [colsRes, mocksRes] = await Promise.all([
+      fetch('/mocks/collections'),
+      fetch('/mocks'),
+    ]);
+    allCollections = await colsRes.json();
+    allMocks       = await mocksRes.json();
+    renderCollections();
+    renderMocksList();
+    updateServerBadge();
+    updateGroupsDatalist();
+    updateClearBtn();
+  } catch (err) {
+    console.error('Erro ao carregar mocks:', err);
+  }
+};
+
+// ══════════════════════════════════════════
+// Collections
+// ══════════════════════════════════════════
+
+const renderCollections = () => {
+  const list = $('mocks-col-list');
+  if (!list) return;
+
+  if (!allCollections.length) {
+    list.innerHTML = \`<div class="mocks-col-empty">Nenhuma collection ainda.<br>Crie a primeira.</div>\`;
+    return;
+  }
+
+  list.innerHTML = allCollections.map((col) => {
+    const count  = allMocks.filter((m) => m.collectionId === col.id).length;
+    const active = col.id === activeColId ? ' active' : '';
+    return \`<div class="mocks-col-item\${active}" data-id="\${col.id}">
+      <div class="mocks-col-item-inner" onclick="selectCollection('\${col.id}')">
+        <span class="mocks-col-dot"></span>
+        <span class="mocks-col-name">\${escHtml(col.name)}</span>
+        <span class="mocks-col-count">\${count}</span>
+      </div>
+      <div class="mocks-col-actions">
+        <button class="mocks-col-action-btn" onclick="renameCollection('\${col.id}')" title="Renomear">
+          <span data-icon="pencil"></span>
+        </button>
+        <button class="mocks-col-action-btn warn" onclick="clearCollectionMocks('\${col.id}')" title="Limpar mocks (mantém collection)">
+          <span data-icon="minus"></span>
+        </button>
+        <button class="mocks-col-action-btn danger" onclick="removeCollection('\${col.id}')" title="Deletar collection">
+          <span data-icon="trash"></span>
+        </button>
+      </div>
+    </div>\`;
+  }).join('');
+  hydrateIcons(list);
+};
+
+const selectCollection = (id) => {
+  activeColId = activeColId === id ? null : id;
+  renderCollections();
+  renderMocksList();
+  updateClearBtn();
+};
+
+const newCollection = () => {
+  if ($('new-col-input-row')) return;  // já aberto
+
+  const list = $('mocks-col-list');
+  if (!list) return;
+
+  const row = document.createElement('div');
+  row.id = 'new-col-input-row';
+  row.className = 'mocks-col-new-row';
+  row.innerHTML = \`
+    <input id="new-col-input" class="mocks-col-new-input"
+      placeholder="Nome da collection…" autocomplete="off" spellcheck="false"/>
+    <button class="mocks-col-new-ok" onclick="confirmNewCollection()" title="Criar">
+      <span data-icon="plus"></span>
+    </button>
+  \`;
+  list.prepend(row);
+  hydrateIcons(row);
+
+  const input = $('new-col-input');
+  input.focus();
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter')  { e.preventDefault(); confirmNewCollection(); }
+    if (e.key === 'Escape') cancelNewCollection();
+  });
+};
+
+const confirmNewCollection = async () => {
+  const input = $('new-col-input');
+  if (!input) return;
+  const name = input.value.trim();
+  cancelNewCollection();
+  if (!name) return;
+  await fetch('/mocks/collections', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ name }),
+  });
+  await loadMocksData();
+};
+
+const cancelNewCollection = () => $('new-col-input-row')?.remove();
+
+const renameCollection = (id) => {
+  const col = allCollections.find((c) => c.id === id);
+  if (!col) return;
+
+  const nameEl = document.querySelector(\`[data-id="\${id}"] .mocks-col-name\`);
+  if (!nameEl) return;
+
+  const original = col.name;
+  const input = document.createElement('input');
+  input.className = 'mocks-col-rename-input';
+  input.value = original;
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  let done = false;
+  const commit = async () => {
+    if (done) return;
+    done = true;
+    const name = input.value.trim();
+    if (name && name !== original) {
+      await fetch(\`/mocks/collections/\${id}\`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ name }),
+      });
+    }
+    await loadMocksData();
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter')  { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { done = true; loadMocksData(); }
+  });
+  input.addEventListener('blur', commit);
+};
+
+const removeCollection = async (id) => {
+  const col   = allCollections.find((c) => c.id === id);
+  if (!col) return;
+  const count = allMocks.filter((m) => m.collectionId === id).length;
+  const msg   = count
+    ? \`Remover "\${col.name}" e seus \${count} mock(s)?\`
+    : \`Remover collection "\${col.name}"?\`;
+  const ok = await confirmDialog(msg, { okLabel: 'Remover', danger: true });
+  if (!ok) return;
+  await fetch(\`/mocks/collections/\${id}\`, { method: 'DELETE' });
+  if (activeColId === id) activeColId = null;
+  if (currentMockId && allMocks.find((m) => m.id === currentMockId)?.collectionId === id) {
+    currentMockId = null;
+    hideEditorPanel();
+  }
+  await loadMocksData();
+};
+
+// ══════════════════════════════════════════
+// Mocks list
+// ══════════════════════════════════════════
+
+const METHOD_CLS = {
+  GET: 'method-get', POST: 'method-post', PUT: 'method-put',
+  PATCH: 'method-patch', DELETE: 'method-delete',
+  HEAD: 'method-gray', OPTIONS: 'method-gray',
+};
+
+const renderMocksList = () => {
+  const list    = $('mocks-list');
+  const heading = $('mocks-list-heading');
+  if (!list) return;
+
+  const filtered = activeColId
+    ? allMocks.filter((m) => m.collectionId === activeColId)
+    : allMocks;
+
+  if (heading) {
+    const col     = allCollections.find((c) => c.id === activeColId);
+    heading.textContent = col ? col.name : 'Todos os mocks';
+  }
+
+  if (!filtered.length) {
+    list.innerHTML = \`<div class="mocks-list-empty">
+      <span data-icon="share"></span>
+      <span>Nenhum mock aqui.<br>Crie o primeiro.</span>
+    </div>\`;
+    hydrateIcons(list);
+    return;
+  }
+
+  // Agrupa por group (string vazia = sem grupo)
+  const groups = new Map();
+  for (const mock of filtered) {
+    const g = mock.group || '';
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(mock);
+  }
+
+  // Ungrouped primeiro, depois grupos nomeados em ordem
+  const sortedGroups = [
+    ...(groups.has('') ? [['', groups.get('')]] : []),
+    ...[...groups.entries()].filter(([g]) => g !== '').sort(([a], [b]) => a.localeCompare(b)),
+  ];
+
+  let html = '';
+  for (const [group, mocks] of sortedGroups) {
+    if (group) {
+      html += \`<div class="mocks-group-sep">
+        <span class="mocks-group-line"></span>
+        <span class="mocks-group-label">\${escHtml(group)}</span>
+        <span class="mocks-group-line"></span>
+      </div>\`;
+    }
+    html += mocks.map((m) => {
+      const active  = m.id === currentMockId ? ' active' : '';
+      const mCls    = METHOD_CLS[m.method] ?? 'method-gray';
+      const colName = !activeColId
+        ? allCollections.find((c) => c.id === m.collectionId)?.name ?? ''
+        : '';
+      return \`<div class="mocks-item\${active}" data-id="\${m.id}" onclick="openMockEditor('\${m.id}')">
+        <span class="mock-method-badge \${mCls}">\${escHtml(m.method)}</span>
+        <div class="mock-item-info">
+          <span class="mock-item-path">\${escHtml(m.path)}</span>
+          \${m.name ? \`<span class="mock-item-name">\${escHtml(m.name)}</span>\` : ''}
+        </div>
+        \${colName ? \`<span class="mock-item-col">\${escHtml(colName)}</span>\` : ''}
+      </div>\`;
+    }).join('');
+  }
+
+  list.innerHTML = html;
+};
+
+// ══════════════════════════════════════════
+// Editor
+// ══════════════════════════════════════════
+
+const DEFAULT_SCRIPT = \`// ctx: { method, path, params, query, headers, body }
+// db:  { get, set, delete, has, list, keys, clear, size }
+return {
+  status: 200,
+  body: {
+    message: "ok",
+    params: ctx.params,
+    query:  ctx.query,
+  }
+};\`;
+
+const openMockEditor = (id) => {
+  const mock = allMocks.find((m) => m.id === id);
+  if (!mock) return;
+  currentMockId = id;
+  renderMocksList();
+  showEditorForm(mock);
+};
+
+const newMock = () => {
+  if (!allCollections.length) {
+    toast('Crie uma collection primeiro');
+    return;
+  }
+  currentMockId = null;
+  const col = allCollections.find((c) => c.id === activeColId) ?? allCollections[0];
+  renderMocksList();
+  showEditorForm({
+    collectionId: col?.id ?? '',
+    method: 'GET',
+    path: '',
+    name: '',
+    group: '',
+    script: DEFAULT_SCRIPT,
+  });
+  setTimeout(() => $('mock-path-input')?.focus(), 50);
+};
+
+const showEditorForm = (mock) => {
+  const empty = $('mocks-editor-empty');
+  const form  = $('mocks-editor-form');
+  if (empty) empty.style.display = 'none';
+  if (form)  form.style.display  = 'flex';
+
+  populateCollectionSelect(mock.collectionId);
+  updateMethodSelectColor(mock.method);
+
+  $('mock-method-select').value = mock.method ?? 'GET';
+  $('mock-path-input').value    = mock.path   ?? '';
+  $('mock-name-input').value    = mock.name   ?? '';
+  $('mock-group-input').value   = mock.group  ?? '';
+
+  initScriptEditor();
+  editorSet(mock.script ?? DEFAULT_SCRIPT);
+
+  const badge   = $('mock-id-badge');
+  const delBtn  = $('btn-mock-delete');
+  const isNew   = !mock.id;
+
+  if (badge) {
+    badge.textContent   = isNew ? '— novo mock —' : \`\${mock.method}  \${mock.path}\`;
+    badge.dataset.method = mock.method ?? 'GET';
+  }
+  if (delBtn) delBtn.style.display = isNew ? 'none' : 'inline-flex';
+
+  hideTestPanel();
+};
+
+const hideEditorPanel = () => {
+  const empty = $('mocks-editor-empty');
+  const form  = $('mocks-editor-form');
+  if (empty) empty.style.display = 'flex';
+  if (form)  form.style.display  = 'none';
+};
+
+const populateCollectionSelect = (selectedId) => {
+  const sel = $('mock-collection-select');
+  if (!sel) return;
+  sel.innerHTML = allCollections.length
+    ? allCollections.map((c) =>
+        \`<option value="\${c.id}"\${c.id === selectedId ? ' selected' : ''}>\${escHtml(c.name)}</option>\`
+      ).join('')
+    : \`<option value="">— sem collections —</option>\`;
+};
+
+const updateMethodSelectColor = (method) => {
+  const sel = $('mock-method-select');
+  if (!sel) return;
+  sel.dataset.method = method ?? 'GET';
+};
+
+const saveMock = async () => {
+  const colId  = $('mock-collection-select').value;
+  const method = $('mock-method-select').value;
+  const path   = $('mock-path-input').value.trim();
+  const name   = $('mock-name-input').value.trim();
+  const group  = $('mock-group-input').value.trim();
+  const script = editorGet();
+
+  if (!colId)         { toast('Selecione uma collection'); return; }
+  if (!path)          { $('mock-path-input').focus();      return; }
+  if (!script.trim()) { editorFocus();                     return; }
+
+  const body = { collectionId: colId, method, path, name, group, script };
+
+  if (currentMockId) {
+    await fetch(\`/mocks/\${currentMockId}\`, {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    });
+  } else {
+    const res     = await fetch('/mocks', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    });
+    const created = await res.json();
+    currentMockId = created.id;
+  }
+
+  await loadMocksData();
+  toast('Mock salvo');
+
+  // Atualiza badge
+  const badge = $('mock-id-badge');
+  if (badge) {
+    badge.textContent    = \`\${method}  \${path}\`;
+    badge.dataset.method = method;
+  }
+  $('btn-mock-delete') && ($('btn-mock-delete').style.display = 'inline-flex');
+};
+
+const deleteCurrentMock = async () => {
+  if (!currentMockId) return;
+  const mock = allMocks.find((m) => m.id === currentMockId);
+  const ok   = await confirmDialog(
+    \`Remover mock "\${mock?.method ?? ''} \${mock?.path ?? ''}"?\`,
+    { okLabel: 'Remover', danger: true },
+  );
+  if (!ok) return;
+  await fetch(\`/mocks/\${currentMockId}\`, { method: 'DELETE' });
+  currentMockId = null;
+  hideEditorPanel();
+  await loadMocksData();
+};
+
+// ── Method select color sync ──
+const onMethodChange = (sel) => updateMethodSelectColor(sel.value);
+
+// ══════════════════════════════════════════
+// Test panel
+// ══════════════════════════════════════════
+
+const extractPathParams = (path) =>
+  [...(path.matchAll(/:(\\w+)/g))].map((m) => m[1]);
+
+const showTestPanel = () => {
+  const path  = $('mock-path-input').value.trim();
+  const panel = $('mock-test-panel');
+  if (!panel || !path) return;
+
+  panel.style.display = 'flex';
+
+  const params    = extractPathParams(path);
+  const paramsEl  = $('mock-test-params');
+  if (paramsEl) {
+    if (params.length) {
+      paramsEl.style.display = 'block';
+      paramsEl.innerHTML     = \`<div class="test-params-label">Path params</div>\` +
+        params.map((p) =>
+          \`<div class="test-param-row">
+            <span class="test-param-name">:\${escHtml(p)}</span>
+            <input class="test-param-input" id="test-param-\${escHtml(p)}" value="1" spellcheck="false"/>
+          </div>\`
+        ).join('');
+    } else {
+      paramsEl.innerHTML     = '';
+      paramsEl.style.display = 'none';
+    }
+  }
+
+  $('mock-test-result') && ($('mock-test-result').style.display = 'none');
+};
+
+const hideTestPanel = () => {
+  const panel = $('mock-test-panel');
+  if (panel) panel.style.display = 'none';
+};
+
+const runTest = async () => {
+  const path   = $('mock-path-input').value.trim();
+  const method = $('mock-method-select').value;
+  if (!path) return;
+
+  const params = extractPathParams(path);
+  let resolved = path;
+  for (const p of params) {
+    const val = $(\`test-param-\${p}\`)?.value || '1';
+    resolved  = resolved.replace(\`:\${p}\`, encodeURIComponent(val));
+  }
+
+  const btn = $('btn-test-run');
+  if (btn) { btn.disabled = true; btn.textContent = 'Chamando…'; }
+
+  try {
+    const t0   = performance.now();
+    const res  = await fetch(\`\${MOCK_SERVER}\${resolved}\`, { method });
+    const ms   = Math.round(performance.now() - t0);
+    const text = await res.text();
+
+    let bodyDisplay;
+    try {
+      bodyDisplay = JSON.stringify(JSON.parse(text), null, 2);
+    } catch {
+      bodyDisplay = text;
+    }
+
+    renderTestResult({ status: res.status, ms, body: bodyDisplay, ok: res.ok });
+  } catch (err) {
+    renderTestResult({ status: 0, ms: 0, body: String(err), ok: false });
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Executar'; }
+  }
+};
+
+const renderTestResult = ({ status, ms, body, ok }) => {
+  const el = $('mock-test-result');
+  if (!el) return;
+  el.style.display = 'flex';
+
+  const sCls   = ok ? 'test-status-ok' : 'test-status-err';
+  const sLabel = status ? String(status) : 'ERR';
+
+  el.innerHTML = \`
+    <div class="test-result-meta">
+      <span class="test-status-badge \${sCls}">\${escHtml(sLabel)}</span>
+      \${ms ? \`<span class="test-ms">\${ms}ms</span>\` : ''}
+    </div>
+    <pre class="test-body">\${escHtml(body)}</pre>
+  \`;
+};
+
+// ══════════════════════════════════════════
+// Clear
+// ══════════════════════════════════════════
+
+// Zera os mocks de uma collection sem deletá-la.
+// Chamado pelo botão do footer (contextual) e pelo botão − do hover.
+const clearCollectionMocks = async (id) => {
+  const col   = allCollections.find((c) => c.id === id);
+  if (!col) return;
+  const count = allMocks.filter((m) => m.collectionId === id).length;
+  if (!count) { toast(\`"\${col.name}" já está vazia\`); return; }
+
+  const ok = await confirmDialog(
+    \`Zerar banco de "\${col.name}"?\\n\${count} mock(s) serão removidos. A collection será mantida.\`,
+    { okLabel: 'Zerar banco', danger: true },
+  );
+  if (!ok) return;
+
+  await fetch(\`/mocks/collections/\${id}/clear\`, { method: 'DELETE' });
+  if (currentMockId && allMocks.find((m) => m.id === currentMockId)?.collectionId === id) {
+    currentMockId = null;
+    hideEditorPanel();
+  }
+  await loadMocksData();
+  toast(\`Banco de "\${col.name}" zerado\`);
+};
+
+// Botão do rodapé: contextual à collection selecionada.
+// Se nenhuma collection ativa, zera tudo (collections + mocks).
+const clearMockDatabase = async () => {
+  if (activeColId) {
+    await clearCollectionMocks(activeColId);
+    return;
+  }
+
+  // Nenhuma collection selecionada → zerar tudo
+  const total = allMocks.length;
+  const cols  = allCollections.length;
+  if (!total && !cols) { toast('Banco já está vazio'); return; }
+
+  const ok = await confirmDialog(
+    \`Zerar tudo?\\n\${cols} collection(s) e \${total} mock(s) serão removidos permanentemente.\`,
+    { okLabel: 'Zerar tudo', danger: true },
+  );
+  if (!ok) return;
+
+  await fetch('/mocks/clear', { method: 'DELETE' });
+  activeColId   = null;
+  currentMockId = null;
+  hideEditorPanel();
+  await loadMocksData();
+  toast('Banco de mocks zerado');
+};
+
+// ══════════════════════════════════════════
+// Helpers
+// ══════════════════════════════════════════
+
+const formatScript = () => {
+  if (typeof js_beautify === 'undefined') {
+    toast('Formatter não carregado ainda');
+    return;
+  }
+  const code = editorGet();
+  if (!code.trim()) return;
+
+  const formatted = js_beautify(code, {
+    indent_size:                2,
+    indent_char:                ' ',
+    max_preserve_newlines:      2,
+    preserve_newlines:          true,
+    keep_array_indentation:     false,
+    break_chained_methods:      false,
+    brace_style:                'collapse',
+    space_before_conditional:   true,
+    unescape_strings:           false,
+    jslint_happy:               false,
+    end_with_newline:           false,
+    wrap_line_length:           0,
+    comma_first:                false,
+    e4x:                        false,
+    indent_empty_lines:         false,
+  });
+
+  editorSet(formatted);
+};
+
+const copyCurl = () => {
+  const method = $('mock-method-select').value;
+  const path   = $('mock-path-input').value.trim();
+  if (!path) { toast('Defina o path primeiro'); return; }
+
+  // Substitui :param por valor de exemplo
+  const resolved = path.replace(/:(\\w+)/g, '1');
+  const url      = \`\${MOCK_SERVER}\${resolved}\`;
+
+  const hasBody = ['POST', 'PUT', 'PATCH'].includes(method);
+  const parts   = [\`curl -X \${method}\`];
+  if (hasBody) parts.push(\`-H 'Content-Type: application/json'\`, \`-d '{}'\`);
+  parts.push(\`'\${url}'\`);
+
+  copyToClipboard(parts.join(' \\\\\\n  '), 'curl copiado');
+};
+
+const updateServerBadge = () => {
+  const el = $('mocks-server-count');
+  if (el) el.dataset.count = String(allMocks.length);
+};
+
+const updateClearBtn = () => {
+  const btn = $('mocks-clear-btn');
+  const lbl = btn?.querySelector('.mocks-clear-label');
+  if (!lbl) return;
+  if (activeColId) {
+    const col  = allCollections.find((c) => c.id === activeColId);
+    lbl.textContent = col ? \`Zerar "\${col.name}"\` : 'Zerar banco';
+  } else {
+    lbl.textContent = 'Zerar tudo';
+  }
+};
+
+const updateGroupsDatalist = () => {
+  const dl = $('mock-groups-list');
+  if (!dl) return;
+  const groups = [...new Set(allMocks.map((m) => m.group).filter(Boolean))].sort();
+  dl.innerHTML = groups.map((g) => \`<option value="\${escHtml(g)}"></option>\`).join('');
+};
 
 </script>
 <script>

@@ -5,6 +5,7 @@
 import './env.ts';
 import { startUiServer, UI_PORT } from './server/server.ts';
 import { startApiServer, API_PORT } from './api/server.ts';
+import { startMockServer, MOCK_PORT } from './mocks/server.ts';
 import { createWorkspaceRef, restoreLastWorkspace } from './workspace/manager.ts';
 import { openAppKv } from './kv/path.ts';
 import { runMigrations } from './kv/migrate.ts';
@@ -23,6 +24,7 @@ const startWithRetry = async (deps: HandlerDeps): Promise<void> => {
     try {
       startUiServer(deps);
       startApiServer(deps);
+      startMockServer(deps.kv);
       return;
     } catch (err) {
       if (err instanceof Deno.errors.AddrInUse && attempt < 9) {
@@ -38,6 +40,7 @@ const boot = async (): Promise<void> => {
   // Assume o lugar de qualquer instância anterior.
   await freePort(UI_PORT);
   await freePort(API_PORT);
+  await freePort(MOCK_PORT);
 
   const kv = await openAppKv();
   await runMigrations(kv);

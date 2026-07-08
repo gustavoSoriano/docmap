@@ -7,6 +7,7 @@ import { createApiSearchDocsHandler } from './handlers/search-docs.ts';
 import { diagramsHandler } from '../diagrams/handler.ts';
 import { skillsApiHandler } from '../skills/handler.ts';
 import { tasksHandler } from '../tasks/handler.ts';
+import { mocksHandler } from '../mocks/handler.ts';
 import { notFound } from '../server/response.ts';
 import type { HandlerDeps } from '../server/types.ts';
 
@@ -32,6 +33,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const diagrams = diagramsHandler(deps.kv);
   const skills = skillsApiHandler(deps.kv);
   const tasks = tasksHandler(deps.kv);
+  const mocks = mocksHandler(deps.kv);
 
   return async (req: Request): Promise<Response> => {
     if (req.method === 'OPTIONS') {
@@ -51,6 +53,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname === '/graph/relations')  res = await graphRelations(req, url);
     else if (pathname === '/content')          res = await content(req, url);
     else if (pathname === '/docs/search') res = await searchDocs(req, url);
+    else if (pathname.startsWith('/mocks')) res = await mocks(req, url);
     else res = notFound();
 
     return withCors(res);

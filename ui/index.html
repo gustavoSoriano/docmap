@@ -12,6 +12,10 @@
 <script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
 <script src="https://cdn.jsdelivr.net/npm/markmap-lib/dist/browser/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
 <link rel="stylesheet" href="/styles/tokens.css">
 <link rel="stylesheet" href="/styles/layout.css">
 <link rel="stylesheet" href="/styles/graph.css">
@@ -24,6 +28,7 @@
 <link rel="stylesheet" href="/styles/skills.css">
 <link rel="stylesheet" href="/styles/diagrams.css">
 <link rel="stylesheet" href="/styles/tasks.css">
+<link rel="stylesheet" href="/styles/mocks.css">
 </head>
 <body>
 
@@ -47,6 +52,9 @@
   </button>
   <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')" title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
+  </button>
+  <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')" title="Mocks HTTP">
+    <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
   </button>
   <div class="rail-spacer"></div>
   <button class="rail-btn" id="rail-backup" onclick="downloadBackup()" title="Backup completo (notas, skills, diagramas, anotações)">
@@ -382,6 +390,126 @@
 
   </main>
 
+  <!-- ═══ MODE: MOCKS ═══ -->
+  <main id="mode-mocks" class="mode">
+
+    <section id="mocks-col">
+
+      <div id="mocks-col-head">
+        <span class="mocks-section-label">Collections</span>
+        <button class="mocks-hd-btn" onclick="newCollection()" title="Nova collection" data-icon="plus"></button>
+      </div>
+      <div id="mocks-col-list"></div>
+
+      <div id="mocks-list-head">
+        <span id="mocks-list-heading">Todos os mocks</span>
+        <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock" data-icon="plus"></button>
+      </div>
+      <div id="mocks-list"></div>
+
+      <footer id="mocks-col-footer">
+        <div id="mocks-server-badge">
+          <span class="mocks-server-pulse"></span>
+          <span class="mocks-server-url">127.0.0.1:3335</span>
+          <span id="mocks-server-count" data-count="0"></span>
+        </div>
+        <button id="mocks-clear-btn" onclick="clearMockDatabase()">
+          <span data-icon="trash"></span>
+          <span class="mocks-clear-label">Zerar tudo</span>
+        </button>
+      </footer>
+
+    </section>
+
+    <section id="mocks-editor">
+
+      <div id="mocks-editor-empty">
+        <div id="mocks-editor-empty-mark" data-icon="share"></div>
+        <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
+      </div>
+
+      <div id="mocks-editor-form">
+
+        <div id="mock-head">
+          <span id="mock-id-badge" data-method="GET">— novo mock —</span>
+          <div id="mock-head-actions">
+            <button class="tool-btn danger" id="btn-mock-delete" style="display:none" onclick="deleteCurrentMock()">
+              <span data-icon="trash"></span>
+            </button>
+            <button class="tool-btn" id="btn-mock-curl" onclick="copyCurl()" title="Copiar curl">
+              <span data-icon="copy"></span> curl
+            </button>
+            <button class="tool-btn" id="btn-mock-test" onclick="showTestPanel()">
+              <span data-icon="scan-line"></span> Testar
+            </button>
+            <button class="tool-btn primary" onclick="saveMock()">Salvar</button>
+          </div>
+        </div>
+
+        <div id="mock-meta-row">
+          <div class="mock-field">
+            <label class="mock-label">Collection</label>
+            <select id="mock-collection-select" class="mock-select"></select>
+          </div>
+          <div class="mock-field">
+            <label class="mock-label">Método</label>
+            <select id="mock-method-select" class="mock-select" data-method="GET" onchange="onMethodChange(this)">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>PATCH</option>
+              <option>DELETE</option>
+              <option>HEAD</option>
+              <option>OPTIONS</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mock-field">
+          <label class="mock-label">Path</label>
+          <input id="mock-path-input" type="text" class="mock-input" placeholder="/users/:id" spellcheck="false" autocomplete="off"/>
+        </div>
+
+        <div id="mock-meta-row-2">
+          <div class="mock-field">
+            <label class="mock-label">Nome</label>
+            <input id="mock-name-input" type="text" class="mock-input" placeholder="Get user by ID" autocomplete="off"/>
+          </div>
+          <div class="mock-field">
+            <label class="mock-label">Grupo</label>
+            <input id="mock-group-input" type="text" class="mock-input" placeholder="Authentication" autocomplete="off" list="mock-groups-list"/>
+            <datalist id="mock-groups-list"></datalist>
+          </div>
+        </div>
+
+        <div class="mock-field mock-field-script">
+          <div id="mock-script-label-row">
+            <label class="mock-label">Script JS</label>
+            <span id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
+            <button class="ghost-btn" id="btn-format-script" onclick="formatScript()" title="Formatar código">
+              <span data-icon="sparkles"></span> formatar
+            </button>
+          </div>
+          <textarea id="mock-script-textarea" spellcheck="false"
+            placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
+        </div>
+
+        <!-- Painel de teste -->
+        <div id="mock-test-panel" style="display:none">
+          <div class="test-panel-head">
+            <span class="test-panel-title">Testar mock</span>
+            <button class="ghost-btn" onclick="hideTestPanel()"><span data-icon="x"></span></button>
+          </div>
+          <div id="mock-test-params"></div>
+          <button class="tool-btn" id="btn-test-run" onclick="runTest()">Executar</button>
+          <div id="mock-test-result" style="display:none"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
   <!-- ═══ MODE: TASKS / KANBAN ═══ -->
   <main id="mode-tasks" class="mode">
     <div id="kanban-board">
@@ -553,6 +681,7 @@
 <script src="/scripts/skills.js"></script>
 <script src="/scripts/diagrams.js"></script>
 <script src="/scripts/tasks.js"></script>
+<script src="/scripts/mocks.js"></script>
 <script src="/scripts/system.js"></script>
 <script src="/scripts/ai-chat.js"></script>
 </body>

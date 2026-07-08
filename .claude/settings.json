@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find ~/.claude/skills -name \"*.md\" -o -name \"*.json\" 2>/dev/null | head -30)",
+      "Read(//Users/soriano/.claude/skills/**)",
+      "Read(//Users/soriano/.claude/skills/docmap/**)"
+    ]
+  }
+}
