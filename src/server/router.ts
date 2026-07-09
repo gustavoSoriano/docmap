@@ -18,6 +18,7 @@ import { skillsUiHandler } from '../skills/handler.ts';
 import { macrosHandler } from '../macros/handler.ts';
 import { tasksHandler } from '../tasks/handler.ts';
 import { mocksHandler } from '../mocks/handler.ts';
+import { favoritesHandler } from '../favorites/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
 import { notFound } from './response.ts';
 import type { HandlerDeps } from './types.ts';
@@ -40,7 +41,8 @@ export const createRouter = (deps: HandlerDeps) => {
   const skills = skillsUiHandler(deps.kv);
   const macros = macrosHandler(deps.kv, deps.workspace);
   const tasks = tasksHandler(deps.kv);
-  const mocks = mocksHandler(deps.kv);
+  const mocks     = mocksHandler(deps.kv);
+  const favorites = favoritesHandler(deps.kv);
 
   return (req: Request): Response | Promise<Response> => {
     const url = new URL(req.url);
@@ -64,7 +66,8 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/skills')) return skills(req, url);
     if (pathname.startsWith('/macros')) return macros(req, url);
     if (pathname.startsWith('/tasks')) return tasks(req, url);
-    if (pathname.startsWith('/mocks')) return mocks(req, url);
+    if (pathname.startsWith('/mocks'))     return mocks(req, url);
+    if (pathname.startsWith('/favorites')) return favorites(req, url);
 
     return notFound();
   };

@@ -295,6 +295,10 @@ const callProvider = async (messages) => {
   const controller = new AbortController();
   chatAbort = controller;
 
+  // timeout de 5 minutos — evita travamento com modelos pesados
+  let timedOut = false;
+  const timeoutId = setTimeout(() => { timedOut = true; controller.abort(); }, 300000);
+
   const res = await fetch('/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -339,6 +343,8 @@ const callProvider = async (messages) => {
     }
   }
 
+  clearTimeout(timeoutId);
+  if (timedOut) throw new Error('Timeout: o modelo demorou mais de 5 minutos para responder.');
   return { content: fullContent, toolCalls };
 };
 
@@ -384,7 +390,8 @@ const sendChatMessage = async () => {
         chatMessages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
       }
 
-      streamToChat('\n');
+      // reseta o stream element para o próximo ciclo criar um novo bubble
+      currentStreamEl = appendChatBubble('assistant', '');
     }
   } catch (err) {
     if (err.name !== 'AbortError') {
@@ -422,10 +429,24 @@ const appendToolCall = (name, args, result) => {
   div.className = 'chat-tool-call';
   const argsObj = typeof args === 'string' ? JSON.parse(args) : args;
   const summary = toolCallSummary(name, argsObj);
+  const resultStr = JSON.stringify(result);
+  const bodyStr = argsObj.body ? JSON.stringify(argsObj.body, null, 2) : null;
+
   div.innerHTML =
-    `<span class="tool-name">${escHtml(name)}</span> ` +
-    `<span class="tool-summary">${escHtml(summary)}</span>` +
-    `<div class="tool-result">${escHtml(JSON.stringify(result).slice(0, 360))}${JSON.stringify(result).length > 360 ? '…' : ''}</div>`;
+    `<div class="tool-summary-row">` +
+      `<button class="tool-toggle" title="Ver detalhes">▶</button>` +
+      `<span class="tool-name">${escHtml(name)}</span> ` +
+      `<span class="tool-summary">${escHtml(summary)}</span>` +
+    `</div>` +
+    `<div class="tool-details">` +
+      (bodyStr ? `<div class="tool-body">${escHtml(bodyStr)}</div>` : '') +
+      `<div class="tool-result">${escHtml(resultStr.slice(0, 500))}${resultStr.length > 500 ? '…' : ''}</div>` +
+    `</div>`;
+
+  div.querySelector('.tool-toggle').addEventListener('click', (e) => {
+    const open = div.querySelector('.tool-details').classList.toggle('open');
+    e.currentTarget.textContent = open ? '▼' : '▶';
+  });
 
   feed.appendChild(div);
   feed.scrollTop = feed.scrollHeight;

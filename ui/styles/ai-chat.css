@@ -131,19 +131,29 @@
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent-2);
   border-radius: var(--r-sm);
-  padding: 8px 12px;
+  padding: 6px 10px;
   font-family: var(--font-mono);
   font-size: 11px;
   max-width: 92%;
   word-break: break-all;
 }
+.tool-summary-row { display: flex; align-items: center; gap: 6px; }
+.tool-toggle {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-3); font-size: 10px; padding: 0 2px;
+  line-height: 1; opacity: 0.6; flex-shrink: 0;
+}
+.tool-toggle:hover { opacity: 1; }
 .tool-name {
   font-weight: 700; padding: 1px 7px;
   border-radius: 4px; font-size: 10px;
   background: rgba(55,217,154,.12); color: var(--accent);
 }
-.tool-summary { color: var(--text-2); margin-left: 4px; }
-.tool-result { color: var(--text-3); margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
+.tool-summary { color: var(--text-2); }
+.tool-details { display: none; margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
+.tool-details.open { display: block; }
+.tool-body { color: var(--text-3); margin-bottom: 4px; white-space: pre-wrap; }
+.tool-result { color: var(--text-3); white-space: pre-wrap; }
 
 /* ── Composer ── */
 #chat-composer {

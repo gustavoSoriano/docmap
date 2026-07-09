@@ -84,5 +84,26 @@ export const createSystemHandler = ({ kv }: HandlerDeps) =>
       }
     }
 
+    // POST /system/open-url — abre URL no browser padrão do sistema
+    // (webview não suporta window.open para URLs externas)
+    if (req.method === 'POST' && url.pathname === '/system/open-url') {
+      let body: unknown;
+      try { body = await req.json(); } catch { return badRequest('JSON inválido'); }
+      const target = typeof body === 'object' && body !== null && 'url' in body
+        ? String((body as Record<string, unknown>).url)
+        : '';
+      if (!/^https?:\/\//i.test(target)) return badRequest('URL inválida');
+      const cmd = Deno.build.os === 'windows' ? 'cmd'
+                : Deno.build.os === 'darwin'  ? 'open'
+                : 'xdg-open';
+      const args = Deno.build.os === 'windows' ? ['/c', 'start', '', target] : [target];
+      try {
+        await new Deno.Command(cmd, { args, stdout: 'null', stderr: 'null' }).output();
+        return json({ ok: true });
+      } catch (err) {
+        return badRequest(err instanceof Error ? err.message : 'falha ao abrir URL');
+      }
+    }
+
     return badRequest('rota de sistema desconhecida');
   };

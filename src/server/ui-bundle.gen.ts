@@ -1308,12 +1308,21 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent-2);
   border-radius: var(--r-sm);
-  padding: 8px 12px;
+  padding: 6px 10px;
   font-family: var(--font-mono);
   font-size: 11px;
   max-width: 92%;
   word-break: break-all;
 }
+.tool-summary {
+  display: flex; align-items: center; gap: 6px; cursor: default;
+}
+.tool-toggle {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-3); font-size: 10px; padding: 0 2px;
+  line-height: 1; opacity: 0.6;
+}
+.tool-toggle:hover { opacity: 1; }
 .tool-method {
   font-weight: 700; padding: 1px 7px;
   border-radius: 4px; font-size: 10px;
@@ -1322,8 +1331,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 .tool-method.post { background: rgba(55,217,154,.15); color: var(--accent); }
 .tool-method.put  { background: rgba(251,191,36,.15); color: #fbbf24; }
 .tool-path   { color: var(--text-2); }
-.tool-body   { color: var(--text-3); margin-top: 4px; white-space: pre-wrap; }
-.tool-result { color: var(--text-3); margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
+.tool-details { display: none; margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
+.tool-details.open { display: block; }
+.tool-body   { color: var(--text-3); margin-bottom: 4px; white-space: pre-wrap; }
+.tool-result { color: var(--text-3); white-space: pre-wrap; }
 
 /* ── Composer ── */
 #chat-composer {
@@ -2191,7 +2202,7 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 </div>
 
 <!-- ════ AI Chat FAB ════ -->
-<button id="chat-fab" onclick="toggleChat()" title="Chat com gpt-oss:20b">
+<button id="chat-fab" onclick="toggleChat()" title="Chat com gemma4:12b">
   <span data-icon="bot"></span>
 </button>
 
@@ -3943,52 +3954,59 @@ const callOllama = async (messages) => {
   const controller = new AbortController();
   chatAbort = controller;
 
-  const res = await fetch(OLLAMA_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    signal: controller.signal,
-    body: JSON.stringify({
-      model:    OLLAMA_MODEL,
-      messages,
-      tools:    [HTTP_TOOL],
-      stream:   true,
-    }),
-  });
+  // timeout de 5 minutos (300s) — aumenta se o modelo for muito pesado
+  const timeoutId = setTimeout(() => controller.abort(), 300000);
 
-  if (!res.ok) throw new Error(\`Ollama \${res.status}: \${await res.text()}\`);
+  try {
+    const res = await fetch(OLLAMA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model:    OLLAMA_MODEL,
+        messages,
+        tools:    [HTTP_TOOL],
+        stream:   true,
+      }),
+    });
 
-  const reader = res.body.getReader();
-  const dec    = new TextDecoder();
-  let buf = '';
-  let fullContent = '';
-  let toolCalls = [];
+    if (!res.ok) throw new Error(\`Ollama \${res.status}: \${await res.text()}\`);
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    const lines = buf.split('\\n');
-    buf = lines.pop() ?? '';
+    const reader = res.body.getReader();
+    const dec    = new TextDecoder();
+    let buf = '';
+    let fullContent = '';
+    let toolCalls = [];
 
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      try {
-        const chunk = JSON.parse(line);
-        const msg = chunk.message;
-        if (!msg) continue;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\\n');
+      buf = lines.pop() ?? '';
 
-        if (msg.content) {
-          fullContent += msg.content;
-          streamToChat(msg.content);
-        }
-        if (msg.tool_calls?.length) {
-          toolCalls = toolCalls.concat(msg.tool_calls);
-        }
-      } catch { /* linha incompleta */ }
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const chunk = JSON.parse(line);
+          const msg = chunk.message;
+          if (!msg) continue;
+
+          if (msg.content) {
+            fullContent += msg.content;
+            streamToChat(msg.content);
+          }
+          if (msg.tool_calls?.length) {
+            toolCalls = toolCalls.concat(msg.tool_calls);
+          }
+        } catch { /* linha incompleta */ }
+      }
     }
-  }
 
-  return { content: fullContent, toolCalls };
+    return { content: fullContent, toolCalls };
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 // ── Enviar mensagem (com tool loop) ──
@@ -4075,13 +4093,26 @@ const appendToolCall = (parentEl, name, args, result) => {
   const argsObj = typeof args === 'string' ? JSON.parse(args) : args;
   const method = argsObj.method || 'GET';
   const path   = argsObj.path   || '';
-  div.innerHTML =
-    \`<span class="tool-method \${method.toLowerCase()}">\${escHtml(method)}</span> \` +
-    \`<span class="tool-path">\${escHtml(path)}</span>\` +
-    (argsObj.body ? \`<div class="tool-body">\${escHtml(JSON.stringify(argsObj.body, null, 2))}</div>\` : '') +
-    \`<div class="tool-result">\${escHtml(JSON.stringify(result).slice(0, 300))}\${JSON.stringify(result).length > 300 ? '…' : ''}</div>\`;
+  const resultStr = JSON.stringify(result);
+  const bodyStr   = argsObj.body ? JSON.stringify(argsObj.body, null, 2) : null;
 
-  // insere antes do texto já streamado (ou no final)
+  div.innerHTML =
+    \`<div class="tool-summary">\` +
+      \`<button class="tool-toggle" title="Ver detalhes">▶</button>\` +
+      \`<span class="tool-method \${method.toLowerCase()}">\${escHtml(method)}</span> \` +
+      \`<span class="tool-path">\${escHtml(path)}</span>\` +
+    \`</div>\` +
+    \`<div class="tool-details">\` +
+      (bodyStr ? \`<div class="tool-body">\${escHtml(bodyStr)}</div>\` : '') +
+      \`<div class="tool-result">\${escHtml(resultStr.slice(0, 500))}\${resultStr.length > 500 ? '…' : ''}</div>\` +
+    \`</div>\`;
+
+  div.querySelector('.tool-toggle').addEventListener('click', (e) => {
+    const details = div.querySelector('.tool-details');
+    const open = details.classList.toggle('open');
+    e.currentTarget.textContent = open ? '▼' : '▶';
+  });
+
   const feed = $('chat-feed');
   feed.appendChild(div);
   feed.scrollTop = feed.scrollHeight;

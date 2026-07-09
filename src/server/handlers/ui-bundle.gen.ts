@@ -1388,19 +1388,29 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent-2);
   border-radius: var(--r-sm);
-  padding: 8px 12px;
+  padding: 6px 10px;
   font-family: var(--font-mono);
   font-size: 11px;
   max-width: 92%;
   word-break: break-all;
 }
+.tool-summary-row { display: flex; align-items: center; gap: 6px; }
+.tool-toggle {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-3); font-size: 10px; padding: 0 2px;
+  line-height: 1; opacity: 0.6; flex-shrink: 0;
+}
+.tool-toggle:hover { opacity: 1; }
 .tool-name {
   font-weight: 700; padding: 1px 7px;
   border-radius: 4px; font-size: 10px;
   background: rgba(55,217,154,.12); color: var(--accent);
 }
-.tool-summary { color: var(--text-2); margin-left: 4px; }
-.tool-result { color: var(--text-3); margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
+.tool-summary { color: var(--text-2); }
+.tool-details { display: none; margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
+.tool-details.open { display: block; }
+.tool-body { color: var(--text-3); margin-bottom: 4px; white-space: pre-wrap; }
+.tool-result { color: var(--text-3); white-space: pre-wrap; }
 
 /* ── Composer ── */
 #chat-composer {
@@ -3162,6 +3172,912 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 </style>
+<style>
+/* ════ Favorites / Bookmarks Manager ════ */
+
+:root {
+  --fav-site:      #60a5fa;
+  --fav-slack:     #c084fc;
+  --fav-grid:      #34d399;
+  --fav-dash:      #fb923c;
+  --fav-github:    #e2e8f0;
+  --fav-site-bg:   rgba(96,165,250,.1);
+  --fav-slack-bg:  rgba(192,132,252,.1);
+  --fav-grid-bg:   rgba(52,211,153,.1);
+  --fav-dash-bg:   rgba(251,146,60,.1);
+  --fav-github-bg: rgba(226,232,240,.08);
+}
+
+/* ── Layout ── */
+#mode-favorites { flex-direction: row; }
+
+/* ── Sidebar ── */
+#fav-sidebar {
+  width: 210px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 14px 0;
+  gap: 4px;
+}
+
+.fav-sidebar-section { padding: 0 10px; }
+
+.fav-sidebar-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  padding: 0 7px;
+  margin-bottom: 4px;
+}
+
+.fav-cat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 12.5px;
+  transition: color .12s, background .12s;
+  border: 1px solid transparent;
+}
+
+.fav-cat-item:hover { background: var(--surface-2); color: var(--text); }
+
+.fav-cat-item.active {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
+}
+
+.fav-cat-left    { display: flex; align-items: center; gap: 7px; }
+.fav-cat-icon    { font-size: 12px; opacity: .8; line-height: 1; }
+
+.fav-cat-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+}
+
+.fav-cat-item.active .fav-cat-count { color: var(--accent); opacity: .7; }
+
+.fav-sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 10px;
+}
+
+/* Tag cloud */
+.fav-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 10px;
+}
+
+.fav-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xs);
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all .12s;
+}
+
+.fav-tag:hover, .fav-tag.active {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+}
+
+/* ── Main area ── */
+#fav-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Toolbar ── */
+#fav-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+#fav-search-wrap {
+  position: relative;
+  flex: 1;
+}
+
+#fav-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  pointer-events: none;
+  display: flex;
+}
+
+#fav-search {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 34px 8px 34px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s, background .15s;
+}
+
+#fav-search::placeholder { color: var(--text-4); }
+
+#fav-search:focus {
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+}
+
+#fav-search-clear {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  cursor: pointer;
+  display: none;
+  padding: 2px;
+  border-radius: 3px;
+  transition: color .12s;
+  line-height: 0;
+}
+
+#fav-search-clear:hover { color: var(--text); }
+#fav-search-clear.visible { display: flex; }
+
+#fav-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .13s;
+  white-space: nowrap;
+}
+
+#fav-add-btn:hover { background: var(--accent-2); transform: translateY(-1px); }
+
+.fav-add-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  opacity: .65;
+  font-weight: 400;
+}
+
+/* ── Type tabs ── */
+#fav-type-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.fav-type-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  transition: all .13s;
+}
+
+.fav-type-tab:hover { background: var(--surface-2); color: var(--text-2); }
+
+.fav-type-tab.active {
+  background: var(--surface-2);
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+
+.fav-tab-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fav-tab-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  opacity: .55;
+}
+
+/* ── Scrollable content ── */
+#fav-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 18px 32px;
+}
+
+/* ── Most visited section ── */
+#fav-most-visited { margin-bottom: 22px; }
+
+.fav-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.fav-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.fav-section-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+}
+
+.fav-featured-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+/* Featured card */
+.fav-featured-card {
+  position: relative;
+  background: var(--surface-2);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  padding: 11px 13px 11px 16px;
+  cursor: pointer;
+  transition: all .18s;
+  overflow: hidden;
+}
+
+.fav-featured-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.fav-featured-card[data-type="site"]::before   { background: var(--fav-site); }
+.fav-featured-card[data-type="slack"]::before  { background: var(--fav-slack); }
+.fav-featured-card[data-type="grid"]::before   { background: var(--fav-grid); }
+.fav-featured-card[data-type="dash"]::before   { background: var(--fav-dash); }
+.fav-featured-card[data-type="github"]::before { background: var(--fav-github); }
+
+.fav-featured-card:hover {
+  border-color: var(--border-hi);
+  transform: translateY(-2px);
+  box-shadow: var(--sh-md);
+}
+
+.fav-featured-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fav-featured-url {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+}
+
+.fav-featured-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fav-access-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-4);
+}
+
+/* ── Main grid ── */
+#fav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 9px;
+  margin-top: 2px;
+}
+
+/* ── Bookmark card ── */
+.fav-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 13px 14px 13px 17px;
+  cursor: pointer;
+  transition: all .18s;
+  overflow: hidden;
+  animation: favCardIn .22s ease both;
+}
+
+@keyframes favCardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fav-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 1.5px 0 0 1.5px;
+}
+
+.fav-card[data-type="site"]::before   { background: var(--fav-site); }
+.fav-card[data-type="slack"]::before  { background: var(--fav-slack); }
+.fav-card[data-type="grid"]::before   { background: var(--fav-grid); }
+.fav-card[data-type="dash"]::before   { background: var(--fav-dash); }
+.fav-card[data-type="github"]::before { background: var(--fav-github); }
+
+.fav-card:hover {
+  border-color: var(--border-hi);
+  background: var(--surface-2);
+  transform: translateY(-2px);
+  box-shadow: var(--sh-md);
+}
+
+.fav-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.fav-type-badge {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  flex-shrink: 0;
+}
+
+.fav-card[data-type="site"]   .fav-type-badge { background: var(--fav-site-bg);   color: var(--fav-site);   }
+.fav-card[data-type="slack"]  .fav-type-badge { background: var(--fav-slack-bg);  color: var(--fav-slack);  }
+.fav-card[data-type="grid"]   .fav-type-badge { background: var(--fav-grid-bg);   color: var(--fav-grid);   }
+.fav-card[data-type="dash"]   .fav-type-badge { background: var(--fav-dash-bg);   color: var(--fav-dash);   }
+.fav-card[data-type="github"] .fav-type-badge { background: var(--fav-github-bg); color: var(--fav-github); }
+
+/* featured card type badge */
+.fav-featured-card[data-type="site"]   .fav-type-badge { background: var(--fav-site-bg);   color: var(--fav-site);   }
+.fav-featured-card[data-type="slack"]  .fav-type-badge { background: var(--fav-slack-bg);  color: var(--fav-slack);  }
+.fav-featured-card[data-type="grid"]   .fav-type-badge { background: var(--fav-grid-bg);   color: var(--fav-grid);   }
+.fav-featured-card[data-type="dash"]   .fav-type-badge { background: var(--fav-dash-bg);   color: var(--fav-dash);   }
+.fav-featured-card[data-type="github"] .fav-type-badge { background: var(--fav-github-bg); color: var(--fav-github); }
+
+.fav-card-actions {
+  display: flex;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity .12s;
+  flex-shrink: 0;
+}
+
+.fav-card:hover .fav-card-actions { opacity: 1; }
+
+.fav-action-btn {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all .12s;
+  flex-shrink: 0;
+}
+
+.fav-action-btn:hover         { color: var(--text); border-color: var(--border-hi); }
+.fav-action-btn.danger:hover  { color: #f87171; border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.08); }
+
+.fav-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fav-card-url {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+}
+
+.fav-card-note {
+  font-size: 11.5px;
+  color: var(--text-2);
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fav-card-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.fav-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  flex: 1;
+}
+
+.fav-card-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-4);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  cursor: pointer;
+  transition: all .12s;
+}
+
+.fav-card-tag:hover { color: var(--accent); border-color: var(--accent-line); }
+
+.fav-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.fav-card-cat  { font-size: 10.5px; color: var(--text-4); }
+.fav-card-date { font-family: var(--font-mono); font-size: 9px; color: var(--text-4); }
+
+/* ── Search highlight ── */
+mark.fav-hl {
+  background: rgba(55,217,154,.18);
+  color: var(--accent);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ── Pagination ── */
+#fav-pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0 8px;
+}
+
+.fav-page-info {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  letter-spacing: .04em;
+}
+
+.fav-page-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fav-page-btn {
+  min-width: 30px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .12s;
+}
+
+.fav-page-btn:hover:not([disabled]) {
+  background: var(--surface-3);
+  color: var(--text);
+  border-color: var(--border-hi);
+}
+
+.fav-page-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.fav-page-btn[disabled] {
+  opacity: .3;
+  cursor: default;
+}
+
+.fav-page-gap {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-4);
+  padding: 0 2px;
+}
+
+/* ── Empty state ── */
+#fav-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  gap: 10px;
+  text-align: center;
+}
+
+.fav-empty-icon    { color: var(--text-4); margin-bottom: 4px; }
+.fav-empty-title   { font-size: 15px; font-weight: 600; color: var(--text-2); }
+.fav-empty-hint    { font-size: 12.5px; color: var(--text-3); max-width: 280px; line-height: 1.6; }
+
+/* ════ Quick-Add Modal ════ */
+#fav-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,7,9,.78);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 68px;
+  z-index: 800;
+}
+
+#fav-modal-overlay.open { display: flex; }
+
+#fav-modal {
+  width: 510px;
+  max-width: calc(100vw - 32px);
+  background: var(--surface-2);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  animation: favModalIn .2s cubic-bezier(.34,1.56,.64,1);
+  overflow: hidden;
+}
+
+@keyframes favModalIn {
+  from { opacity: 0; transform: translateY(-14px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* URL field border transitions to detected type color */
+#fav-modal[data-detected="site"]  #fav-modal-url { border-color: var(--fav-site);  }
+#fav-modal[data-detected="slack"] #fav-modal-url { border-color: var(--fav-slack); }
+#fav-modal[data-detected="grid"]  #fav-modal-url { border-color: var(--fav-grid);  }
+#fav-modal[data-detected="dash"]  #fav-modal-url { border-color: var(--fav-dash);  }
+
+.fav-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 17px 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fav-modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.fav-modal-close {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all .12s;
+  line-height: 0;
+}
+
+.fav-modal-close:hover { background: var(--surface-3); border-color: var(--border); color: var(--text); }
+
+.fav-modal-body {
+  padding: 15px 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fav-field-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 5px;
+}
+
+.fav-field-input {
+  width: 100%;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 11px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s, background .15s;
+}
+
+.fav-field-input::placeholder { color: var(--text-4); }
+.fav-field-input:focus { border-color: var(--border-hi); background: var(--surface-2); }
+
+.fav-url-wrap { position: relative; }
+
+#fav-modal-url { padding-right: 76px; transition: border-color .25s; }
+
+.fav-url-detected {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  opacity: 0;
+  transition: opacity .2s;
+  pointer-events: none;
+}
+
+.fav-url-detected.visible          { opacity: 1; }
+.fav-url-detected.visible.site     { background: var(--fav-site-bg);  color: var(--fav-site);  }
+.fav-url-detected.visible.slack    { background: var(--fav-slack-bg); color: var(--fav-slack); }
+.fav-url-detected.visible.grid     { background: var(--fav-grid-bg);  color: var(--fav-grid);  }
+.fav-url-detected.visible.dash     { background: var(--fav-dash-bg);  color: var(--fav-dash);  }
+
+/* Type selector */
+.fav-type-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.fav-type-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .13s;
+}
+
+.fav-type-btn:hover { color: var(--text-2); border-color: var(--border-mid); }
+
+.fav-type-btn.active[data-t="site"]   { background: var(--fav-site-bg);   border-color: var(--fav-site);   color: var(--fav-site);   }
+.fav-type-btn.active[data-t="slack"]  { background: var(--fav-slack-bg);  border-color: var(--fav-slack);  color: var(--fav-slack);  }
+.fav-type-btn.active[data-t="grid"]   { background: var(--fav-grid-bg);   border-color: var(--fav-grid);   color: var(--fav-grid);   }
+.fav-type-btn.active[data-t="dash"]   { background: var(--fav-dash-bg);   border-color: var(--fav-dash);   color: var(--fav-dash);   }
+.fav-type-btn.active[data-t="github"] { background: var(--fav-github-bg); border-color: var(--fav-github); color: var(--fav-github); }
+
+/* Category selector */
+.fav-cat-sel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.fav-cat-sel-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all .12s;
+}
+
+.fav-cat-sel-btn:hover { color: var(--text-2); border-color: var(--border-mid); }
+
+.fav-cat-sel-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+/* Tags input */
+.fav-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 6px 9px;
+  min-height: 36px;
+  align-items: center;
+  cursor: text;
+  transition: border-color .15s;
+}
+
+.fav-tags-wrap:focus-within { border-color: var(--border-hi); }
+
+.fav-tag-chip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--surface-4);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-xs);
+  padding: 1px 6px;
+  color: var(--text-2);
+}
+
+.fav-tag-chip-rm {
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 1;
+  transition: color .1s;
+}
+
+.fav-tag-chip-rm:hover { color: var(--text); }
+
+.fav-tags-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  min-width: 80px;
+  flex: 1;
+}
+
+.fav-tags-input::placeholder { color: var(--text-4); }
+
+.fav-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 17px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.fav-kbd-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+}
+
+.fav-kbd {
+  background: var(--surface-3);
+  border: 1px solid var(--border-hi);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.fav-modal-btns { display: flex; gap: 7px; }
+
+.fav-btn-cancel {
+  padding: 7px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all .13s;
+}
+
+.fav-btn-cancel:hover { background: var(--surface-2); color: var(--text); }
+
+.fav-btn-save {
+  padding: 7px 18px;
+  border-radius: var(--r-sm);
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .13s;
+}
+
+.fav-btn-save:hover { background: var(--accent-2); transform: translateY(-1px); }
+
+</style>
 </head>
 <body>
 
@@ -3188,6 +4104,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   </button>
   <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')" title="Mocks HTTP">
     <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
+  </button>
+  <button class="rail-btn" id="rail-favorites" onclick="setMode('favorites')" title="Favoritos">
+    <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
   </button>
   <div class="rail-spacer"></div>
   <button class="rail-btn" id="rail-backup" onclick="downloadBackup()" title="Backup completo (notas, skills, diagramas, anotações)">
@@ -3686,6 +4605,154 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
     </div>
   </main>
 
+  <!-- ═══ MODE: FAVORITES ═══ -->
+  <main id="mode-favorites" class="mode">
+
+    <!-- Sidebar -->
+    <aside id="fav-sidebar">
+      <div class="fav-sidebar-section">
+        <div class="fav-sidebar-label">Categorias</div>
+        <div id="fav-cat-list"></div>
+      </div>
+      <div class="fav-sidebar-divider"></div>
+      <div class="fav-sidebar-section">
+        <div class="fav-sidebar-label">Tags</div>
+        <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div id="fav-main">
+
+      <!-- Toolbar -->
+      <div id="fav-toolbar">
+        <div id="fav-search-wrap">
+          <span id="fav-search-icon" data-icon="search"></span>
+          <input id="fav-search" type="text" placeholder="Buscar por título, tag, categoria, URL…" autocomplete="off" spellcheck="false">
+          <span id="fav-search-clear" data-icon="x"></span>
+        </div>
+        <button id="fav-add-btn">
+          <span data-icon="plus"></span>
+          Adicionar
+          <span class="fav-add-kbd">⌘K</span>
+        </button>
+      </div>
+
+      <!-- Type tabs -->
+      <div id="fav-type-tabs">
+        <div class="fav-type-tab active" data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
+        <div class="fav-type-tab" data-type="site">
+          <span class="fav-tab-dot" style="background:var(--fav-site)"></span>
+          Sites <span class="fav-tab-count" id="fav-count-site">0</span>
+        </div>
+        <div class="fav-type-tab" data-type="slack">
+          <span class="fav-tab-dot" style="background:var(--fav-slack)"></span>
+          Slack <span class="fav-tab-count" id="fav-count-slack">0</span>
+        </div>
+        <div class="fav-type-tab" data-type="grid">
+          <span class="fav-tab-dot" style="background:var(--fav-grid)"></span>
+          Grid <span class="fav-tab-count" id="fav-count-grid">0</span>
+        </div>
+        <div class="fav-type-tab" data-type="dash">
+          <span class="fav-tab-dot" style="background:var(--fav-dash)"></span>
+          Dashboards <span class="fav-tab-count" id="fav-count-dash">0</span>
+        </div>
+        <div class="fav-type-tab" data-type="github">
+          <span class="fav-tab-dot" style="background:var(--fav-github)"></span>
+          GitHub <span class="fav-tab-count" id="fav-count-github">0</span>
+        </div>
+      </div>
+
+      <!-- Scrollable content -->
+      <div id="fav-scroll">
+
+        <!-- Most visited -->
+        <div id="fav-most-visited" style="display:none">
+          <div class="fav-section-header">
+            <span class="fav-section-title">⚡ Mais visitados</span>
+          </div>
+          <div class="fav-featured-row" id="fav-featured-row"></div>
+        </div>
+
+        <!-- Grid header -->
+        <div class="fav-section-header">
+          <span class="fav-section-title">◈ Links</span>
+          <span class="fav-section-count" id="fav-result-count">0 links</span>
+        </div>
+
+        <!-- Grid -->
+        <div id="fav-grid"></div>
+
+        <!-- Pagination -->
+        <div id="fav-pagination"></div>
+
+        <!-- Empty -->
+        <div id="fav-empty" style="display:none">
+          <span class="fav-empty-icon" data-icon="bookmark"></span>
+          <div class="fav-empty-title">Nenhum favorito encontrado</div>
+          <div class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- Quick-Add / Edit Modal -->
+<div id="fav-modal-overlay">
+  <div id="fav-modal">
+    <div class="fav-modal-header">
+      <span class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
+      <button class="fav-modal-close" id="fav-modal-close" data-icon="x"></button>
+    </div>
+    <div class="fav-modal-body">
+      <div>
+        <div class="fav-field-label">URL</div>
+        <div class="fav-url-wrap">
+          <input class="fav-field-input" id="fav-modal-url" placeholder="cole ou digite a URL…" autocomplete="off" spellcheck="false">
+          <span class="fav-url-detected" id="fav-url-detected"></span>
+        </div>
+      </div>
+      <div>
+        <div class="fav-field-label">Título</div>
+        <input class="fav-field-input" id="fav-modal-title" placeholder="Nome do link…">
+      </div>
+      <div>
+        <div class="fav-field-label">Tipo</div>
+        <div class="fav-type-selector">
+          <button class="fav-type-btn active" data-t="site">🌐 Site</button>
+          <button class="fav-type-btn" data-t="slack">💬 Slack</button>
+          <button class="fav-type-btn" data-t="grid">📁 Grid</button>
+          <button class="fav-type-btn" data-t="dash">📊 Dash</button>
+          <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
+        </div>
+      </div>
+      <div>
+        <div class="fav-field-label">Categoria</div>
+        <div class="fav-cat-sel" id="fav-cat-sel"></div>
+      </div>
+      <div>
+        <div class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
+        <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
+          <input class="fav-tags-input" id="fav-modal-tags-input" placeholder="#api, #design…">
+        </div>
+      </div>
+      <div>
+        <div class="fav-field-label">Nota (opcional)</div>
+        <input class="fav-field-input" id="fav-modal-note" placeholder="Para que serve esse link…">
+      </div>
+    </div>
+    <div class="fav-modal-footer">
+      <div class="fav-kbd-hint">
+        <kbd class="fav-kbd">Enter</kbd> salva · <kbd class="fav-kbd">Esc</kbd> fecha
+      </div>
+      <div class="fav-modal-btns">
+        <button class="fav-btn-cancel" id="fav-modal-cancel">Cancelar</button>
+        <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ════ Task Modal ════ -->
@@ -3835,6 +4902,8 @@ const ICON_PATHS = {
   minus: '<path d="M5 12h14"/>',
   maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
   'scan-line': '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="4" x2="20" y1="12" y2="12"/>',
+  bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
+  'external-link': '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -3940,7 +5009,7 @@ const confirmDialog = (message, opts = {}) =>
 
 let currentMode = 'map';
 
-const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks' };
+const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos' };
 
 const setMode = (mode) => {
   currentMode = mode;
@@ -3966,7 +5035,8 @@ const setMode = (mode) => {
   else if (mode === 'skills')   loadSkillsList();
   else if (mode === 'diagrams') loadDiagramsList();
   else if (mode === 'tasks')    loadTasks();
-  else if (mode === 'mocks')    loadMocksData();
+  else if (mode === 'mocks')     loadMocksData();
+  else if (mode === 'favorites') loadFavoritesData();
   else if (sim) requestAnimationFrame(fitGraph);
 };
 
@@ -6545,6 +7615,732 @@ const updateGroupsDatalist = () => {
 
 </script>
 <script>
+// ════ Favorites / Bookmarks Manager ════
+
+const FAV_TYPES = {
+  site:   { label: 'SITE'   },
+  slack:  { label: 'SLACK'  },
+  grid:   { label: 'GRID'   },
+  dash:   { label: 'DASH'   },
+  github: { label: 'GITHUB' },
+};
+
+const FAV_CATEGORIES = [
+  { id: 'all',        label: 'Todos',       icon: '◈' },
+  { id: 'produto',    label: 'Produto',     icon: '◆' },
+  { id: 'design',     label: 'Design',      icon: '✦' },
+  { id: 'metricas',   label: 'Métricas',    icon: '◉' },
+  { id: 'docs',       label: 'Docs',        icon: '◎' },
+  { id: 'referencia', label: 'Referência',  icon: '◇' },
+  { id: 'devops',     label: 'DevOps',      icon: '⬡' },
+  { id: 'arquitetura',label: 'Arquitetura', icon: '⬢' },
+  { id: 'incidentes', label: 'Incidentes',  icon: '▲' },
+];
+
+const FAV_PAGE_SIZE = 30;
+
+let favAll       = [];
+let favPage      = 1;
+let favState     = { search: '', category: 'all', type: 'all', tag: null };
+let favModalTags = [];
+let favModalType = 'site';
+let favModalCat  = '';
+let favEditing   = null;
+
+// ─────────────────────────────────────
+//  API
+// ─────────────────────────────────────
+
+const loadFavoritesData = async () => {
+  try {
+    const res = await fetch('/favorites');
+    favAll = await res.json();
+    renderFavSidebar();
+    renderFavorites();
+  } catch (err) {
+    console.error('Erro ao carregar favoritos:', err);
+  }
+};
+
+// ─────────────────────────────────────
+//  Filtering
+// ─────────────────────────────────────
+
+const getFiltered = () => {
+  let items = favAll;
+
+  if (favState.category !== 'all') {
+    const catLabel = FAV_CATEGORIES.find(c => c.id === favState.category)?.label ?? '';
+    items = items.filter(b => b.category.toLowerCase() === catLabel.toLowerCase());
+  }
+
+  if (favState.type !== 'all') {
+    items = items.filter(b => b.type === favState.type);
+  }
+
+  if (favState.tag) {
+    items = items.filter(b => b.tags.includes(favState.tag));
+  }
+
+  if (favState.search) {
+    const q = favState.search.toLowerCase();
+    items = items.filter(b =>
+      b.title.toLowerCase().includes(q) ||
+      b.url.toLowerCase().includes(q) ||
+      b.tags.some(t => t.toLowerCase().includes(q)) ||
+      b.note.toLowerCase().includes(q) ||
+      b.category.toLowerCase().includes(q)
+    );
+  }
+
+  return items;
+};
+
+// counts ignoring the type filter (for tab counts)
+const getBaseFiltered = () => {
+  let items = favAll;
+  if (favState.category !== 'all') {
+    const catLabel = FAV_CATEGORIES.find(c => c.id === favState.category)?.label ?? '';
+    items = items.filter(b => b.category.toLowerCase() === catLabel.toLowerCase());
+  }
+  if (favState.tag) items = items.filter(b => b.tags.includes(favState.tag));
+  if (favState.search) {
+    const q = favState.search.toLowerCase();
+    items = items.filter(b =>
+      b.title.toLowerCase().includes(q) || b.url.toLowerCase().includes(q) ||
+      b.tags.some(t => t.includes(q)) || b.note.toLowerCase().includes(q) ||
+      b.category.toLowerCase().includes(q)
+    );
+  }
+  return items;
+};
+
+// ─────────────────────────────────────
+//  Highlight
+// ─────────────────────────────────────
+
+const favHl = (text) => {
+  if (!favState.search) return escHtml(text);
+  const safe = favState.search.replace(/[.*+?^\${}()|[\\]\\\\]/g, (c) => '\\\\' + c);
+  return escHtml(text).replace(
+    new RegExp(safe, 'gi'),
+    (m) => '<mark class="fav-hl">' + m + '</mark>',
+  );
+};
+
+// ─────────────────────────────────────
+//  Sidebar
+// ─────────────────────────────────────
+
+const renderFavSidebar = () => {
+  const catList = document.getElementById('fav-cat-list');
+  const tagCloud = document.getElementById('fav-tag-cloud');
+  if (!catList || !tagCloud) return;
+
+  const counts = {};
+  favAll.forEach(b => {
+    const k = b.category.toLowerCase();
+    counts[k] = (counts[k] || 0) + 1;
+  });
+
+  catList.innerHTML = FAV_CATEGORIES.map(cat => {
+    const count = cat.id === 'all'
+      ? favAll.length
+      : (counts[cat.label.toLowerCase()] || 0);
+    return \`
+      <div class="fav-cat-item \${favState.category === cat.id ? 'active' : ''}" data-cat="\${cat.id}">
+        <span class="fav-cat-left">
+          <span class="fav-cat-icon">\${cat.icon}</span>
+          \${escHtml(cat.label)}
+        </span>
+        <span class="fav-cat-count">\${count}</span>
+      </div>
+    \`;
+  }).join('');
+
+  catList.querySelectorAll('.fav-cat-item').forEach(el => {
+    el.addEventListener('click', () => {
+      favState.category = el.dataset.cat;
+      favState.type = 'all';
+      favPage = 1;
+      updateFavTypeTabs();
+      renderFavSidebar();
+      renderFavorites();
+    });
+  });
+
+  const tagCounts = {};
+  favAll.forEach(b => b.tags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
+  const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 22);
+
+  tagCloud.innerHTML = topTags.map(([tag]) =>
+    \`<span class="fav-tag \${favState.tag === tag ? 'active' : ''}" data-tag="\${escHtml(tag)}">#\${escHtml(tag)}</span>\`
+  ).join('');
+
+  tagCloud.querySelectorAll('.fav-tag').forEach(el => {
+    el.addEventListener('click', () => {
+      favState.tag = favState.tag === el.dataset.tag ? null : el.dataset.tag;
+      favPage = 1;
+      renderFavSidebar();
+      renderFavorites();
+    });
+  });
+};
+
+// ─────────────────────────────────────
+//  Type tabs
+// ─────────────────────────────────────
+
+const updateFavTypeTabs = () => {
+  const base = getBaseFiltered();
+  const g    = { site: 0, slack: 0, grid: 0, dash: 0, github: 0 };
+  base.forEach(b => { if (g[b.type] !== undefined) g[b.type]++; });
+
+  const s = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+  s('fav-count-all',    base.length);
+  s('fav-count-site',   g.site);
+  s('fav-count-slack',  g.slack);
+  s('fav-count-grid',   g.grid);
+  s('fav-count-dash',   g.dash);
+  s('fav-count-github', g.github);
+
+  document.querySelectorAll('.fav-type-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.type === favState.type);
+  });
+};
+
+// ─────────────────────────────────────
+//  Main render
+// ─────────────────────────────────────
+
+const renderFavorites = () => {
+  const filtered = getFiltered();
+  const grid     = document.getElementById('fav-grid');
+  const empty    = document.getElementById('fav-empty');
+  const mvSection = document.getElementById('fav-most-visited');
+  if (!grid || !empty) return;
+
+  updateFavTypeTabs();
+
+  // Most visited — only when no active filter/search
+  const noFilter = !favState.search && favState.category === 'all' &&
+                   favState.type === 'all' && !favState.tag;
+  const topVisited = favAll.filter(b => b.accessCount > 0).slice(0, 5);
+
+  if (mvSection) {
+    if (noFilter && topVisited.length > 0) {
+      mvSection.style.display = 'block';
+      renderFeaturedCards(topVisited);
+    } else {
+      mvSection.style.display = 'none';
+    }
+  }
+
+  // Grid
+  const countEl = document.getElementById('fav-result-count');
+  if (countEl) countEl.textContent = \`\${filtered.length} link\${filtered.length !== 1 ? 's' : ''}\`;
+
+  if (filtered.length === 0) {
+    grid.style.display  = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.style.display  = 'grid';
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / FAV_PAGE_SIZE));
+  if (favPage > totalPages) favPage = totalPages;
+
+  const start     = (favPage - 1) * FAV_PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + FAV_PAGE_SIZE);
+
+  grid.innerHTML = '';
+  pageItems.forEach((b, i) => grid.appendChild(buildFavCard(b, i)));
+
+  renderFavPagination(filtered.length, totalPages);
+};
+
+// ─────────────────────────────────────
+//  Featured cards (most visited)
+// ─────────────────────────────────────
+
+const renderFeaturedCards = (items) => {
+  const row = document.getElementById('fav-featured-row');
+  if (!row) return;
+
+  row.innerHTML = items.map(b => \`
+    <div class="fav-featured-card" data-type="\${b.type}" data-id="\${b.id}" data-url="\${escHtml(b.url)}">
+      <div class="fav-featured-title">\${escHtml(b.title)}</div>
+      <div class="fav-featured-url">\${escHtml(b.url)}</div>
+      <div class="fav-featured-footer">
+        <span class="fav-type-badge">\${FAV_TYPES[b.type]?.label ?? b.type}</span>
+        <span class="fav-access-badge">\${b.accessCount} visita\${b.accessCount !== 1 ? 's' : ''}</span>
+      </div>
+    </div>
+  \`).join('');
+
+  row.querySelectorAll('.fav-featured-card').forEach(card => {
+    card.addEventListener('click', () => openFavLink(card.dataset.id, card.dataset.url));
+  });
+};
+
+// ─────────────────────────────────────
+//  Pagination
+// ─────────────────────────────────────
+
+const renderFavPagination = (total, totalPages) => {
+  const el = document.getElementById('fav-pagination');
+  if (!el) return;
+
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+  const pages = [];
+  // Always show first, last, current ±2
+  const range = new Set([1, totalPages]);
+  for (let p = Math.max(1, favPage - 2); p <= Math.min(totalPages, favPage + 2); p++) range.add(p);
+  const sorted = [...range].sort((a, b) => a - b);
+
+  let html = \`<div class="fav-page-info">\${total} links · página \${favPage} de \${totalPages}</div><div class="fav-page-btns">\`;
+
+  html += \`<button class="fav-page-btn" data-p="\${favPage - 1}" \${favPage === 1 ? 'disabled' : ''}>←</button>\`;
+
+  let prev = 0;
+  for (const p of sorted) {
+    if (prev && p - prev > 1) html += \`<span class="fav-page-gap">…</span>\`;
+    html += \`<button class="fav-page-btn \${p === favPage ? 'active' : ''}" data-p="\${p}">\${p}</button>\`;
+    prev = p;
+  }
+
+  html += \`<button class="fav-page-btn" data-p="\${favPage + 1}" \${favPage === totalPages ? 'disabled' : ''}>→</button>\`;
+  html += '</div>';
+
+  el.innerHTML = html;
+
+  el.querySelectorAll('.fav-page-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      favPage = Number(btn.dataset.p);
+      const grid = document.getElementById('fav-grid');
+      const scroll = document.getElementById('fav-scroll');
+      renderFavorites();
+      // Sobe para o topo do scroll ao trocar de página
+      if (scroll) scroll.scrollTop = 0;
+    });
+  });
+};
+
+// ─────────────────────────────────────
+//  Build card
+// ─────────────────────────────────────
+
+const buildFavCard = (b, index) => {
+  const el = document.createElement('div');
+  el.className = 'fav-card';
+  el.dataset.type = b.type;
+  el.dataset.id   = b.id;
+  el.style.animationDelay = \`\${index * 22}ms\`;
+
+  const dateStr   = new Date(b.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  const typeLabel = FAV_TYPES[b.type]?.label ?? b.type.toUpperCase();
+
+  el.innerHTML = \`
+    <div class="fav-card-top">
+      <span class="fav-type-badge">\${typeLabel}</span>
+      <div class="fav-card-actions">
+        <button class="fav-action-btn" title="Abrir" data-action="open">\${ICON('external-link')}</button>
+        <button class="fav-action-btn" title="Editar" data-action="edit">\${ICON('pencil')}</button>
+        <button class="fav-action-btn danger" title="Remover" data-action="delete">\${ICON('trash')}</button>
+      </div>
+    </div>
+    <div class="fav-card-title">\${favHl(b.title)}</div>
+    <div class="fav-card-url">\${favHl(b.url)}</div>
+    \${b.note ? \`<div class="fav-card-note">\${favHl(b.note)}</div>\` : ''}
+    <div class="fav-card-footer">
+      <div class="fav-card-tags">
+        \${b.tags.map(t => \`<span class="fav-card-tag" data-tag="\${escHtml(t)}">#\${escHtml(t)}</span>\`).join('')}
+      </div>
+      <div class="fav-card-meta">
+        <span class="fav-card-cat">\${escHtml(b.category)}</span>
+        <span class="fav-card-date">\${dateStr}</span>
+      </div>
+    </div>
+  \`;
+
+  el.querySelector('[data-action="open"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    openFavLink(b.id, b.url);
+  });
+  el.querySelector('[data-action="edit"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    openFavEditModal(b);
+  });
+  el.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    deleteFav(b.id);
+  });
+  el.querySelectorAll('.fav-card-tag').forEach(tag => {
+    tag.addEventListener('click', (e) => {
+      e.stopPropagation();
+      favState.tag = favState.tag === tag.dataset.tag ? null : tag.dataset.tag;
+      renderFavSidebar();
+      renderFavorites();
+    });
+  });
+  el.addEventListener('dblclick', () => openFavLink(b.id, b.url));
+
+  return el;
+};
+
+// ─────────────────────────────────────
+//  Open link + record access
+// ─────────────────────────────────────
+
+const openFavLink = async (id, url) => {
+  // Webview não suporta window.open — usa endpoint do servidor para abrir no browser padrão
+  fetch('/system/open-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  }).catch(() => {});
+
+  try {
+    const res     = await fetch(\`/favorites/\${id}/access\`, { method: 'PUT' });
+    const updated = await res.json();
+    const idx     = favAll.findIndex(b => b.id === id);
+    if (idx !== -1) {
+      favAll[idx] = updated;
+      favAll.sort((a, b) => {
+        if (b.accessCount !== a.accessCount) return b.accessCount - a.accessCount;
+        return b.createdAt.localeCompare(a.createdAt);
+      });
+    }
+  } catch { /* silencioso */ }
+};
+
+// ─────────────────────────────────────
+//  Delete
+// ─────────────────────────────────────
+
+const deleteFav = async (id) => {
+  try {
+    await fetch(\`/favorites/\${id}\`, { method: 'DELETE' });
+    favAll = favAll.filter(b => b.id !== id);
+    renderFavSidebar();
+    renderFavorites();
+    toast('Favorito removido');
+  } catch {
+    toast('Erro ao remover');
+  }
+};
+
+// ─────────────────────────────────────
+//  Modal helpers
+// ─────────────────────────────────────
+
+const favDetectType = (url) => {
+  if (!url) return null;
+  const u = url.toLowerCase();
+  if (u.includes('slack.com'))                                                     return 'slack';
+  if (u.includes('grid.adminml') || u.includes('grid.melioffice'))                 return 'grid';
+  if (u.includes('datadog') || u.includes('grafana') || u.includes('amplitude') ||
+      u.includes('kibana')  || u.includes('dashboard'))                            return 'dash';
+  if (u.includes('github.com') || u.includes('github.dev') ||
+      u.includes('githubusercontent'))                                              return 'github';
+  return 'site';
+};
+
+const favSuggestTitle = (url) => {
+  try {
+    const u     = new URL(url.startsWith('http') ? url : \`https://\${url}\`);
+    const parts = u.pathname.split('/').filter(Boolean);
+    if (parts.length) {
+      return parts[parts.length - 1]
+        .replace(/[-_]/g, ' ')
+        .replace(/\\.\\w+$/, '')
+        .replace(/\\b\\w/g, c => c.toUpperCase());
+    }
+    return u.hostname.replace(/^www\\./, '');
+  } catch { return ''; }
+};
+
+const selectFavModalType = (type) => {
+  favModalType = type;
+  document.querySelectorAll('.fav-type-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.t === type);
+  });
+  const modal = document.getElementById('fav-modal');
+  if (modal) modal.dataset.detected = type;
+};
+
+const renderFavModalTags = () => {
+  const wrap  = document.getElementById('fav-modal-tags-wrap');
+  const input = document.getElementById('fav-modal-tags-input');
+  if (!wrap || !input) return;
+
+  wrap.querySelectorAll('.fav-tag-chip').forEach(c => c.remove());
+  favModalTags.forEach((tag, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'fav-tag-chip';
+    chip.innerHTML = \`#\${escHtml(tag)} <span class="fav-tag-chip-rm" data-i="\${i}">×</span>\`;
+    chip.querySelector('.fav-tag-chip-rm').addEventListener('click', () => {
+      favModalTags.splice(i, 1);
+      renderFavModalTags();
+    });
+    wrap.insertBefore(chip, input);
+  });
+};
+
+const renderFavModalCats = () => {
+  const sel = document.getElementById('fav-cat-sel');
+  if (!sel) return;
+  sel.innerHTML = FAV_CATEGORIES.filter(c => c.id !== 'all').map(cat =>
+    \`<button class="fav-cat-sel-btn \${favModalCat === cat.label ? 'active' : ''}" data-cat="\${escHtml(cat.label)}">\${escHtml(cat.label)}</button>\`
+  ).join('');
+  sel.querySelectorAll('.fav-cat-sel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      favModalCat = favModalCat === btn.dataset.cat ? '' : btn.dataset.cat;
+      renderFavModalCats();
+    });
+  });
+};
+
+// ─────────────────────────────────────
+//  Open modal (add)
+// ─────────────────────────────────────
+
+const openFavAddModal = () => {
+  favEditing   = null;
+  favModalTags = [];
+  favModalType = 'site';
+  favModalCat  = '';
+
+  const titleText = document.getElementById('fav-modal-title-text');
+  if (titleText) titleText.textContent = '⚡ Novo Favorito';
+
+  const urlEl   = document.getElementById('fav-modal-url');
+  const titleEl = document.getElementById('fav-modal-title');
+  const noteEl  = document.getElementById('fav-modal-note');
+  const detEl   = document.getElementById('fav-url-detected');
+
+  if (urlEl)   { urlEl.value = '';   urlEl.dataset.auto = '0'; }
+  if (titleEl) { titleEl.value = ''; titleEl.dataset.auto = '0'; }
+  if (noteEl)  noteEl.value = '';
+  if (detEl)   detEl.className = 'fav-url-detected';
+
+  const modal = document.getElementById('fav-modal');
+  if (modal) modal.dataset.detected = '';
+
+  selectFavModalType('site');
+  renderFavModalTags();
+  renderFavModalCats();
+
+  document.getElementById('fav-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('fav-modal-url')?.focus(), 80);
+};
+
+// ─────────────────────────────────────
+//  Open modal (edit)
+// ─────────────────────────────────────
+
+const openFavEditModal = (b) => {
+  favEditing   = b;
+  favModalTags = [...b.tags];
+  favModalType = b.type;
+  favModalCat  = b.category;
+
+  const titleText = document.getElementById('fav-modal-title-text');
+  if (titleText) titleText.textContent = '✏️ Editar Favorito';
+
+  const urlEl   = document.getElementById('fav-modal-url');
+  const titleEl = document.getElementById('fav-modal-title');
+  const noteEl  = document.getElementById('fav-modal-note');
+
+  if (urlEl)   urlEl.value   = b.url;
+  if (titleEl) titleEl.value = b.title;
+  if (noteEl)  noteEl.value  = b.note;
+
+  selectFavModalType(b.type);
+  renderFavModalTags();
+  renderFavModalCats();
+
+  document.getElementById('fav-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('fav-modal-title')?.focus(), 80);
+};
+
+const closeFavModal = () => {
+  document.getElementById('fav-modal-overlay')?.classList.remove('open');
+};
+
+// ─────────────────────────────────────
+//  Save
+// ─────────────────────────────────────
+
+const saveFavorite = async () => {
+  const url   = document.getElementById('fav-modal-url')?.value.trim() ?? '';
+  const title = document.getElementById('fav-modal-title')?.value.trim() ?? '';
+
+  if (!url || !title) { toast('Preencha a URL e o título'); return; }
+
+  const payload = {
+    type:     favModalType,
+    title,
+    url,
+    category: favModalCat || 'Produto',
+    tags:     [...favModalTags],
+    note:     document.getElementById('fav-modal-note')?.value.trim() ?? '',
+  };
+
+  try {
+    if (favEditing) {
+      const res     = await fetch(\`/favorites/\${favEditing.id}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const updated = await res.json();
+      const idx     = favAll.findIndex(b => b.id === favEditing.id);
+      if (idx !== -1) favAll[idx] = updated;
+      toast('Favorito atualizado');
+    } else {
+      const res     = await fetch('/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const created = await res.json();
+      favAll.unshift(created);
+      toast('Favorito salvo');
+    }
+
+    closeFavModal();
+    renderFavSidebar();
+    renderFavorites();
+  } catch {
+    toast('Erro ao salvar favorito');
+  }
+};
+
+// ─────────────────────────────────────
+//  Init — wires all events once on load
+// ─────────────────────────────────────
+
+const initFavorites = () => {
+  // URL auto-detect + auto-title
+  document.getElementById('fav-modal-url')?.addEventListener('input', (e) => {
+    const url  = e.target.value.trim();
+    const type = favDetectType(url);
+    const det  = document.getElementById('fav-url-detected');
+
+    if (type && url.length > 5) {
+      det.className = \`fav-url-detected visible \${type}\`;
+      det.textContent = FAV_TYPES[type].label;
+      selectFavModalType(type);
+    } else if (det) {
+      det.className = 'fav-url-detected';
+    }
+
+    const titleEl = document.getElementById('fav-modal-title');
+    if (titleEl && (!titleEl.value || titleEl.dataset.auto === '1')) {
+      const suggested = favSuggestTitle(url);
+      if (suggested) { titleEl.value = suggested; titleEl.dataset.auto = '1'; }
+    }
+  });
+
+  document.getElementById('fav-modal-title')?.addEventListener('input', (e) => {
+    e.target.dataset.auto = '0';
+  });
+
+  // Tags input
+  document.getElementById('fav-modal-tags-input')?.addEventListener('keydown', (e) => {
+    const val = e.target.value.trim().replace(/^#/, '');
+    if ((e.key === 'Enter' || e.key === ',') && val) {
+      e.preventDefault();
+      if (!favModalTags.includes(val)) { favModalTags.push(val); renderFavModalTags(); }
+      e.target.value = '';
+    } else if (e.key === 'Backspace' && !e.target.value && favModalTags.length) {
+      favModalTags.pop();
+      renderFavModalTags();
+    }
+  });
+
+  document.getElementById('fav-modal-tags-wrap')?.addEventListener('click', () => {
+    document.getElementById('fav-modal-tags-input')?.focus();
+  });
+
+  // Type buttons
+  document.querySelectorAll('.fav-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => selectFavModalType(btn.dataset.t));
+  });
+
+  // Modal open/close
+  document.getElementById('fav-add-btn')?.addEventListener('click', openFavAddModal);
+  document.getElementById('fav-modal-close')?.addEventListener('click', closeFavModal);
+  document.getElementById('fav-modal-cancel')?.addEventListener('click', closeFavModal);
+  document.getElementById('fav-modal-save')?.addEventListener('click', saveFavorite);
+
+  document.getElementById('fav-modal-overlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'fav-modal-overlay') closeFavModal();
+  });
+
+  // Search
+  const searchEl = document.getElementById('fav-search');
+  const clearEl  = document.getElementById('fav-search-clear');
+
+  searchEl?.addEventListener('input', (e) => {
+    favState.search = e.target.value;
+    favPage = 1;
+    clearEl?.classList.toggle('visible', !!e.target.value);
+    renderFavorites();
+  });
+
+  clearEl?.addEventListener('click', () => {
+    if (searchEl) searchEl.value = '';
+    favState.search = '';
+    favPage = 1;
+    clearEl.classList.remove('visible');
+    searchEl?.focus();
+    renderFavorites();
+  });
+
+  // Type tabs
+  document.querySelectorAll('.fav-type-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      favState.type = tab.dataset.type;
+      favPage = 1;
+      renderFavorites();
+    });
+  });
+
+  // Keyboard shortcuts (only active in favorites mode)
+  document.addEventListener('keydown', (e) => {
+    if (currentMode !== 'favorites') return;
+
+    const modalOpen = document.getElementById('fav-modal-overlay')?.classList.contains('open');
+
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      if (!modalOpen) openFavAddModal();
+    }
+
+    if (e.key === 'Escape' && modalOpen) closeFavModal();
+
+    if (e.key === 'Enter' && modalOpen) {
+      const inTags = document.activeElement?.closest('#fav-modal-tags-wrap');
+      if (!inTags) { e.preventDefault(); saveFavorite(); }
+    }
+
+    // / to focus search when not in an input
+    if (!modalOpen && e.key === '/' && !document.activeElement?.closest('input, textarea')) {
+      e.preventDefault();
+      searchEl?.focus();
+    }
+  });
+};
+
+document.addEventListener('DOMContentLoaded', initFavorites);
+
+</script>
+<script>
 // ════ Sistema — update, backup, restore ════
 
 let updateInfo = null;
@@ -6933,6 +8729,10 @@ const callProvider = async (messages) => {
   const controller = new AbortController();
   chatAbort = controller;
 
+  // timeout de 5 minutos — evita travamento com modelos pesados
+  let timedOut = false;
+  const timeoutId = setTimeout(() => { timedOut = true; controller.abort(); }, 300000);
+
   const res = await fetch('/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -6977,6 +8777,8 @@ const callProvider = async (messages) => {
     }
   }
 
+  clearTimeout(timeoutId);
+  if (timedOut) throw new Error('Timeout: o modelo demorou mais de 5 minutos para responder.');
   return { content: fullContent, toolCalls };
 };
 
@@ -7022,7 +8824,8 @@ const sendChatMessage = async () => {
         chatMessages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
       }
 
-      streamToChat('\\n');
+      // reseta o stream element para o próximo ciclo criar um novo bubble
+      currentStreamEl = appendChatBubble('assistant', '');
     }
   } catch (err) {
     if (err.name !== 'AbortError') {
@@ -7060,10 +8863,24 @@ const appendToolCall = (name, args, result) => {
   div.className = 'chat-tool-call';
   const argsObj = typeof args === 'string' ? JSON.parse(args) : args;
   const summary = toolCallSummary(name, argsObj);
+  const resultStr = JSON.stringify(result);
+  const bodyStr = argsObj.body ? JSON.stringify(argsObj.body, null, 2) : null;
+
   div.innerHTML =
-    \`<span class="tool-name">\${escHtml(name)}</span> \` +
-    \`<span class="tool-summary">\${escHtml(summary)}</span>\` +
-    \`<div class="tool-result">\${escHtml(JSON.stringify(result).slice(0, 360))}\${JSON.stringify(result).length > 360 ? '…' : ''}</div>\`;
+    \`<div class="tool-summary-row">\` +
+      \`<button class="tool-toggle" title="Ver detalhes">▶</button>\` +
+      \`<span class="tool-name">\${escHtml(name)}</span> \` +
+      \`<span class="tool-summary">\${escHtml(summary)}</span>\` +
+    \`</div>\` +
+    \`<div class="tool-details">\` +
+      (bodyStr ? \`<div class="tool-body">\${escHtml(bodyStr)}</div>\` : '') +
+      \`<div class="tool-result">\${escHtml(resultStr.slice(0, 500))}\${resultStr.length > 500 ? '…' : ''}</div>\` +
+    \`</div>\`;
+
+  div.querySelector('.tool-toggle').addEventListener('click', (e) => {
+    const open = div.querySelector('.tool-details').classList.toggle('open');
+    e.currentTarget.textContent = open ? '▼' : '▶';
+  });
 
   feed.appendChild(div);
   feed.scrollTop = feed.scrollHeight;

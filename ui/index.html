@@ -29,6 +29,7 @@
 <link rel="stylesheet" href="/styles/diagrams.css">
 <link rel="stylesheet" href="/styles/tasks.css">
 <link rel="stylesheet" href="/styles/mocks.css">
+<link rel="stylesheet" href="/styles/favorites.css">
 </head>
 <body>
 
@@ -55,6 +56,9 @@
   </button>
   <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')" title="Mocks HTTP">
     <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
+  </button>
+  <button class="rail-btn" id="rail-favorites" onclick="setMode('favorites')" title="Favoritos">
+    <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
   </button>
   <div class="rail-spacer"></div>
   <button class="rail-btn" id="rail-backup" onclick="downloadBackup()" title="Backup completo (notas, skills, diagramas, anotações)">
@@ -553,6 +557,154 @@
     </div>
   </main>
 
+  <!-- ═══ MODE: FAVORITES ═══ -->
+  <main id="mode-favorites" class="mode">
+
+    <!-- Sidebar -->
+    <aside id="fav-sidebar">
+      <div class="fav-sidebar-section">
+        <div class="fav-sidebar-label">Categorias</div>
+        <div id="fav-cat-list"></div>
+      </div>
+      <div class="fav-sidebar-divider"></div>
+      <div class="fav-sidebar-section">
+        <div class="fav-sidebar-label">Tags</div>
+        <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div id="fav-main">
+
+      <!-- Toolbar -->
+      <div id="fav-toolbar">
+        <div id="fav-search-wrap">
+          <span id="fav-search-icon" data-icon="search"></span>
+          <input id="fav-search" type="text" placeholder="Buscar por título, tag, categoria, URL…" autocomplete="off" spellcheck="false">
+          <span id="fav-search-clear" data-icon="x"></span>
+        </div>
+        <button id="fav-add-btn">
+          <span data-icon="plus"></span>
+          Adicionar
+          <span class="fav-add-kbd">⌘K</span>
+        </button>
+      </div>
+
+      <!-- Type tabs -->
+      <div id="fav-type-tabs">
+        <div class="fav-type-tab active" data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
+        <div class="fav-type-tab" data-type="site">
+          <span class="fav-tab-dot" style="background:var(--fav-site)"></span>
+          Sites <span class="fav-tab-count" id="fav-count-site">0</span>
+        </div>
+        <div class="fav-type-tab" data-type="slack">
+          <span class="fav-tab-dot" style="background:var(--fav-slack)"></span>
+          Slack <span class="fav-tab-count" id="fav-count-slack">0</span>
+        </div>
+        <div class="fav-type-tab" data-type="grid">
+          <span class="fav-tab-dot" style="background:var(--fav-grid)"></span>
+          Grid <span class="fav-tab-count" id="fav-count-grid">0</span>
+        </div>
+        <div class="fav-type-tab" data-type="dash">
+          <span class="fav-tab-dot" style="background:var(--fav-dash)"></span>
+          Dashboards <span class="fav-tab-count" id="fav-count-dash">0</span>
+        </div>
+        <div class="fav-type-tab" data-type="github">
+          <span class="fav-tab-dot" style="background:var(--fav-github)"></span>
+          GitHub <span class="fav-tab-count" id="fav-count-github">0</span>
+        </div>
+      </div>
+
+      <!-- Scrollable content -->
+      <div id="fav-scroll">
+
+        <!-- Most visited -->
+        <div id="fav-most-visited" style="display:none">
+          <div class="fav-section-header">
+            <span class="fav-section-title">⚡ Mais visitados</span>
+          </div>
+          <div class="fav-featured-row" id="fav-featured-row"></div>
+        </div>
+
+        <!-- Grid header -->
+        <div class="fav-section-header">
+          <span class="fav-section-title">◈ Links</span>
+          <span class="fav-section-count" id="fav-result-count">0 links</span>
+        </div>
+
+        <!-- Grid -->
+        <div id="fav-grid"></div>
+
+        <!-- Pagination -->
+        <div id="fav-pagination"></div>
+
+        <!-- Empty -->
+        <div id="fav-empty" style="display:none">
+          <span class="fav-empty-icon" data-icon="bookmark"></span>
+          <div class="fav-empty-title">Nenhum favorito encontrado</div>
+          <div class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- Quick-Add / Edit Modal -->
+<div id="fav-modal-overlay">
+  <div id="fav-modal">
+    <div class="fav-modal-header">
+      <span class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
+      <button class="fav-modal-close" id="fav-modal-close" data-icon="x"></button>
+    </div>
+    <div class="fav-modal-body">
+      <div>
+        <div class="fav-field-label">URL</div>
+        <div class="fav-url-wrap">
+          <input class="fav-field-input" id="fav-modal-url" placeholder="cole ou digite a URL…" autocomplete="off" spellcheck="false">
+          <span class="fav-url-detected" id="fav-url-detected"></span>
+        </div>
+      </div>
+      <div>
+        <div class="fav-field-label">Título</div>
+        <input class="fav-field-input" id="fav-modal-title" placeholder="Nome do link…">
+      </div>
+      <div>
+        <div class="fav-field-label">Tipo</div>
+        <div class="fav-type-selector">
+          <button class="fav-type-btn active" data-t="site">🌐 Site</button>
+          <button class="fav-type-btn" data-t="slack">💬 Slack</button>
+          <button class="fav-type-btn" data-t="grid">📁 Grid</button>
+          <button class="fav-type-btn" data-t="dash">📊 Dash</button>
+          <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
+        </div>
+      </div>
+      <div>
+        <div class="fav-field-label">Categoria</div>
+        <div class="fav-cat-sel" id="fav-cat-sel"></div>
+      </div>
+      <div>
+        <div class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
+        <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
+          <input class="fav-tags-input" id="fav-modal-tags-input" placeholder="#api, #design…">
+        </div>
+      </div>
+      <div>
+        <div class="fav-field-label">Nota (opcional)</div>
+        <input class="fav-field-input" id="fav-modal-note" placeholder="Para que serve esse link…">
+      </div>
+    </div>
+    <div class="fav-modal-footer">
+      <div class="fav-kbd-hint">
+        <kbd class="fav-kbd">Enter</kbd> salva · <kbd class="fav-kbd">Esc</kbd> fecha
+      </div>
+      <div class="fav-modal-btns">
+        <button class="fav-btn-cancel" id="fav-modal-cancel">Cancelar</button>
+        <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ════ Task Modal ════ -->
@@ -682,6 +834,7 @@
 <script src="/scripts/diagrams.js"></script>
 <script src="/scripts/tasks.js"></script>
 <script src="/scripts/mocks.js"></script>
+<script src="/scripts/favorites.js"></script>
 <script src="/scripts/system.js"></script>
 <script src="/scripts/ai-chat.js"></script>
 </body>

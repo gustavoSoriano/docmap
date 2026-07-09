@@ -2,7 +2,7 @@
 
 let currentMode = 'map';
 
-const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks' };
+const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos' };
 
 const setMode = (mode) => {
   currentMode = mode;
@@ -28,7 +28,8 @@ const setMode = (mode) => {
   else if (mode === 'skills')   loadSkillsList();
   else if (mode === 'diagrams') loadDiagramsList();
   else if (mode === 'tasks')    loadTasks();
-  else if (mode === 'mocks')    loadMocksData();
+  else if (mode === 'mocks')     loadMocksData();
+  else if (mode === 'favorites') loadFavoritesData();
   else if (sim) requestAnimationFrame(fitGraph);
 };
 
