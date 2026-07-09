@@ -39,9 +39,7 @@ let currentMapTab = 'graph';
 const setMapTab = (tab) => {
   currentMapTab = tab;
   document.querySelectorAll('.map-pane').forEach((p) => p.classList.remove('active'));
-  document.querySelectorAll('.map-tab').forEach((t) => t.classList.remove('active'));
   $(tab === 'graph' ? 'graph-pane' : 'markmap-pane').classList.add('active');
-  $(tab === 'graph' ? 'tab-graph' : 'tab-markmap').classList.add('active');
 
   // O grafo precisa recentralizar quando sua aba fica visível (offsetWidth muda).
   if (tab === 'graph' && sim) requestAnimationFrame(fitGraph);

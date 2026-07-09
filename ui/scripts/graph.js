@@ -6,6 +6,8 @@ let graphG = null;
 let graphLinkSel = null;
 let graphNodeSel = null;
 let graphLinks = [];
+let _selectedNodeId = null;
+let _userHasInteracted = false;
 
 const NODE_COLOR = {
   entry:    getCss('--cat-entry'),
@@ -46,6 +48,7 @@ const renderGraph = (data) => {
 
   // clone links so d3 mutation doesn't corrupt the source data
   graphLinks = data.links.map((l) => ({ ...l }));
+  _userHasInteracted = false;
 
   sim = d3.forceSimulation(data.nodes)
     .force('link',      d3.forceLink(graphLinks).id((d) => d.id).distance(130))
@@ -65,7 +68,7 @@ const renderGraph = (data) => {
     .join('g')
     .attr('class', 'node')
     .call(d3.drag()
-      .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('start', (e, d) => { _userHasInteracted = true; if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
       .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
       .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }))
     .on('click',     (e, d) => selectNode(d.id))
@@ -102,7 +105,8 @@ const renderGraph = (data) => {
     graphNodeSel.attr('transform', (d) => `translate(${d.x},${d.y})`);
   });
 
-  sim.on('end', () => requestAnimationFrame(fitGraph));
+  // Only auto-fit on initial layout — after user drags a node, respect their viewport
+  sim.on('end', () => { if (!_userHasInteracted) requestAnimationFrame(fitGraph); });
 };
 
 // ── Selection + neighbor highlight ──
@@ -120,6 +124,49 @@ const selectNode = (id) => {
 
   graphLinkSel?.classed('highlighted', (l) =>
     (l.source.id || l.source) === id || (l.target.id || l.target) === id);
+
+  showNodeMeta(id);
+};
+
+const showNodeMeta = async (id) => {
+  _selectedNodeId = id;
+  const label = id.split('/').pop().replace('.md', '');
+  $('node-meta-name').textContent = label;
+  $('nm-commits').textContent = '…';
+  $('nm-date').textContent = '…';
+  $('nm-authors-list').innerHTML = '<span class="nm-placeholder">…</span>';
+  $('node-meta').classList.add('visible');
+
+  try {
+    const res = await fetch('/git/filemeta?file=' + encodeURIComponent(id));
+    const data = await res.json();
+    $('nm-commits').textContent = data.commitCount > 0 ? String(data.commitCount) : '—';
+    $('nm-date').textContent = data.lastDate
+      ? new Date(data.lastDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+      : '—';
+    if (data.authors && data.authors.length > 0) {
+      $('nm-authors-list').innerHTML = data.authors.map((a) =>
+        `<div class="nm-author-row"><span class="nm-author-name">${escHtml(a.name)}</span><span class="nm-author-count">${a.commits}</span></div>`
+      ).join('');
+    } else {
+      $('nm-authors-list').innerHTML = '<span class="nm-placeholder">—</span>';
+    }
+  } catch {
+    $('nm-commits').textContent = '—';
+    $('nm-date').textContent = '—';
+    $('nm-authors-list').innerHTML = '<span class="nm-placeholder">—</span>';
+  }
+};
+
+const clearNodeMeta = () => {
+  _selectedNodeId = null;
+  $('node-meta').classList.remove('visible');
+  graphNodeSel?.classed('selected', false).classed('dimmed', false);
+  graphLinkSel?.classed('highlighted', false);
+};
+
+const openMarkmap = () => {
+  if (_selectedNodeId) loadFile(_selectedNodeId);
 };
 
 const fitGraph = () => {

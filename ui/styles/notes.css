@@ -117,26 +117,6 @@
   padding: 12px 18px;
   background: var(--surface);
 }
-#notes-skill-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 36px;
-  margin-bottom: 12px;
-  border: 1px solid var(--accent-line);
-  border-radius: var(--r-sm);
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .14s;
-}
-#notes-skill-btn:hover { background: var(--accent); color: var(--on-accent); }
-#notes-skill-btn .ico { width: 16px; height: 16px; }
 
 #notes-ai-badge {
   display: flex;

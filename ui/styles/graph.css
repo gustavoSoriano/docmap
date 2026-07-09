@@ -130,3 +130,136 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: all .15s;
 }
 #no-workspace-btn:hover { background: var(--accent-2); transform: translateY(-2px); }
+
+/* ── Node metadata panel ── */
+#node-meta {
+  position: absolute;
+  bottom: 18px; right: 70px;
+  background: rgba(16,18,22,.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-md);
+  padding: 14px 16px 12px;
+  box-shadow: var(--sh-lg);
+  min-width: 224px;
+  max-width: 300px;
+  display: none;
+  flex-direction: column;
+  gap: 11px;
+  z-index: 20;
+  animation: popIn .14s ease;
+}
+#node-meta.visible { display: flex; }
+#node-meta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+#node-meta-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#node-meta-close {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: color .12s, background .12s;
+}
+#node-meta-close:hover { color: var(--text); background: var(--surface-3); }
+#node-meta-close .ico { width: 12px; height: 12px; }
+#node-meta-stats { display: flex; flex-direction: column; gap: 7px; }
+.node-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.node-meta-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.node-meta-value {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-2);
+  text-align: right;
+}
+/* ── Authors section ── */
+#nm-authors-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+#nm-authors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nm-author-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+.nm-author-row:last-child { border-bottom: none; }
+.nm-author-name {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nm-author-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  flex-shrink: 0;
+  background: var(--surface-3);
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+.nm-placeholder {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+#nm-open-markmap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-sm);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .13s;
+}
+#nm-open-markmap:hover { background: var(--accent); color: var(--on-accent); }
+#nm-open-markmap .ico { width: 13px; height: 13px; }

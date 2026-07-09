@@ -289,16 +289,25 @@ body::before {
 }
 .map-tab:hover { color: var(--text); background: var(--surface-2); }
 .map-tab.active { color: var(--accent); background: var(--accent-dim); border-color: var(--accent-line); }
-#tab-doc-name {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 400;
+#map-open-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: transparent;
   color: var(--text-3);
-  max-width: 240px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .13s;
 }
+#map-open-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-2); }
+#map-open-btn .ico { width: 14px; height: 14px; }
 
 /* ════════ Map panes (fill) ════════ */
 #map-panes { flex: 1; min-height: 0; position: relative; }
@@ -509,6 +518,139 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 #no-workspace-btn:hover { background: var(--accent-2); transform: translateY(-2px); }
 
+/* ── Node metadata panel ── */
+#node-meta {
+  position: absolute;
+  bottom: 18px; right: 70px;
+  background: rgba(16,18,22,.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-md);
+  padding: 14px 16px 12px;
+  box-shadow: var(--sh-lg);
+  min-width: 224px;
+  max-width: 300px;
+  display: none;
+  flex-direction: column;
+  gap: 11px;
+  z-index: 20;
+  animation: popIn .14s ease;
+}
+#node-meta.visible { display: flex; }
+#node-meta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+#node-meta-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#node-meta-close {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: color .12s, background .12s;
+}
+#node-meta-close:hover { color: var(--text); background: var(--surface-3); }
+#node-meta-close .ico { width: 12px; height: 12px; }
+#node-meta-stats { display: flex; flex-direction: column; gap: 7px; }
+.node-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.node-meta-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.node-meta-value {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-2);
+  text-align: right;
+}
+/* ── Authors section ── */
+#nm-authors-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+#nm-authors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nm-author-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+.nm-author-row:last-child { border-bottom: none; }
+.nm-author-name {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nm-author-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  flex-shrink: 0;
+  background: var(--surface-3);
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+.nm-placeholder {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+#nm-open-markmap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-sm);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .13s;
+}
+#nm-open-markmap:hover { background: var(--accent); color: var(--on-accent); }
+#nm-open-markmap .ico { width: 13px; height: 13px; }
+
 </style>
 <style>
 /* ════════ Markmap pane ════════ */
@@ -541,6 +683,26 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   white-space: nowrap;
 }
 #markmap-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+
+#btn-back-graph {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .13s;
+}
+#btn-back-graph:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-2); }
+#btn-back-graph .ico { width: 13px; height: 13px; }
 
 .pill-btn {
   display: flex;
@@ -1021,26 +1183,6 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   padding: 12px 18px;
   background: var(--surface);
 }
-#notes-skill-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 36px;
-  margin-bottom: 12px;
-  border: 1px solid var(--accent-line);
-  border-radius: var(--r-sm);
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .14s;
-}
-#notes-skill-btn:hover { background: var(--accent); color: var(--on-accent); }
-#notes-skill-btn .ico { width: 16px; height: 16px; }
 
 #notes-ai-badge {
   display: flex;
@@ -2161,8 +2303,8 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   background: var(--surface-2);
   border: 1px solid var(--border-mid);
   border-radius: var(--r-xl);
-  width: min(580px, 92vw);
-  max-height: 82vh;
+  width: min(860px, 92vw);
+  height: min(600px, 88vh);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2211,11 +2353,20 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 
 #task-modal-body {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
   padding: 16px;
   display: flex;
+  flex-direction: row;
+  gap: 16px;
+  overflow: hidden;
+}
+
+/* descrição ocupa tudo à esquerda */
+#task-modal-body > .task-field:first-child {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
-  gap: 14px;
 }
 
 .task-field {
@@ -2233,8 +2384,8 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 #task-desc-textarea {
-  resize: vertical;
-  min-height: 90px;
+  flex: 1;
+  resize: none;
   font-family: var(--font-mono);
   font-size: 0.82rem;
   background: var(--surface);
@@ -2248,11 +2399,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 #task-desc-textarea:focus { border-color: var(--accent-line); }
 
+/* metadados: coluna vertical à direita */
 .task-meta-row {
+  flex-basis: 220px;
+  flex-shrink: 0;
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-top: 2px;
 }
-.task-meta-row .task-field { flex: 1; }
 
 #task-due-input {
   background: var(--surface);
@@ -4109,14 +4265,14 @@ mark.fav-hl {
     <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
   </button>
   <div class="rail-spacer"></div>
+  <button class="rail-btn" id="rail-skill" onclick="copySkill()" title="Copiar skill da API para colar numa IA">
+    <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skill</span>
+  </button>
   <button class="rail-btn" id="rail-backup" onclick="downloadBackup()" title="Backup completo (notas, skills, diagramas, anotações)">
     <span class="rail-ico" data-icon="download"></span><span class="rail-lbl">Backup</span>
   </button>
   <button class="rail-btn" id="rail-restore" onclick="triggerRestore()" title="Restaurar de um backup">
     <span class="rail-ico" data-icon="upload"></span><span class="rail-lbl">Restore</span>
-  </button>
-  <button class="rail-btn" id="rail-open" onclick="pickWorkspace()" title="Abrir pasta">
-    <span class="rail-ico" data-icon="folder"></span><span class="rail-lbl">Pasta</span>
   </button>
 </nav>
 
@@ -4151,9 +4307,9 @@ mark.fav-hl {
 
     <!-- Tabs -->
     <div id="map-tabs">
-      <button class="map-tab active" id="tab-graph" onclick="setMapTab('graph')"><span data-icon="share"></span> Grafo</button>
-      <button class="map-tab" id="tab-markmap" onclick="setMapTab('markmap')">
-        <span data-icon="tree"></span> Mapa mental <span id="tab-doc-name"></span>
+      <button class="map-tab active" id="tab-graph" onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
+      <button id="map-open-btn" onclick="pickWorkspace()" title="Abrir pasta">
+        <span data-icon="folder"></span> Pasta
       </button>
     </div>
 
@@ -4169,6 +4325,32 @@ mark.fav-hl {
         </div>
         <svg id="graph"></svg>
         <button class="map-tool fit-btn" title="Centralizar" onclick="fitGraph()" data-icon="fit"></button>
+
+        <!-- Node metadata panel -->
+        <div id="node-meta">
+          <div id="node-meta-header">
+            <span id="node-meta-name"></span>
+            <button id="node-meta-close" onclick="clearNodeMeta()" title="Fechar" data-icon="x"></button>
+          </div>
+          <div id="node-meta-stats">
+            <div class="node-meta-row">
+              <span class="node-meta-label">Commits</span>
+              <span class="node-meta-value" id="nm-commits">—</span>
+            </div>
+            <div class="node-meta-row">
+              <span class="node-meta-label">Atualizado</span>
+              <span class="node-meta-value" id="nm-date">—</span>
+            </div>
+          </div>
+          <div id="nm-authors-section">
+            <span class="node-meta-label">Autores</span>
+            <div id="nm-authors-list"><span class="nm-placeholder">—</span></div>
+          </div>
+          <button id="nm-open-markmap" onclick="openMarkmap()">
+            <span data-icon="tree"></span> Mapa Mental
+          </button>
+        </div>
+
         <div class="legend">
           <div class="legend-title">Legenda</div>
           <div class="legend-item"><i class="legend-dot" style="background:var(--cat-entry)"></i>Entrada</div>
@@ -4182,6 +4364,7 @@ mark.fav-hl {
       <!-- Markmap pane -->
       <section id="markmap-pane" class="map-pane">
         <div id="markmap-header">
+          <button id="btn-back-graph" onclick="setMapTab('graph')"><span data-icon="arrow-left"></span> Documentos</button>
           <div id="markmap-titles">
             <span id="markmap-filename">Nenhum documento</span>
             <span id="markmap-filepath"></span>
@@ -4245,9 +4428,6 @@ mark.fav-hl {
       </div>
       <div id="notes-list"></div>
       <footer id="notes-footer">
-        <button id="notes-skill-btn" onclick="copySkill()" title="Copia instruções dos endpoints para colar numa IA">
-          <span data-icon="sparkles"></span> Copiar skill p/ IA
-        </button>
         <div id="notes-ai-badge" title="Qualquer IA pode ler/criar notas neste endereço">
           <span class="ai-dot"></span> API da IA · <code>127.0.0.1:3334</code>
         </div>
@@ -4904,6 +5084,7 @@ const ICON_PATHS = {
   'scan-line': '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="4" x2="20" y1="12" y2="12"/>',
   bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
   'external-link': '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  'arrow-left': '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -5046,9 +5227,7 @@ let currentMapTab = 'graph';
 const setMapTab = (tab) => {
   currentMapTab = tab;
   document.querySelectorAll('.map-pane').forEach((p) => p.classList.remove('active'));
-  document.querySelectorAll('.map-tab').forEach((t) => t.classList.remove('active'));
   $(tab === 'graph' ? 'graph-pane' : 'markmap-pane').classList.add('active');
-  $(tab === 'graph' ? 'tab-graph' : 'tab-markmap').classList.add('active');
 
   // O grafo precisa recentralizar quando sua aba fica visível (offsetWidth muda).
   if (tab === 'graph' && sim) requestAnimationFrame(fitGraph);
@@ -5138,6 +5317,8 @@ let graphG = null;
 let graphLinkSel = null;
 let graphNodeSel = null;
 let graphLinks = [];
+let _selectedNodeId = null;
+let _userHasInteracted = false;
 
 const NODE_COLOR = {
   entry:    getCss('--cat-entry'),
@@ -5178,6 +5359,7 @@ const renderGraph = (data) => {
 
   // clone links so d3 mutation doesn't corrupt the source data
   graphLinks = data.links.map((l) => ({ ...l }));
+  _userHasInteracted = false;
 
   sim = d3.forceSimulation(data.nodes)
     .force('link',      d3.forceLink(graphLinks).id((d) => d.id).distance(130))
@@ -5197,7 +5379,7 @@ const renderGraph = (data) => {
     .join('g')
     .attr('class', 'node')
     .call(d3.drag()
-      .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('start', (e, d) => { _userHasInteracted = true; if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
       .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
       .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }))
     .on('click',     (e, d) => selectNode(d.id))
@@ -5234,7 +5416,8 @@ const renderGraph = (data) => {
     graphNodeSel.attr('transform', (d) => \`translate(\${d.x},\${d.y})\`);
   });
 
-  sim.on('end', () => requestAnimationFrame(fitGraph));
+  // Only auto-fit on initial layout — after user drags a node, respect their viewport
+  sim.on('end', () => { if (!_userHasInteracted) requestAnimationFrame(fitGraph); });
 };
 
 // ── Selection + neighbor highlight ──
@@ -5252,6 +5435,49 @@ const selectNode = (id) => {
 
   graphLinkSel?.classed('highlighted', (l) =>
     (l.source.id || l.source) === id || (l.target.id || l.target) === id);
+
+  showNodeMeta(id);
+};
+
+const showNodeMeta = async (id) => {
+  _selectedNodeId = id;
+  const label = id.split('/').pop().replace('.md', '');
+  $('node-meta-name').textContent = label;
+  $('nm-commits').textContent = '…';
+  $('nm-date').textContent = '…';
+  $('nm-authors-list').innerHTML = '<span class="nm-placeholder">…</span>';
+  $('node-meta').classList.add('visible');
+
+  try {
+    const res = await fetch('/git/filemeta?file=' + encodeURIComponent(id));
+    const data = await res.json();
+    $('nm-commits').textContent = data.commitCount > 0 ? String(data.commitCount) : '—';
+    $('nm-date').textContent = data.lastDate
+      ? new Date(data.lastDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+      : '—';
+    if (data.authors && data.authors.length > 0) {
+      $('nm-authors-list').innerHTML = data.authors.map((a) =>
+        \`<div class="nm-author-row"><span class="nm-author-name">\${escHtml(a.name)}</span><span class="nm-author-count">\${a.commits}</span></div>\`
+      ).join('');
+    } else {
+      $('nm-authors-list').innerHTML = '<span class="nm-placeholder">—</span>';
+    }
+  } catch {
+    $('nm-commits').textContent = '—';
+    $('nm-date').textContent = '—';
+    $('nm-authors-list').innerHTML = '<span class="nm-placeholder">—</span>';
+  }
+};
+
+const clearNodeMeta = () => {
+  _selectedNodeId = null;
+  $('node-meta').classList.remove('visible');
+  graphNodeSel?.classed('selected', false).classed('dimmed', false);
+  graphLinkSel?.classed('highlighted', false);
+};
+
+const openMarkmap = () => {
+  if (_selectedNodeId) loadFile(_selectedNodeId);
 };
 
 const fitGraph = () => {
@@ -5296,7 +5522,6 @@ const loadFile = async (fileId) => {
   const label = fileId.split('/').pop().replace('.md', '');
   $('markmap-filename').textContent = label;
   $('markmap-filepath').textContent = fileId;
-  $('tab-doc-name').textContent = '· ' + label;
   $('btn-copy-path').style.display = 'flex';
   $('btn-annot').style.display = 'flex';
   $('markmap-tools').classList.add('visible');
@@ -6691,7 +6916,7 @@ const renderBoard = () => {
   }
 };
 
-const formatDue = (dueDate) => {
+const formatDue = (dueDate, status) => {
   if (!dueDate) return '';
   const today   = new Date().toISOString().slice(0, 10);
   const due     = dueDate;
@@ -6699,16 +6924,17 @@ const formatDue = (dueDate) => {
   let cls = 'kanban-card-due';
   let label;
 
-  if (diff < 0)     { cls += ' overdue';   label = \`Atrasada \${Math.abs(diff)}d\`; }
-  else if (diff === 0) { cls += ' due-today'; label = 'Hoje'; }
-  else if (diff === 1) { label = 'Amanhã'; }
-  else                 { label = due.split('-').reverse().join('/'); }
+  if (status === 'done')   { label = due.split('-').reverse().join('/'); }
+  else if (diff < 0)       { cls += ' overdue';   label = \`Atrasada \${Math.abs(diff)}d\`; }
+  else if (diff === 0)     { cls += ' due-today'; label = 'Hoje'; }
+  else if (diff === 1)     { label = 'Amanhã'; }
+  else                     { label = due.split('-').reverse().join('/'); }
 
   return \`<span class="\${cls}">📅 \${escHtml(label)}</span>\`;
 };
 
 const renderCard = (task) => {
-  const due  = formatDue(task.dueDate);
+  const due  = formatDue(task.dueDate, task.status);
   const note = task.noteId
     ? \`<span class="kanban-card-note-link">nota</span>\`
     : '';

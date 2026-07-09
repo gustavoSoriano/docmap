@@ -61,14 +61,14 @@
     <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
   </button>
   <div class="rail-spacer"></div>
+  <button class="rail-btn" id="rail-skill" onclick="copySkill()" title="Copiar skill da API para colar numa IA">
+    <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skill</span>
+  </button>
   <button class="rail-btn" id="rail-backup" onclick="downloadBackup()" title="Backup completo (notas, skills, diagramas, anotações)">
     <span class="rail-ico" data-icon="download"></span><span class="rail-lbl">Backup</span>
   </button>
   <button class="rail-btn" id="rail-restore" onclick="triggerRestore()" title="Restaurar de um backup">
     <span class="rail-ico" data-icon="upload"></span><span class="rail-lbl">Restore</span>
-  </button>
-  <button class="rail-btn" id="rail-open" onclick="pickWorkspace()" title="Abrir pasta">
-    <span class="rail-ico" data-icon="folder"></span><span class="rail-lbl">Pasta</span>
   </button>
 </nav>
 
@@ -103,9 +103,9 @@
 
     <!-- Tabs -->
     <div id="map-tabs">
-      <button class="map-tab active" id="tab-graph" onclick="setMapTab('graph')"><span data-icon="share"></span> Grafo</button>
-      <button class="map-tab" id="tab-markmap" onclick="setMapTab('markmap')">
-        <span data-icon="tree"></span> Mapa mental <span id="tab-doc-name"></span>
+      <button class="map-tab active" id="tab-graph" onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
+      <button id="map-open-btn" onclick="pickWorkspace()" title="Abrir pasta">
+        <span data-icon="folder"></span> Pasta
       </button>
     </div>
 
@@ -121,6 +121,32 @@
         </div>
         <svg id="graph"></svg>
         <button class="map-tool fit-btn" title="Centralizar" onclick="fitGraph()" data-icon="fit"></button>
+
+        <!-- Node metadata panel -->
+        <div id="node-meta">
+          <div id="node-meta-header">
+            <span id="node-meta-name"></span>
+            <button id="node-meta-close" onclick="clearNodeMeta()" title="Fechar" data-icon="x"></button>
+          </div>
+          <div id="node-meta-stats">
+            <div class="node-meta-row">
+              <span class="node-meta-label">Commits</span>
+              <span class="node-meta-value" id="nm-commits">—</span>
+            </div>
+            <div class="node-meta-row">
+              <span class="node-meta-label">Atualizado</span>
+              <span class="node-meta-value" id="nm-date">—</span>
+            </div>
+          </div>
+          <div id="nm-authors-section">
+            <span class="node-meta-label">Autores</span>
+            <div id="nm-authors-list"><span class="nm-placeholder">—</span></div>
+          </div>
+          <button id="nm-open-markmap" onclick="openMarkmap()">
+            <span data-icon="tree"></span> Mapa Mental
+          </button>
+        </div>
+
         <div class="legend">
           <div class="legend-title">Legenda</div>
           <div class="legend-item"><i class="legend-dot" style="background:var(--cat-entry)"></i>Entrada</div>
@@ -134,6 +160,7 @@
       <!-- Markmap pane -->
       <section id="markmap-pane" class="map-pane">
         <div id="markmap-header">
+          <button id="btn-back-graph" onclick="setMapTab('graph')"><span data-icon="arrow-left"></span> Documentos</button>
           <div id="markmap-titles">
             <span id="markmap-filename">Nenhum documento</span>
             <span id="markmap-filepath"></span>
@@ -197,9 +224,6 @@
       </div>
       <div id="notes-list"></div>
       <footer id="notes-footer">
-        <button id="notes-skill-btn" onclick="copySkill()" title="Copia instruções dos endpoints para colar numa IA">
-          <span data-icon="sparkles"></span> Copiar skill p/ IA
-        </button>
         <div id="notes-ai-badge" title="Qualquer IA pode ler/criar notas neste endereço">
           <span class="ai-dot"></span> API da IA · <code>127.0.0.1:3334</code>
         </div>

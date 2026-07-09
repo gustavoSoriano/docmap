@@ -29,6 +29,26 @@
 }
 #markmap-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
 
+#btn-back-graph {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .13s;
+}
+#btn-back-graph:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-2); }
+#btn-back-graph .ico { width: 13px; height: 13px; }
+
 .pill-btn {
   display: flex;
   align-items: center;

@@ -203,16 +203,25 @@ body::before {
 }
 .map-tab:hover { color: var(--text); background: var(--surface-2); }
 .map-tab.active { color: var(--accent); background: var(--accent-dim); border-color: var(--accent-line); }
-#tab-doc-name {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 400;
+#map-open-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: transparent;
   color: var(--text-3);
-  max-width: 240px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .13s;
 }
+#map-open-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-2); }
+#map-open-btn .ico { width: 14px; height: 14px; }
 
 /* ════════ Map panes (fill) ════════ */
 #map-panes { flex: 1; min-height: 0; position: relative; }

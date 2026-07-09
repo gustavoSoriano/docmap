@@ -57,11 +57,23 @@ Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100
 ### Chaves do Deno KV
 
 ```
-["notes",    workspacePath, noteId]     → Note
-["comments", workspacePath, fileId]     → Comment[]
-["workspace", "recent"]                 → string[]
-["workspace", "last"]                   → string
+["_meta",          "schemaVersion"]              → number (versão do schema)
+["_meta",          "update"]                     → UpdateStatus
+["ai",             "config"]                     → ProviderConfig
+["workspace",      "last"]                       → string
+["workspace",      "recent"]                     → string[]
+["notes",          "_global_", noteId]           → Note
+["tasks",          "_global_", taskId]           → Task
+["favorites",      id]                           → Favorite
+["diagrams",       "_global_", diagramId]        → Diagram
+["macros",         "_global_", macroId]          → Macro
+["skills",         "_global_", skillId]          → Skill
+["comments",       workspacePath, fileId]        → Comment[]
+["mock_collections", id]                         → MockCollection
+["mocks_data",     collectionId, mockId]         → Mock
 ```
+
+> Notes são escopo global (`_global_`), não workspace-scoped. Apenas `comments` permanece vinculado ao workspace.
 
 ## Persistência e atualização
 

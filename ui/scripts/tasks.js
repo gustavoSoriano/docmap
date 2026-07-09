@@ -142,7 +142,7 @@ const renderBoard = () => {
   }
 };
 
-const formatDue = (dueDate) => {
+const formatDue = (dueDate, status) => {
   if (!dueDate) return '';
   const today   = new Date().toISOString().slice(0, 10);
   const due     = dueDate;
@@ -150,16 +150,17 @@ const formatDue = (dueDate) => {
   let cls = 'kanban-card-due';
   let label;
 
-  if (diff < 0)     { cls += ' overdue';   label = `Atrasada ${Math.abs(diff)}d`; }
-  else if (diff === 0) { cls += ' due-today'; label = 'Hoje'; }
-  else if (diff === 1) { label = 'Amanhã'; }
-  else                 { label = due.split('-').reverse().join('/'); }
+  if (status === 'done')   { label = due.split('-').reverse().join('/'); }
+  else if (diff < 0)       { cls += ' overdue';   label = `Atrasada ${Math.abs(diff)}d`; }
+  else if (diff === 0)     { cls += ' due-today'; label = 'Hoje'; }
+  else if (diff === 1)     { label = 'Amanhã'; }
+  else                     { label = due.split('-').reverse().join('/'); }
 
   return `<span class="${cls}">📅 ${escHtml(label)}</span>`;
 };
 
 const renderCard = (task) => {
-  const due  = formatDue(task.dueDate);
+  const due  = formatDue(task.dueDate, task.status);
   const note = task.noteId
     ? `<span class="kanban-card-note-link">nota</span>`
     : '';

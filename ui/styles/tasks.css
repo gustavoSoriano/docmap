@@ -238,8 +238,8 @@
   background: var(--surface-2);
   border: 1px solid var(--border-mid);
   border-radius: var(--r-xl);
-  width: min(580px, 92vw);
-  max-height: 82vh;
+  width: min(860px, 92vw);
+  height: min(600px, 88vh);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -288,11 +288,20 @@
 
 #task-modal-body {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
   padding: 16px;
   display: flex;
+  flex-direction: row;
+  gap: 16px;
+  overflow: hidden;
+}
+
+/* descrição ocupa tudo à esquerda */
+#task-modal-body > .task-field:first-child {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
-  gap: 14px;
 }
 
 .task-field {
@@ -310,8 +319,8 @@
 }
 
 #task-desc-textarea {
-  resize: vertical;
-  min-height: 90px;
+  flex: 1;
+  resize: none;
   font-family: var(--font-mono);
   font-size: 0.82rem;
   background: var(--surface);
@@ -325,11 +334,16 @@
 }
 #task-desc-textarea:focus { border-color: var(--accent-line); }
 
+/* metadados: coluna vertical à direita */
 .task-meta-row {
+  flex-basis: 220px;
+  flex-shrink: 0;
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-top: 2px;
 }
-.task-meta-row .task-field { flex: 1; }
 
 #task-due-input {
   background: var(--surface);

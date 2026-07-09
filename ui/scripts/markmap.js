@@ -9,7 +9,6 @@ const loadFile = async (fileId) => {
   const label = fileId.split('/').pop().replace('.md', '');
   $('markmap-filename').textContent = label;
   $('markmap-filepath').textContent = fileId;
-  $('tab-doc-name').textContent = '· ' + label;
   $('btn-copy-path').style.display = 'flex';
   $('btn-annot').style.display = 'flex';
   $('markmap-tools').classList.add('visible');
