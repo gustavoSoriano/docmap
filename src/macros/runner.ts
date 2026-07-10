@@ -52,6 +52,15 @@ export const runMacro = async (
     DOCMAP_KV:        `${Deno.env.get('HOME')}/Library/Application Support/docmap/data.sqlite3`,
   };
 
+  // macOS GUI apps não herdam o PATH do shell.
+  // Adiciona diretórios comuns de package managers se existirem no sistema.
+  const extraPaths = ['/opt/homebrew/bin', '/usr/local/bin'].filter((p) => {
+    try { Deno.statSync(p); return true; } catch { return false; }
+  });
+  if (extraPaths.length > 0) {
+    env.PATH = `${extraPaths.join(':')}:${env.PATH}`;
+  }
+
   const proc = new Deno.Command(cmd[0], {
     args:   cmd.slice(1),
     env,
