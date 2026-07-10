@@ -10,6 +10,7 @@ const initMermaid = () => {
   if (!window.mermaid || mermaidReady) return;
   window.mermaid.initialize({
     startOnLoad: false,
+    suppressErrorRendering: true,
     theme: 'dark',
     themeVariables: {
       background:       '#101216',
