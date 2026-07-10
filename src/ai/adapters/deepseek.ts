@@ -27,6 +27,7 @@ export async function* callDeepSeek(
       model: DEEPSEEK_MODEL,
       messages,
       tools,
+      max_tokens: 16_384,
       stream: true,
     }),
   });
