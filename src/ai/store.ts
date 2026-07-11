@@ -10,7 +10,7 @@ export const getProvider = async (kv: Deno.Kv): Promise<Provider> => {
   return entry.value?.provider ?? DEFAULT_PROVIDER;
 };
 
-export const saveProvider = (kv: Deno.Kv) =>
-  async (provider: Provider): Promise<void> => {
+export const saveProvider =
+  (kv: Deno.Kv) => async (provider: Provider): Promise<void> => {
     await kv.set(CONFIG_KEY, { provider } satisfies ProviderConfig);
   };

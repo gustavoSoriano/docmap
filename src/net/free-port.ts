@@ -7,15 +7,21 @@ const killUnix = async (port: number): Promise<void> => {
     stdout: 'piped',
     stderr: 'null',
   }).output();
-  const pids = new TextDecoder().decode(lsof.stdout).trim().split('\n').filter(Boolean);
+  const pids = new TextDecoder().decode(lsof.stdout).trim().split('\n').filter(
+    Boolean,
+  );
   for (const pid of pids) {
-    await new Deno.Command('kill', { args: ['-9', pid], stderr: 'null' }).output();
+    await new Deno.Command('kill', { args: ['-9', pid], stderr: 'null' })
+      .output();
   }
 };
 
 const killWindows = async (port: number): Promise<void> => {
   await new Deno.Command('cmd', {
-    args: ['/c', `for /f "tokens=5" %a in ('netstat -ano ^| findstr :${port}') do taskkill /F /PID %a`],
+    args: [
+      '/c',
+      `for /f "tokens=5" %a in ('netstat -ano ^| findstr :${port}') do taskkill /F /PID %a`,
+    ],
     stderr: 'null',
     stdout: 'null',
   }).output();

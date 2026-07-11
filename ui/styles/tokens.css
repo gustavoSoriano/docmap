@@ -1,53 +1,53 @@
 :root {
   /* ── Surfaces (near-black, layered) ── */
-  --bg:        #0b0c0e;
-  --surface:   #101216;
+  --bg: #0b0c0e;
+  --surface: #101216;
   --surface-2: #16191f;
   --surface-3: #1e222a;
   --surface-4: #262b34;
 
   /* ── Borders ── */
-  --border:      #22262e;
+  --border: #22262e;
   --border-soft: rgba(255,255,255,.05);
-  --border-mid:  rgba(255,255,255,.09);
-  --border-hi:   rgba(255,255,255,.16);
+  --border-mid: rgba(255,255,255,.09);
+  --border-hi: rgba(255,255,255,.16);
 
   /* ── Text ── */
-  --text:   #edeef1;
+  --text: #edeef1;
   --text-2: #9ca3af;
   --text-3: #626976;
   --text-4: #454b56;
 
   /* ── Accent (emerald) ── */
-  --accent:      #37d99a;
-  --accent-2:    #29c088;
-  --accent-dim:  rgba(55,217,154,.14);
+  --accent: #37d99a;
+  --accent-2: #29c088;
+  --accent-dim: rgba(55,217,154,.14);
   --accent-line: rgba(55,217,154,.35);
-  --on-accent:   #06120d;
+  --on-accent: #06120d;
 
   /* ── Graph categories ── */
-  --cat-entry:    #fbbf24;
-  --cat-arch:     #60a5fa;
-  --cat-design:   #f472b6;
+  --cat-entry: #fbbf24;
+  --cat-arch: #60a5fa;
+  --cat-design: #f472b6;
   --cat-security: #fb7185;
-  --cat-process:  #94a3b8;
-  --cat-default:  #6b7280;
+  --cat-process: #94a3b8;
+  --cat-default: #6b7280;
 
   /* ── Annotation / note types ── */
-  --type-note:      #94a3b8;
-  --type-decision:  #60a5fa;
-  --type-question:  #fbbf24;
-  --type-todo:      #37d99a;
-  --type-warning:   #fb7185;
+  --type-note: #94a3b8;
+  --type-decision: #60a5fa;
+  --type-question: #fbbf24;
+  --type-todo: #37d99a;
+  --type-warning: #fb7185;
   --type-reference: #a78bfa;
-  --type-general:   #94a3b8;
+  --type-general: #94a3b8;
 
   /* ── Typography ── */
-  --font-ui:   'Geist', 'Onest', system-ui, sans-serif;
+  --font-ui: 'Geist', 'Onest', system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
 
   /* ── Metrics ── */
-  --rail-w:   60px;
+  --rail-w: 60px;
   --topbar-h: 54px;
   --r-xs: 5px;
   --r-sm: 7px;
@@ -59,7 +59,7 @@
   --sh-sm: 0 1px 2px rgba(0,0,0,.4);
   --sh-md: 0 8px 24px rgba(0,0,0,.45);
   --sh-lg: 0 20px 60px rgba(0,0,0,.6);
-  --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
+  --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
 
   /* ── Topbar ── */
   --topbar-bg: rgba(16,18,22,.6);
@@ -67,32 +67,32 @@
 
 /* ════════ Light theme ════════ */
 :root[data-theme='light'] {
-  --bg:        #f6f7f9;
-  --surface:   #ffffff;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
   --surface-2: #eef0f4;
   --surface-3: #e3e6ec;
   --surface-4: #d6dae2;
 
-  --border:      #d4d8e0;
+  --border: #d4d8e0;
   --border-soft: rgba(0,0,0,.05);
-  --border-mid:  rgba(0,0,0,.10);
-  --border-hi:   rgba(0,0,0,.18);
+  --border-mid: rgba(0,0,0,.10);
+  --border-hi: rgba(0,0,0,.18);
 
-  --text:   #1a1d23;
+  --text: #1a1d23;
   --text-2: #525a68;
   --text-3: #828b9a;
   --text-4: #aab2bf;
 
-  --accent:     #0e9f6e;
-  --accent-2:   #0b8a5e;
+  --accent: #0e9f6e;
+  --accent-2: #0b8a5e;
   --accent-dim: rgba(14,159,110,.12);
   --accent-line: rgba(14,159,110,.32);
-  --on-accent:  #ffffff;
+  --on-accent: #ffffff;
 
   --sh-sm: 0 1px 2px rgba(0,0,0,.08);
   --sh-md: 0 8px 24px rgba(0,0,0,.10);
   --sh-lg: 0 20px 60px rgba(0,0,0,.14);
-  --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
+  --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
 
   --topbar-bg: rgba(255,255,255,.72);
 }

@@ -1,21 +1,24 @@
 import type {
-  MockCollection,
-  Mock,
   CreateCollectionInput,
   CreateMockInput,
+  Mock,
+  MockCollection,
   UpdateMockInput,
 } from './types.ts';
 
-const COL_PREFIX  = ['mock_collections'] as const;
-const colKey      = (id: string) => [...COL_PREFIX, id] as const;
+const COL_PREFIX = ['mock_collections'] as const;
+const colKey = (id: string) => [...COL_PREFIX, id] as const;
 
-const MOCK_PREFIX    = ['mocks_data'] as const;
-const mockKey        = (colId: string, id: string) => [...MOCK_PREFIX, colId, id] as const;
-const mockColPrefix  = (colId: string) => [...MOCK_PREFIX, colId] as const;
+const MOCK_PREFIX = ['mocks_data'] as const;
+const mockKey = (colId: string, id: string) =>
+  [...MOCK_PREFIX, colId, id] as const;
+const mockColPrefix = (colId: string) => [...MOCK_PREFIX, colId] as const;
 
 // ── Collections ──────────────────────────────────────────────────────────────
 
-export const listCollections = async (kv: Deno.Kv): Promise<MockCollection[]> => {
+export const listCollections = async (
+  kv: Deno.Kv,
+): Promise<MockCollection[]> => {
   const cols: MockCollection[] = [];
   for await (const entry of kv.list<MockCollection>({ prefix: COL_PREFIX })) {
     if (entry.value) cols.push(entry.value);
@@ -23,7 +26,10 @@ export const listCollections = async (kv: Deno.Kv): Promise<MockCollection[]> =>
   return cols.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 };
 
-export const getCollection = async (kv: Deno.Kv, id: string): Promise<MockCollection | null> => {
+export const getCollection = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<MockCollection | null> => {
   const entry = await kv.get<MockCollection>(colKey(id));
   return entry.value;
 };
@@ -33,8 +39,8 @@ export const createCollection = async (
   input: CreateCollectionInput,
 ): Promise<MockCollection> => {
   const col: MockCollection = {
-    id:        crypto.randomUUID(),
-    name:      input.name,
+    id: crypto.randomUUID(),
+    name: input.name,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -49,12 +55,19 @@ export const updateCollection = async (
 ): Promise<MockCollection | null> => {
   const existing = await getCollection(kv, id);
   if (!existing) return null;
-  const updated: MockCollection = { ...existing, name, updatedAt: new Date().toISOString() };
+  const updated: MockCollection = {
+    ...existing,
+    name,
+    updatedAt: new Date().toISOString(),
+  };
   await kv.set(colKey(id), updated);
   return updated;
 };
 
-export const deleteCollection = async (kv: Deno.Kv, id: string): Promise<boolean> => {
+export const deleteCollection = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<boolean> => {
   const existing = await getCollection(kv, id);
   if (!existing) return false;
   for await (const entry of kv.list({ prefix: mockColPrefix(id) })) {
@@ -66,7 +79,10 @@ export const deleteCollection = async (kv: Deno.Kv, id: string): Promise<boolean
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-export const listMocks = async (kv: Deno.Kv, collectionId?: string): Promise<Mock[]> => {
+export const listMocks = async (
+  kv: Deno.Kv,
+  collectionId?: string,
+): Promise<Mock[]> => {
   const prefix = collectionId ? mockColPrefix(collectionId) : MOCK_PREFIX;
   const mocks: Mock[] = [];
   for await (const entry of kv.list<Mock>({ prefix })) {
@@ -75,24 +91,30 @@ export const listMocks = async (kv: Deno.Kv, collectionId?: string): Promise<Moc
   return mocks.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 };
 
-export const getMock = async (kv: Deno.Kv, id: string): Promise<Mock | null> => {
+export const getMock = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<Mock | null> => {
   for await (const entry of kv.list<Mock>({ prefix: MOCK_PREFIX })) {
     if (entry.value?.id === id) return entry.value;
   }
   return null;
 };
 
-export const createMock = async (kv: Deno.Kv, input: CreateMockInput): Promise<Mock> => {
+export const createMock = async (
+  kv: Deno.Kv,
+  input: CreateMockInput,
+): Promise<Mock> => {
   const mock: Mock = {
-    id:           crypto.randomUUID(),
+    id: crypto.randomUUID(),
     collectionId: input.collectionId,
-    method:       input.method,
-    path:         input.path,
-    name:         input.name  ?? '',
-    group:        input.group ?? '',
-    script:       input.script,
-    createdAt:    new Date().toISOString(),
-    updatedAt:    new Date().toISOString(),
+    method: input.method,
+    path: input.path,
+    name: input.name ?? '',
+    group: input.group ?? '',
+    script: input.script,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
   await kv.set(mockKey(input.collectionId, mock.id), mock);
   return mock;
@@ -108,11 +130,11 @@ export const updateMock = async (
 
   const updated: Mock = {
     ...existing,
-    ...(input.method !== undefined ? { method: input.method }     : {}),
-    ...(input.path   !== undefined ? { path:   input.path   }     : {}),
-    ...(input.name   !== undefined ? { name:   input.name   }     : {}),
-    ...(input.group  !== undefined ? { group:  input.group  }     : {}),
-    ...(input.script !== undefined ? { script: input.script }     : {}),
+    ...(input.method !== undefined ? { method: input.method } : {}),
+    ...(input.path !== undefined ? { path: input.path } : {}),
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.group !== undefined ? { group: input.group } : {}),
+    ...(input.script !== undefined ? { script: input.script } : {}),
     updatedAt: new Date().toISOString(),
   };
 
@@ -135,7 +157,10 @@ export const deleteMock = async (kv: Deno.Kv, id: string): Promise<boolean> => {
 };
 
 // Remove todos os mocks de uma collection sem deletar a collection em si.
-export const clearCollectionMocks = async (kv: Deno.Kv, colId: string): Promise<number> => {
+export const clearCollectionMocks = async (
+  kv: Deno.Kv,
+  colId: string,
+): Promise<number> => {
   let count = 0;
   for await (const entry of kv.list({ prefix: mockColPrefix(colId) })) {
     await kv.delete(entry.key);

@@ -14,17 +14,28 @@ export const exportKv = async (kv: Deno.Kv): Promise<Backup> => {
   for await (const entry of kv.list({ prefix: [] })) {
     entries.push({ key: entry.key as unknown[], value: entry.value });
   }
-  return { app: 'docmap', version: APP_VERSION, exportedAt: new Date().toISOString(), entries };
+  return {
+    app: 'docmap',
+    version: APP_VERSION,
+    exportedAt: new Date().toISOString(),
+    entries,
+  };
 };
 
 // Importa um backup. Por padrão mescla; passe replace=true para limpar antes.
-export const importKv = async (kv: Deno.Kv, backup: Backup, replace = false): Promise<number> => {
+export const importKv = async (
+  kv: Deno.Kv,
+  backup: Backup,
+  replace = false,
+): Promise<number> => {
   if (backup.app !== 'docmap' || !Array.isArray(backup.entries)) {
     throw new Error('Arquivo de backup inválido');
   }
 
   if (replace) {
-    for await (const entry of kv.list({ prefix: [] })) await kv.delete(entry.key);
+    for await (const entry of kv.list({ prefix: [] })) {
+      await kv.delete(entry.key);
+    }
   }
 
   let count = 0;

@@ -1,9 +1,15 @@
 import { buildGraph } from '../../graph/builder.ts';
 import { buildRelations } from '../../graph/relations.ts';
-import { badRequest, json, noWorkspace, notFound } from '../../server/response.ts';
+import {
+  badRequest,
+  json,
+  notFound,
+  noWorkspace,
+} from '../../server/response.ts';
 import type { HandlerDeps } from '../../server/types.ts';
 
-export const createApiGraphRelationsHandler = ({ workspace }: HandlerDeps) =>
+export const createApiGraphRelationsHandler =
+  ({ workspace }: HandlerDeps) =>
   async (_req: Request, url: URL): Promise<Response> => {
     if (!workspace.root) return noWorkspace();
 

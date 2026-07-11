@@ -6,7 +6,10 @@ export type GraphRelations = {
   readonly incoming: readonly string[];
 };
 
-export const buildRelations = (graph: GraphData, file: string): GraphRelations => {
+export const buildRelations = (
+  graph: GraphData,
+  file: string,
+): GraphRelations => {
   const outgoing: string[] = [];
   const incoming: string[] = [];
 

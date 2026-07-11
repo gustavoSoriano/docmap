@@ -2,7 +2,12 @@
 // Streaming SSE (data: {...}). tool_calls vêm fragmentados por index — acumula.
 
 import { DEEPSEEK_MODEL, DEEPSEEK_URL } from '../../config.ts';
-import type { ChatChunk, ChatMessage, ToolDefinition, ToolCall } from '../types.ts';
+import type {
+  ChatChunk,
+  ChatMessage,
+  ToolCall,
+  ToolDefinition,
+} from '../types.ts';
 
 interface AccTool {
   id?: string;

@@ -1,4 +1,4 @@
-import { json, badRequest, noWorkspace } from '../response.ts';
+import { badRequest, json, noWorkspace } from '../response.ts';
 import type { HandlerDeps } from '../types.ts';
 
 const IGNORED_DIRS = new Set([

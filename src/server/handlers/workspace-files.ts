@@ -1,5 +1,5 @@
 import { isPathSafe } from '../../fs/walker.ts';
-import { json, badRequest, noWorkspace } from '../response.ts';
+import { badRequest, json, noWorkspace } from '../response.ts';
 import type { HandlerDeps } from '../types.ts';
 
 const IGNORED_DIRS = new Set([
@@ -70,7 +70,9 @@ export const createFileTypeHandler =
     if (!fileParam) return badRequest('Missing file param');
 
     const resolved = `${workspace.root}/${fileParam}`.replace(/\/\.\//g, '/');
-    if (!isPathSafe(workspace.root, resolved)) return badRequest('Invalid path');
+    if (!isPathSafe(workspace.root, resolved)) {
+      return badRequest('Invalid path');
+    }
 
     try {
       const info = Deno.statSync(resolved);

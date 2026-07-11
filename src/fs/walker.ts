@@ -1,4 +1,12 @@
-const IGNORED_DIRS = new Set(['node_modules', '.git', '.nordic', 'dist', 'build', '.next', '.claude']);
+const IGNORED_DIRS = new Set([
+  'node_modules',
+  '.git',
+  '.nordic',
+  'dist',
+  'build',
+  '.next',
+  '.claude',
+]);
 
 export const walkMd = (dir: string, collected: string[] = []): string[] => {
   for (const entry of Deno.readDirSync(dir)) {

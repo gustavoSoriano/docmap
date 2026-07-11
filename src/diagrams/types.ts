@@ -6,7 +6,9 @@ export type Diagram = {
   readonly updatedAt: string;
 };
 
-export type DiagramPreview = Omit<Diagram, 'source'> & { readonly preview: string };
+export type DiagramPreview = Omit<Diagram, 'source'> & {
+  readonly preview: string;
+};
 
 export type CreateDiagramInput = {
   readonly title: string;

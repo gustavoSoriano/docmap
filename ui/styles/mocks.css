@@ -101,8 +101,12 @@
   border-radius: var(--r-sm);
   transition: background 0.1s;
 }
-.mocks-col-item:hover { background: var(--surface-3); }
-.mocks-col-item.active { background: var(--accent-dim); }
+.mocks-col-item:hover {
+  background: var(--surface-3);
+}
+.mocks-col-item.active {
+  background: var(--accent-dim);
+}
 
 .mocks-col-item-inner {
   display: flex;
@@ -137,7 +141,9 @@
   text-overflow: ellipsis;
   transition: color 0.12s;
 }
-.mocks-col-item.active .mocks-col-name { color: var(--accent); }
+.mocks-col-item.active .mocks-col-name {
+  color: var(--accent);
+}
 
 .mocks-col-count {
   font-size: 0.65rem;
@@ -155,7 +161,9 @@
   gap: 2px;
   padding-right: 5px;
 }
-.mocks-col-item:hover .mocks-col-actions { display: flex; }
+.mocks-col-item:hover .mocks-col-actions {
+  display: flex;
+}
 
 .mocks-col-action-btn {
   width: 20px;
@@ -170,9 +178,16 @@
   justify-content: center;
   transition: color 0.12s, background 0.12s;
 }
-.mocks-col-action-btn:hover        { color: var(--text-2); background: var(--surface-4); }
-.mocks-col-action-btn.warn:hover   { color: #f59e0b; }
-.mocks-col-action-btn.danger:hover { color: #fb7185; }
+.mocks-col-action-btn:hover {
+  color: var(--text-2);
+  background: var(--surface-4);
+}
+.mocks-col-action-btn.warn:hover {
+  color: #f59e0b;
+}
+.mocks-col-action-btn.danger:hover {
+  color: #fb7185;
+}
 
 /* ── Inline new/rename inputs ── */
 
@@ -198,7 +213,9 @@
   padding: 2px 4px;
   min-width: 0;
 }
-.mocks-col-new-input::placeholder { color: var(--text-4); }
+.mocks-col-new-input::placeholder {
+  color: var(--text-4);
+}
 
 .mocks-col-rename-input {
   flex: 1;
@@ -219,7 +236,9 @@
   flex-shrink: 0;
   transition: background 0.12s;
 }
-.mocks-col-new-ok:hover { background: var(--accent-2); }
+.mocks-col-new-ok:hover {
+  background: var(--accent-2);
+}
 
 /* ── Lista de mocks ── */
 
@@ -241,7 +260,11 @@
   text-align: center;
   line-height: 1.55;
 }
-.mocks-list-empty .ico { width: 22px; height: 22px; opacity: 0.35; }
+.mocks-list-empty .ico {
+  width: 22px;
+  height: 22px;
+  opacity: 0.35;
+}
 
 /* ── Separadores de grupo ── */
 
@@ -256,7 +279,8 @@
 .mocks-group-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, transparent, var(--border) 30%, var(--border) 70%, transparent);
+  background: linear-gradient(to right, transparent, var(--border) 30%,
+    var(--border) 70%, transparent);
 }
 
 .mocks-group-label {
@@ -281,7 +305,9 @@
   transition: background 0.1s, box-shadow 0.1s;
   min-width: 0;
 }
-.mocks-item:hover { background: var(--surface-2); }
+.mocks-item:hover {
+  background: var(--surface-2);
+}
 .mocks-item.active {
   background: var(--surface-2);
   box-shadow: inset 2px 0 0 var(--accent);
@@ -303,12 +329,30 @@
   text-align: center;
 }
 
-.method-get    { color: var(--accent); background: var(--accent-dim); }
-.method-post   { color: #60a5fa;       background: rgba(96,165,250,.13); }
-.method-put    { color: #f59e0b;       background: rgba(245,158,11,.12); }
-.method-patch  { color: #a78bfa;       background: rgba(167,139,250,.13); }
-.method-delete { color: #fb7185;       background: rgba(251,113,133,.13); }
-.method-gray   { color: var(--text-3); background: var(--surface-3); }
+.method-get {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.method-post {
+  color: #60a5fa;
+  background: rgba(96,165,250,.13);
+}
+.method-put {
+  color: #f59e0b;
+  background: rgba(245,158,11,.12);
+}
+.method-patch {
+  color: #a78bfa;
+  background: rgba(167,139,250,.13);
+}
+.method-delete {
+  color: #fb7185;
+  background: rgba(251,113,133,.13);
+}
+.method-gray {
+  color: var(--text-3);
+  background: var(--surface-3);
+}
 
 .mock-item-info {
   display: flex;
@@ -377,8 +421,13 @@
 }
 
 @keyframes pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(55,217,154,.5); }
-  50%       { box-shadow: 0 0 0 5px rgba(55,217,154,0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(55,217,154,.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(55,217,154,0);
+  }
 }
 
 .mocks-server-url {
@@ -485,11 +534,26 @@
 }
 
 /* Cor do badge de método no cabeçalho */
-#mock-id-badge[data-method="GET"]     { color: var(--accent); background: var(--accent-dim); }
-#mock-id-badge[data-method="POST"]    { color: #60a5fa;       background: rgba(96,165,250,.12); }
-#mock-id-badge[data-method="PUT"]     { color: #f59e0b;       background: rgba(245,158,11,.12); }
-#mock-id-badge[data-method="PATCH"]   { color: #a78bfa;       background: rgba(167,139,250,.12); }
-#mock-id-badge[data-method="DELETE"]  { color: #fb7185;       background: rgba(251,113,133,.12); }
+#mock-id-badge[data-method="GET"] {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+#mock-id-badge[data-method="POST"] {
+  color: #60a5fa;
+  background: rgba(96,165,250,.12);
+}
+#mock-id-badge[data-method="PUT"] {
+  color: #f59e0b;
+  background: rgba(245,158,11,.12);
+}
+#mock-id-badge[data-method="PATCH"] {
+  color: #a78bfa;
+  background: rgba(167,139,250,.12);
+}
+#mock-id-badge[data-method="DELETE"] {
+  color: #fb7185;
+  background: rgba(251,113,133,.12);
+}
 
 #mock-head-actions {
   display: flex;
@@ -527,8 +591,12 @@
   transition: border-color 0.15s;
 }
 .mock-input:focus,
-.mock-select:focus { border-color: var(--accent-line); }
-.mock-input::placeholder { color: var(--text-4); }
+.mock-select:focus {
+  border-color: var(--accent-line);
+}
+.mock-input::placeholder {
+  color: var(--text-4);
+}
 
 #mock-path-input {
   font-family: var(--font-mono);
@@ -558,11 +626,21 @@
   cursor: pointer;
   min-width: 90px;
 }
-#mock-method-select[data-method="GET"]    { color: var(--accent); }
-#mock-method-select[data-method="POST"]   { color: #60a5fa; }
-#mock-method-select[data-method="PUT"]    { color: #f59e0b; }
-#mock-method-select[data-method="PATCH"]  { color: #a78bfa; }
-#mock-method-select[data-method="DELETE"] { color: #fb7185; }
+#mock-method-select[data-method="GET"] {
+  color: var(--accent);
+}
+#mock-method-select[data-method="POST"] {
+  color: #60a5fa;
+}
+#mock-method-select[data-method="PUT"] {
+  color: #f59e0b;
+}
+#mock-method-select[data-method="PATCH"] {
+  color: #a78bfa;
+}
+#mock-method-select[data-method="DELETE"] {
+  color: #fb7185;
+}
 
 /* ── Script editor (CodeMirror) ── */
 
@@ -614,23 +692,58 @@
 }
 
 /* ── Sintaxe JS embutida (paleta one-dark, sem CDN) ── */
-.mock-field-script .cm-keyword               { color: #c678dd; }
-.mock-field-script .cm-operator              { color: #c678dd; }
-.mock-field-script .cm-string               { color: #98c379; }
-.mock-field-script .cm-string-2             { color: #98c379; }
-.mock-field-script .cm-number               { color: #d19a66; }
-.mock-field-script .cm-atom                 { color: #d19a66; }
-.mock-field-script .cm-comment              { color: #5c6370; font-style: italic; }
-.mock-field-script .cm-def                  { color: #61afef; }
-.mock-field-script .cm-variable             { color: #e06c75; }
-.mock-field-script .cm-variable-2           { color: #abb2bf; }
-.mock-field-script .cm-property             { color: #e5c07b; }
-.mock-field-script .cm-qualifier            { color: #e5c07b; }
-.mock-field-script .cm-builtin              { color: #56b6c2; }
-.mock-field-script .cm-tag                  { color: #e06c75; }
-.mock-field-script .cm-bracket              { color: #abb2bf; }
-.mock-field-script .cm-punctuation          { color: #abb2bf; }
-.mock-field-script .cm-meta                 { color: #abb2bf; }
+.mock-field-script .cm-keyword {
+  color: #c678dd;
+}
+.mock-field-script .cm-operator {
+  color: #c678dd;
+}
+.mock-field-script .cm-string {
+  color: #98c379;
+}
+.mock-field-script .cm-string-2 {
+  color: #98c379;
+}
+.mock-field-script .cm-number {
+  color: #d19a66;
+}
+.mock-field-script .cm-atom {
+  color: #d19a66;
+}
+.mock-field-script .cm-comment {
+  color: #5c6370;
+  font-style: italic;
+}
+.mock-field-script .cm-def {
+  color: #61afef;
+}
+.mock-field-script .cm-variable {
+  color: #e06c75;
+}
+.mock-field-script .cm-variable-2 {
+  color: #abb2bf;
+}
+.mock-field-script .cm-property {
+  color: #e5c07b;
+}
+.mock-field-script .cm-qualifier {
+  color: #e5c07b;
+}
+.mock-field-script .cm-builtin {
+  color: #56b6c2;
+}
+.mock-field-script .cm-tag {
+  color: #e06c75;
+}
+.mock-field-script .cm-bracket {
+  color: #abb2bf;
+}
+.mock-field-script .cm-punctuation {
+  color: #abb2bf;
+}
+.mock-field-script .cm-meta {
+  color: #abb2bf;
+}
 
 #mock-script-label-row {
   display: flex;
@@ -679,9 +792,13 @@
   tab-size: 2;
   caret-color: var(--accent);
 }
-#mock-script-textarea:focus { border-color: var(--accent-line); }
+#mock-script-textarea:focus {
+  border-color: var(--accent-line);
+}
 /* CodeMirror esconde o textarea original — não quebramos o layout */
-#mock-script-textarea + .CodeMirror { flex: 1; }
+#mock-script-textarea + .CodeMirror {
+  flex: 1;
+}
 
 /* ────────────────────────────
    Painel de teste
@@ -696,7 +813,9 @@
   flex-shrink: 0;
   transition: border-color 0.12s;
 }
-#mock-test-panel:focus-within { border-color: var(--border-mid); }
+#mock-test-panel:focus-within {
+  border-color: var(--border-mid);
+}
 
 .test-panel-head {
   display: flex;
@@ -757,7 +876,9 @@
   outline: none;
   transition: border-color 0.12s;
 }
-.test-param-input:focus { border-color: var(--accent-line); }
+.test-param-input:focus {
+  border-color: var(--accent-line);
+}
 
 #btn-test-run {
   margin: 8px 12px 10px;
@@ -784,8 +905,14 @@
   padding: 2px 8px;
   border-radius: 4px;
 }
-.test-status-ok  { color: var(--accent); background: var(--accent-dim); }
-.test-status-err { color: #fb7185;       background: rgba(251,113,133,.13); }
+.test-status-ok {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.test-status-err {
+  color: #fb7185;
+  background: rgba(251,113,133,.13);
+}
 
 .test-ms {
   font-size: 0.7rem;

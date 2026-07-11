@@ -10,8 +10,8 @@ import { createCodeSearchHandler } from './handlers/code-search.ts';
 import { createGitHandler } from './handlers/git.ts';
 import { createRunHandler } from './handlers/run.ts';
 import {
-  createWorkspaceFilesHandler,
   createFileTypeHandler,
+  createWorkspaceFilesHandler,
 } from './handlers/workspace-files.ts';
 import { diagramsHandler } from '../diagrams/handler.ts';
 import { skillsUiHandler } from '../skills/handler.ts';
@@ -41,7 +41,7 @@ export const createRouter = (deps: HandlerDeps) => {
   const skills = skillsUiHandler(deps.kv);
   const macros = macrosHandler(deps.kv, deps.workspace);
   const tasks = tasksHandler(deps.kv);
-  const mocks     = mocksHandler(deps.kv);
+  const mocks = mocksHandler(deps.kv);
   const favorites = favoritesHandler(deps.kv);
 
   return (req: Request): Response | Promise<Response> => {
@@ -66,7 +66,7 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/skills')) return skills(req, url);
     if (pathname.startsWith('/macros')) return macros(req, url);
     if (pathname.startsWith('/tasks')) return tasks(req, url);
-    if (pathname.startsWith('/mocks'))     return mocks(req, url);
+    if (pathname.startsWith('/mocks')) return mocks(req, url);
     if (pathname.startsWith('/favorites')) return favorites(req, url);
 
     return notFound();

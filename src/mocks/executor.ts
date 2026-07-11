@@ -24,7 +24,9 @@ const makeDb = (colId: string) => {
   const store = getStore(colId);
   return {
     // Persiste um valor com a chave dada.
-    set: (key: string, value: unknown): void => { store.set(key, value); },
+    set: (key: string, value: unknown): void => {
+      store.set(key, value);
+    },
 
     // Retorna o valor ou undefined se não existir.
     get: (key: string): unknown => store.get(key),
@@ -46,7 +48,9 @@ const makeDb = (colId: string) => {
       [...store.keys()].filter((k) => k.startsWith(prefix)),
 
     // Apaga tudo desta collection.
-    clear: (): void => { store.clear(); },
+    clear: (): void => {
+      store.clear();
+    },
 
     // Número de entradas no store desta collection.
     size: (): number => store.size,
@@ -65,12 +69,16 @@ export const executeScript = async (
   try {
     const db = makeDb(colId);
     // deno-lint-ignore no-new-func
-    const fn = new Function('ctx', 'db', `
+    const fn = new Function(
+      'ctx',
+      'db',
+      `
       "use strict";
       return (async () => {
         ${script}
       })();
-    `);
+    `,
+    );
     const result = await (fn(ctx, db) as Promise<unknown>);
     if (result === null || result === undefined) return { status: 200 };
     if (typeof result !== 'object') return { status: 200, body: result };

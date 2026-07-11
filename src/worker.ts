@@ -4,9 +4,12 @@
 
 import './env.ts';
 import { startUiServer, UI_PORT } from './server/server.ts';
-import { startApiServer, API_PORT } from './api/server.ts';
-import { startMockServer, MOCK_PORT } from './mocks/server.ts';
-import { createWorkspaceRef, restoreLastWorkspace } from './workspace/manager.ts';
+import { API_PORT, startApiServer } from './api/server.ts';
+import { MOCK_PORT, startMockServer } from './mocks/server.ts';
+import {
+  createWorkspaceRef,
+  restoreLastWorkspace,
+} from './workspace/manager.ts';
 import { openAppKv } from './kv/path.ts';
 import { runMigrations } from './kv/migrate.ts';
 import { checkForUpdate } from './update/github.ts';

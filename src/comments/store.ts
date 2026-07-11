@@ -1,8 +1,13 @@
 import type { Comment, UpsertCommentInput } from './types.ts';
 
-const key = (workspace: string, fileId: string) => ['comments', workspace, fileId] as const;
+const key = (workspace: string, fileId: string) =>
+  ['comments', workspace, fileId] as const;
 
-export const getComments = async (kv: Deno.Kv, workspace: string, fileId: string): Promise<Comment[]> => {
+export const getComments = async (
+  kv: Deno.Kv,
+  workspace: string,
+  fileId: string,
+): Promise<Comment[]> => {
   const entry = await kv.get<Comment[]>(key(workspace, fileId));
   return entry.value ?? [];
 };
@@ -23,7 +28,12 @@ export const upsertComment = async (
     return updated;
   }
 
-  const comment: Comment = { quote: input.quote, note: input.note, type: input.type, updatedAt: new Date().toISOString() };
+  const comment: Comment = {
+    quote: input.quote,
+    note: input.note,
+    type: input.type,
+    updatedAt: new Date().toISOString(),
+  };
   const updated = idx >= 0
     ? existing.map((c, i) => (i === idx ? comment : c))
     : [...existing, comment];
@@ -32,6 +42,10 @@ export const upsertComment = async (
   return updated;
 };
 
-export const deleteAllComments = async (kv: Deno.Kv, workspace: string, fileId: string): Promise<void> => {
+export const deleteAllComments = async (
+  kv: Deno.Kv,
+  workspace: string,
+  fileId: string,
+): Promise<void> => {
   await kv.delete(key(workspace, fileId));
 };

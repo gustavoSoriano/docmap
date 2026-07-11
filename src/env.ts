@@ -20,7 +20,9 @@ const appDataDir = (): string => {
   }
 };
 
-const parseEnvLine = (line: string): { readonly key: string; readonly value: string } | null => {
+const parseEnvLine = (
+  line: string,
+): { readonly key: string; readonly value: string } | null => {
   const trimmed = line.trim();
   if (!trimmed || trimmed.startsWith('#')) return null;
   const eq = trimmed.indexOf('=');

@@ -1,22 +1,30 @@
-import type { Diagram, DiagramPreview, CreateDiagramInput, UpdateDiagramInput } from './types.ts';
+import type {
+  CreateDiagramInput,
+  Diagram,
+  DiagramPreview,
+  UpdateDiagramInput,
+} from './types.ts';
 
 const GLOBAL = '_global_';
-const key    = (id: string)  => ['diagrams', GLOBAL, id] as const;
-const PREFIX =                   ['diagrams', GLOBAL]    as const;
+const key = (id: string) => ['diagrams', GLOBAL, id] as const;
+const PREFIX = ['diagrams', GLOBAL] as const;
 
 const toPreview = (d: Diagram): DiagramPreview => ({
-  id:        d.id,
-  title:     d.title,
-  preview:   d.source.slice(0, 120),
+  id: d.id,
+  title: d.title,
+  preview: d.source.slice(0, 120),
   createdAt: d.createdAt,
   updatedAt: d.updatedAt,
 });
 
-export const createDiagram = async (kv: Deno.Kv, input: CreateDiagramInput): Promise<Diagram> => {
+export const createDiagram = async (
+  kv: Deno.Kv,
+  input: CreateDiagramInput,
+): Promise<Diagram> => {
   const diagram: Diagram = {
-    id:        crypto.randomUUID(),
-    title:     input.title,
-    source:    input.source,
+    id: crypto.randomUUID(),
+    title: input.title,
+    source: input.source,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -24,7 +32,10 @@ export const createDiagram = async (kv: Deno.Kv, input: CreateDiagramInput): Pro
   return diagram;
 };
 
-export const getDiagramById = async (kv: Deno.Kv, id: string): Promise<Diagram | null> => {
+export const getDiagramById = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<Diagram | null> => {
   const entry = await kv.get<Diagram>(key(id));
   return entry.value;
 };
@@ -38,7 +49,7 @@ export const updateDiagram = async (
   if (!existing) return null;
   const updated: Diagram = {
     ...existing,
-    ...(input.title  !== undefined ? { title:  input.title  } : {}),
+    ...(input.title !== undefined ? { title: input.title } : {}),
     ...(input.source !== undefined ? { source: input.source } : {}),
     updatedAt: new Date().toISOString(),
   };
@@ -46,7 +57,10 @@ export const updateDiagram = async (
   return updated;
 };
 
-export const deleteDiagram = async (kv: Deno.Kv, id: string): Promise<boolean> => {
+export const deleteDiagram = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<boolean> => {
   const exists = await getDiagramById(kv, id);
   if (!exists) return false;
   await kv.delete(key(id));

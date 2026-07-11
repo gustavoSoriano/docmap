@@ -1,6 +1,6 @@
 import { walkMd } from '../fs/walker.ts';
 import { extractLinks } from '../fs/links.ts';
-import type { GraphData, GraphNode, GraphEdge, NodeGroup } from './types.ts';
+import type { GraphData, GraphEdge, GraphNode, NodeGroup } from './types.ts';
 
 const classifyNode = (id: string, label: string): NodeGroup => {
   if (['INDEX', 'README'].includes(label)) return 'entry';
@@ -17,7 +17,11 @@ export const buildGraph = (root: string): GraphData => {
   const nodes: GraphNode[] = allFiles.map((f) => {
     const id = f.slice(root.length + 1);
     const label = id.split('/').pop()!.replace('.md', '');
-    return { id, label, group: classifyNode(id.toUpperCase(), label.toUpperCase()) };
+    return {
+      id,
+      label,
+      group: classifyNode(id.toUpperCase(), label.toUpperCase()),
+    };
   });
 
   const nodeIds = new Set(nodes.map((n) => n.id));
@@ -25,9 +29,15 @@ export const buildGraph = (root: string): GraphData => {
   for (const f of allFiles) {
     const source = f.slice(root.length + 1);
     let content = '';
-    try { content = Deno.readTextFileSync(f); } catch { continue; }
+    try {
+      content = Deno.readTextFileSync(f);
+    } catch {
+      continue;
+    }
     for (const target of extractLinks(f, content, allFiles, root)) {
-      if (source !== target && nodeIds.has(target)) links.push({ source, target });
+      if (source !== target && nodeIds.has(target)) {
+        links.push({ source, target });
+      }
     }
   }
 

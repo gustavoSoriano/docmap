@@ -17,8 +17,19 @@
   padding: 0 18px;
   gap: 14px;
 }
-#markmap-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-#markmap-filename { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -.01em; line-height: 1.1; }
+#markmap-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+#markmap-filename {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.01em;
+  line-height: 1.1;
+}
 #markmap-filepath {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -27,7 +38,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#markmap-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+#markmap-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
 
 #btn-back-graph {
   display: flex;
@@ -46,8 +62,15 @@
   flex-shrink: 0;
   transition: all .13s;
 }
-#btn-back-graph:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-2); }
-#btn-back-graph .ico { width: 13px; height: 13px; }
+#btn-back-graph:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+  background: var(--surface-2);
+}
+#btn-back-graph .ico {
+  width: 13px;
+  height: 13px;
+}
 
 .pill-btn {
   display: flex;
@@ -66,8 +89,16 @@
   transition: all .13s;
   white-space: nowrap;
 }
-.pill-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-3); }
-.pill-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-line); }
+.pill-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+  background: var(--surface-3);
+}
+.pill-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
 .pill-count {
   background: var(--surface-4);
   color: var(--text-2);
@@ -78,12 +109,23 @@
   min-width: 20px;
   text-align: center;
 }
-.pill-btn.active .pill-count { background: var(--accent); color: var(--on-accent); }
+.pill-btn.active .pill-count {
+  background: var(--accent);
+  color: var(--on-accent);
+}
 
 #markmap-container,
-#note-markmap { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+#note-markmap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
 #markmap-container svg,
-#note-markmap svg { width: 100% !important; height: 100% !important; }
+#note-markmap svg {
+  width: 100% !important;
+  height: 100% !important;
+}
 
 /* markmap tem tema claro por padrão — forçar legibilidade no dark */
 #markmap-container .markmap-node > text,
@@ -96,7 +138,9 @@
   color: var(--text) !important;
 }
 #markmap-container .markmap-foreign a,
-#note-markmap .markmap-foreign a { color: var(--accent) !important; }
+#note-markmap .markmap-foreign a {
+  color: var(--accent) !important;
+}
 #markmap-container .markmap-foreign code,
 #note-markmap .markmap-foreign code {
   font-family: var(--font-mono);
@@ -109,27 +153,39 @@
 /* ── Zoom / foco controls ── */
 #markmap-tools {
   position: absolute;
-  bottom: 18px; right: 18px;
+  bottom: 18px;
+  right: 18px;
   display: none;
   flex-direction: column;
   gap: 7px;
   z-index: 15;
 }
-#markmap-tools.visible { display: flex; }
+#markmap-tools.visible {
+  display: flex;
+}
 .mm-tool {
-  width: 34px; height: 34px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--r-md);
   display: grid;
   place-items: center;
   position: static;
 }
-.mm-tool .ico { width: 17px; height: 17px; }
-.mm-tool:hover { border-color: var(--accent-line); color: var(--accent); transform: translateY(-1px); }
+.mm-tool .ico {
+  width: 17px;
+  height: 17px;
+}
+.mm-tool:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
 
 #markmap-hint {
   display: none;
   position: absolute;
-  bottom: 18px; left: 50%;
+  bottom: 18px;
+  left: 50%;
   transform: translateX(-50%);
   background: var(--surface-4);
   color: var(--text);
@@ -143,7 +199,9 @@
   white-space: nowrap;
   box-shadow: var(--sh-md);
 }
-#markmap-hint.visible { display: block; }
+#markmap-hint.visible {
+  display: block;
+}
 
 /* ── Floating comment button ── */
 #markmap-comment-btn {
@@ -186,7 +244,8 @@
 
 /* ── Empty state ── */
 #map-empty {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -195,13 +254,29 @@
   pointer-events: none;
 }
 #map-empty-mark {
-  width: 68px; height: 68px;
-  display: grid; place-items: center;
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
   font-size: 30px;
   color: var(--text-4);
   border: 1px dashed var(--border-mid);
   border-radius: 18px;
   animation: float 4s ease-in-out infinite;
 }
-#map-empty-text { font-size: 13.5px; color: var(--text-3); max-width: 280px; text-align: center; line-height: 1.5; }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+#map-empty-text {
+  font-size: 13.5px;
+  color: var(--text-3);
+  max-width: 280px;
+  text-align: center;
+  line-height: 1.5;
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}

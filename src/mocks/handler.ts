@@ -1,20 +1,37 @@
 import {
-  listCollections, getCollection, createCollection, updateCollection, deleteCollection,
-  listMocks, getMock, createMock, updateMock, deleteMock, clearAllMocks, clearCollectionMocks,
+  clearAllMocks,
+  clearCollectionMocks,
+  createCollection,
+  createMock,
+  deleteCollection,
+  deleteMock,
+  getCollection,
+  getMock,
+  listCollections,
+  listMocks,
+  updateCollection,
+  updateMock,
 } from './store.ts';
-import { clearCollectionDb, clearAllDbs } from './executor.ts';
-import { json, badRequest, notFound } from '../server/response.ts';
+import { clearAllDbs, clearCollectionDb } from './executor.ts';
+import { badRequest, json, notFound } from '../server/response.ts';
 import { HTTP_METHODS } from './types.ts';
-import type { CreateCollectionInput, CreateMockInput, UpdateMockInput, HttpMethod } from './types.ts';
+import type {
+  CreateCollectionInput,
+  CreateMockInput,
+  HttpMethod,
+  UpdateMockInput,
+} from './types.ts';
 
 // Handler compartilhado entre UI (:3333) e AI API (:3334).
 // Rotas:
 //   /mocks/collections[/:id]   → CRUD de collections
 //   /mocks/clear               → DELETE apaga tudo
 //   /mocks[/:id]               → CRUD de mocks
-export const mocksHandler = (kv: Deno.Kv) =>
-  async (req: Request, url: URL): Promise<Response> => {
-    const segments = url.pathname.replace(/^\/mocks\/?/, '').split('/').filter(Boolean);
+export const mocksHandler =
+  (kv: Deno.Kv) => async (req: Request, url: URL): Promise<Response> => {
+    const segments = url.pathname.replace(/^\/mocks\/?/, '').split('/').filter(
+      Boolean,
+    );
 
     // ── /mocks/collections ────────────────────────────────────────────────────
     if (segments[0] === 'collections') {
@@ -33,7 +50,11 @@ export const mocksHandler = (kv: Deno.Kv) =>
 
       if (req.method === 'POST') {
         let body: unknown;
-        try { body = await req.json(); } catch { return badRequest('Invalid JSON'); }
+        try {
+          body = await req.json();
+        } catch {
+          return badRequest('Invalid JSON');
+        }
         const { name } = body as CreateCollectionInput;
         if (!name?.trim()) return badRequest('name required');
         return json(await createCollection(kv, { name: name.trim() }), 201);
@@ -41,7 +62,11 @@ export const mocksHandler = (kv: Deno.Kv) =>
 
       if (req.method === 'PUT' && colId) {
         let body: unknown;
-        try { body = await req.json(); } catch { return badRequest('Invalid JSON'); }
+        try {
+          body = await req.json();
+        } catch {
+          return badRequest('Invalid JSON');
+        }
         const { name } = body as { name: string };
         if (!name?.trim()) return badRequest('name required');
         const updated = await updateCollection(kv, colId, name.trim());
@@ -87,10 +112,17 @@ export const mocksHandler = (kv: Deno.Kv) =>
 
     if (req.method === 'POST') {
       let body: unknown;
-      try { body = await req.json(); } catch { return badRequest('Invalid JSON'); }
+      try {
+        body = await req.json();
+      } catch {
+        return badRequest('Invalid JSON');
+      }
       const input = body as CreateMockInput;
       if (!input.collectionId) return badRequest('collectionId required');
-      if (!input.method || !(HTTP_METHODS as readonly string[]).includes(input.method)) {
+      if (
+        !input.method ||
+        !(HTTP_METHODS as readonly string[]).includes(input.method)
+      ) {
         return badRequest(`method must be one of: ${HTTP_METHODS.join(', ')}`);
       }
       if (!input.path?.trim()) return badRequest('path required');
@@ -99,7 +131,7 @@ export const mocksHandler = (kv: Deno.Kv) =>
         await createMock(kv, {
           ...input,
           method: input.method as HttpMethod,
-          path:   input.path.trim(),
+          path: input.path.trim(),
         }),
         201,
       );
@@ -107,7 +139,11 @@ export const mocksHandler = (kv: Deno.Kv) =>
 
     if (req.method === 'PUT' && id) {
       let body: unknown;
-      try { body = await req.json(); } catch { return badRequest('Invalid JSON'); }
+      try {
+        body = await req.json();
+      } catch {
+        return badRequest('Invalid JSON');
+      }
       const input = body as UpdateMockInput;
       if (
         input.method !== undefined &&

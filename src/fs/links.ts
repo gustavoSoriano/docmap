@@ -1,18 +1,28 @@
-import { resolve, relative } from 'https://deno.land/std@0.224.0/path/mod.ts';
+import { relative, resolve } from 'https://deno.land/std@0.224.0/path/mod.ts';
 import { isPathSafe } from './walker.ts';
 
 const WIKI_LINK = /\[\[([^\]]+)\]\]/g;
 const MD_LINK = /\[([^\]]+)\]\(([^)]+\.md)\)/g;
 
-const resolveWikiLink = (target: string, allFiles: string[], root: string): string | null => {
+const resolveWikiLink = (
+  target: string,
+  allFiles: string[],
+  root: string,
+): string | null => {
   const normalized = target.replace(/^\//, '');
   return allFiles.find((f) => {
     const rel = f.slice(root.length + 1).replace(/\.md$/, '');
-    return rel === normalized || rel.endsWith('/' + normalized) || f.endsWith('/' + normalized + '.md');
+    return rel === normalized || rel.endsWith('/' + normalized) ||
+      f.endsWith('/' + normalized + '.md');
   }) ?? null;
 };
 
-export const extractLinks = (filePath: string, content: string, allFiles: string[], root: string): string[] => {
+export const extractLinks = (
+  filePath: string,
+  content: string,
+  allFiles: string[],
+  root: string,
+): string[] => {
   const fileDir = filePath.slice(0, filePath.lastIndexOf('/'));
   const links = new Set<string>();
 

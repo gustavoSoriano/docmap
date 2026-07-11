@@ -1,5 +1,5 @@
 import { isPathSafe } from '../../fs/walker.ts';
-import { json, badRequest, noWorkspace } from '../response.ts';
+import { badRequest, json, noWorkspace } from '../response.ts';
 import type { HandlerDeps } from '../types.ts';
 
 const runGit = async (
@@ -50,7 +50,11 @@ export const createGitHandler =
 
     if (pathname === '/git/log') {
       const limit = url.searchParams.get('limit') ?? '20';
-      const res = await runGit(workspace.root, ['log', '--oneline', `-n${limit}`]);
+      const res = await runGit(workspace.root, [
+        'log',
+        '--oneline',
+        `-n${limit}`,
+      ]);
       if (!res.ok) return json({ error: res.error }, 500);
       return json({ log: res.output });
     }
@@ -60,11 +64,17 @@ export const createGitHandler =
       if (!file) return badRequest('file param required');
 
       const resolved = `${workspace.root}/${file}`.replace(/\/\.\//g, '/');
-      if (!isPathSafe(workspace.root, resolved)) return badRequest('Invalid path');
+      if (!isPathSafe(workspace.root, resolved)) {
+        return badRequest('Invalid path');
+      }
 
       // %cI = ISO 8601 strict (with T separator) — %ci uses a space which breaks Date() on WebKit
       const logRes = await runGit(workspace.root, [
-        'log', '--follow', '--format=%an|%cI', '--', file,
+        'log',
+        '--follow',
+        '--format=%an|%cI',
+        '--',
+        file,
       ]);
 
       let commitCount = 0;
@@ -78,7 +88,9 @@ export const createGitHandler =
           const sep = line.indexOf('|');
           const author = line.slice(0, sep).trim();
           const date = line.slice(sep + 1).trim();
-          if (author) authorCounts.set(author, (authorCounts.get(author) ?? 0) + 1);
+          if (author) {
+            authorCounts.set(author, (authorCounts.get(author) ?? 0) + 1);
+          }
           if (i === 0 && date) lastDate = date;
         });
       }

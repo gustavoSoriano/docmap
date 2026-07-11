@@ -1,4 +1,4 @@
-import { json, badRequest, noWorkspace } from '../response.ts';
+import { badRequest, json, noWorkspace } from '../response.ts';
 import type { HandlerDeps } from '../types.ts';
 
 const BLOCKLIST: RegExp[] = [
@@ -27,8 +27,7 @@ export interface RunCommandBody {
 }
 
 export const createRunHandler =
-  ({ workspace }: HandlerDeps) =>
-  async (req: Request): Promise<Response> => {
+  ({ workspace }: HandlerDeps) => async (req: Request): Promise<Response> => {
     if (!workspace.root) return noWorkspace();
     if (req.method !== 'POST') return badRequest('Use POST');
 
@@ -68,7 +67,9 @@ export const createRunHandler =
       const child = cmd.spawn();
 
       const timer = setTimeout(() => {
-        try { child.kill(); } catch { /* noop */ }
+        try {
+          child.kill();
+        } catch { /* noop */ }
       }, timeout);
 
       const { success, stdout, stderr, code } = await child.output();

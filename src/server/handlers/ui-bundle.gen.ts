@@ -1,74 +1,87 @@
 // AUTO-GENERATED — não edite. Rode: deno task bundle-ui
 export const UI_HTML = `<!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>docmap — atlas de documentação</title>
-<script>(function(){var t=localStorage.getItem('docmap-theme');if(t)document.documentElement.dataset.theme=t;})();</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
-<script src="https://cdn.jsdelivr.net/npm/markmap-lib/dist/browser/index.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
-<style>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>docmap — atlas de documentação</title>
+    <script>
+    (function () {
+      var t = localStorage.getItem('docmap-theme');
+      if (t) document.documentElement.dataset.theme = t;
+    })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet">
+    <script
+      src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/markmap-lib/dist/browser/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+    <style>
 :root {
   /* ── Surfaces (near-black, layered) ── */
-  --bg:        #0b0c0e;
-  --surface:   #101216;
+  --bg: #0b0c0e;
+  --surface: #101216;
   --surface-2: #16191f;
   --surface-3: #1e222a;
   --surface-4: #262b34;
 
   /* ── Borders ── */
-  --border:      #22262e;
+  --border: #22262e;
   --border-soft: rgba(255,255,255,.05);
-  --border-mid:  rgba(255,255,255,.09);
-  --border-hi:   rgba(255,255,255,.16);
+  --border-mid: rgba(255,255,255,.09);
+  --border-hi: rgba(255,255,255,.16);
 
   /* ── Text ── */
-  --text:   #edeef1;
+  --text: #edeef1;
   --text-2: #9ca3af;
   --text-3: #626976;
   --text-4: #454b56;
 
   /* ── Accent (emerald) ── */
-  --accent:      #37d99a;
-  --accent-2:    #29c088;
-  --accent-dim:  rgba(55,217,154,.14);
+  --accent: #37d99a;
+  --accent-2: #29c088;
+  --accent-dim: rgba(55,217,154,.14);
   --accent-line: rgba(55,217,154,.35);
-  --on-accent:   #06120d;
+  --on-accent: #06120d;
 
   /* ── Graph categories ── */
-  --cat-entry:    #fbbf24;
-  --cat-arch:     #60a5fa;
-  --cat-design:   #f472b6;
+  --cat-entry: #fbbf24;
+  --cat-arch: #60a5fa;
+  --cat-design: #f472b6;
   --cat-security: #fb7185;
-  --cat-process:  #94a3b8;
-  --cat-default:  #6b7280;
+  --cat-process: #94a3b8;
+  --cat-default: #6b7280;
 
   /* ── Annotation / note types ── */
-  --type-note:      #94a3b8;
-  --type-decision:  #60a5fa;
-  --type-question:  #fbbf24;
-  --type-todo:      #37d99a;
-  --type-warning:   #fb7185;
+  --type-note: #94a3b8;
+  --type-decision: #60a5fa;
+  --type-question: #fbbf24;
+  --type-todo: #37d99a;
+  --type-warning: #fb7185;
   --type-reference: #a78bfa;
-  --type-general:   #94a3b8;
+  --type-general: #94a3b8;
 
   /* ── Typography ── */
-  --font-ui:   'Geist', 'Onest', system-ui, sans-serif;
+  --font-ui: 'Geist', 'Onest', system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
 
   /* ── Metrics ── */
-  --rail-w:   60px;
+  --rail-w: 60px;
   --topbar-h: 54px;
   --r-xs: 5px;
   --r-sm: 7px;
@@ -80,7 +93,7 @@ export const UI_HTML = `<!DOCTYPE html>
   --sh-sm: 0 1px 2px rgba(0,0,0,.4);
   --sh-md: 0 8px 24px rgba(0,0,0,.45);
   --sh-lg: 0 20px 60px rgba(0,0,0,.6);
-  --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
+  --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
 
   /* ── Topbar ── */
   --topbar-bg: rgba(16,18,22,.6);
@@ -88,41 +101,50 @@ export const UI_HTML = `<!DOCTYPE html>
 
 /* ════════ Light theme ════════ */
 :root[data-theme='light'] {
-  --bg:        #f6f7f9;
-  --surface:   #ffffff;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
   --surface-2: #eef0f4;
   --surface-3: #e3e6ec;
   --surface-4: #d6dae2;
 
-  --border:      #d4d8e0;
+  --border: #d4d8e0;
   --border-soft: rgba(0,0,0,.05);
-  --border-mid:  rgba(0,0,0,.10);
-  --border-hi:   rgba(0,0,0,.18);
+  --border-mid: rgba(0,0,0,.10);
+  --border-hi: rgba(0,0,0,.18);
 
-  --text:   #1a1d23;
+  --text: #1a1d23;
   --text-2: #525a68;
   --text-3: #828b9a;
   --text-4: #aab2bf;
 
-  --accent:     #0e9f6e;
-  --accent-2:   #0b8a5e;
+  --accent: #0e9f6e;
+  --accent-2: #0b8a5e;
   --accent-dim: rgba(14,159,110,.12);
   --accent-line: rgba(14,159,110,.32);
-  --on-accent:  #ffffff;
+  --on-accent: #ffffff;
 
   --sh-sm: 0 1px 2px rgba(0,0,0,.08);
   --sh-md: 0 8px 24px rgba(0,0,0,.10);
   --sh-lg: 0 20px 60px rgba(0,0,0,.14);
-  --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
+  --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
 
   --topbar-bg: rgba(255,255,255,.72);
 }
 
 </style>
-<style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    <style>
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-html, body { height: 100%; }
+html,
+body {
+  height: 100%;
+}
 
 body {
   background: var(--bg);
@@ -141,22 +163,56 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(900px 500px at 12% -8%, rgba(55,217,154,.06), transparent 60%),
-    radial-gradient(700px 500px at 100% 0%, rgba(96,165,250,.045), transparent 55%);
+    radial-gradient(900px 500px at 12% -8%, rgba(55,217,154,.06), transparent
+    60%),
+    radial-gradient(700px 500px at 100% 0%, rgba(96,165,250,.045), transparent
+    55%);
   pointer-events: none;
   z-index: 0;
 }
 
 /* ════════ Icons ════════ */
-[data-icon] { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
-.ico { width: 15px; height: 15px; flex-shrink: 0; display: block; }
-.rail-ico .ico { width: 21px; height: 21px; }
-#rail-logo .ico { width: 19px; height: 19px; }
-#search-icon .ico { width: 16px; height: 16px; }
-.fit-btn .ico { width: 19px; height: 19px; }
-#no-workspace-mark .ico { width: 30px; height: 30px; }
-#map-empty-mark .ico, #notes-editor-empty-mark .ico { width: 28px; height: 28px; }
-.map-tab .ico { width: 16px; height: 16px; }
+[data-icon] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.ico {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  display: block;
+}
+.rail-ico .ico {
+  width: 21px;
+  height: 21px;
+}
+#rail-logo .ico {
+  width: 19px;
+  height: 19px;
+}
+#search-icon .ico {
+  width: 16px;
+  height: 16px;
+}
+.fit-btn .ico {
+  width: 19px;
+  height: 19px;
+}
+#no-workspace-mark .ico {
+  width: 30px;
+  height: 30px;
+}
+#map-empty-mark .ico,
+#notes-editor-empty-mark .ico {
+  width: 28px;
+  height: 28px;
+}
+.map-tab .ico {
+  width: 16px;
+  height: 16px;
+}
 
 /* ════════ Left rail ════════ */
 #rail {
@@ -172,8 +228,10 @@ body::before {
   z-index: 30;
 }
 #rail-logo {
-  width: 34px; height: 34px;
-  display: grid; place-items: center;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
   font-size: 18px;
   color: var(--on-accent);
   background: var(--accent);
@@ -182,7 +240,8 @@ body::before {
   box-shadow: 0 4px 14px rgba(55,217,154,.3);
 }
 .rail-btn {
-  width: 48px; height: 52px;
+  width: 48px;
+  height: 52px;
   border: none;
   background: transparent;
   border-radius: var(--r-md);
@@ -196,20 +255,37 @@ body::before {
   transition: color .15s, background .15s;
   position: relative;
 }
-.rail-btn:hover { background: var(--surface-2); color: var(--text-2); }
-.rail-btn.active { color: var(--accent); background: var(--accent-dim); }
+.rail-btn:hover {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+.rail-btn.active {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
 .rail-btn.active::before {
   content: '';
   position: absolute;
-  left: -14px; top: 50%;
+  left: -14px;
+  top: 50%;
   transform: translateY(-50%);
-  width: 3px; height: 22px;
+  width: 3px;
+  height: 22px;
   background: var(--accent);
   border-radius: 0 3px 3px 0;
 }
-.rail-ico { font-size: 19px; line-height: 1; }
-.rail-lbl { font-size: 9.5px; font-weight: 600; letter-spacing: .01em; }
-.rail-spacer { flex: 1; }
+.rail-ico {
+  font-size: 19px;
+  line-height: 1;
+}
+.rail-lbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.rail-spacer {
+  flex: 1;
+}
 
 /* ════════ Stage ════════ */
 #stage {
@@ -234,10 +310,17 @@ body::before {
   font-size: 13px;
   flex-shrink: 0;
 }
-#update-banner.visible { display: flex; }
-#update-text { flex: 1; }
-#update-text strong { color: var(--accent); }
-#update-apply, #update-dismiss {
+#update-banner.visible {
+  display: flex;
+}
+#update-text {
+  flex: 1;
+}
+#update-text strong {
+  color: var(--accent);
+}
+#update-apply,
+#update-dismiss {
   border: 1px solid var(--border-hi);
   background: var(--surface-2);
   color: var(--text);
@@ -249,10 +332,22 @@ body::before {
   cursor: pointer;
   transition: all .13s;
 }
-#update-apply { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-#update-apply:hover { background: var(--accent-2); }
-#update-dismiss { border-color: transparent; background: transparent; color: var(--text-2); }
-#update-dismiss:hover { color: var(--text); }
+#update-apply {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+#update-apply:hover {
+  background: var(--accent-2);
+}
+#update-dismiss {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-2);
+}
+#update-dismiss:hover {
+  color: var(--text);
+}
 
 /* ════════ Topbar ════════ */
 #topbar {
@@ -266,16 +361,24 @@ body::before {
   background: var(--topbar-bg);
   backdrop-filter: blur(10px);
   position: relative;
-  z-index: 60;   /* acima do #mode-map para o dropdown de busca não ficar atrás do canvas */
+  z-index: 60; /* acima do #mode-map para o dropdown de busca não ficar atrás do canvas */
 }
-#topbar-crumb { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: 0; }
+#topbar-crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-width: 0;
+}
 #topbar-mode {
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -.01em;
   color: var(--text);
 }
-#topbar-sep { color: var(--text-4); }
+#topbar-sep {
+  color: var(--text-4);
+}
 #topbar-path {
   font-family: var(--font-mono);
   font-size: 11.5px;
@@ -289,7 +392,13 @@ body::before {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+#topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
 
 /* ════════ Theme toggle ════════ */
 #theme-toggle {
@@ -312,13 +421,26 @@ body::before {
   color: var(--text);
   border-color: var(--border-hi);
 }
-#theme-toggle .ico { width: 17px; height: 17px; }
+#theme-toggle .ico {
+  width: 17px;
+  height: 17px;
+}
 
 /* ════════ Modes (fill remaining height) ════════ */
-.mode { flex: 1; min-height: 0; overflow: hidden; }
-.mode:not(.active) { display: none; }
-.mode.active { display: flex; }
-#mode-map { flex-direction: column; }
+.mode {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.mode:not(.active) {
+  display: none;
+}
+.mode.active {
+  display: flex;
+}
+#mode-map {
+  flex-direction: column;
+}
 
 /* ════════ Map tabs ════════ */
 #map-tabs {
@@ -346,8 +468,15 @@ body::before {
   cursor: pointer;
   transition: all .13s;
 }
-.map-tab:hover { color: var(--text); background: var(--surface-2); }
-.map-tab.active { color: var(--accent); background: var(--accent-dim); border-color: var(--accent-line); }
+.map-tab:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.map-tab.active {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
+}
 #map-open-btn {
   margin-left: auto;
   display: flex;
@@ -365,13 +494,30 @@ body::before {
   cursor: pointer;
   transition: all .13s;
 }
-#map-open-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-2); }
-#map-open-btn .ico { width: 14px; height: 14px; }
+#map-open-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+  background: var(--surface-2);
+}
+#map-open-btn .ico {
+  width: 14px;
+  height: 14px;
+}
 
 /* ════════ Map panes (fill) ════════ */
-#map-panes { flex: 1; min-height: 0; position: relative; }
-.map-pane { position: absolute; inset: 0; display: none; }
-.map-pane.active { display: flex; }
+#map-panes {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.map-pane {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+.map-pane.active {
+  display: flex;
+}
 
 /* ════════ Confirm modal ════════ */
 #modal-overlay {
@@ -384,7 +530,9 @@ body::before {
   justify-content: center;
   z-index: 700;
 }
-#modal-overlay.visible { display: flex; }
+#modal-overlay.visible {
+  display: flex;
+}
 #modal {
   width: 380px;
   max-width: calc(100vw - 40px);
@@ -395,10 +543,25 @@ body::before {
   padding: 22px;
   animation: popIn .16s ease;
 }
-#modal-msg { font-size: 14px; line-height: 1.5; color: var(--text); margin-bottom: 20px; }
-#modal-actions { display: flex; gap: 9px; justify-content: flex-end; }
-#modal-ok.danger { background: var(--cat-security); border-color: var(--cat-security); color: #fff; }
-#modal-ok.danger:hover { filter: brightness(1.1); }
+#modal-msg {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+#modal-actions {
+  display: flex;
+  gap: 9px;
+  justify-content: flex-end;
+}
+#modal-ok.danger {
+  background: var(--cat-security);
+  border-color: var(--cat-security);
+  color: #fff;
+}
+#modal-ok.danger:hover {
+  filter: brightness(1.1);
+}
 
 /* ════════ Tooltip ════════ */
 #tooltip {
@@ -420,7 +583,8 @@ body::before {
 /* ════════ Toast ════════ */
 #toast {
   position: fixed;
-  bottom: 24px; left: 50%;
+  bottom: 24px;
+  left: 50%;
   transform: translate(-50%, 14px);
   background: var(--surface-4);
   color: var(--text);
@@ -435,15 +599,29 @@ body::before {
   transition: all .28s cubic-bezier(.2,.8,.2,1);
   z-index: 600;
 }
-#toast.visible { opacity: 1; transform: translate(-50%, 0); }
+#toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
 
 /* ════════ Scrollbars ════════ */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-4); background-clip: padding-box; }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-4);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-4);
+  background-clip: padding-box;
+}
 
 </style>
-<style>
+    <style>
 /* ════════ Graph pane ════════ */
 #graph-pane {
   width: 100%;
@@ -451,34 +629,60 @@ body::before {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(1200px 700px at 50% 45%, rgba(255,255,255,.015), transparent 70%),
+    radial-gradient(1200px 700px at 50% 45%, rgba(255,255,255,.015), transparent
+    70%),
     var(--bg);
 }
 /* faint dot grid */
 #graph-pane::before {
   content: '';
-  position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,.035) 1px, transparent 1px);
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.035) 1px,
+    transparent 1px);
   background-size: 26px 26px;
   pointer-events: none;
 }
 
-svg#graph { width: 100%; height: 100%; display: block; position: relative; }
+svg#graph {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: relative;
+}
 
 /* ── Links ── */
-.link { stroke: var(--border-hi); stroke-width: 1.3px; stroke-opacity: .6; }
-.link.highlighted { stroke: var(--accent); stroke-width: 2px; stroke-opacity: 1; }
+.link {
+  stroke: var(--border-hi);
+  stroke-width: 1.3px;
+  stroke-opacity: .6;
+}
+.link.highlighted {
+  stroke: var(--accent);
+  stroke-width: 2px;
+  stroke-opacity: 1;
+}
 
 /* ── Nodes ── */
-.node { cursor: pointer; }
-.node circle { transition: transform .18s ease, filter .18s; }
+.node {
+  cursor: pointer;
+}
+.node circle {
+  transition: transform .18s ease, filter .18s;
+}
 .node .node-core {
   stroke-width: 2px;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,.5));
 }
-.node:hover .node-core { transform: scale(1.16); }
-.node.selected .node-core { stroke-width: 2.5px; }
-.node.dimmed { opacity: .22; }
+.node:hover .node-core {
+  transform: scale(1.16);
+}
+.node.selected .node-core {
+  stroke-width: 2.5px;
+}
+.node.dimmed {
+  opacity: .22;
+}
 
 .node text {
   font-family: var(--font-ui);
@@ -491,12 +695,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   stroke-width: 3.5px;
   stroke-linejoin: round;
 }
-.node:hover text, .node.selected text { fill: var(--text); }
+.node:hover text,
+.node.selected text {
+  fill: var(--text);
+}
 
 /* ── Legend ── */
 .legend {
   position: absolute;
-  bottom: 18px; left: 18px;
+  bottom: 18px;
+  left: 18px;
   background: rgba(16,18,22,.82);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
@@ -514,9 +722,23 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text-3);
   margin-bottom: 9px;
 }
-.legend-item { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; line-height: 1; }
-.legend-item:last-child { margin-bottom: 0; }
-.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.legend-item:last-child {
+  margin-bottom: 0;
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
 
 /* ── Fit button ── */
 .map-tool {
@@ -530,17 +752,25 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text-2);
 }
 .fit-btn {
-  bottom: 18px; right: 18px;
-  width: 40px; height: 40px;
+  bottom: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-md);
-  display: grid; place-items: center;
+  display: grid;
+  place-items: center;
   font-size: 18px;
 }
-.fit-btn:hover { border-color: var(--accent-line); color: var(--accent); transform: translateY(-2px); }
+.fit-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
 
 /* ── No workspace ── */
 #no-workspace {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   display: none;
   flex-direction: column;
   align-items: center;
@@ -548,10 +778,14 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 14px;
   z-index: 10;
 }
-#no-workspace.visible { display: flex; }
+#no-workspace.visible {
+  display: flex;
+}
 #no-workspace-mark {
-  width: 72px; height: 72px;
-  display: grid; place-items: center;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
   font-size: 32px;
   color: var(--accent);
   background: var(--accent-dim);
@@ -559,8 +793,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border-radius: 20px;
   margin-bottom: 4px;
 }
-#no-workspace-title { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
-#no-workspace-hint { font-size: 13px; color: var(--text-3); }
+#no-workspace-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.01em;
+}
+#no-workspace-hint {
+  font-size: 13px;
+  color: var(--text-3);
+}
 #no-workspace-btn {
   margin-top: 10px;
   padding: 10px 22px;
@@ -575,12 +817,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   box-shadow: 0 4px 16px rgba(55,217,154,.3);
   transition: all .15s;
 }
-#no-workspace-btn:hover { background: var(--accent-2); transform: translateY(-2px); }
+#no-workspace-btn:hover {
+  background: var(--accent-2);
+  transform: translateY(-2px);
+}
 
 /* ── Node metadata panel ── */
 #node-meta {
   position: absolute;
-  bottom: 18px; right: 70px;
+  bottom: 18px;
+  right: 70px;
   background: rgba(16,18,22,.92);
   backdrop-filter: blur(14px);
   border: 1px solid var(--border-hi);
@@ -595,7 +841,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   z-index: 20;
   animation: popIn .14s ease;
 }
-#node-meta.visible { display: flex; }
+#node-meta.visible {
+  display: flex;
+}
 #node-meta-header {
   display: flex;
   align-items: center;
@@ -612,8 +860,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 #node-meta-close {
   flex-shrink: 0;
-  width: 20px; height: 20px;
-  display: grid; place-items: center;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
   border: none;
   background: transparent;
   color: var(--text-3);
@@ -622,9 +872,19 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   font-size: 13px;
   transition: color .12s, background .12s;
 }
-#node-meta-close:hover { color: var(--text); background: var(--surface-3); }
-#node-meta-close .ico { width: 12px; height: 12px; }
-#node-meta-stats { display: flex; flex-direction: column; gap: 7px; }
+#node-meta-close:hover {
+  color: var(--text);
+  background: var(--surface-3);
+}
+#node-meta-close .ico {
+  width: 12px;
+  height: 12px;
+}
+#node-meta-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
 .node-meta-row {
   display: flex;
   justify-content: space-between;
@@ -666,7 +926,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   padding: 3px 0;
   border-bottom: 1px solid var(--border);
 }
-.nm-author-row:last-child { border-bottom: none; }
+.nm-author-row:last-child {
+  border-bottom: none;
+}
 .nm-author-name {
   font-family: var(--font-mono);
   font-size: 11.5px;
@@ -707,11 +969,17 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   cursor: pointer;
   transition: all .13s;
 }
-#nm-open-markmap:hover { background: var(--accent); color: var(--on-accent); }
-#nm-open-markmap .ico { width: 13px; height: 13px; }
+#nm-open-markmap:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+#nm-open-markmap .ico {
+  width: 13px;
+  height: 13px;
+}
 
 </style>
-<style>
+    <style>
 /* ════════ Markmap pane ════════ */
 #markmap-pane {
   width: 100%;
@@ -731,8 +999,19 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   padding: 0 18px;
   gap: 14px;
 }
-#markmap-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-#markmap-filename { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -.01em; line-height: 1.1; }
+#markmap-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+#markmap-filename {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.01em;
+  line-height: 1.1;
+}
 #markmap-filepath {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -741,7 +1020,12 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#markmap-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+#markmap-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
 
 #btn-back-graph {
   display: flex;
@@ -760,8 +1044,15 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
   transition: all .13s;
 }
-#btn-back-graph:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-2); }
-#btn-back-graph .ico { width: 13px; height: 13px; }
+#btn-back-graph:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+  background: var(--surface-2);
+}
+#btn-back-graph .ico {
+  width: 13px;
+  height: 13px;
+}
 
 .pill-btn {
   display: flex;
@@ -780,8 +1071,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: all .13s;
   white-space: nowrap;
 }
-.pill-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface-3); }
-.pill-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-line); }
+.pill-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+  background: var(--surface-3);
+}
+.pill-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
 .pill-count {
   background: var(--surface-4);
   color: var(--text-2);
@@ -792,12 +1091,23 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   min-width: 20px;
   text-align: center;
 }
-.pill-btn.active .pill-count { background: var(--accent); color: var(--on-accent); }
+.pill-btn.active .pill-count {
+  background: var(--accent);
+  color: var(--on-accent);
+}
 
 #markmap-container,
-#note-markmap { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+#note-markmap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
 #markmap-container svg,
-#note-markmap svg { width: 100% !important; height: 100% !important; }
+#note-markmap svg {
+  width: 100% !important;
+  height: 100% !important;
+}
 
 /* markmap tem tema claro por padrão — forçar legibilidade no dark */
 #markmap-container .markmap-node > text,
@@ -810,7 +1120,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text) !important;
 }
 #markmap-container .markmap-foreign a,
-#note-markmap .markmap-foreign a { color: var(--accent) !important; }
+#note-markmap .markmap-foreign a {
+  color: var(--accent) !important;
+}
 #markmap-container .markmap-foreign code,
 #note-markmap .markmap-foreign code {
   font-family: var(--font-mono);
@@ -823,27 +1135,39 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 /* ── Zoom / foco controls ── */
 #markmap-tools {
   position: absolute;
-  bottom: 18px; right: 18px;
+  bottom: 18px;
+  right: 18px;
   display: none;
   flex-direction: column;
   gap: 7px;
   z-index: 15;
 }
-#markmap-tools.visible { display: flex; }
+#markmap-tools.visible {
+  display: flex;
+}
 .mm-tool {
-  width: 34px; height: 34px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--r-md);
   display: grid;
   place-items: center;
   position: static;
 }
-.mm-tool .ico { width: 17px; height: 17px; }
-.mm-tool:hover { border-color: var(--accent-line); color: var(--accent); transform: translateY(-1px); }
+.mm-tool .ico {
+  width: 17px;
+  height: 17px;
+}
+.mm-tool:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
 
 #markmap-hint {
   display: none;
   position: absolute;
-  bottom: 18px; left: 50%;
+  bottom: 18px;
+  left: 50%;
   transform: translateX(-50%);
   background: var(--surface-4);
   color: var(--text);
@@ -857,7 +1181,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   white-space: nowrap;
   box-shadow: var(--sh-md);
 }
-#markmap-hint.visible { display: block; }
+#markmap-hint.visible {
+  display: block;
+}
 
 /* ── Floating comment button ── */
 #markmap-comment-btn {
@@ -900,7 +1226,8 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 
 /* ── Empty state ── */
 #map-empty {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -909,21 +1236,42 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   pointer-events: none;
 }
 #map-empty-mark {
-  width: 68px; height: 68px;
-  display: grid; place-items: center;
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
   font-size: 30px;
   color: var(--text-4);
   border: 1px dashed var(--border-mid);
   border-radius: 18px;
   animation: float 4s ease-in-out infinite;
 }
-#map-empty-text { font-size: 13.5px; color: var(--text-3); max-width: 280px; text-align: center; line-height: 1.5; }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+#map-empty-text {
+  font-size: 13.5px;
+  color: var(--text-3);
+  max-width: 280px;
+  text-align: center;
+  line-height: 1.5;
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
 
 </style>
-<style>
+    <style>
 /* ════════ Search ════════ */
-#search-wrap { position: relative; flex: 1; max-width: 460px; margin-left: auto; }
+#search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 460px;
+  margin-left: auto;
+}
 #search-input {
   width: 100%;
   height: 36px;
@@ -942,10 +1290,13 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   background: var(--surface-3);
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
-#search-input::placeholder { color: var(--text-3); }
+#search-input::placeholder {
+  color: var(--text-3);
+}
 #search-icon {
   position: absolute;
-  left: 13px; top: 50%;
+  left: 13px;
+  top: 50%;
   transform: translateY(-50%);
   font-size: 15px;
   pointer-events: none;
@@ -956,7 +1307,8 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   display: none;
   position: absolute;
   top: calc(100% + 8px);
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   background: var(--surface-2);
   border: 1px solid var(--border-mid);
   border-radius: var(--r-md);
@@ -965,7 +1317,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   overflow-y: auto;
   z-index: 200;
 }
-#search-results.visible { display: block; }
+#search-results.visible {
+  display: block;
+}
 
 .search-count {
   padding: 9px 15px;
@@ -979,12 +1333,36 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   position: sticky;
   top: 0;
 }
-.search-empty { padding: 24px; text-align: center; color: var(--text-3); font-size: 12.5px; }
-.search-result { padding: 12px 15px; border-bottom: 1px solid var(--border-soft); cursor: pointer; transition: background .1s; }
-.search-result:last-child { border-bottom: none; }
-.search-result:hover { background: var(--surface-3); }
-.search-result-file { font-size: 12.5px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
-.search-result-heading { font-size: 10px; color: var(--text-3); margin-bottom: 6px; font-family: var(--font-mono); }
+.search-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+.search-result {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: background .1s;
+}
+.search-result:last-child {
+  border-bottom: none;
+}
+.search-result:hover {
+  background: var(--surface-3);
+}
+.search-result-file {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+.search-result-heading {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+}
 .search-result-snippet {
   font-size: 11px;
   font-family: var(--font-mono);
@@ -993,10 +1371,15 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   word-break: break-word;
   line-height: 1.55;
 }
-.search-result-snippet mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; padding: 0 2px; }
+.search-result-snippet mark {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 2px;
+  padding: 0 2px;
+}
 
 </style>
-<style>
+    <style>
 /* ════════ Annotations (contextual ao documento) ════════ */
 #annot-panel {
   display: none;
@@ -1006,7 +1389,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
-#annot-panel.visible { display: flex; }
+#annot-panel.visible {
+  display: flex;
+}
 
 #annot-head {
   display: flex;
@@ -1015,7 +1400,12 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-#annot-head-title { font-size: 12px; font-weight: 700; letter-spacing: .01em; color: var(--text-2); }
+#annot-head-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: var(--text-2);
+}
 .ghost-btn {
   margin-left: auto;
   display: flex;
@@ -1032,10 +1422,22 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   cursor: pointer;
   transition: all .13s;
 }
-.ghost-btn:hover { border-color: var(--accent-line); color: var(--accent); }
+.ghost-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
 
-#annot-list { flex: 1; overflow-y: auto; padding: 6px 0; }
-#annot-empty { padding: 22px 18px; text-align: center; color: var(--text-3); font-size: 12px; }
+#annot-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+#annot-empty {
+  padding: 22px 18px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12px;
+}
 
 .annot-item {
   padding: 11px 18px;
@@ -1044,9 +1446,20 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 12px;
   align-items: flex-start;
 }
-.annot-item:last-child { border-bottom: none; }
-.annot-type-bar { width: 3px; align-self: stretch; border-radius: 3px; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
-.annot-main { flex: 1; min-width: 0; }
+.annot-item:last-child {
+  border-bottom: none;
+}
+.annot-type-bar {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+.annot-main {
+  flex: 1;
+  min-width: 0;
+}
 .annot-quote {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1062,9 +1475,21 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   white-space: nowrap;
   margin-bottom: 6px;
 }
-.annot-type-label { font-size: 10px; font-weight: 700; margin-left: 8px; }
-.annot-note { font-size: 12.5px; color: var(--text); line-height: 1.5; }
-.annot-actions { display: flex; gap: 5px; flex-shrink: 0; }
+.annot-type-label {
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 8px;
+}
+.annot-note {
+  font-size: 12.5px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.annot-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
 .annot-btn {
   background: none;
   border: 1px solid var(--border);
@@ -1076,9 +1501,18 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   display: inline-flex;
   align-items: center;
 }
-.annot-btn .ico { width: 13px; height: 13px; }
-.annot-btn:hover { border-color: var(--accent-line); color: var(--accent); }
-.annot-btn.del:hover { border-color: var(--cat-security); color: var(--cat-security); }
+.annot-btn .ico {
+  width: 13px;
+  height: 13px;
+}
+.annot-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.annot-btn.del:hover {
+  border-color: var(--cat-security);
+  color: var(--cat-security);
+}
 
 /* ════════ Annotation popover ════════ */
 #annot-popover {
@@ -1092,8 +1526,20 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   box-shadow: var(--sh-lg);
   overflow: hidden;
 }
-#annot-popover.visible { display: block; animation: popIn .15s ease; }
-@keyframes popIn { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+#annot-popover.visible {
+  display: block;
+  animation: popIn .15s ease;
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 #pop-head {
   background: var(--surface);
@@ -1103,11 +1549,37 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 10px;
   align-items: flex-start;
 }
-#pop-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--accent); flex-shrink: 0; padding-top: 2px; }
-#pop-quote { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); line-height: 1.45; word-break: break-word; }
+#pop-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--accent);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+#pop-quote {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.45;
+  word-break: break-word;
+}
 
-#pop-types { display: flex; gap: 6px; padding: 12px 15px 0; flex-wrap: wrap; }
-.type-swatch { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; vertical-align: middle; transform: rotate(45deg); }
+#pop-types {
+  display: flex;
+  gap: 6px;
+  padding: 12px 15px 0;
+  flex-wrap: wrap;
+}
+.type-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+  transform: rotate(45deg);
+}
 .type-btn {
   padding: 4px 11px;
   border-radius: var(--r-xl);
@@ -1120,10 +1592,19 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   cursor: pointer;
   transition: all .12s;
 }
-.type-btn:hover { border-color: var(--border-hi); color: var(--text); }
-.type-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.type-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+.type-btn.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
 
-#pop-body { padding: 12px 15px 0; }
+#pop-body {
+  padding: 12px 15px 0;
+}
 #pop-textarea {
   width: 100%;
   height: 88px;
@@ -1138,10 +1619,19 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   background: var(--surface);
   transition: border .15s;
 }
-#pop-textarea:focus { border-color: var(--accent-line); }
-#pop-textarea::placeholder { color: var(--text-3); }
+#pop-textarea:focus {
+  border-color: var(--accent-line);
+}
+#pop-textarea::placeholder {
+  color: var(--text-3);
+}
 
-#pop-foot { display: flex; gap: 8px; padding: 12px 15px 14px; justify-content: flex-end; }
+#pop-foot {
+  display: flex;
+  gap: 8px;
+  padding: 12px 15px 14px;
+  justify-content: flex-end;
+}
 .pop-btn {
   padding: 7px 15px;
   border-radius: var(--r-sm);
@@ -1154,16 +1644,31 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text-2);
   transition: all .12s;
 }
-.pop-btn:hover { border-color: var(--border-hi); color: var(--text); }
-.pop-btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.pop-btn.primary:hover { background: var(--accent-2); }
-#pop-delete { color: var(--cat-security); }
-#pop-delete:hover { border-color: var(--cat-security); }
+.pop-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+.pop-btn.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.pop-btn.primary:hover {
+  background: var(--accent-2);
+}
+#pop-delete {
+  color: var(--cat-security);
+}
+#pop-delete:hover {
+  border-color: var(--cat-security);
+}
 
 </style>
-<style>
+    <style>
 /* ════════ Notes mode ════════ */
-#mode-notes { background: var(--bg); }
+#mode-notes {
+  background: var(--bg);
+}
 
 /* ── List column ── */
 #notes-col {
@@ -1182,9 +1687,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 10px;
   flex-shrink: 0;
 }
-#notes-col-title { font-size: 18px; font-weight: 700; letter-spacing: -.02em; color: var(--text); flex: 1; }
+#notes-col-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  flex: 1;
+}
 #notes-new-btn {
-  width: 30px; height: 30px;
+  width: 30px;
+  height: 30px;
   border: none;
   border-radius: var(--r-sm);
   background: var(--accent);
@@ -1192,14 +1704,21 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   font-size: 19px;
   line-height: 1;
   cursor: pointer;
-  display: grid; place-items: center;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
   transition: all .15s;
   box-shadow: 0 2px 10px rgba(55,217,154,.28);
 }
-#notes-new-btn:hover { background: var(--accent-2); transform: scale(1.08); }
+#notes-new-btn:hover {
+  background: var(--accent-2);
+  transform: scale(1.08);
+}
 
-#notes-search-box { padding: 0 18px 10px; flex-shrink: 0; }
+#notes-search-box {
+  padding: 0 18px 10px;
+  flex-shrink: 0;
+}
 
 #notes-filters {
   padding: 0 18px 12px;
@@ -1208,7 +1727,8 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
   min-width: 0;
 }
-#notes-filter-cat, #notes-filter-tag {
+#notes-filter-cat,
+#notes-filter-tag {
   flex: 1;
   min-width: 0;
   width: 0; /* força flex a respeitar o espaço disponível */
@@ -1227,8 +1747,15 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#notes-filter-cat:focus, #notes-filter-tag:focus { border-color: var(--accent-line); }
-#notes-filter-cat option, #notes-filter-tag option { background: var(--surface-3); color: var(--text); }
+#notes-filter-cat:focus,
+#notes-filter-tag:focus {
+  border-color: var(--accent-line);
+}
+#notes-filter-cat option,
+#notes-filter-tag option {
+  background: var(--surface-3);
+  color: var(--text);
+}
 #notes-search-input {
   width: 100%;
   height: 34px;
@@ -1242,12 +1769,28 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   outline: none;
   transition: border .15s;
 }
-#notes-search-input:focus { border-color: var(--accent-line); }
-#notes-search-input::placeholder { color: var(--text-3); }
+#notes-search-input:focus {
+  border-color: var(--accent-line);
+}
+#notes-search-input::placeholder {
+  color: var(--text-3);
+}
 
-#notes-list { flex: 1; overflow-y: auto; min-height: 0; }
-.notes-empty { padding: 34px 22px; text-align: center; color: var(--text-3); font-size: 12.5px; line-height: 1.7; }
-.notes-empty strong { color: var(--accent); }
+#notes-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+.notes-empty {
+  padding: 34px 22px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.notes-empty strong {
+  color: var(--accent);
+}
 
 .note-item {
   padding: 13px 18px;
@@ -1256,14 +1799,52 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: background .1s;
   border-left: 2px solid transparent;
 }
-.note-item:hover { background: var(--surface-2); }
-.note-item.active { background: var(--surface-2); border-left-color: var(--accent); }
-.note-item.active .note-item-title { color: var(--accent); }
-.note-item-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-.note-cat-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; box-shadow: 0 0 6px currentColor; }
-.note-item-title { font-size: 13.5px; font-weight: 600; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.note-item-preview { font-size: 11.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4; }
-.note-item-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
+.note-item:hover {
+  background: var(--surface-2);
+}
+.note-item.active {
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+.note-item.active .note-item-title {
+  color: var(--accent);
+}
+.note-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.note-cat-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.note-item-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note-item-preview {
+  font-size: 11.5px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.note-item-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 7px;
+}
 .note-tag {
   font-family: var(--font-mono);
   font-size: 9px;
@@ -1290,17 +1871,37 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text-3);
   margin-bottom: 10px;
 }
-#notes-ai-badge code { font-family: var(--font-mono); color: var(--accent); font-size: 10px; }
+#notes-ai-badge code {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-size: 10px;
+}
 .ai-dot {
-  width: 6px; height: 6px; border-radius: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 8px var(--accent);
   animation: pulse-dot 2.4s ease-in-out infinite;
 }
-@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .35;
+  }
+}
 
 /* ── Editor column ── */
-#notes-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#notes-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
 #notes-editor-empty {
   flex: 1;
   display: flex;
@@ -1310,19 +1911,33 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 16px;
   color: var(--text-3);
 }
-#notes-editor-empty.hidden { display: none; }
+#notes-editor-empty.hidden {
+  display: none;
+}
 #notes-editor-empty-mark {
-  width: 66px; height: 66px;
-  display: grid; place-items: center;
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
   font-size: 28px;
   color: var(--text-4);
   border: 1px dashed var(--border-mid);
   border-radius: 18px;
 }
-#notes-editor-empty-text { font-size: 14px; }
+#notes-editor-empty-text {
+  font-size: 14px;
+}
 
-#notes-editor-form { display: none; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
-#notes-editor-form.visible { display: flex; }
+#notes-editor-form {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+#notes-editor-form.visible {
+  display: flex;
+}
 
 #note-head {
   display: flex;
@@ -1342,7 +1957,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   letter-spacing: -.02em;
   color: var(--text);
 }
-#note-title-input::placeholder { color: var(--text-4); }
+#note-title-input::placeholder {
+  color: var(--text-4);
+}
 #note-id-badge {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1355,7 +1972,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
   transition: all .12s;
 }
-#note-id-badge:hover { color: var(--accent); border-color: var(--accent-line); }
+#note-id-badge:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
 
 .note-head-btn {
   width: 28px;
@@ -1371,9 +1991,19 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: all .12s;
   flex-shrink: 0;
 }
-.note-head-btn:hover { border-color: var(--accent-line); color: var(--accent); }
-.note-head-btn.active { color: var(--accent); border-color: var(--accent-line); background: var(--accent-dim); }
-.note-head-btn .ico { width: 14px; height: 14px; }
+.note-head-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.note-head-btn.active {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+}
+.note-head-btn .ico {
+  width: 14px;
+  height: 14px;
+}
 
 #note-markmap {
   flex: 1;
@@ -1382,7 +2012,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   overflow: hidden;
   background: var(--surface);
 }
-#note-markmap.visible { display: block; }
+#note-markmap.visible {
+  display: block;
+}
 
 #note-toolbar {
   display: flex;
@@ -1403,8 +2035,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   padding: 0 10px;
   transition: border .12s;
 }
-#note-cat-field:focus-within { border-color: var(--accent-line); }
-#note-cat-field .note-cat-dot { width: 8px; height: 8px; border-radius: 2px; transform: rotate(45deg); box-shadow: 0 0 6px currentColor; }
+#note-cat-field:focus-within {
+  border-color: var(--accent-line);
+}
+#note-cat-field .note-cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  box-shadow: 0 0 6px currentColor;
+}
 #note-cat-input {
   width: 110px;
   border: none;
@@ -1414,7 +2054,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   font-size: 12px;
   color: var(--text);
 }
-#note-cat-input::placeholder { color: var(--text-3); }
+#note-cat-input::placeholder {
+  color: var(--text-3);
+}
 
 #note-tags-input {
   height: 30px;
@@ -1428,8 +2070,12 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   outline: none;
   flex: 1;
 }
-#note-tags-input:focus { border-color: var(--accent-line); }
-#note-tags-input::placeholder { color: var(--text-3); }
+#note-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#note-tags-input::placeholder {
+  color: var(--text-3);
+}
 
 .tool-btn {
   height: 30px;
@@ -1449,12 +2095,29 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   justify-content: center;
   gap: 6px;
 }
-.tool-btn:hover { border-color: var(--border-hi); color: var(--text); }
-.tool-btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.tool-btn.primary:hover { background: var(--accent-2); }
-.tool-btn.danger:hover { border-color: var(--cat-security); color: var(--cat-security); }
+.tool-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+.tool-btn.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.tool-btn.primary:hover {
+  background: var(--accent-2);
+}
+.tool-btn.danger:hover {
+  border-color: var(--cat-security);
+  color: var(--cat-security);
+}
 
-#note-body { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+#note-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
 #note-content-textarea {
   flex: 1;
   border: none;
@@ -1467,7 +2130,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text);
   background: var(--surface);
 }
-#note-content-textarea::placeholder { color: var(--text-3); }
+#note-content-textarea::placeholder {
+  color: var(--text-3);
+}
 #note-preview {
   flex: 1;
   display: none;
@@ -1478,49 +2143,117 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text);
   background: var(--surface);
 }
-#note-preview.visible { display: block; }
-#note-preview h1, #note-preview h2, #note-preview h3 { font-weight: 700; margin: 22px 0 10px; line-height: 1.2; letter-spacing: -.01em; }
-#note-preview h1 { font-size: 25px; }
-#note-preview h2 { font-size: 20px; }
-#note-preview h3 { font-size: 16px; }
-#note-preview p { margin: 10px 0; color: var(--text); }
-#note-preview code { font-family: var(--font-mono); background: var(--surface-3); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--accent); }
-#note-preview pre { background: var(--surface-2); padding: 14px; border-radius: var(--r-sm); overflow-x: auto; margin: 14px 0; border: 1px solid var(--border); }
-#note-preview pre code { background: none; padding: 0; color: var(--text); }
-#note-preview blockquote { border-left: 3px solid var(--accent); padding-left: 15px; color: var(--text-2); margin: 12px 0; }
-#note-preview ul, #note-preview ol { padding-left: 24px; margin: 10px 0; }
-#note-preview li { margin: 4px 0; }
-#note-preview a { color: var(--accent); }
-#note-preview hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+#note-preview.visible {
+  display: block;
+}
+#note-preview h1,
+#note-preview h2,
+#note-preview h3 {
+  font-weight: 700;
+  margin: 22px 0 10px;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+}
+#note-preview h1 {
+  font-size: 25px;
+}
+#note-preview h2 {
+  font-size: 20px;
+}
+#note-preview h3 {
+  font-size: 16px;
+}
+#note-preview p {
+  margin: 10px 0;
+  color: var(--text);
+}
+#note-preview code {
+  font-family: var(--font-mono);
+  background: var(--surface-3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--accent);
+}
+#note-preview pre {
+  background: var(--surface-2);
+  padding: 14px;
+  border-radius: var(--r-sm);
+  overflow-x: auto;
+  margin: 14px 0;
+  border: 1px solid var(--border);
+}
+#note-preview pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+#note-preview blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 15px;
+  color: var(--text-2);
+  margin: 12px 0;
+}
+#note-preview ul,
+#note-preview ol {
+  padding-left: 24px;
+  margin: 10px 0;
+}
+#note-preview li {
+  margin: 4px 0;
+}
+#note-preview a {
+  color: var(--accent);
+}
+#note-preview hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
 
 </style>
-<style>
+    <style>
 /* ════ AI Chat FAB + Panel ════ */
 
 #chat-fab {
   position: fixed;
-  top: 50%; right: 24px;
+  top: 50%;
+  right: 24px;
   transform: translateY(-50%);
-  width: 52px; height: 52px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: none;
   background: var(--accent);
   color: var(--on-accent);
   cursor: pointer;
-  display: grid; place-items: center;
+  display: grid;
+  place-items: center;
   box-shadow: 0 4px 20px rgba(55,217,154,.4);
   z-index: 800;
   transition: all .2s cubic-bezier(.2,.8,.2,1);
 }
-#chat-fab .ico { width: 24px; height: 24px; }
-#chat-fab:hover { transform: translateY(-50%) scale(1.08); box-shadow: 0 6px 28px rgba(55,217,154,.55); }
-#chat-fab.active { background: var(--surface-4); box-shadow: var(--sh-md); }
-#chat-fab.active:hover { transform: translateY(-50%) scale(1.04); }
+#chat-fab .ico {
+  width: 24px;
+  height: 24px;
+}
+#chat-fab:hover {
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 28px rgba(55,217,154,.55);
+}
+#chat-fab.active {
+  background: var(--surface-4);
+  box-shadow: var(--sh-md);
+}
+#chat-fab.active:hover {
+  transform: translateY(-50%) scale(1.04);
+}
 
 /* ── Panel ── */
 #chat-panel {
   position: fixed;
-  top: 50%; right: 88px;
+  top: 50%;
+  right: 88px;
   transform: translateY(-50%) translateX(16px) scale(.97);
   width: 420px;
   max-height: 600px;
@@ -1528,18 +2261,25 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border: 1px solid var(--border-hi);
   border-radius: var(--r-lg);
   box-shadow: var(--sh-lg);
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   z-index: 799;
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .22s cubic-bezier(.2,.8,.2,1), transform .22s cubic-bezier(.2,.8,.2,1);
+  transition: opacity .22s cubic-bezier(.2,.8,.2,1), transform .22s
+    cubic-bezier(.2,.8,.2,1);
 }
-#chat-panel.open { transform: translateY(-50%); opacity: 1; pointer-events: all; }
+#chat-panel.open {
+  transform: translateY(-50%);
+  opacity: 1;
+  pointer-events: all;
+}
 
 /* posicionamento livre via JS drag */
 #chat-panel.dragged {
-  top: auto; right: auto;
+  top: auto;
+  right: auto;
   transform: none;
   transition: none;
 }
@@ -1550,24 +2290,41 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   max-height: none;
 }
 #chat-panel.minimized #chat-feed,
-#chat-panel.minimized #chat-composer { display: none; }
+#chat-panel.minimized #chat-composer {
+  display: none;
+}
 
 #chat-header {
-  display: flex; align-items: center;
+  display: flex;
+  align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0; gap: 10px;
+  flex-shrink: 0;
+  gap: 10px;
   cursor: grab;
   user-select: none;
 }
-#chat-header:active { cursor: grabbing; }
-#chat-header #chat-provider,
-#chat-header .ghost-btn { cursor: pointer; }
-#chat-title {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 700; color: var(--text); flex: 1;
+#chat-header:active {
+  cursor: grabbing;
 }
-#chat-title .ico { width: 16px; height: 16px; color: var(--accent); }
+#chat-header #chat-provider,
+#chat-header .ghost-btn {
+  cursor: pointer;
+}
+#chat-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+#chat-title .ico {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}
 #chat-provider {
   border: 1px solid transparent;
   background: transparent;
@@ -1582,26 +2339,52 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: background .12s, border .12s;
   max-width: 200px;
 }
-#chat-provider:hover { background: var(--surface-3); }
-#chat-provider:focus-visible { border-color: var(--accent-line); }
-#chat-provider option { background: var(--surface-2); color: var(--text); }
-#chat-provider:disabled { opacity: .5; cursor: not-allowed; }
-#chat-header-actions { display: flex; gap: 4px; }
-#chat-header-actions .ghost-btn { padding: 4px 8px; font-size: 11px; }
-#chat-header-actions .ico { width: 14px; height: 14px; }
+#chat-provider:hover {
+  background: var(--surface-3);
+}
+#chat-provider:focus-visible {
+  border-color: var(--accent-line);
+}
+#chat-provider option {
+  background: var(--surface-2);
+  color: var(--text);
+}
+#chat-provider:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+#chat-header-actions {
+  display: flex;
+  gap: 4px;
+}
+#chat-header-actions .ghost-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+#chat-header-actions .ico {
+  width: 14px;
+  height: 14px;
+}
 
 /* ── Feed ── */
 #chat-feed {
-  flex: 1; overflow-y: auto; padding: 14px 16px;
-  display: flex; flex-direction: column; gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   min-height: 200px;
 }
 
 .chat-bubble {
-  max-width: 88%; padding: 10px 14px;
+  max-width: 88%;
+  padding: 10px 14px;
   border-radius: var(--r-md);
-  font-size: 13px; line-height: 1.6;
-  white-space: pre-wrap; word-break: break-word;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .chat-user {
   align-self: flex-end;
@@ -1634,374 +2417,864 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   max-width: 92%;
   word-break: break-all;
 }
-.tool-summary-row { display: flex; align-items: center; gap: 6px; }
+.tool-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .tool-toggle {
-  background: none; border: none; cursor: pointer;
-  color: var(--text-3); font-size: 10px; padding: 0 2px;
-  line-height: 1; opacity: 0.6; flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 10px;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
-.tool-toggle:hover { opacity: 1; }
+.tool-toggle:hover {
+  opacity: 1;
+}
 .tool-name {
-  font-weight: 700; padding: 1px 7px;
-  border-radius: 4px; font-size: 10px;
-  background: rgba(55,217,154,.12); color: var(--accent);
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  background: rgba(55,217,154,.12);
+  color: var(--accent);
 }
-.tool-summary { color: var(--text-2); }
-.tool-details { display: none; margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 5px; }
-.tool-details.open { display: block; }
-.tool-body { color: var(--text-3); margin-bottom: 4px; white-space: pre-wrap; }
-.tool-result { color: var(--text-3); white-space: pre-wrap; }
+.tool-summary {
+  color: var(--text-2);
+}
+.tool-details {
+  display: none;
+  margin-top: 6px;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 5px;
+}
+.tool-details.open {
+  display: block;
+}
+.tool-body {
+  color: var(--text-3);
+  margin-bottom: 4px;
+  white-space: pre-wrap;
+}
+.tool-result {
+  color: var(--text-3);
+  white-space: pre-wrap;
+}
 
 /* ── Composer ── */
 #chat-composer {
-  display: flex; align-items: flex-end; gap: 8px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
   padding: 12px 14px;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
 #chat-stop {
-  display: flex; align-items: center; gap: 5px;
-  height: 36px; padding: 0 12px;
-  border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface-3); color: var(--text-2);
-  font-family: var(--font-ui); font-size: 12px;
-  cursor: pointer; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
   transition: all .12s;
 }
-#chat-stop:hover { border-color: var(--cat-security); color: var(--cat-security); }
-#chat-stop .ico { width: 13px; height: 13px; }
+#chat-stop:hover {
+  border-color: var(--cat-security);
+  color: var(--cat-security);
+}
+#chat-stop .ico {
+  width: 13px;
+  height: 13px;
+}
 
 #chat-input {
-  flex: 1; border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface); color: var(--text);
-  font-family: var(--font-ui); font-size: 13px;
-  padding: 8px 12px; outline: none; resize: none;
-  line-height: 1.5; max-height: 140px;
-  overflow-y: hidden; box-sizing: border-box;
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  resize: none;
+  line-height: 1.5;
+  max-height: 140px;
+  overflow-y: hidden;
+  box-sizing: border-box;
   transition: border .12s;
 }
-#chat-input:focus { border-color: var(--accent-line); }
-#chat-input::placeholder { color: var(--text-3); }
+#chat-input:focus {
+  border-color: var(--accent-line);
+}
+#chat-input::placeholder {
+  color: var(--text-3);
+}
 
 #chat-send {
-  width: 36px; height: 36px; flex-shrink: 0;
-  border: none; border-radius: var(--r-sm);
-  background: var(--accent); color: var(--on-accent);
-  cursor: pointer; display: grid; place-items: center;
-  transition: all .13s; box-shadow: 0 2px 8px rgba(55,217,154,.25);
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all .13s;
+  box-shadow: 0 2px 8px rgba(55,217,154,.25);
 }
-#chat-send .ico { width: 16px; height: 16px; }
-#chat-send:hover { background: var(--accent-2); }
-#chat-send:disabled { opacity: .5; cursor: not-allowed; }
+#chat-send .ico {
+  width: 16px;
+  height: 16px;
+}
+#chat-send:hover {
+  background: var(--accent-2);
+}
+#chat-send:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 
 </style>
-<style>
+    <style>
 /* ════ Macros mode ════ */
-#mode-macros { background: var(--bg); }
+#mode-macros {
+  background: var(--bg);
+}
 
 /* ── List column ── */
 #macros-col {
-  width: 260px; flex-shrink: 0;
+  width: 260px;
+  flex-shrink: 0;
   border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
 }
 #macros-col-head {
-  display: flex; align-items: center;
-  padding: 18px 18px 14px; gap: 10px; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 18px 18px 14px;
+  gap: 10px;
+  flex-shrink: 0;
 }
-#macros-col-title { font-size: 18px; font-weight: 700; letter-spacing: -.02em; color: var(--text); flex: 1; }
+#macros-col-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  flex: 1;
+}
 #macros-new-btn {
-  width: 30px; height: 30px; border: none; border-radius: var(--r-sm);
-  background: var(--accent); color: var(--on-accent);
-  font-size: 19px; line-height: 1; cursor: pointer;
-  display: grid; place-items: center; flex-shrink: 0;
-  transition: all .15s; box-shadow: 0 2px 10px rgba(55,217,154,.28);
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all .15s;
+  box-shadow: 0 2px 10px rgba(55,217,154,.28);
 }
-#macros-new-btn:hover { background: var(--accent-2); transform: scale(1.08); }
+#macros-new-btn:hover {
+  background: var(--accent-2);
+  transform: scale(1.08);
+}
 
-#macros-list { flex: 1; overflow-y: auto; }
-.macros-empty { padding: 34px 22px; text-align: center; color: var(--text-3); font-size: 12.5px; line-height: 1.7; }
+#macros-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.macros-empty {
+  padding: 34px 22px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
 
 .macro-item {
-  padding: 12px 18px; border-bottom: 1px solid var(--border-soft);
-  cursor: pointer; transition: background .1s; border-left: 2px solid transparent;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: background .1s;
+  border-left: 2px solid transparent;
 }
-.macro-item:hover { background: var(--surface-2); }
-.macro-item.active { background: var(--surface-2); border-left-color: var(--accent); }
-.macro-item-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.macro-interp-dot { font-size: 13px; flex-shrink: 0; }
-.macro-item-title { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.macro-item.active .macro-item-title { color: var(--accent); }
-.macro-item-desc { font-size: 11.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.macro-item:hover {
+  background: var(--surface-2);
+}
+.macro-item.active {
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+.macro-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.macro-interp-dot {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.macro-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.macro-item.active .macro-item-title {
+  color: var(--accent);
+}
+.macro-item-desc {
+  font-size: 11.5px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ── Editor column ── */
-#macros-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-#macros-editor-empty {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 14px; color: var(--text-3);
+#macros-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
-#macros-editor-empty-mark { width: 66px; height: 66px; display: grid; place-items: center; color: var(--text-4); border: 1px dashed var(--border-mid); border-radius: 18px; }
-#macros-editor-empty-mark .ico { width: 28px; height: 28px; }
-#macros-editor-empty-text { font-size: 14px; }
+#macros-editor-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--text-3);
+}
+#macros-editor-empty-mark {
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  color: var(--text-4);
+  border: 1px dashed var(--border-mid);
+  border-radius: 18px;
+}
+#macros-editor-empty-mark .ico {
+  width: 28px;
+  height: 28px;
+}
+#macros-editor-empty-text {
+  font-size: 14px;
+}
 
-#macros-editor-form { display: none; flex-direction: column; flex: 1; overflow: hidden; }
-#macros-editor-form.visible { display: flex; }
+#macros-editor-form {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+#macros-editor-form.visible {
+  display: flex;
+}
 
 #macro-head {
-  display: flex; align-items: center; gap: 10px;
-  padding: 16px 20px 10px; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 10px;
+  flex-shrink: 0;
 }
 #macro-title-input {
-  flex: 1; border: none; outline: none; background: transparent;
-  font-family: var(--font-ui); font-weight: 700; font-size: 20px;
-  letter-spacing: -.02em; color: var(--text);
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -.02em;
+  color: var(--text);
 }
-#macro-title-input::placeholder { color: var(--text-4); }
+#macro-title-input::placeholder {
+  color: var(--text-4);
+}
 
 .macro-badge {
-  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
-  padding: 3px 9px; border-radius: var(--r-sm); flex-shrink: 0;
-  text-transform: uppercase; letter-spacing: .06em;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: .06em;
 }
-.macro-badge.bash { background: rgba(251,191,36,.12); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
-.macro-badge.deno { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-line); }
+.macro-badge.bash {
+  background: rgba(251,191,36,.12);
+  color: #fbbf24;
+  border: 1px solid rgba(251,191,36,.3);
+}
+.macro-badge.deno {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+}
 
-#macro-head-actions { display: flex; gap: 7px; flex-shrink: 0; }
+#macro-head-actions {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
 .macro-run-btn {
   background: var(--accent) !important;
   color: var(--on-accent) !important;
   border-color: var(--accent) !important;
   box-shadow: 0 2px 10px rgba(55,217,154,.25);
 }
-.macro-run-btn:hover { background: var(--accent-2) !important; }
-.macro-run-btn:disabled { opacity: .6; cursor: not-allowed; }
+.macro-run-btn:hover {
+  background: var(--accent-2) !important;
+}
+.macro-run-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
 
 #macro-desc-row {
-  padding: 0 20px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  padding: 0 20px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 #macro-desc-input {
-  width: 100%; height: 30px; border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface-2); font-family: var(--font-ui); font-size: 12px;
-  color: var(--text-2); padding: 0 10px; outline: none;
+  width: 100%;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-2);
+  padding: 0 10px;
+  outline: none;
 }
-#macro-desc-input:focus { border-color: var(--accent-line); }
-#macro-desc-input::placeholder { color: var(--text-3); }
+#macro-desc-input:focus {
+  border-color: var(--accent-line);
+}
+#macro-desc-input::placeholder {
+  color: var(--text-3);
+}
 
 #macro-body {
-  flex: 1; min-height: 0;
-  display: flex; flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 #macro-script {
-  flex: 1; border: none; outline: none; resize: none;
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
   padding: 18px 20px;
-  font-family: var(--font-mono); font-size: 12.5px;
-  line-height: 1.75; color: var(--text);
-  background: var(--surface); tab-size: 2;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text);
+  background: var(--surface);
+  tab-size: 2;
   min-height: 120px;
 }
-#macro-script::placeholder { color: var(--text-3); }
+#macro-script::placeholder {
+  color: var(--text-3);
+}
 
 /* ── Output panel ── */
 #macro-output-panel {
   flex-shrink: 0;
   max-height: 45%;
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   border-top: 1px solid var(--border);
   background: #080a0d;
 }
 #macro-output-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 16px; border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 #macro-output-title {
-  font-size: 11px; font-weight: 700; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-3);
 }
 .macro-status {
-  font-family: var(--font-mono); font-size: 10px;
-  padding: 2px 8px; border-radius: var(--r-xl);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--r-xl);
 }
 .macro-status.running {
-  background: rgba(55,217,154,.15); color: var(--accent);
+  background: rgba(55,217,154,.15);
+  color: var(--accent);
   border: 1px solid var(--accent-line);
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
 #macro-output {
-  flex: 1; overflow-y: auto; overflow-x: auto;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
   padding: 14px 20px;
-  font-family: var(--font-mono); font-size: 12px;
-  line-height: 1.6; margin: 0;
-  white-space: pre-wrap; word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
-.out-out     { color: #d4d4d4; }
-.out-info    { color: #626976; }
-.out-error   { color: var(--cat-security); }
-.out-success { color: var(--accent); }
+.out-out {
+  color: #d4d4d4;
+}
+.out-info {
+  color: #626976;
+}
+.out-error {
+  color: var(--cat-security);
+}
+.out-success {
+  color: var(--accent);
+}
 
 /* spinner */
 .run-spinner {
-  display: inline-block; width: 12px; height: 12px;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
   border: 2px solid rgba(6,18,13,.4);
   border-top-color: var(--on-accent);
   border-radius: 50%;
   animation: spin .7s linear infinite;
   vertical-align: middle;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
-.ghost-btn.danger:hover { color: var(--cat-security); border-color: var(--cat-security); }
+.ghost-btn.danger:hover {
+  color: var(--cat-security);
+  border-color: var(--cat-security);
+}
 
 </style>
-<style>
+    <style>
 /* ════ Skills mode ════ */
-#mode-skills { background: var(--bg); }
+#mode-skills {
+  background: var(--bg);
+}
 
 /* ── List column ── */
 #skills-col {
-  width: 300px; flex-shrink: 0;
+  width: 300px;
+  flex-shrink: 0;
   border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
 }
 #skills-col-head {
-  display: flex; align-items: center;
-  padding: 18px 18px 12px; gap: 10px; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 18px 18px 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
-#skills-col-title { font-size: 18px; font-weight: 700; letter-spacing: -.02em; color: var(--text); flex: 1; }
+#skills-col-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  flex: 1;
+}
 #skills-new-btn {
-  width: 30px; height: 30px; border: none; border-radius: var(--r-sm);
-  background: var(--accent); color: var(--on-accent);
-  font-size: 19px; line-height: 1; cursor: pointer;
-  display: grid; place-items: center; flex-shrink: 0;
-  transition: all .15s; box-shadow: 0 2px 10px rgba(55,217,154,.28);
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all .15s;
+  box-shadow: 0 2px 10px rgba(55,217,154,.28);
 }
-#skills-new-btn:hover { background: var(--accent-2); transform: scale(1.08); }
+#skills-new-btn:hover {
+  background: var(--accent-2);
+  transform: scale(1.08);
+}
 
-#skills-search-box { padding: 0 18px 12px; flex-shrink: 0; }
+#skills-search-box {
+  padding: 0 18px 12px;
+  flex-shrink: 0;
+}
 #skills-search-input {
-  width: 100%; height: 34px; border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface-2); font-family: var(--font-ui); font-size: 12.5px;
-  color: var(--text); padding: 0 13px; outline: none; transition: border .12s;
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  color: var(--text);
+  padding: 0 13px;
+  outline: none;
+  transition: border .12s;
 }
-#skills-search-input:focus { border-color: var(--accent-line); }
-#skills-search-input::placeholder { color: var(--text-3); }
+#skills-search-input:focus {
+  border-color: var(--accent-line);
+}
+#skills-search-input::placeholder {
+  color: var(--text-3);
+}
 
-#skills-list { flex: 1; overflow-y: auto; }
-.skills-empty { padding: 34px 22px; text-align: center; color: var(--text-3); font-size: 12.5px; line-height: 1.7; }
-.skills-empty strong { color: var(--accent); }
+#skills-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.skills-empty {
+  padding: 34px 22px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.skills-empty strong {
+  color: var(--accent);
+}
 
 .skill-item {
-  padding: 12px 18px; border-bottom: 1px solid var(--border-soft);
-  cursor: pointer; transition: background .1s; border-left: 2px solid transparent;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: background .1s;
+  border-left: 2px solid transparent;
 }
-.skill-item:hover { background: var(--surface-2); }
-.skill-item.active { background: var(--surface-2); border-left-color: var(--accent); }
-.skill-item-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.skill-item:hover {
+  background: var(--surface-2);
+}
+.skill-item.active {
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+.skill-item-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
 .skill-item-name {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  color: var(--accent); flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
 }
-.skill-item-title { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.skill-item.active .skill-item-title { color: var(--accent); }
-.skill-item-desc { font-size: 11.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 5px; }
-.skill-item-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.skill-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.skill-item.active .skill-item-title {
+  color: var(--accent);
+}
+.skill-item-desc {
+  font-size: 11.5px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 5px;
+}
+.skill-item-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
 
 /* ── Editor column ── */
-#skills-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#skills-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 #skills-editor-empty {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 14px; color: var(--text-3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--text-3);
 }
 #skills-editor-empty-mark {
-  width: 66px; height: 66px; display: grid; place-items: center;
-  color: var(--text-4); border: 1px dashed var(--border-mid); border-radius: 18px;
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  color: var(--text-4);
+  border: 1px dashed var(--border-mid);
+  border-radius: 18px;
 }
-#skills-editor-empty-mark .ico { width: 28px; height: 28px; }
-#skills-editor-empty-text { font-size: 14px; }
+#skills-editor-empty-mark .ico {
+  width: 28px;
+  height: 28px;
+}
+#skills-editor-empty-text {
+  font-size: 14px;
+}
 
-#skills-editor-form { display: none; flex-direction: column; flex: 1; overflow: hidden; }
-#skills-editor-form.visible { display: flex; }
+#skills-editor-form {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+#skills-editor-form.visible {
+  display: flex;
+}
 
 #skill-head {
-  display: flex; align-items: center; gap: 10px;
-  padding: 16px 20px 10px; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 10px;
+  flex-shrink: 0;
 }
 #skill-title-input {
-  flex: 1; border: none; outline: none; background: transparent;
-  font-family: var(--font-ui); font-weight: 700; font-size: 22px;
-  letter-spacing: -.02em; color: var(--text);
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -.02em;
+  color: var(--text);
 }
-#skill-title-input::placeholder { color: var(--text-4); }
+#skill-title-input::placeholder {
+  color: var(--text-4);
+}
 #skill-name-badge {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  color: var(--accent); background: var(--accent-dim);
-  border: 1px solid var(--accent-line); padding: 3px 9px;
-  border-radius: var(--r-sm); flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-line);
+  padding: 3px 9px;
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
 }
 
 #skill-toolbar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 20px 10px; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px 10px;
+  flex-shrink: 0;
 }
 #skill-name-field {
-  display: flex; align-items: center; gap: 5px;
-  height: 30px; border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface-2); padding: 0 10px; transition: border .12s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  padding: 0 10px;
+  transition: border .12s;
 }
-#skill-name-field:focus-within { border-color: var(--accent-line); }
-#skill-name-prefix { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--accent); }
+#skill-name-field:focus-within {
+  border-color: var(--accent-line);
+}
+#skill-name-prefix {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
 #skill-name-input {
-  width: 150px; border: none; outline: none; background: transparent;
-  font-family: var(--font-mono); font-size: 12px; color: var(--text);
+  width: 150px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
 }
-#skill-name-input::placeholder { color: var(--text-3); }
+#skill-name-input::placeholder {
+  color: var(--text-3);
+}
 
 #skill-tags-input {
-  flex: 1; height: 30px; border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface-2); font-family: var(--font-ui); font-size: 12px;
-  color: var(--text); padding: 0 9px; outline: none;
+  flex: 1;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
 }
-#skill-tags-input:focus { border-color: var(--accent-line); }
-#skill-tags-input::placeholder { color: var(--text-3); }
+#skill-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#skill-tags-input::placeholder {
+  color: var(--text-3);
+}
 
 #skill-desc-row {
-  padding: 0 20px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  padding: 0 20px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 #skill-desc-input {
-  width: 100%; height: 30px; border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface-2); font-family: var(--font-ui); font-size: 12px;
-  color: var(--text-2); padding: 0 10px; outline: none;
+  width: 100%;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-2);
+  padding: 0 10px;
+  outline: none;
 }
-#skill-desc-input:focus { border-color: var(--accent-line); }
-#skill-desc-input::placeholder { color: var(--text-3); }
+#skill-desc-input:focus {
+  border-color: var(--accent-line);
+}
+#skill-desc-input::placeholder {
+  color: var(--text-3);
+}
 
-#skill-body { flex: 1; display: flex; min-height: 0; overflow: hidden; }
-#skill-content-textarea {
-  flex: 1; border: none; outline: none; resize: none;
-  padding: 20px; font-family: var(--font-mono); font-size: 13px;
-  line-height: 1.8; color: var(--text); background: var(--surface); tab-size: 2;
+#skill-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
 }
-#skill-content-textarea::placeholder { color: var(--text-3); }
+#skill-content-textarea {
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  background: var(--surface);
+  tab-size: 2;
+}
+#skill-content-textarea::placeholder {
+  color: var(--text-3);
+}
 
 #skill-preview {
-  flex: 1; display: none; padding: 20px 28px; overflow-y: auto;
-  font-size: 14px; line-height: 1.75; color: var(--text); background: var(--surface);
+  flex: 1;
+  display: none;
+  padding: 20px 28px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text);
+  background: var(--surface);
 }
-#skill-preview.visible { display: block; }
-#skill-preview h1, #skill-preview h2, #skill-preview h3 { font-weight: 700; margin: 20px 0 8px; }
-#skill-preview code { font-family: var(--font-mono); background: var(--surface-3); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--accent); }
-#skill-preview pre { background: var(--surface-2); padding: 14px; border-radius: var(--r-sm); overflow-x: auto; margin: 12px 0; border: 1px solid var(--border); }
-#skill-preview pre code { background: none; padding: 0; color: var(--text); }
-#skill-preview blockquote { border-left: 3px solid var(--accent); padding-left: 15px; color: var(--text-2); margin: 10px 0; }
-#skill-preview ul, #skill-preview ol { padding-left: 22px; margin: 8px 0; }
+#skill-preview.visible {
+  display: block;
+}
+#skill-preview h1,
+#skill-preview h2,
+#skill-preview h3 {
+  font-weight: 700;
+  margin: 20px 0 8px;
+}
+#skill-preview code {
+  font-family: var(--font-mono);
+  background: var(--surface-3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--accent);
+}
+#skill-preview pre {
+  background: var(--surface-2);
+  padding: 14px;
+  border-radius: var(--r-sm);
+  overflow-x: auto;
+  margin: 12px 0;
+  border: 1px solid var(--border);
+}
+#skill-preview pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+#skill-preview blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 15px;
+  color: var(--text-2);
+  margin: 10px 0;
+}
+#skill-preview ul,
+#skill-preview ol {
+  padding-left: 22px;
+  margin: 8px 0;
+}
 
 </style>
-<style>
+    <style>
 /* ════ Diagrams mode ════ */
-#mode-diagrams { background: var(--bg); }
+#mode-diagrams {
+  background: var(--bg);
+}
 
 /* ── List column ── */
 #diag-col {
@@ -2019,21 +3292,48 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 10px;
   flex-shrink: 0;
 }
-#diag-col-title { font-size: 18px; font-weight: 700; letter-spacing: -.02em; color: var(--text); flex: 1; }
-#diag-new-btn {
-  width: 30px; height: 30px;
-  border: none; border-radius: var(--r-sm);
-  background: var(--accent); color: var(--on-accent);
-  font-size: 19px; line-height: 1;
-  cursor: pointer; display: grid; place-items: center;
-  flex-shrink: 0;
-  transition: all .15s; box-shadow: 0 2px 10px rgba(55,217,154,.28);
+#diag-col-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  flex: 1;
 }
-#diag-new-btn:hover { background: var(--accent-2); transform: scale(1.08); }
+#diag-new-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all .15s;
+  box-shadow: 0 2px 10px rgba(55,217,154,.28);
+}
+#diag-new-btn:hover {
+  background: var(--accent-2);
+  transform: scale(1.08);
+}
 
-#diag-list { flex: 1; overflow-y: auto; }
-.diag-empty { padding: 34px 22px; text-align: center; color: var(--text-3); font-size: 12.5px; line-height: 1.7; }
-.diag-empty strong { color: var(--accent); }
+#diag-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.diag-empty {
+  padding: 34px 22px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.diag-empty strong {
+  color: var(--accent);
+}
 
 .diag-item {
   padding: 12px 18px;
@@ -2042,125 +3342,267 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: background .1s;
   border-left: 2px solid transparent;
 }
-.diag-item:hover { background: var(--surface-2); }
-.diag-item.active { background: var(--surface-2); border-left-color: var(--accent); }
-.diag-item.active .diag-item-title { color: var(--accent); }
-.diag-item-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.diag-item-preview { font-size: 11px; font-family: var(--font-mono); color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diag-item:hover {
+  background: var(--surface-2);
+}
+.diag-item.active {
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+.diag-item.active .diag-item-title {
+  color: var(--accent);
+}
+.diag-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diag-item-preview {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ── Editor column ── */
-#diag-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#diag-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 
 #diag-editor-empty {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 14px; color: var(--text-3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--text-3);
 }
 #diag-editor-empty-mark {
-  width: 66px; height: 66px; display: grid; place-items: center; font-size: 28px;
-  color: var(--text-4); border: 1px dashed var(--border-mid); border-radius: 18px;
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  color: var(--text-4);
+  border: 1px dashed var(--border-mid);
+  border-radius: 18px;
 }
-#diag-editor-empty-text { font-size: 14px; }
+#diag-editor-empty-text {
+  font-size: 14px;
+}
 
-#diag-editor-form { display: none; flex-direction: column; flex: 1; overflow: hidden; }
-#diag-editor-form.visible { display: flex; }
+#diag-editor-form {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+#diag-editor-form.visible {
+  display: flex;
+}
 
 #diag-head {
-  display: flex; align-items: center; gap: 10px;
-  padding: 16px 20px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 #diag-title-input {
-  flex: 1; border: none; outline: none; background: transparent;
-  font-family: var(--font-ui); font-weight: 700; font-size: 20px;
-  letter-spacing: -.02em; color: var(--text);
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -.02em;
+  color: var(--text);
 }
-#diag-title-input::placeholder { color: var(--text-4); }
+#diag-title-input::placeholder {
+  color: var(--text-4);
+}
 #diag-id-badge {
-  font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
-  background: var(--surface-2); border: 1px solid var(--border);
-  padding: 3px 8px; border-radius: var(--r-sm); flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
 }
-#diag-head-actions { display: flex; gap: 7px; flex-shrink: 0; }
+#diag-head-actions {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
 
 #diag-body {
-  flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ── Preview — tela cheia por padrão ── */
 #diag-preview-col {
-  flex: 1; min-height: 0; overflow: auto;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
   background: var(--surface-2);
-  display: flex; align-items: flex-start; justify-content: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
   padding: 28px;
 }
-#diag-preview { width: 100%; }
-#diag-preview svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+#diag-preview {
+  width: 100%;
+}
+#diag-preview svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
 
 /* ── Source — colapsável, fechado por padrão ── */
 #diag-source-col {
   flex-shrink: 0;
   border-top: 1px solid var(--border);
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   max-height: 38px; /* header only when collapsed */
   overflow: hidden;
   transition: max-height .25s ease;
 }
-#diag-source-col.open { max-height: 260px; }
+#diag-source-col.open {
+  max-height: 260px;
+}
 
 #diag-source-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 16px; cursor: pointer;
-  font-size: 11px; font-weight: 600; letter-spacing: .04em;
-  color: var(--text-3); flex-shrink: 0; user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--text-3);
+  flex-shrink: 0;
+  user-select: none;
 }
-#diag-source-header:hover { color: var(--text-2); background: var(--surface-3); }
-#diag-source-toggle { font-size: 10px; transition: transform .2s; }
-#diag-source-col.open #diag-source-toggle { transform: rotate(90deg); }
+#diag-source-header:hover {
+  color: var(--text-2);
+  background: var(--surface-3);
+}
+#diag-source-toggle {
+  font-size: 10px;
+  transition: transform .2s;
+}
+#diag-source-col.open #diag-source-toggle {
+  transform: rotate(90deg);
+}
 #diag-docs-link {
-  margin-left: auto; color: var(--accent-2);
-  text-decoration: none; font-size: 11px;
+  margin-left: auto;
+  color: var(--accent-2);
+  text-decoration: none;
+  font-size: 11px;
 }
-#diag-docs-link:hover { text-decoration: underline; }
+#diag-docs-link:hover {
+  text-decoration: underline;
+}
 
 #diag-source {
-  flex: 1; border: none; outline: none; resize: none;
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
   padding: 14px 18px;
-  font-family: var(--font-mono); font-size: 12px;
-  line-height: 1.7; color: var(--text); background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--surface);
   tab-size: 2;
 }
-#diag-source::placeholder { color: var(--text-3); }
+#diag-source::placeholder {
+  color: var(--text-3);
+}
 
 .diag-error {
-  padding: 16px; background: rgba(251,113,133,.08);
-  border: 1px solid rgba(251,113,133,.25); border-radius: var(--r-sm);
-  color: var(--cat-security); font-size: 12px; line-height: 1.6;
+  padding: 16px;
+  background: rgba(251,113,133,.08);
+  border: 1px solid rgba(251,113,133,.25);
+  border-radius: var(--r-sm);
+  color: var(--cat-security);
+  font-size: 12px;
+  line-height: 1.6;
 }
-.diag-error code { font-family: var(--font-mono); font-size: 11px; }
+.diag-error code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
 
 /* ── Zoom bar ── */
-#diag-preview-col { position: relative; }
+#diag-preview-col {
+  position: relative;
+}
 
 #diag-zoom-bar {
-  position: absolute; top: 12px; right: 12px; z-index: 10;
-  display: flex; align-items: center; gap: 4px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r-sm); padding: 4px 6px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 4px 6px;
   box-shadow: 0 2px 8px rgba(0,0,0,.25);
 }
 #diag-zoom-label {
-  font-size: 11px; font-family: var(--font-mono);
-  color: var(--text-3); min-width: 36px; text-align: center;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  min-width: 36px;
+  text-align: center;
 }
 .diag-zoom-btn {
-  width: 24px; height: 24px; border: none; border-radius: 4px;
-  background: transparent; color: var(--text-2);
-  cursor: pointer; display: grid; place-items: center; font-size: 13px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
   transition: background .1s, color .1s;
 }
-.diag-zoom-btn:hover { background: var(--surface-2); color: var(--text); }
+.diag-zoom-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
 
 </style>
-<style>
+    <style>
 /* ════ Kanban ════ */
 
 #mode-tasks {
@@ -2213,9 +3655,15 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border-radius: 50%;
   flex-shrink: 0;
 }
-.kanban-col-dot[data-col="todo"]        { background: var(--text-3); }
-.kanban-col-dot[data-col="in-progress"] { background: var(--cat-entry); }
-.kanban-col-dot[data-col="done"]        { background: var(--accent); }
+.kanban-col-dot[data-col="todo"] {
+  background: var(--text-3);
+}
+.kanban-col-dot[data-col="in-progress"] {
+  background: var(--cat-entry);
+}
+.kanban-col-dot[data-col="done"] {
+  background: var(--accent);
+}
 
 .kanban-col-title {
   font-size: 0.8125rem;
@@ -2427,7 +3875,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text);
   font-family: var(--font-ui);
 }
-#task-title-input::placeholder { color: var(--text-4); }
+#task-title-input::placeholder {
+  color: var(--text-4);
+}
 
 #task-status-select {
   font-size: 0.78rem;
@@ -2447,7 +3897,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border-radius: var(--r-xs);
   transition: color 0.12s;
 }
-#task-modal-close:hover { color: var(--text); }
+#task-modal-close:hover {
+  color: var(--text);
+}
 
 #task-modal-body {
   flex: 1;
@@ -2495,7 +3947,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   line-height: 1.55;
   transition: border-color 0.12s;
 }
-#task-desc-textarea:focus { border-color: var(--accent-line); }
+#task-desc-textarea:focus {
+  border-color: var(--accent-line);
+}
 
 /* metadados: coluna vertical à direita */
 .task-meta-row {
@@ -2520,7 +3974,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: border-color 0.12s;
   width: 100%;
 }
-#task-due-input:focus { border-color: var(--accent-line); }
+#task-due-input:focus {
+  border-color: var(--accent-line);
+}
 
 #task-note-wrap {
   display: flex;
@@ -2531,7 +3987,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: border-color 0.12s;
   overflow: hidden;
 }
-#task-note-wrap:focus-within { border-color: var(--accent-line); }
+#task-note-wrap:focus-within {
+  border-color: var(--accent-line);
+}
 
 #task-note-input {
   flex: 1;
@@ -2543,8 +4001,12 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   font-family: var(--font-ui);
   padding: 6px 10px;
 }
-#task-note-input::placeholder { color: var(--text-4); }
-#task-note-input.has-link { color: var(--accent); }
+#task-note-input::placeholder {
+  color: var(--text-4);
+}
+#task-note-input.has-link {
+  color: var(--accent);
+}
 
 #task-note-clear {
   border: none;
@@ -2556,7 +4018,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   align-items: center;
   transition: color 0.12s;
 }
-#task-note-clear:hover { color: var(--text); }
+#task-note-clear:hover {
+  color: var(--text);
+}
 
 #task-note-dropdown {
   position: fixed;
@@ -2569,7 +4033,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   overflow-y: auto;
   display: none;
 }
-#task-note-dropdown.open { display: block; }
+#task-note-dropdown.open {
+  display: block;
+}
 
 .note-search-item {
   padding: 7px 12px;
@@ -2601,7 +4067,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 8px;
 }
 
-.task-footer-spacer { flex: 1; }
+.task-footer-spacer {
+  flex: 1;
+}
 
 /* ── Empty state coluna ── */
 .kanban-col-empty {
@@ -2613,7 +4081,7 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 </style>
-<style>
+    <style>
 /* ════ Mocks ════ */
 
 #mode-mocks {
@@ -2717,8 +4185,12 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border-radius: var(--r-sm);
   transition: background 0.1s;
 }
-.mocks-col-item:hover { background: var(--surface-3); }
-.mocks-col-item.active { background: var(--accent-dim); }
+.mocks-col-item:hover {
+  background: var(--surface-3);
+}
+.mocks-col-item.active {
+  background: var(--accent-dim);
+}
 
 .mocks-col-item-inner {
   display: flex;
@@ -2753,7 +4225,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   text-overflow: ellipsis;
   transition: color 0.12s;
 }
-.mocks-col-item.active .mocks-col-name { color: var(--accent); }
+.mocks-col-item.active .mocks-col-name {
+  color: var(--accent);
+}
 
 .mocks-col-count {
   font-size: 0.65rem;
@@ -2771,7 +4245,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 2px;
   padding-right: 5px;
 }
-.mocks-col-item:hover .mocks-col-actions { display: flex; }
+.mocks-col-item:hover .mocks-col-actions {
+  display: flex;
+}
 
 .mocks-col-action-btn {
   width: 20px;
@@ -2786,9 +4262,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   justify-content: center;
   transition: color 0.12s, background 0.12s;
 }
-.mocks-col-action-btn:hover        { color: var(--text-2); background: var(--surface-4); }
-.mocks-col-action-btn.warn:hover   { color: #f59e0b; }
-.mocks-col-action-btn.danger:hover { color: #fb7185; }
+.mocks-col-action-btn:hover {
+  color: var(--text-2);
+  background: var(--surface-4);
+}
+.mocks-col-action-btn.warn:hover {
+  color: #f59e0b;
+}
+.mocks-col-action-btn.danger:hover {
+  color: #fb7185;
+}
 
 /* ── Inline new/rename inputs ── */
 
@@ -2814,7 +4297,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   padding: 2px 4px;
   min-width: 0;
 }
-.mocks-col-new-input::placeholder { color: var(--text-4); }
+.mocks-col-new-input::placeholder {
+  color: var(--text-4);
+}
 
 .mocks-col-rename-input {
   flex: 1;
@@ -2835,7 +4320,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
   transition: background 0.12s;
 }
-.mocks-col-new-ok:hover { background: var(--accent-2); }
+.mocks-col-new-ok:hover {
+  background: var(--accent-2);
+}
 
 /* ── Lista de mocks ── */
 
@@ -2857,7 +4344,11 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   text-align: center;
   line-height: 1.55;
 }
-.mocks-list-empty .ico { width: 22px; height: 22px; opacity: 0.35; }
+.mocks-list-empty .ico {
+  width: 22px;
+  height: 22px;
+  opacity: 0.35;
+}
 
 /* ── Separadores de grupo ── */
 
@@ -2872,7 +4363,8 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 .mocks-group-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, transparent, var(--border) 30%, var(--border) 70%, transparent);
+  background: linear-gradient(to right, transparent, var(--border) 30%,
+    var(--border) 70%, transparent);
 }
 
 .mocks-group-label {
@@ -2897,7 +4389,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: background 0.1s, box-shadow 0.1s;
   min-width: 0;
 }
-.mocks-item:hover { background: var(--surface-2); }
+.mocks-item:hover {
+  background: var(--surface-2);
+}
 .mocks-item.active {
   background: var(--surface-2);
   box-shadow: inset 2px 0 0 var(--accent);
@@ -2919,12 +4413,30 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   text-align: center;
 }
 
-.method-get    { color: var(--accent); background: var(--accent-dim); }
-.method-post   { color: #60a5fa;       background: rgba(96,165,250,.13); }
-.method-put    { color: #f59e0b;       background: rgba(245,158,11,.12); }
-.method-patch  { color: #a78bfa;       background: rgba(167,139,250,.13); }
-.method-delete { color: #fb7185;       background: rgba(251,113,133,.13); }
-.method-gray   { color: var(--text-3); background: var(--surface-3); }
+.method-get {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.method-post {
+  color: #60a5fa;
+  background: rgba(96,165,250,.13);
+}
+.method-put {
+  color: #f59e0b;
+  background: rgba(245,158,11,.12);
+}
+.method-patch {
+  color: #a78bfa;
+  background: rgba(167,139,250,.13);
+}
+.method-delete {
+  color: #fb7185;
+  background: rgba(251,113,133,.13);
+}
+.method-gray {
+  color: var(--text-3);
+  background: var(--surface-3);
+}
 
 .mock-item-info {
   display: flex;
@@ -2993,8 +4505,13 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 @keyframes pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(55,217,154,.5); }
-  50%       { box-shadow: 0 0 0 5px rgba(55,217,154,0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(55,217,154,.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(55,217,154,0);
+  }
 }
 
 .mocks-server-url {
@@ -3101,11 +4618,26 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 /* Cor do badge de método no cabeçalho */
-#mock-id-badge[data-method="GET"]     { color: var(--accent); background: var(--accent-dim); }
-#mock-id-badge[data-method="POST"]    { color: #60a5fa;       background: rgba(96,165,250,.12); }
-#mock-id-badge[data-method="PUT"]     { color: #f59e0b;       background: rgba(245,158,11,.12); }
-#mock-id-badge[data-method="PATCH"]   { color: #a78bfa;       background: rgba(167,139,250,.12); }
-#mock-id-badge[data-method="DELETE"]  { color: #fb7185;       background: rgba(251,113,133,.12); }
+#mock-id-badge[data-method="GET"] {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+#mock-id-badge[data-method="POST"] {
+  color: #60a5fa;
+  background: rgba(96,165,250,.12);
+}
+#mock-id-badge[data-method="PUT"] {
+  color: #f59e0b;
+  background: rgba(245,158,11,.12);
+}
+#mock-id-badge[data-method="PATCH"] {
+  color: #a78bfa;
+  background: rgba(167,139,250,.12);
+}
+#mock-id-badge[data-method="DELETE"] {
+  color: #fb7185;
+  background: rgba(251,113,133,.12);
+}
 
 #mock-head-actions {
   display: flex;
@@ -3143,8 +4675,12 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: border-color 0.15s;
 }
 .mock-input:focus,
-.mock-select:focus { border-color: var(--accent-line); }
-.mock-input::placeholder { color: var(--text-4); }
+.mock-select:focus {
+  border-color: var(--accent-line);
+}
+.mock-input::placeholder {
+  color: var(--text-4);
+}
 
 #mock-path-input {
   font-family: var(--font-mono);
@@ -3174,11 +4710,21 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   cursor: pointer;
   min-width: 90px;
 }
-#mock-method-select[data-method="GET"]    { color: var(--accent); }
-#mock-method-select[data-method="POST"]   { color: #60a5fa; }
-#mock-method-select[data-method="PUT"]    { color: #f59e0b; }
-#mock-method-select[data-method="PATCH"]  { color: #a78bfa; }
-#mock-method-select[data-method="DELETE"] { color: #fb7185; }
+#mock-method-select[data-method="GET"] {
+  color: var(--accent);
+}
+#mock-method-select[data-method="POST"] {
+  color: #60a5fa;
+}
+#mock-method-select[data-method="PUT"] {
+  color: #f59e0b;
+}
+#mock-method-select[data-method="PATCH"] {
+  color: #a78bfa;
+}
+#mock-method-select[data-method="DELETE"] {
+  color: #fb7185;
+}
 
 /* ── Script editor (CodeMirror) ── */
 
@@ -3230,23 +4776,58 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 /* ── Sintaxe JS embutida (paleta one-dark, sem CDN) ── */
-.mock-field-script .cm-keyword               { color: #c678dd; }
-.mock-field-script .cm-operator              { color: #c678dd; }
-.mock-field-script .cm-string               { color: #98c379; }
-.mock-field-script .cm-string-2             { color: #98c379; }
-.mock-field-script .cm-number               { color: #d19a66; }
-.mock-field-script .cm-atom                 { color: #d19a66; }
-.mock-field-script .cm-comment              { color: #5c6370; font-style: italic; }
-.mock-field-script .cm-def                  { color: #61afef; }
-.mock-field-script .cm-variable             { color: #e06c75; }
-.mock-field-script .cm-variable-2           { color: #abb2bf; }
-.mock-field-script .cm-property             { color: #e5c07b; }
-.mock-field-script .cm-qualifier            { color: #e5c07b; }
-.mock-field-script .cm-builtin              { color: #56b6c2; }
-.mock-field-script .cm-tag                  { color: #e06c75; }
-.mock-field-script .cm-bracket              { color: #abb2bf; }
-.mock-field-script .cm-punctuation          { color: #abb2bf; }
-.mock-field-script .cm-meta                 { color: #abb2bf; }
+.mock-field-script .cm-keyword {
+  color: #c678dd;
+}
+.mock-field-script .cm-operator {
+  color: #c678dd;
+}
+.mock-field-script .cm-string {
+  color: #98c379;
+}
+.mock-field-script .cm-string-2 {
+  color: #98c379;
+}
+.mock-field-script .cm-number {
+  color: #d19a66;
+}
+.mock-field-script .cm-atom {
+  color: #d19a66;
+}
+.mock-field-script .cm-comment {
+  color: #5c6370;
+  font-style: italic;
+}
+.mock-field-script .cm-def {
+  color: #61afef;
+}
+.mock-field-script .cm-variable {
+  color: #e06c75;
+}
+.mock-field-script .cm-variable-2 {
+  color: #abb2bf;
+}
+.mock-field-script .cm-property {
+  color: #e5c07b;
+}
+.mock-field-script .cm-qualifier {
+  color: #e5c07b;
+}
+.mock-field-script .cm-builtin {
+  color: #56b6c2;
+}
+.mock-field-script .cm-tag {
+  color: #e06c75;
+}
+.mock-field-script .cm-bracket {
+  color: #abb2bf;
+}
+.mock-field-script .cm-punctuation {
+  color: #abb2bf;
+}
+.mock-field-script .cm-meta {
+  color: #abb2bf;
+}
 
 #mock-script-label-row {
   display: flex;
@@ -3295,9 +4876,13 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   tab-size: 2;
   caret-color: var(--accent);
 }
-#mock-script-textarea:focus { border-color: var(--accent-line); }
+#mock-script-textarea:focus {
+  border-color: var(--accent-line);
+}
 /* CodeMirror esconde o textarea original — não quebramos o layout */
-#mock-script-textarea + .CodeMirror { flex: 1; }
+#mock-script-textarea + .CodeMirror {
+  flex: 1;
+}
 
 /* ────────────────────────────
    Painel de teste
@@ -3312,7 +4897,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
   transition: border-color 0.12s;
 }
-#mock-test-panel:focus-within { border-color: var(--border-mid); }
+#mock-test-panel:focus-within {
+  border-color: var(--border-mid);
+}
 
 .test-panel-head {
   display: flex;
@@ -3373,7 +4960,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   outline: none;
   transition: border-color 0.12s;
 }
-.test-param-input:focus { border-color: var(--accent-line); }
+.test-param-input:focus {
+  border-color: var(--accent-line);
+}
 
 #btn-test-run {
   margin: 8px 12px 10px;
@@ -3400,8 +4989,14 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   padding: 2px 8px;
   border-radius: 4px;
 }
-.test-status-ok  { color: var(--accent); background: var(--accent-dim); }
-.test-status-err { color: #fb7185;       background: rgba(251,113,133,.13); }
+.test-status-ok {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.test-status-err {
+  color: #fb7185;
+  background: rgba(251,113,133,.13);
+}
 
 .test-ms {
   font-size: 0.7rem;
@@ -3426,24 +5021,26 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 </style>
-<style>
+    <style>
 /* ════ Favorites / Bookmarks Manager ════ */
 
 :root {
-  --fav-site:      #60a5fa;
-  --fav-slack:     #c084fc;
-  --fav-grid:      #34d399;
-  --fav-dash:      #fb923c;
-  --fav-github:    #e2e8f0;
-  --fav-site-bg:   rgba(96,165,250,.1);
-  --fav-slack-bg:  rgba(192,132,252,.1);
-  --fav-grid-bg:   rgba(52,211,153,.1);
-  --fav-dash-bg:   rgba(251,146,60,.1);
+  --fav-site: #60a5fa;
+  --fav-slack: #c084fc;
+  --fav-grid: #34d399;
+  --fav-dash: #fb923c;
+  --fav-github: #e2e8f0;
+  --fav-site-bg: rgba(96,165,250,.1);
+  --fav-slack-bg: rgba(192,132,252,.1);
+  --fav-grid-bg: rgba(52,211,153,.1);
+  --fav-dash-bg: rgba(251,146,60,.1);
   --fav-github-bg: rgba(226,232,240,.08);
 }
 
 /* ── Layout ── */
-#mode-favorites { flex-direction: row; }
+#mode-favorites {
+  flex-direction: row;
+}
 
 /* ── Sidebar ── */
 #fav-sidebar {
@@ -3458,7 +5055,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 4px;
 }
 
-.fav-sidebar-section { padding: 0 10px; }
+.fav-sidebar-section {
+  padding: 0 10px;
+}
 
 .fav-sidebar-label {
   font-family: var(--font-mono);
@@ -3484,7 +5083,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border: 1px solid transparent;
 }
 
-.fav-cat-item:hover { background: var(--surface-2); color: var(--text); }
+.fav-cat-item:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
 
 .fav-cat-item.active {
   color: var(--accent);
@@ -3492,8 +5094,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border-color: var(--accent-line);
 }
 
-.fav-cat-left    { display: flex; align-items: center; gap: 7px; }
-.fav-cat-icon    { font-size: 12px; opacity: .8; line-height: 1; }
+.fav-cat-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.fav-cat-icon {
+  font-size: 12px;
+  opacity: .8;
+  line-height: 1;
+}
 
 .fav-cat-count {
   font-family: var(--font-mono);
@@ -3501,7 +5111,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text-4);
 }
 
-.fav-cat-item.active .fav-cat-count { color: var(--accent); opacity: .7; }
+.fav-cat-item.active .fav-cat-count {
+  color: var(--accent);
+  opacity: .7;
+}
 
 .fav-sidebar-divider {
   height: 1px;
@@ -3529,7 +5142,8 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: all .12s;
 }
 
-.fav-tag:hover, .fav-tag.active {
+.fav-tag:hover,
+.fav-tag.active {
   color: var(--accent);
   border-color: var(--accent-line);
   background: var(--accent-dim);
@@ -3583,7 +5197,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: border-color .15s, background .15s;
 }
 
-#fav-search::placeholder { color: var(--text-4); }
+#fav-search::placeholder {
+  color: var(--text-4);
+}
 
 #fav-search:focus {
   border-color: var(--border-hi);
@@ -3604,8 +5220,12 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   line-height: 0;
 }
 
-#fav-search-clear:hover { color: var(--text); }
-#fav-search-clear.visible { display: flex; }
+#fav-search-clear:hover {
+  color: var(--text);
+}
+#fav-search-clear.visible {
+  display: flex;
+}
 
 #fav-add-btn {
   display: flex;
@@ -3625,7 +5245,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   white-space: nowrap;
 }
 
-#fav-add-btn:hover { background: var(--accent-2); transform: translateY(-1px); }
+#fav-add-btn:hover {
+  background: var(--accent-2);
+  transform: translateY(-1px);
+}
 
 .fav-add-kbd {
   font-family: var(--font-mono);
@@ -3658,7 +5281,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: all .13s;
 }
 
-.fav-type-tab:hover { background: var(--surface-2); color: var(--text-2); }
+.fav-type-tab:hover {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
 
 .fav-type-tab.active {
   background: var(--surface-2);
@@ -3687,7 +5313,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 /* ── Most visited section ── */
-#fav-most-visited { margin-bottom: 22px; }
+#fav-most-visited {
+  margin-bottom: 22px;
+}
 
 .fav-section-header {
   display: flex;
@@ -3735,15 +5363,27 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 .fav-featured-card::before {
   content: '';
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 3px;
 }
 
-.fav-featured-card[data-type="site"]::before   { background: var(--fav-site); }
-.fav-featured-card[data-type="slack"]::before  { background: var(--fav-slack); }
-.fav-featured-card[data-type="grid"]::before   { background: var(--fav-grid); }
-.fav-featured-card[data-type="dash"]::before   { background: var(--fav-dash); }
-.fav-featured-card[data-type="github"]::before { background: var(--fav-github); }
+.fav-featured-card[data-type="site"]::before {
+  background: var(--fav-site);
+}
+.fav-featured-card[data-type="slack"]::before {
+  background: var(--fav-slack);
+}
+.fav-featured-card[data-type="grid"]::before {
+  background: var(--fav-grid);
+}
+.fav-featured-card[data-type="dash"]::before {
+  background: var(--fav-dash);
+}
+.fav-featured-card[data-type="github"]::before {
+  background: var(--fav-github);
+}
 
 .fav-featured-card:hover {
   border-color: var(--border-hi);
@@ -3805,23 +5445,41 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 
 @keyframes favCardIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fav-card::before {
   content: '';
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 3px;
   border-radius: 1.5px 0 0 1.5px;
 }
 
-.fav-card[data-type="site"]::before   { background: var(--fav-site); }
-.fav-card[data-type="slack"]::before  { background: var(--fav-slack); }
-.fav-card[data-type="grid"]::before   { background: var(--fav-grid); }
-.fav-card[data-type="dash"]::before   { background: var(--fav-dash); }
-.fav-card[data-type="github"]::before { background: var(--fav-github); }
+.fav-card[data-type="site"]::before {
+  background: var(--fav-site);
+}
+.fav-card[data-type="slack"]::before {
+  background: var(--fav-slack);
+}
+.fav-card[data-type="grid"]::before {
+  background: var(--fav-grid);
+}
+.fav-card[data-type="dash"]::before {
+  background: var(--fav-dash);
+}
+.fav-card[data-type="github"]::before {
+  background: var(--fav-github);
+}
 
 .fav-card:hover {
   border-color: var(--border-hi);
@@ -3848,18 +5506,48 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
 }
 
-.fav-card[data-type="site"]   .fav-type-badge { background: var(--fav-site-bg);   color: var(--fav-site);   }
-.fav-card[data-type="slack"]  .fav-type-badge { background: var(--fav-slack-bg);  color: var(--fav-slack);  }
-.fav-card[data-type="grid"]   .fav-type-badge { background: var(--fav-grid-bg);   color: var(--fav-grid);   }
-.fav-card[data-type="dash"]   .fav-type-badge { background: var(--fav-dash-bg);   color: var(--fav-dash);   }
-.fav-card[data-type="github"] .fav-type-badge { background: var(--fav-github-bg); color: var(--fav-github); }
+.fav-card[data-type="site"] .fav-type-badge {
+  background: var(--fav-site-bg);
+  color: var(--fav-site);
+}
+.fav-card[data-type="slack"] .fav-type-badge {
+  background: var(--fav-slack-bg);
+  color: var(--fav-slack);
+}
+.fav-card[data-type="grid"] .fav-type-badge {
+  background: var(--fav-grid-bg);
+  color: var(--fav-grid);
+}
+.fav-card[data-type="dash"] .fav-type-badge {
+  background: var(--fav-dash-bg);
+  color: var(--fav-dash);
+}
+.fav-card[data-type="github"] .fav-type-badge {
+  background: var(--fav-github-bg);
+  color: var(--fav-github);
+}
 
 /* featured card type badge */
-.fav-featured-card[data-type="site"]   .fav-type-badge { background: var(--fav-site-bg);   color: var(--fav-site);   }
-.fav-featured-card[data-type="slack"]  .fav-type-badge { background: var(--fav-slack-bg);  color: var(--fav-slack);  }
-.fav-featured-card[data-type="grid"]   .fav-type-badge { background: var(--fav-grid-bg);   color: var(--fav-grid);   }
-.fav-featured-card[data-type="dash"]   .fav-type-badge { background: var(--fav-dash-bg);   color: var(--fav-dash);   }
-.fav-featured-card[data-type="github"] .fav-type-badge { background: var(--fav-github-bg); color: var(--fav-github); }
+.fav-featured-card[data-type="site"] .fav-type-badge {
+  background: var(--fav-site-bg);
+  color: var(--fav-site);
+}
+.fav-featured-card[data-type="slack"] .fav-type-badge {
+  background: var(--fav-slack-bg);
+  color: var(--fav-slack);
+}
+.fav-featured-card[data-type="grid"] .fav-type-badge {
+  background: var(--fav-grid-bg);
+  color: var(--fav-grid);
+}
+.fav-featured-card[data-type="dash"] .fav-type-badge {
+  background: var(--fav-dash-bg);
+  color: var(--fav-dash);
+}
+.fav-featured-card[data-type="github"] .fav-type-badge {
+  background: var(--fav-github-bg);
+  color: var(--fav-github);
+}
 
 .fav-card-actions {
   display: flex;
@@ -3869,11 +5557,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
 }
 
-.fav-card:hover .fav-card-actions { opacity: 1; }
+.fav-card:hover .fav-card-actions {
+  opacity: 1;
+}
 
 .fav-action-btn {
-  width: 24px; height: 24px;
-  display: flex; align-items: center; justify-content: center;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--r-xs);
   background: var(--surface-3);
   border: 1px solid var(--border);
@@ -3883,8 +5576,15 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
 }
 
-.fav-action-btn:hover         { color: var(--text); border-color: var(--border-hi); }
-.fav-action-btn.danger:hover  { color: #f87171; border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.08); }
+.fav-action-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+}
+.fav-action-btn.danger:hover {
+  color: #f87171;
+  border-color: rgba(248,113,113,.3);
+  background: rgba(248,113,113,.08);
+}
 
 .fav-card-title {
   font-size: 13px;
@@ -3946,7 +5646,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   transition: all .12s;
 }
 
-.fav-card-tag:hover { color: var(--accent); border-color: var(--accent-line); }
+.fav-card-tag:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
 
 .fav-card-meta {
   display: flex;
@@ -3955,8 +5658,15 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   flex-shrink: 0;
 }
 
-.fav-card-cat  { font-size: 10.5px; color: var(--text-4); }
-.fav-card-date { font-family: var(--font-mono); font-size: 9px; color: var(--text-4); }
+.fav-card-cat {
+  font-size: 10.5px;
+  color: var(--text-4);
+}
+.fav-card-date {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-4);
+}
 
 /* ── Search highlight ── */
 mark.fav-hl {
@@ -4038,9 +5748,21 @@ mark.fav-hl {
   text-align: center;
 }
 
-.fav-empty-icon    { color: var(--text-4); margin-bottom: 4px; }
-.fav-empty-title   { font-size: 15px; font-weight: 600; color: var(--text-2); }
-.fav-empty-hint    { font-size: 12.5px; color: var(--text-3); max-width: 280px; line-height: 1.6; }
+.fav-empty-icon {
+  color: var(--text-4);
+  margin-bottom: 4px;
+}
+.fav-empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.fav-empty-hint {
+  font-size: 12.5px;
+  color: var(--text-3);
+  max-width: 280px;
+  line-height: 1.6;
+}
 
 /* ════ Quick-Add Modal ════ */
 #fav-modal-overlay {
@@ -4055,7 +5777,9 @@ mark.fav-hl {
   z-index: 800;
 }
 
-#fav-modal-overlay.open { display: flex; }
+#fav-modal-overlay.open {
+  display: flex;
+}
 
 #fav-modal {
   width: 510px;
@@ -4069,15 +5793,29 @@ mark.fav-hl {
 }
 
 @keyframes favModalIn {
-  from { opacity: 0; transform: translateY(-14px) scale(.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* URL field border transitions to detected type color */
-#fav-modal[data-detected="site"]  #fav-modal-url { border-color: var(--fav-site);  }
-#fav-modal[data-detected="slack"] #fav-modal-url { border-color: var(--fav-slack); }
-#fav-modal[data-detected="grid"]  #fav-modal-url { border-color: var(--fav-grid);  }
-#fav-modal[data-detected="dash"]  #fav-modal-url { border-color: var(--fav-dash);  }
+#fav-modal[data-detected="site"] #fav-modal-url {
+  border-color: var(--fav-site);
+}
+#fav-modal[data-detected="slack"] #fav-modal-url {
+  border-color: var(--fav-slack);
+}
+#fav-modal[data-detected="grid"] #fav-modal-url {
+  border-color: var(--fav-grid);
+}
+#fav-modal[data-detected="dash"] #fav-modal-url {
+  border-color: var(--fav-dash);
+}
 
 .fav-modal-header {
   display: flex;
@@ -4094,8 +5832,11 @@ mark.fav-hl {
 }
 
 .fav-modal-close {
-  width: 26px; height: 26px;
-  display: flex; align-items: center; justify-content: center;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--r-sm);
   background: transparent;
   border: 1px solid transparent;
@@ -4105,7 +5846,11 @@ mark.fav-hl {
   line-height: 0;
 }
 
-.fav-modal-close:hover { background: var(--surface-3); border-color: var(--border); color: var(--text); }
+.fav-modal-close:hover {
+  background: var(--surface-3);
+  border-color: var(--border);
+  color: var(--text);
+}
 
 .fav-modal-body {
   padding: 15px 17px;
@@ -4136,12 +5881,22 @@ mark.fav-hl {
   transition: border-color .2s, background .15s;
 }
 
-.fav-field-input::placeholder { color: var(--text-4); }
-.fav-field-input:focus { border-color: var(--border-hi); background: var(--surface-2); }
+.fav-field-input::placeholder {
+  color: var(--text-4);
+}
+.fav-field-input:focus {
+  border-color: var(--border-hi);
+  background: var(--surface-2);
+}
 
-.fav-url-wrap { position: relative; }
+.fav-url-wrap {
+  position: relative;
+}
 
-#fav-modal-url { padding-right: 76px; transition: border-color .25s; }
+#fav-modal-url {
+  padding-right: 76px;
+  transition: border-color .25s;
+}
 
 .fav-url-detected {
   position: absolute;
@@ -4157,11 +5912,25 @@ mark.fav-hl {
   pointer-events: none;
 }
 
-.fav-url-detected.visible          { opacity: 1; }
-.fav-url-detected.visible.site     { background: var(--fav-site-bg);  color: var(--fav-site);  }
-.fav-url-detected.visible.slack    { background: var(--fav-slack-bg); color: var(--fav-slack); }
-.fav-url-detected.visible.grid     { background: var(--fav-grid-bg);  color: var(--fav-grid);  }
-.fav-url-detected.visible.dash     { background: var(--fav-dash-bg);  color: var(--fav-dash);  }
+.fav-url-detected.visible {
+  opacity: 1;
+}
+.fav-url-detected.visible.site {
+  background: var(--fav-site-bg);
+  color: var(--fav-site);
+}
+.fav-url-detected.visible.slack {
+  background: var(--fav-slack-bg);
+  color: var(--fav-slack);
+}
+.fav-url-detected.visible.grid {
+  background: var(--fav-grid-bg);
+  color: var(--fav-grid);
+}
+.fav-url-detected.visible.dash {
+  background: var(--fav-dash-bg);
+  color: var(--fav-dash);
+}
 
 /* Type selector */
 .fav-type-selector {
@@ -4187,13 +5956,36 @@ mark.fav-hl {
   transition: all .13s;
 }
 
-.fav-type-btn:hover { color: var(--text-2); border-color: var(--border-mid); }
+.fav-type-btn:hover {
+  color: var(--text-2);
+  border-color: var(--border-mid);
+}
 
-.fav-type-btn.active[data-t="site"]   { background: var(--fav-site-bg);   border-color: var(--fav-site);   color: var(--fav-site);   }
-.fav-type-btn.active[data-t="slack"]  { background: var(--fav-slack-bg);  border-color: var(--fav-slack);  color: var(--fav-slack);  }
-.fav-type-btn.active[data-t="grid"]   { background: var(--fav-grid-bg);   border-color: var(--fav-grid);   color: var(--fav-grid);   }
-.fav-type-btn.active[data-t="dash"]   { background: var(--fav-dash-bg);   border-color: var(--fav-dash);   color: var(--fav-dash);   }
-.fav-type-btn.active[data-t="github"] { background: var(--fav-github-bg); border-color: var(--fav-github); color: var(--fav-github); }
+.fav-type-btn.active[data-t="site"] {
+  background: var(--fav-site-bg);
+  border-color: var(--fav-site);
+  color: var(--fav-site);
+}
+.fav-type-btn.active[data-t="slack"] {
+  background: var(--fav-slack-bg);
+  border-color: var(--fav-slack);
+  color: var(--fav-slack);
+}
+.fav-type-btn.active[data-t="grid"] {
+  background: var(--fav-grid-bg);
+  border-color: var(--fav-grid);
+  color: var(--fav-grid);
+}
+.fav-type-btn.active[data-t="dash"] {
+  background: var(--fav-dash-bg);
+  border-color: var(--fav-dash);
+  color: var(--fav-dash);
+}
+.fav-type-btn.active[data-t="github"] {
+  background: var(--fav-github-bg);
+  border-color: var(--fav-github);
+  color: var(--fav-github);
+}
 
 /* Category selector */
 .fav-cat-sel {
@@ -4214,7 +6006,10 @@ mark.fav-hl {
   transition: all .12s;
 }
 
-.fav-cat-sel-btn:hover { color: var(--text-2); border-color: var(--border-mid); }
+.fav-cat-sel-btn:hover {
+  color: var(--text-2);
+  border-color: var(--border-mid);
+}
 
 .fav-cat-sel-btn.active {
   background: var(--accent-dim);
@@ -4237,7 +6032,9 @@ mark.fav-hl {
   transition: border-color .15s;
 }
 
-.fav-tags-wrap:focus-within { border-color: var(--border-hi); }
+.fav-tags-wrap:focus-within {
+  border-color: var(--border-hi);
+}
 
 .fav-tag-chip {
   display: flex;
@@ -4260,7 +6057,9 @@ mark.fav-hl {
   transition: color .1s;
 }
 
-.fav-tag-chip-rm:hover { color: var(--text); }
+.fav-tag-chip-rm:hover {
+  color: var(--text);
+}
 
 .fav-tags-input {
   border: none;
@@ -4273,7 +6072,9 @@ mark.fav-hl {
   flex: 1;
 }
 
-.fav-tags-input::placeholder { color: var(--text-4); }
+.fav-tags-input::placeholder {
+  color: var(--text-4);
+}
 
 .fav-modal-footer {
   display: flex;
@@ -4300,7 +6101,10 @@ mark.fav-hl {
   padding: 1px 5px;
 }
 
-.fav-modal-btns { display: flex; gap: 7px; }
+.fav-modal-btns {
+  display: flex;
+  gap: 7px;
+}
 
 .fav-btn-cancel {
   padding: 7px 14px;
@@ -4314,7 +6118,10 @@ mark.fav-hl {
   transition: all .13s;
 }
 
-.fav-btn-cancel:hover { background: var(--surface-2); color: var(--text); }
+.fav-btn-cancel:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
 
 .fav-btn-save {
   padding: 7px 18px;
@@ -4329,826 +6136,956 @@ mark.fav-hl {
   transition: all .13s;
 }
 
-.fav-btn-save:hover { background: var(--accent-2); transform: translateY(-1px); }
+.fav-btn-save:hover {
+  background: var(--accent-2);
+  transform: translateY(-1px);
+}
 
 </style>
-</head>
-<body>
-
-<!-- ════ Left rail — mode switcher ════ -->
-<nav id="rail">
-  <div id="rail-logo" title="docmap">◆</div>
-  <button class="rail-btn active" id="rail-map" onclick="setMode('map')" title="Mapa">
+  </head>
+  <body>
+    <!-- ════ Left rail — mode switcher ════ -->
+    <nav id="rail">
+      <div id="rail-logo" title="docmap">◆</div>
+      <button class="rail-btn active" id="rail-map" onclick="setMode('map')"
+        title="Mapa">
     <span class="rail-ico" data-icon="map"></span><span class="rail-lbl">Mapa</span>
   </button>
-  <button class="rail-btn" id="rail-notes" onclick="setMode('notes')" title="Notas">
+      <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
+        title="Notas">
     <span class="rail-ico" data-icon="notebook"></span><span class="rail-lbl">Notas</span>
   </button>
-  <button class="rail-btn" id="rail-macros" onclick="setMode('macros')" title="Macros">
+      <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
+        title="Macros">
     <span class="rail-ico" data-icon="bot"></span><span class="rail-lbl">Macros</span>
   </button>
-  <button class="rail-btn" id="rail-skills" onclick="setMode('skills')" title="Skills">
+      <button class="rail-btn" id="rail-skills" onclick="setMode('skills')"
+        title="Skills">
     <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skills</span>
   </button>
-  <button class="rail-btn" id="rail-diagrams" onclick="setMode('diagrams')" title="Diagramas">
+      <button class="rail-btn" id="rail-diagrams" onclick="setMode('diagrams')"
+        title="Diagramas">
     <span class="rail-ico" data-icon="git-branch"></span><span class="rail-lbl">Diag</span>
   </button>
-  <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')" title="Kanban">
+      <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')"
+        title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
   </button>
-  <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')" title="Mocks HTTP">
+      <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
+        title="Mocks HTTP">
     <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
   </button>
-  <button class="rail-btn" id="rail-favorites" onclick="setMode('favorites')" title="Favoritos">
+      <button class="rail-btn" id="rail-favorites"
+        onclick="setMode('favorites')" title="Favoritos">
     <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
   </button>
-  <div class="rail-spacer"></div>
-  <button class="rail-btn" id="rail-skill" onclick="copySkill()" title="Copiar skill da API para colar numa IA">
+      <div class="rail-spacer"></div>
+      <button class="rail-btn" id="rail-skill" onclick="copySkill()"
+        title="Copiar skill da API para colar numa IA">
     <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skill</span>
   </button>
-  <button class="rail-btn" id="rail-backup" onclick="downloadBackup()" title="Backup completo (notas, skills, diagramas, anotações)">
+      <button class="rail-btn" id="rail-backup" onclick="downloadBackup()"
+        title="Backup completo (notas, skills, diagramas, anotações)">
     <span class="rail-ico" data-icon="download"></span><span class="rail-lbl">Backup</span>
   </button>
-  <button class="rail-btn" id="rail-restore" onclick="triggerRestore()" title="Restaurar de um backup">
+      <button class="rail-btn" id="rail-restore" onclick="triggerRestore()"
+        title="Restaurar de um backup">
     <span class="rail-ico" data-icon="upload"></span><span class="rail-lbl">Restore</span>
   </button>
-</nav>
+    </nav>
 
-<!-- ════ Content ════ -->
-<div id="stage">
+    <!-- ════ Content ════ -->
+    <div id="stage">
+      <!-- Update banner -->
+      <div id="update-banner">
+        <span id="update-text"></span>
+        <button id="update-apply"
+          onclick="applyUpdate()">Atualizar agora</button>
+        <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
+      </div>
 
-  <!-- Update banner -->
-  <div id="update-banner">
-    <span id="update-text"></span>
-    <button id="update-apply" onclick="applyUpdate()">Atualizar agora</button>
-    <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
-  </div>
+      <!-- Topbar -->
+      <header id="topbar">
+        <div id="topbar-crumb">
+          <span id="topbar-mode">Mapa</span>
+          <span id="topbar-sep">/</span>
+          <span id="topbar-path">nenhuma pasta</span>
+        </div>
+        <div id="topbar-actions"></div>
+        <div id="search-wrap">
+          <span id="search-icon" data-icon="search"></span>
+          <input id="search-input" type="text"
+            placeholder="Buscar nos documentos…" autocomplete="off"
+            spellcheck="false" />
+          <div id="search-results"></div>
+        </div>
+        <button id="theme-toggle" title="Alternar tema"></button>
+      </header>
 
-  <!-- Topbar -->
-  <header id="topbar">
-    <div id="topbar-crumb">
-      <span id="topbar-mode">Mapa</span>
-      <span id="topbar-sep">/</span>
-      <span id="topbar-path">nenhuma pasta</span>
-    </div>
-    <div id="topbar-actions">
-    </div>
-    <div id="search-wrap">
-      <span id="search-icon" data-icon="search"></span>
-      <input id="search-input" type="text" placeholder="Buscar nos documentos…" autocomplete="off" spellcheck="false"/>
-      <div id="search-results"></div>
-    </div>
-    <button id="theme-toggle" title="Alternar tema"></button>
-  </header>
-
-  <!-- ═══ MODE: MAP ═══ -->
-  <main id="mode-map" class="mode active">
-
-    <!-- Tabs -->
-    <div id="map-tabs">
-      <button class="map-tab active" id="tab-graph" onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
-      <button id="map-open-btn" onclick="pickWorkspace()" title="Abrir pasta">
+      <!-- ═══ MODE: MAP ═══ -->
+      <main id="mode-map" class="mode active">
+        <!-- Tabs -->
+        <div id="map-tabs">
+          <button class="map-tab active" id="tab-graph"
+            onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
+          <button id="map-open-btn" onclick="pickWorkspace()"
+            title="Abrir pasta">
         <span data-icon="folder"></span> Pasta
       </button>
-    </div>
-
-    <div id="map-panes">
-
-      <!-- Graph pane -->
-      <section id="graph-pane" class="map-pane active">
-        <div id="no-workspace">
-          <div id="no-workspace-mark" data-icon="share"></div>
-          <div id="no-workspace-title">Nenhum território carregado</div>
-          <div id="no-workspace-hint">Selecione uma pasta para mapear seus documentos</div>
-          <button id="no-workspace-btn" onclick="pickWorkspace()"><span data-icon="folder"></span> Abrir pasta</button>
         </div>
-        <svg id="graph"></svg>
-        <button class="map-tool fit-btn" title="Centralizar" onclick="fitGraph()" data-icon="fit"></button>
 
-        <!-- Node metadata panel -->
-        <div id="node-meta">
-          <div id="node-meta-header">
-            <span id="node-meta-name"></span>
-            <button id="node-meta-close" onclick="clearNodeMeta()" title="Fechar" data-icon="x"></button>
-          </div>
-          <div id="node-meta-stats">
-            <div class="node-meta-row">
-              <span class="node-meta-label">Commits</span>
-              <span class="node-meta-value" id="nm-commits">—</span>
+        <div id="map-panes">
+          <!-- Graph pane -->
+          <section id="graph-pane" class="map-pane active">
+            <div id="no-workspace">
+              <div id="no-workspace-mark" data-icon="share"></div>
+              <div id="no-workspace-title">Nenhum território carregado</div>
+              <div
+                id="no-workspace-hint">Selecione uma pasta para mapear seus documentos</div>
+              <button id="no-workspace-btn"
+                onclick="pickWorkspace()"><span data-icon="folder"></span> Abrir pasta</button>
             </div>
-            <div class="node-meta-row">
-              <span class="node-meta-label">Atualizado</span>
-              <span class="node-meta-value" id="nm-date">—</span>
-            </div>
-          </div>
-          <div id="nm-authors-section">
-            <span class="node-meta-label">Autores</span>
-            <div id="nm-authors-list"><span class="nm-placeholder">—</span></div>
-          </div>
-          <button id="nm-open-markmap" onclick="openMarkmap()">
+            <svg id="graph"></svg>
+            <button class="map-tool fit-btn" title="Centralizar"
+              onclick="fitGraph()" data-icon="fit"></button>
+
+            <!-- Node metadata panel -->
+            <div id="node-meta">
+              <div id="node-meta-header">
+                <span id="node-meta-name"></span>
+                <button id="node-meta-close" onclick="clearNodeMeta()"
+                  title="Fechar" data-icon="x"></button>
+              </div>
+              <div id="node-meta-stats">
+                <div class="node-meta-row">
+                  <span class="node-meta-label">Commits</span>
+                  <span class="node-meta-value" id="nm-commits">—</span>
+                </div>
+                <div class="node-meta-row">
+                  <span class="node-meta-label">Atualizado</span>
+                  <span class="node-meta-value" id="nm-date">—</span>
+                </div>
+              </div>
+              <div id="nm-authors-section">
+                <span class="node-meta-label">Autores</span>
+                <div
+                  id="nm-authors-list"><span class="nm-placeholder">—</span></div>
+              </div>
+              <button id="nm-open-markmap" onclick="openMarkmap()">
             <span data-icon="tree"></span> Mapa Mental
           </button>
-        </div>
+            </div>
 
-        <div class="legend">
-          <div class="legend-title">Legenda</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-entry)"></i>Entrada</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-arch)"></i>Arquitetura</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-design)"></i>Design</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-security)"></i>Segurança</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-process)"></i>Processo</div>
-        </div>
-      </section>
+            <div class="legend">
+              <div class="legend-title">Legenda</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-entry)"></i>Entrada</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-arch)"></i>Arquitetura</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-design)"></i>Design</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-security)"></i>Segurança</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-process)"></i>Processo</div>
+            </div>
+          </section>
 
-      <!-- Markmap pane -->
-      <section id="markmap-pane" class="map-pane">
-        <div id="markmap-header">
-          <button id="btn-back-graph" onclick="setMapTab('graph')"><span data-icon="arrow-left"></span> Documentos</button>
-          <div id="markmap-titles">
-            <span id="markmap-filename">Nenhum documento</span>
-            <span id="markmap-filepath"></span>
-          </div>
-          <div id="markmap-actions">
-            <button class="pill-btn" id="btn-annot" style="display:none" onclick="toggleAnnotations()">
+          <!-- Markmap pane -->
+          <section id="markmap-pane" class="map-pane">
+            <div id="markmap-header">
+              <button id="btn-back-graph"
+                onclick="setMapTab('graph')"><span data-icon="arrow-left"></span> Documentos</button>
+              <div id="markmap-titles">
+                <span id="markmap-filename">Nenhum documento</span>
+                <span id="markmap-filepath"></span>
+              </div>
+              <div id="markmap-actions">
+                <button class="pill-btn" id="btn-annot" style="display:none"
+                  onclick="toggleAnnotations()">
               <span data-icon="highlighter"></span> Anotações <span class="pill-count" id="annot-count">0</span>
             </button>
-            <button class="pill-btn" id="btn-copy-path" style="display:none" onclick="copyFilePath()"><span data-icon="copy"></span> Copiar caminho</button>
-          </div>
-        </div>
+                <button class="pill-btn" id="btn-copy-path" style="display:none"
+                  onclick="copyFilePath()"><span data-icon="copy"></span> Copiar caminho</button>
+              </div>
+            </div>
 
-        <div id="markmap-container">
-          <div id="map-empty">
-            <div id="map-empty-mark" data-icon="tree"></div>
-            <div id="map-empty-text">Clique duas vezes num nó do grafo para abrir seu mapa mental</div>
-          </div>
-          <div id="markmap-hint"></div>
-          <button id="markmap-comment-btn" type="button" style="display:none">Comentar</button>
-          <div id="markmap-tools">
-            <button class="map-tool mm-tool" data-icon="zoom-in" title="Aproximar" onclick="markmapZoom(1.25)"></button>
-            <button class="map-tool mm-tool" data-icon="zoom-out" title="Afastar" onclick="markmapZoom(0.8)"></button>
-            <button class="map-tool mm-tool" data-icon="fit" title="Centralizar / ajustar" onclick="markmapFit()"></button>
-          </div>
-        </div>
+            <div id="markmap-container">
+              <div id="map-empty">
+                <div id="map-empty-mark" data-icon="tree"></div>
+                <div
+                  id="map-empty-text">Clique duas vezes num nó do grafo para abrir seu mapa mental</div>
+              </div>
+              <div id="markmap-hint"></div>
+              <button id="markmap-comment-btn" type="button"
+                style="display:none">Comentar</button>
+              <div id="markmap-tools">
+                <button class="map-tool mm-tool" data-icon="zoom-in"
+                  title="Aproximar" onclick="markmapZoom(1.25)"></button>
+                <button class="map-tool mm-tool" data-icon="zoom-out"
+                  title="Afastar" onclick="markmapZoom(0.8)"></button>
+                <button class="map-tool mm-tool" data-icon="fit"
+                  title="Centralizar / ajustar" onclick="markmapFit()"></button>
+              </div>
+            </div>
 
-        <!-- Annotations drawer (contextual to current doc) -->
-        <aside id="annot-panel">
-          <div id="annot-head">
-            <span id="annot-head-title">Anotações do documento</span>
-            <button class="ghost-btn" id="annot-copy-all" onclick="copyAnnotationsForAI()" title="Copiar todas para colar numa IA">
+            <!-- Annotations drawer (contextual to current doc) -->
+            <aside id="annot-panel">
+              <div id="annot-head">
+                <span id="annot-head-title">Anotações do documento</span>
+                <button class="ghost-btn" id="annot-copy-all"
+                  onclick="copyAnnotationsForAI()"
+                  title="Copiar todas para colar numa IA">
               <span data-icon="sparkles"></span> Copiar p/ IA
             </button>
+              </div>
+              <div id="annot-list">
+                <div
+                  id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>
+              </div>
+            </aside>
+          </section>
+        </div>
+      </main>
+
+      <!-- ═══ MODE: NOTES ═══ -->
+      <main id="mode-notes" class="mode">
+        <section id="notes-col">
+          <div id="notes-col-head">
+            <div id="notes-col-title">Notas</div>
+            <button id="notes-new-btn" title="Nova nota" onclick="newNote()"
+              data-icon="plus"></button>
           </div>
-          <div id="annot-list">
-            <div id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>
+          <div id="notes-search-box">
+            <input id="notes-search-input" type="text"
+              placeholder="Buscar notas…" autocomplete="off"
+              spellcheck="false" />
           </div>
-        </aside>
-      </section>
-
-    </div>
-
-  </main>
-
-  <!-- ═══ MODE: NOTES ═══ -->
-  <main id="mode-notes" class="mode">
-    <section id="notes-col">
-      <div id="notes-col-head">
-        <div id="notes-col-title">Notas</div>
-        <button id="notes-new-btn" title="Nova nota" onclick="newNote()" data-icon="plus"></button>
-      </div>
-      <div id="notes-search-box">
-        <input id="notes-search-input" type="text" placeholder="Buscar notas…" autocomplete="off" spellcheck="false"/>
-      </div>
-      <div id="notes-filters">
-        <select id="notes-filter-cat" onchange="applyFilters()">
-          <option value="">Todas as categorias</option>
-        </select>
-        <select id="notes-filter-tag" onchange="applyFilters()">
-          <option value="">Todas as tags</option>
-        </select>
-      </div>
-      <div id="notes-list"></div>
-      <footer id="notes-footer">
-        <div id="notes-ai-badge" title="Qualquer IA pode ler/criar notas neste endereço">
-          <span class="ai-dot"></span> API da IA · <code>127.0.0.1:3334</code>
-        </div>
-      </footer>
-      <input type="file" id="restore-file" accept="application/json" style="display:none" onchange="restoreBackup(event)"/>
-    </section>
-
-    <section id="notes-editor">
-      <div id="notes-editor-empty">
-        <div id="notes-editor-empty-mark" data-icon="pencil"></div>
-        <div id="notes-editor-empty-text">Selecione ou crie uma nota</div>
-      </div>
-
-      <div id="notes-editor-form">
-        <div id="note-head">
-          <input id="note-title-input" type="text" placeholder="Título da nota…"/>
-          <span id="note-id-badge" style="display:none" onclick="copyNoteId()" title="Clique para copiar o ID (use numa IA)"></span>
-          <button class="note-head-btn" id="btn-note-markmap" style="display:none" onclick="toggleNoteMarkmap()" title="Ver como mapa mental"><span data-icon="tree"></span></button>
-        </div>
-        <div id="note-toolbar">
-          <div id="note-cat-field">
-            <span id="note-cat-dot" class="note-cat-dot"></span>
-            <input id="note-cat-input" list="note-cat-list" placeholder="categoria" autocomplete="off"/>
-            <datalist id="note-cat-list"></datalist>
-          </div>
-          <input id="note-tags-input" type="text" placeholder="tags, separadas, por vírgula"/>
-          <button class="tool-btn" id="btn-preview" onclick="toggleNotePreview()"><span data-icon="eye"></span> Preview</button>
-          <button class="tool-btn" id="btn-copy-note" style="display:none" onclick="copyNoteId()"><span data-icon="hash"></span> ID</button>
-          <button class="tool-btn danger" id="btn-delete-note" style="display:none" onclick="deleteCurrentNote()"><span data-icon="trash"></span></button>
-          <button class="tool-btn primary" onclick="saveCurrentNote()">Salvar</button>
-        </div>
-        <div id="note-body">
-          <textarea id="note-content-textarea" placeholder="Escreva em markdown…"></textarea>
-          <div id="note-preview"></div>
-          <div id="note-markmap"></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ═══ MODE: MACROS ═══ -->
-  <main id="mode-macros" class="mode">
-
-    <section id="macros-col">
-      <div id="macros-col-head">
-        <div id="macros-col-title">Macros</div>
-        <button id="macros-new-btn" title="Nova macro" onclick="newMacro()" data-icon="plus"></button>
-      </div>
-      <div id="macros-list"></div>
-    </section>
-
-    <section id="macros-editor">
-      <div id="macros-editor-empty">
-        <div id="macros-editor-empty-mark" data-icon="bot"></div>
-        <div id="macros-editor-empty-text">Selecione ou crie uma macro</div>
-      </div>
-
-      <div id="macros-editor-form">
-
-        <div id="macro-head">
-          <input id="macro-title-input" type="text" placeholder="Nome da macro…"/>
-          <span id="macro-interp-badge" title="Interpretador detectado pelo shebang"></span>
-          <div id="macro-head-actions">
-            <button class="tool-btn" id="btn-macro-delete" style="display:none" onclick="deleteCurrentMacro()"><span data-icon="trash"></span></button>
-            <button class="tool-btn primary" id="btn-macro-save" onclick="saveCurrentMacro()">Salvar</button>
-            <button class="tool-btn macro-run-btn" id="btn-macro-run" onclick="runCurrentMacro()">
-              <span data-icon="sparkles"></span> Executar
-            </button>
-          </div>
-        </div>
-
-        <div id="macro-desc-row">
-          <input id="macro-desc-input" type="text" placeholder="Descrição curta…"/>
-        </div>
-
-        <div id="macro-body">
-          <textarea id="macro-script" spellcheck="false" placeholder="#!/bin/bash&#10;# Seu script aqui&#10;# Variáveis disponíveis:&#10;#   $DOCMAP_API       → http://127.0.0.1:3334&#10;#   $DOCMAP_WORKSPACE → pasta aberta&#10;&#10;echo &quot;Olá do docmap!&quot;"></textarea>
-        </div>
-
-        <div id="macro-output-panel">
-          <div id="macro-output-header">
-            <span id="macro-output-title">Output</span>
-            <span id="macro-status-badge"></span>
-            <button class="ghost-btn" id="btn-macro-clear" onclick="clearOutput()" style="display:none">limpar</button>
-            <button class="ghost-btn danger" id="btn-macro-stop" onclick="stopMacro()" style="display:none">⬛ Parar</button>
-          </div>
-          <pre id="macro-output"></pre>
-        </div>
-
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ═══ MODE: SKILLS ═══ -->
-  <main id="mode-skills" class="mode">
-
-    <section id="skills-col">
-      <div id="skills-col-head">
-        <div id="skills-col-title">Skills</div>
-        <button id="skills-new-btn" title="Nova skill" onclick="newSkill()" data-icon="plus"></button>
-      </div>
-      <div id="skills-search-box">
-        <input id="skills-search-input" type="text" placeholder="Buscar skills…" autocomplete="off" spellcheck="false"/>
-      </div>
-      <div id="skills-list"></div>
-    </section>
-
-    <section id="skills-editor">
-      <div id="skills-editor-empty">
-        <div id="skills-editor-empty-mark" data-icon="sparkles"></div>
-        <div id="skills-editor-empty-text">Selecione ou crie uma skill</div>
-      </div>
-
-      <div id="skills-editor-form">
-        <div id="skill-head">
-          <input id="skill-title-input" type="text" placeholder="Título da skill…"/>
-          <span id="skill-name-badge" title="Nome/slug (use numa IA: GET /skills/nome)"></span>
-        </div>
-        <div id="skill-toolbar">
-          <div id="skill-name-field">
-            <span id="skill-name-prefix">@</span>
-            <input id="skill-name-input" type="text" placeholder="nome-da-skill" autocomplete="off" spellcheck="false"/>
-          </div>
-          <input id="skill-tags-input" type="text" placeholder="tags, separadas, por vírgula"/>
-          <button class="tool-btn" id="btn-skill-preview" onclick="toggleSkillPreview()"><span data-icon="eye"></span> Preview</button>
-          <button class="tool-btn" id="btn-skill-copy" style="display:none" onclick="copySkillRef()"><span data-icon="copy"></span> Ref</button>
-          <button class="tool-btn danger" id="btn-skill-delete" style="display:none" onclick="deleteCurrentSkill()"><span data-icon="trash"></span></button>
-          <button class="tool-btn primary" onclick="saveCurrentSkill()">Salvar</button>
-        </div>
-        <div id="skill-desc-row">
-          <input id="skill-desc-input" type="text" placeholder="Descrição curta (aparece na listagem da IA)…"/>
-        </div>
-        <div id="skill-body">
-          <textarea id="skill-content-textarea" placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;\`\`\`bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;\`\`\`"></textarea>
-          <div id="skill-preview"></div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ═══ MODE: DIAGRAMS ═══ -->
-  <main id="mode-diagrams" class="mode">
-
-    <section id="diag-col">
-      <div id="diag-col-head">
-        <div id="diag-col-title">Diagramas</div>
-        <button id="diag-new-btn" title="Novo diagrama" onclick="newDiagram()" data-icon="plus"></button>
-      </div>
-      <div id="diag-list"></div>
-    </section>
-
-    <section id="diag-editor">
-      <div id="diag-editor-empty">
-        <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
-        <div id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
-      </div>
-
-      <div id="diag-editor-form">
-        <div id="diag-head">
-          <input id="diag-title-input" type="text" placeholder="Título do diagrama…"/>
-          <span id="diag-id-badge" style="display:none" title="Clique para copiar o deep link"></span>
-          <div id="diag-head-actions">
-            <button class="tool-btn" id="btn-diag-copy-link" style="display:none" onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
-            <button class="tool-btn danger" id="btn-diag-delete" style="display:none" onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
-            <button class="tool-btn primary" onclick="saveCurrentDiagram()">Salvar</button>
-          </div>
-        </div>
-
-        <div id="diag-body">
-          <div id="diag-preview-col">
-            <div id="diag-zoom-bar">
-              <button class="diag-zoom-btn" onclick="diagZoomOut()" title="Afastar" data-icon="zoom-out"></button>
-              <span id="diag-zoom-label">100%</span>
-              <button class="diag-zoom-btn" onclick="diagZoomIn()" title="Aproximar" data-icon="zoom-in"></button>
-              <button class="diag-zoom-btn" onclick="diagZoomReset()" title="Resetar zoom" data-icon="maximize-2"></button>
-            </div>
-            <div id="diag-preview"></div>
-          </div>
-          <div id="diag-source-col">
-            <div id="diag-source-header" onclick="toggleDiagSource()">
-              <span>⌨ Código Mermaid</span>
-              <span id="diag-source-toggle">▸</span>
-              <a href="https://mermaid.js.org/syntax/flowchart.html" target="_blank" id="diag-docs-link" onclick="event.stopPropagation()">docs ↗</a>
-            </div>
-            <textarea id="diag-source" placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]" spellcheck="false"></textarea>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ═══ MODE: MOCKS ═══ -->
-  <main id="mode-mocks" class="mode">
-
-    <section id="mocks-col">
-
-      <div id="mocks-col-head">
-        <span class="mocks-section-label">Collections</span>
-        <button class="mocks-hd-btn" onclick="newCollection()" title="Nova collection" data-icon="plus"></button>
-      </div>
-      <div id="mocks-col-list"></div>
-
-      <div id="mocks-list-head">
-        <span id="mocks-list-heading">Todos os mocks</span>
-        <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock" data-icon="plus"></button>
-      </div>
-      <div id="mocks-list"></div>
-
-      <footer id="mocks-col-footer">
-        <div id="mocks-server-badge">
-          <span class="mocks-server-pulse"></span>
-          <span class="mocks-server-url">127.0.0.1:3335</span>
-          <span id="mocks-server-count" data-count="0"></span>
-        </div>
-        <button id="mocks-clear-btn" onclick="clearMockDatabase()">
-          <span data-icon="trash"></span>
-          <span class="mocks-clear-label">Zerar tudo</span>
-        </button>
-      </footer>
-
-    </section>
-
-    <section id="mocks-editor">
-
-      <div id="mocks-editor-empty">
-        <div id="mocks-editor-empty-mark" data-icon="share"></div>
-        <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
-      </div>
-
-      <div id="mocks-editor-form">
-
-        <div id="mock-head">
-          <span id="mock-id-badge" data-method="GET">— novo mock —</span>
-          <div id="mock-head-actions">
-            <button class="tool-btn danger" id="btn-mock-delete" style="display:none" onclick="deleteCurrentMock()">
-              <span data-icon="trash"></span>
-            </button>
-            <button class="tool-btn" id="btn-mock-curl" onclick="copyCurl()" title="Copiar curl">
-              <span data-icon="copy"></span> curl
-            </button>
-            <button class="tool-btn" id="btn-mock-test" onclick="showTestPanel()">
-              <span data-icon="scan-line"></span> Testar
-            </button>
-            <button class="tool-btn primary" onclick="saveMock()">Salvar</button>
-          </div>
-        </div>
-
-        <div id="mock-meta-row">
-          <div class="mock-field">
-            <label class="mock-label">Collection</label>
-            <select id="mock-collection-select" class="mock-select"></select>
-          </div>
-          <div class="mock-field">
-            <label class="mock-label">Método</label>
-            <select id="mock-method-select" class="mock-select" data-method="GET" onchange="onMethodChange(this)">
-              <option>GET</option>
-              <option>POST</option>
-              <option>PUT</option>
-              <option>PATCH</option>
-              <option>DELETE</option>
-              <option>HEAD</option>
-              <option>OPTIONS</option>
+          <div id="notes-filters">
+            <select id="notes-filter-cat" onchange="applyFilters()">
+              <option value="">Todas as categorias</option>
+            </select>
+            <select id="notes-filter-tag" onchange="applyFilters()">
+              <option value="">Todas as tags</option>
             </select>
           </div>
+          <div id="notes-list"></div>
+          <footer id="notes-footer">
+            <div id="notes-ai-badge"
+              title="Qualquer IA pode ler/criar notas neste endereço">
+          <span class="ai-dot"></span> API da IA · <code>127.0.0.1:3334</code>
         </div>
+          </footer>
+          <input type="file" id="restore-file" accept="application/json"
+            style="display:none" onchange="restoreBackup(event)" />
+        </section>
 
-        <div class="mock-field">
-          <label class="mock-label">Path</label>
-          <input id="mock-path-input" type="text" class="mock-input" placeholder="/users/:id" spellcheck="false" autocomplete="off"/>
-        </div>
-
-        <div id="mock-meta-row-2">
-          <div class="mock-field">
-            <label class="mock-label">Nome</label>
-            <input id="mock-name-input" type="text" class="mock-input" placeholder="Get user by ID" autocomplete="off"/>
+        <section id="notes-editor">
+          <div id="notes-editor-empty">
+            <div id="notes-editor-empty-mark" data-icon="pencil"></div>
+            <div id="notes-editor-empty-text">Selecione ou crie uma nota</div>
           </div>
-          <div class="mock-field">
-            <label class="mock-label">Grupo</label>
-            <input id="mock-group-input" type="text" class="mock-input" placeholder="Authentication" autocomplete="off" list="mock-groups-list"/>
-            <datalist id="mock-groups-list"></datalist>
-          </div>
-        </div>
 
-        <div class="mock-field mock-field-script">
-          <div id="mock-script-label-row">
-            <label class="mock-label">Script JS</label>
-            <span id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
-            <button class="ghost-btn" id="btn-format-script" onclick="formatScript()" title="Formatar código">
+          <div id="notes-editor-form">
+            <div id="note-head">
+              <input id="note-title-input" type="text"
+                placeholder="Título da nota…" />
+              <span id="note-id-badge" style="display:none"
+                onclick="copyNoteId()"
+                title="Clique para copiar o ID (use numa IA)"></span>
+              <button class="note-head-btn" id="btn-note-markmap"
+                style="display:none" onclick="toggleNoteMarkmap()"
+                title="Ver como mapa mental"><span data-icon="tree"></span></button>
+            </div>
+            <div id="note-toolbar">
+              <div id="note-cat-field">
+                <span id="note-cat-dot" class="note-cat-dot"></span>
+                <input id="note-cat-input" list="note-cat-list"
+                  placeholder="categoria" autocomplete="off" />
+                <datalist id="note-cat-list"></datalist>
+              </div>
+              <input id="note-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
+              <button class="tool-btn" id="btn-preview"
+                onclick="toggleNotePreview()"><span data-icon="eye"></span> Preview</button>
+              <button class="tool-btn" id="btn-copy-note" style="display:none"
+                onclick="copyNoteId()"><span data-icon="hash"></span> ID</button>
+              <button class="tool-btn danger" id="btn-delete-note"
+                style="display:none"
+                onclick="deleteCurrentNote()"><span data-icon="trash"></span></button>
+              <button class="tool-btn primary"
+                onclick="saveCurrentNote()">Salvar</button>
+            </div>
+            <div id="note-body">
+              <textarea id="note-content-textarea"
+                placeholder="Escreva em markdown…"></textarea>
+              <div id="note-preview"></div>
+              <div id="note-markmap"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ═══ MODE: MACROS ═══ -->
+      <main id="mode-macros" class="mode">
+        <section id="macros-col">
+          <div id="macros-col-head">
+            <div id="macros-col-title">Macros</div>
+            <button id="macros-new-btn" title="Nova macro" onclick="newMacro()"
+              data-icon="plus"></button>
+          </div>
+          <div id="macros-list"></div>
+        </section>
+
+        <section id="macros-editor">
+          <div id="macros-editor-empty">
+            <div id="macros-editor-empty-mark" data-icon="bot"></div>
+            <div id="macros-editor-empty-text">Selecione ou crie uma macro</div>
+          </div>
+
+          <div id="macros-editor-form">
+            <div id="macro-head">
+              <input id="macro-title-input" type="text"
+                placeholder="Nome da macro…" />
+              <span id="macro-interp-badge"
+                title="Interpretador detectado pelo shebang"></span>
+              <div id="macro-head-actions">
+                <button class="tool-btn" id="btn-macro-delete"
+                  style="display:none"
+                  onclick="deleteCurrentMacro()"><span data-icon="trash"></span></button>
+                <button class="tool-btn primary" id="btn-macro-save"
+                  onclick="saveCurrentMacro()">Salvar</button>
+                <button class="tool-btn macro-run-btn" id="btn-macro-run"
+                  onclick="runCurrentMacro()">
+              <span data-icon="sparkles"></span> Executar
+            </button>
+              </div>
+            </div>
+
+            <div id="macro-desc-row">
+              <input id="macro-desc-input" type="text"
+                placeholder="Descrição curta…" />
+            </div>
+
+            <div id="macro-body">
+              <textarea id="macro-script" spellcheck="false"
+                placeholder="#!/bin/bash&#10;# Seu script aqui&#10;# Variáveis disponíveis:&#10;#   $DOCMAP_API       → http://127.0.0.1:3334&#10;#   $DOCMAP_WORKSPACE → pasta aberta&#10;&#10;echo &quot;Olá do docmap!&quot;"></textarea>
+            </div>
+
+            <div id="macro-output-panel">
+              <div id="macro-output-header">
+                <span id="macro-output-title">Output</span>
+                <span id="macro-status-badge"></span>
+                <button class="ghost-btn" id="btn-macro-clear"
+                  onclick="clearOutput()" style="display:none">limpar</button>
+                <button class="ghost-btn danger" id="btn-macro-stop"
+                  onclick="stopMacro()" style="display:none">⬛ Parar</button>
+              </div>
+              <pre id="macro-output"></pre>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ═══ MODE: SKILLS ═══ -->
+      <main id="mode-skills" class="mode">
+        <section id="skills-col">
+          <div id="skills-col-head">
+            <div id="skills-col-title">Skills</div>
+            <button id="skills-new-btn" title="Nova skill" onclick="newSkill()"
+              data-icon="plus"></button>
+          </div>
+          <div id="skills-search-box">
+            <input id="skills-search-input" type="text"
+              placeholder="Buscar skills…" autocomplete="off"
+              spellcheck="false" />
+          </div>
+          <div id="skills-list"></div>
+        </section>
+
+        <section id="skills-editor">
+          <div id="skills-editor-empty">
+            <div id="skills-editor-empty-mark" data-icon="sparkles"></div>
+            <div id="skills-editor-empty-text">Selecione ou crie uma skill</div>
+          </div>
+
+          <div id="skills-editor-form">
+            <div id="skill-head">
+              <input id="skill-title-input" type="text"
+                placeholder="Título da skill…" />
+              <span id="skill-name-badge"
+                title="Nome/slug (use numa IA: GET /skills/nome)"></span>
+            </div>
+            <div id="skill-toolbar">
+              <div id="skill-name-field">
+                <span id="skill-name-prefix">@</span>
+                <input id="skill-name-input" type="text"
+                  placeholder="nome-da-skill" autocomplete="off"
+                  spellcheck="false" />
+              </div>
+              <input id="skill-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
+              <button class="tool-btn" id="btn-skill-preview"
+                onclick="toggleSkillPreview()"><span data-icon="eye"></span> Preview</button>
+              <button class="tool-btn" id="btn-skill-copy" style="display:none"
+                onclick="copySkillRef()"><span data-icon="copy"></span> Ref</button>
+              <button class="tool-btn danger" id="btn-skill-delete"
+                style="display:none"
+                onclick="deleteCurrentSkill()"><span data-icon="trash"></span></button>
+              <button class="tool-btn primary"
+                onclick="saveCurrentSkill()">Salvar</button>
+            </div>
+            <div id="skill-desc-row">
+              <input id="skill-desc-input" type="text"
+                placeholder="Descrição curta (aparece na listagem da IA)…" />
+            </div>
+            <div id="skill-body">
+              <textarea id="skill-content-textarea"
+                placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;\`\`\`bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;\`\`\`"></textarea>
+              <div id="skill-preview"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ═══ MODE: DIAGRAMS ═══ -->
+      <main id="mode-diagrams" class="mode">
+        <section id="diag-col">
+          <div id="diag-col-head">
+            <div id="diag-col-title">Diagramas</div>
+            <button id="diag-new-btn" title="Novo diagrama"
+              onclick="newDiagram()" data-icon="plus"></button>
+          </div>
+          <div id="diag-list"></div>
+        </section>
+
+        <section id="diag-editor">
+          <div id="diag-editor-empty">
+            <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
+            <div id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
+          </div>
+
+          <div id="diag-editor-form">
+            <div id="diag-head">
+              <input id="diag-title-input" type="text"
+                placeholder="Título do diagrama…" />
+              <span id="diag-id-badge" style="display:none"
+                title="Clique para copiar o deep link"></span>
+              <div id="diag-head-actions">
+                <button class="tool-btn" id="btn-diag-copy-link"
+                  style="display:none"
+                  onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
+                <button class="tool-btn danger" id="btn-diag-delete"
+                  style="display:none"
+                  onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
+                <button class="tool-btn primary"
+                  onclick="saveCurrentDiagram()">Salvar</button>
+              </div>
+            </div>
+
+            <div id="diag-body">
+              <div id="diag-preview-col">
+                <div id="diag-zoom-bar">
+                  <button class="diag-zoom-btn" onclick="diagZoomOut()"
+                    title="Afastar" data-icon="zoom-out"></button>
+                  <span id="diag-zoom-label">100%</span>
+                  <button class="diag-zoom-btn" onclick="diagZoomIn()"
+                    title="Aproximar" data-icon="zoom-in"></button>
+                  <button class="diag-zoom-btn" onclick="diagZoomReset()"
+                    title="Resetar zoom" data-icon="maximize-2"></button>
+                </div>
+                <div id="diag-preview"></div>
+              </div>
+              <div id="diag-source-col">
+                <div id="diag-source-header" onclick="toggleDiagSource()">
+                  <span>⌨ Código Mermaid</span>
+                  <span id="diag-source-toggle">▸</span>
+                  <a href="https://mermaid.js.org/syntax/flowchart.html"
+                    target="_blank" id="diag-docs-link"
+                    onclick="event.stopPropagation()">docs ↗</a>
+                </div>
+                <textarea id="diag-source"
+                  placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]"
+                  spellcheck="false"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ═══ MODE: MOCKS ═══ -->
+      <main id="mode-mocks" class="mode">
+        <section id="mocks-col">
+          <div id="mocks-col-head">
+            <span class="mocks-section-label">Collections</span>
+            <button class="mocks-hd-btn" onclick="newCollection()"
+              title="Nova collection" data-icon="plus"></button>
+          </div>
+          <div id="mocks-col-list"></div>
+
+          <div id="mocks-list-head">
+            <span id="mocks-list-heading">Todos os mocks</span>
+            <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
+              data-icon="plus"></button>
+          </div>
+          <div id="mocks-list"></div>
+
+          <footer id="mocks-col-footer">
+            <div id="mocks-server-badge">
+              <span class="mocks-server-pulse"></span>
+              <span class="mocks-server-url">127.0.0.1:3335</span>
+              <span id="mocks-server-count" data-count="0"></span>
+            </div>
+            <button id="mocks-clear-btn" onclick="clearMockDatabase()">
+              <span data-icon="trash"></span>
+              <span class="mocks-clear-label">Zerar tudo</span>
+            </button>
+          </footer>
+        </section>
+
+        <section id="mocks-editor">
+          <div id="mocks-editor-empty">
+            <div id="mocks-editor-empty-mark" data-icon="share"></div>
+            <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
+          </div>
+
+          <div id="mocks-editor-form">
+            <div id="mock-head">
+              <span id="mock-id-badge" data-method="GET">— novo mock —</span>
+              <div id="mock-head-actions">
+                <button class="tool-btn danger" id="btn-mock-delete"
+                  style="display:none" onclick="deleteCurrentMock()">
+                  <span data-icon="trash"></span>
+                </button>
+                <button class="tool-btn" id="btn-mock-curl" onclick="copyCurl()"
+                  title="Copiar curl">
+              <span data-icon="copy"></span> curl
+            </button>
+                <button class="tool-btn" id="btn-mock-test"
+                  onclick="showTestPanel()">
+              <span data-icon="scan-line"></span> Testar
+            </button>
+                <button class="tool-btn primary"
+                  onclick="saveMock()">Salvar</button>
+              </div>
+            </div>
+
+            <div id="mock-meta-row">
+              <div class="mock-field">
+                <label class="mock-label">Collection</label>
+                <select id="mock-collection-select"
+                  class="mock-select"></select>
+              </div>
+              <div class="mock-field">
+                <label class="mock-label">Método</label>
+                <select id="mock-method-select" class="mock-select"
+                  data-method="GET" onchange="onMethodChange(this)">
+                  <option>GET</option>
+                  <option>POST</option>
+                  <option>PUT</option>
+                  <option>PATCH</option>
+                  <option>DELETE</option>
+                  <option>HEAD</option>
+                  <option>OPTIONS</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mock-field">
+              <label class="mock-label">Path</label>
+              <input id="mock-path-input" type="text" class="mock-input"
+                placeholder="/users/:id" spellcheck="false"
+                autocomplete="off" />
+            </div>
+
+            <div id="mock-meta-row-2">
+              <div class="mock-field">
+                <label class="mock-label">Nome</label>
+                <input id="mock-name-input" type="text" class="mock-input"
+                  placeholder="Get user by ID" autocomplete="off" />
+              </div>
+              <div class="mock-field">
+                <label class="mock-label">Grupo</label>
+                <input id="mock-group-input" type="text" class="mock-input"
+                  placeholder="Authentication" autocomplete="off"
+                  list="mock-groups-list" />
+                <datalist id="mock-groups-list"></datalist>
+              </div>
+            </div>
+
+            <div class="mock-field mock-field-script">
+              <div id="mock-script-label-row">
+                <label class="mock-label">Script JS</label>
+                <span
+                  id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
+                <button class="ghost-btn" id="btn-format-script"
+                  onclick="formatScript()" title="Formatar código">
               <span data-icon="sparkles"></span> formatar
             </button>
+              </div>
+              <textarea id="mock-script-textarea" spellcheck="false"
+                placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
+            </div>
+
+            <!-- Painel de teste -->
+            <div id="mock-test-panel" style="display:none">
+              <div class="test-panel-head">
+                <span class="test-panel-title">Testar mock</span>
+                <button class="ghost-btn"
+                  onclick="hideTestPanel()"><span data-icon="x"></span></button>
+              </div>
+              <div id="mock-test-params"></div>
+              <button class="tool-btn" id="btn-test-run"
+                onclick="runTest()">Executar</button>
+              <div id="mock-test-result" style="display:none"></div>
+            </div>
           </div>
-          <textarea id="mock-script-textarea" spellcheck="false"
-            placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
-        </div>
+        </section>
+      </main>
 
-        <!-- Painel de teste -->
-        <div id="mock-test-panel" style="display:none">
-          <div class="test-panel-head">
-            <span class="test-panel-title">Testar mock</span>
-            <button class="ghost-btn" onclick="hideTestPanel()"><span data-icon="x"></span></button>
+      <!-- ═══ MODE: TASKS / KANBAN ═══ -->
+      <main id="mode-tasks" class="mode">
+        <div id="kanban-board">
+          <div class="kanban-col" id="kanban-col-todo" data-status="todo">
+            <div class="kanban-col-head">
+              <span class="kanban-col-dot" data-col="todo"></span>
+              <span class="kanban-col-title">A Fazer</span>
+              <span class="kanban-col-count" id="kanban-count-todo">0</span>
+              <button class="kanban-col-add" onclick="openNewTask('todo')"
+                title="Adicionar task">
+                <span data-icon="plus"></span>
+              </button>
+            </div>
+            <div class="kanban-cards" id="kanban-cards-todo"></div>
           </div>
-          <div id="mock-test-params"></div>
-          <button class="tool-btn" id="btn-test-run" onclick="runTest()">Executar</button>
-          <div id="mock-test-result" style="display:none"></div>
+
+          <div class="kanban-col" id="kanban-col-in-progress"
+            data-status="in-progress">
+            <div class="kanban-col-head">
+              <span class="kanban-col-dot" data-col="in-progress"></span>
+              <span class="kanban-col-title">Em Andamento</span>
+              <span class="kanban-col-count"
+                id="kanban-count-in-progress">0</span>
+              <button class="kanban-col-add"
+                onclick="openNewTask('in-progress')" title="Adicionar task">
+                <span data-icon="plus"></span>
+              </button>
+            </div>
+            <div class="kanban-cards" id="kanban-cards-in-progress"></div>
+          </div>
+
+          <div class="kanban-col" id="kanban-col-done" data-status="done">
+            <div class="kanban-col-head">
+              <span class="kanban-col-dot" data-col="done"></span>
+              <span class="kanban-col-title">Concluído</span>
+              <span class="kanban-col-count" id="kanban-count-done">0</span>
+              <button class="kanban-col-add" onclick="openNewTask('done')"
+                title="Adicionar task">
+                <span data-icon="plus"></span>
+              </button>
+            </div>
+            <div class="kanban-cards" id="kanban-cards-done"></div>
+          </div>
         </div>
+      </main>
 
-      </div>
-    </section>
+      <!-- ═══ MODE: FAVORITES ═══ -->
+      <main id="mode-favorites" class="mode">
+        <!-- Sidebar -->
+        <aside id="fav-sidebar">
+          <div class="fav-sidebar-section">
+            <div class="fav-sidebar-label">Categorias</div>
+            <div id="fav-cat-list"></div>
+          </div>
+          <div class="fav-sidebar-divider"></div>
+          <div class="fav-sidebar-section">
+            <div class="fav-sidebar-label">Tags</div>
+            <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
+          </div>
+        </aside>
 
-  </main>
-
-  <!-- ═══ MODE: TASKS / KANBAN ═══ -->
-  <main id="mode-tasks" class="mode">
-    <div id="kanban-board">
-
-      <div class="kanban-col" id="kanban-col-todo" data-status="todo">
-        <div class="kanban-col-head">
-          <span class="kanban-col-dot" data-col="todo"></span>
-          <span class="kanban-col-title">A Fazer</span>
-          <span class="kanban-col-count" id="kanban-count-todo">0</span>
-          <button class="kanban-col-add" onclick="openNewTask('todo')" title="Adicionar task">
-            <span data-icon="plus"></span>
-          </button>
-        </div>
-        <div class="kanban-cards" id="kanban-cards-todo"></div>
-      </div>
-
-      <div class="kanban-col" id="kanban-col-in-progress" data-status="in-progress">
-        <div class="kanban-col-head">
-          <span class="kanban-col-dot" data-col="in-progress"></span>
-          <span class="kanban-col-title">Em Andamento</span>
-          <span class="kanban-col-count" id="kanban-count-in-progress">0</span>
-          <button class="kanban-col-add" onclick="openNewTask('in-progress')" title="Adicionar task">
-            <span data-icon="plus"></span>
-          </button>
-        </div>
-        <div class="kanban-cards" id="kanban-cards-in-progress"></div>
-      </div>
-
-      <div class="kanban-col" id="kanban-col-done" data-status="done">
-        <div class="kanban-col-head">
-          <span class="kanban-col-dot" data-col="done"></span>
-          <span class="kanban-col-title">Concluído</span>
-          <span class="kanban-col-count" id="kanban-count-done">0</span>
-          <button class="kanban-col-add" onclick="openNewTask('done')" title="Adicionar task">
-            <span data-icon="plus"></span>
-          </button>
-        </div>
-        <div class="kanban-cards" id="kanban-cards-done"></div>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- ═══ MODE: FAVORITES ═══ -->
-  <main id="mode-favorites" class="mode">
-
-    <!-- Sidebar -->
-    <aside id="fav-sidebar">
-      <div class="fav-sidebar-section">
-        <div class="fav-sidebar-label">Categorias</div>
-        <div id="fav-cat-list"></div>
-      </div>
-      <div class="fav-sidebar-divider"></div>
-      <div class="fav-sidebar-section">
-        <div class="fav-sidebar-label">Tags</div>
-        <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
-      </div>
-    </aside>
-
-    <!-- Main -->
-    <div id="fav-main">
-
-      <!-- Toolbar -->
-      <div id="fav-toolbar">
-        <div id="fav-search-wrap">
-          <span id="fav-search-icon" data-icon="search"></span>
-          <input id="fav-search" type="text" placeholder="Buscar por título, tag, categoria, URL…" autocomplete="off" spellcheck="false">
-          <span id="fav-search-clear" data-icon="x"></span>
-        </div>
-        <button id="fav-add-btn">
+        <!-- Main -->
+        <div id="fav-main">
+          <!-- Toolbar -->
+          <div id="fav-toolbar">
+            <div id="fav-search-wrap">
+              <span id="fav-search-icon" data-icon="search"></span>
+              <input id="fav-search" type="text"
+                placeholder="Buscar por título, tag, categoria, URL…"
+                autocomplete="off" spellcheck="false">
+              <span id="fav-search-clear" data-icon="x"></span>
+            </div>
+            <button id="fav-add-btn">
           <span data-icon="plus"></span>
           Adicionar
           <span class="fav-add-kbd">⌘K</span>
         </button>
-      </div>
+          </div>
 
-      <!-- Type tabs -->
-      <div id="fav-type-tabs">
-        <div class="fav-type-tab active" data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
-        <div class="fav-type-tab" data-type="site">
+          <!-- Type tabs -->
+          <div id="fav-type-tabs">
+            <div class="fav-type-tab active"
+              data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
+            <div class="fav-type-tab" data-type="site">
           <span class="fav-tab-dot" style="background:var(--fav-site)"></span>
           Sites <span class="fav-tab-count" id="fav-count-site">0</span>
         </div>
-        <div class="fav-type-tab" data-type="slack">
+            <div class="fav-type-tab" data-type="slack">
           <span class="fav-tab-dot" style="background:var(--fav-slack)"></span>
           Slack <span class="fav-tab-count" id="fav-count-slack">0</span>
         </div>
-        <div class="fav-type-tab" data-type="grid">
+            <div class="fav-type-tab" data-type="grid">
           <span class="fav-tab-dot" style="background:var(--fav-grid)"></span>
           Grid <span class="fav-tab-count" id="fav-count-grid">0</span>
         </div>
-        <div class="fav-type-tab" data-type="dash">
+            <div class="fav-type-tab" data-type="dash">
           <span class="fav-tab-dot" style="background:var(--fav-dash)"></span>
           Dashboards <span class="fav-tab-count" id="fav-count-dash">0</span>
         </div>
-        <div class="fav-type-tab" data-type="github">
+            <div class="fav-type-tab" data-type="github">
           <span class="fav-tab-dot" style="background:var(--fav-github)"></span>
           GitHub <span class="fav-tab-count" id="fav-count-github">0</span>
         </div>
-      </div>
-
-      <!-- Scrollable content -->
-      <div id="fav-scroll">
-
-        <!-- Most visited -->
-        <div id="fav-most-visited" style="display:none">
-          <div class="fav-section-header">
-            <span class="fav-section-title">⚡ Mais visitados</span>
           </div>
-          <div class="fav-featured-row" id="fav-featured-row"></div>
+
+          <!-- Scrollable content -->
+          <div id="fav-scroll">
+            <!-- Most visited -->
+            <div id="fav-most-visited" style="display:none">
+              <div class="fav-section-header">
+                <span class="fav-section-title">⚡ Mais visitados</span>
+              </div>
+              <div class="fav-featured-row" id="fav-featured-row"></div>
+            </div>
+
+            <!-- Grid header -->
+            <div class="fav-section-header">
+              <span class="fav-section-title">◈ Links</span>
+              <span class="fav-section-count"
+                id="fav-result-count">0 links</span>
+            </div>
+
+            <!-- Grid -->
+            <div id="fav-grid"></div>
+
+            <!-- Pagination -->
+            <div id="fav-pagination"></div>
+
+            <!-- Empty -->
+            <div id="fav-empty" style="display:none">
+              <span class="fav-empty-icon" data-icon="bookmark"></span>
+              <div class="fav-empty-title">Nenhum favorito encontrado</div>
+              <div
+                class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
+            </div>
+          </div>
         </div>
-
-        <!-- Grid header -->
-        <div class="fav-section-header">
-          <span class="fav-section-title">◈ Links</span>
-          <span class="fav-section-count" id="fav-result-count">0 links</span>
-        </div>
-
-        <!-- Grid -->
-        <div id="fav-grid"></div>
-
-        <!-- Pagination -->
-        <div id="fav-pagination"></div>
-
-        <!-- Empty -->
-        <div id="fav-empty" style="display:none">
-          <span class="fav-empty-icon" data-icon="bookmark"></span>
-          <div class="fav-empty-title">Nenhum favorito encontrado</div>
-          <div class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
-        </div>
-
-      </div>
+      </main>
     </div>
-  </main>
 
-</div>
-
-<!-- Quick-Add / Edit Modal -->
-<div id="fav-modal-overlay">
-  <div id="fav-modal">
-    <div class="fav-modal-header">
-      <span class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
-      <button class="fav-modal-close" id="fav-modal-close" data-icon="x"></button>
-    </div>
-    <div class="fav-modal-body">
-      <div>
-        <div class="fav-field-label">URL</div>
-        <div class="fav-url-wrap">
-          <input class="fav-field-input" id="fav-modal-url" placeholder="cole ou digite a URL…" autocomplete="off" spellcheck="false">
-          <span class="fav-url-detected" id="fav-url-detected"></span>
+    <!-- Quick-Add / Edit Modal -->
+    <div id="fav-modal-overlay">
+      <div id="fav-modal">
+        <div class="fav-modal-header">
+          <span
+            class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
+          <button class="fav-modal-close" id="fav-modal-close"
+            data-icon="x"></button>
         </div>
-      </div>
-      <div>
-        <div class="fav-field-label">Título</div>
-        <input class="fav-field-input" id="fav-modal-title" placeholder="Nome do link…">
-      </div>
-      <div>
-        <div class="fav-field-label">Tipo</div>
-        <div class="fav-type-selector">
-          <button class="fav-type-btn active" data-t="site">🌐 Site</button>
-          <button class="fav-type-btn" data-t="slack">💬 Slack</button>
-          <button class="fav-type-btn" data-t="grid">📁 Grid</button>
-          <button class="fav-type-btn" data-t="dash">📊 Dash</button>
-          <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
+        <div class="fav-modal-body">
+          <div>
+            <div class="fav-field-label">URL</div>
+            <div class="fav-url-wrap">
+              <input class="fav-field-input" id="fav-modal-url"
+                placeholder="cole ou digite a URL…" autocomplete="off"
+                spellcheck="false">
+              <span class="fav-url-detected" id="fav-url-detected"></span>
+            </div>
+          </div>
+          <div>
+            <div class="fav-field-label">Título</div>
+            <input class="fav-field-input" id="fav-modal-title"
+              placeholder="Nome do link…">
+          </div>
+          <div>
+            <div class="fav-field-label">Tipo</div>
+            <div class="fav-type-selector">
+              <button class="fav-type-btn active" data-t="site">🌐 Site</button>
+              <button class="fav-type-btn" data-t="slack">💬 Slack</button>
+              <button class="fav-type-btn" data-t="grid">📁 Grid</button>
+              <button class="fav-type-btn" data-t="dash">📊 Dash</button>
+              <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
+            </div>
+          </div>
+          <div>
+            <div class="fav-field-label">Categoria</div>
+            <div class="fav-cat-sel" id="fav-cat-sel"></div>
+          </div>
+          <div>
+            <div
+              class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
+            <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
+              <input class="fav-tags-input" id="fav-modal-tags-input"
+                placeholder="#api, #design…">
+            </div>
+          </div>
+          <div>
+            <div class="fav-field-label">Nota (opcional)</div>
+            <input class="fav-field-input" id="fav-modal-note"
+              placeholder="Para que serve esse link…">
+          </div>
         </div>
-      </div>
-      <div>
-        <div class="fav-field-label">Categoria</div>
-        <div class="fav-cat-sel" id="fav-cat-sel"></div>
-      </div>
-      <div>
-        <div class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
-        <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
-          <input class="fav-tags-input" id="fav-modal-tags-input" placeholder="#api, #design…">
-        </div>
-      </div>
-      <div>
-        <div class="fav-field-label">Nota (opcional)</div>
-        <input class="fav-field-input" id="fav-modal-note" placeholder="Para que serve esse link…">
-      </div>
-    </div>
-    <div class="fav-modal-footer">
-      <div class="fav-kbd-hint">
+        <div class="fav-modal-footer">
+          <div class="fav-kbd-hint">
         <kbd class="fav-kbd">Enter</kbd> salva · <kbd class="fav-kbd">Esc</kbd> fecha
       </div>
-      <div class="fav-modal-btns">
-        <button class="fav-btn-cancel" id="fav-modal-cancel">Cancelar</button>
-        <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ════ Task Modal ════ -->
-<div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
-  <div id="task-modal">
-    <div id="task-modal-head">
-      <input id="task-title-input" type="text" placeholder="Título da task…" autocomplete="off"/>
-      <select id="task-status-select">
-        <option value="todo">A Fazer</option>
-        <option value="in-progress">Em Andamento</option>
-        <option value="done">Concluído</option>
-      </select>
-      <button class="kanban-modal-close" id="task-modal-close" onclick="closeTaskModal()" title="Fechar">
-        <span data-icon="x"></span>
-      </button>
-    </div>
-    <div id="task-modal-body">
-      <div class="task-field">
-        <label class="task-label">Descrição (markdown)</label>
-        <textarea id="task-desc-textarea" placeholder="Detalhes, contexto, links…" rows="5"></textarea>
-      </div>
-      <div class="task-meta-row">
-        <div class="task-field">
-          <label class="task-label">Data limite</label>
-          <input id="task-due-input" type="date"/>
-        </div>
-        <div class="task-field" style="position:relative">
-          <label class="task-label">Nota vinculada</label>
-          <div id="task-note-wrap">
-            <input id="task-note-input" type="text" placeholder="Buscar nota…" autocomplete="off" oninput="filterNoteSearch()" onfocus="filterNoteSearch()"/>
-            <button id="task-note-clear" onclick="clearNoteLink()" title="Remover nota" style="display:none">
-              <span data-icon="x"></span>
-            </button>
+          <div class="fav-modal-btns">
+            <button class="fav-btn-cancel"
+              id="fav-modal-cancel">Cancelar</button>
+            <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
           </div>
-          <div id="task-note-dropdown"></div>
-          <input type="hidden" id="task-note-id"/>
         </div>
       </div>
     </div>
-    <div id="task-modal-footer">
-      <button class="tool-btn danger" id="task-delete-btn" style="display:none" onclick="deleteCurrentTask()">
-        <span data-icon="trash"></span>
-      </button>
-      <div class="task-footer-spacer"></div>
-      <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
-      <button class="tool-btn primary" onclick="saveCurrentTask()">Salvar</button>
+
+    <!-- ════ Task Modal ════ -->
+    <div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
+      <div id="task-modal">
+        <div id="task-modal-head">
+          <input id="task-title-input" type="text" placeholder="Título da task…"
+            autocomplete="off" />
+          <select id="task-status-select">
+            <option value="todo">A Fazer</option>
+            <option value="in-progress">Em Andamento</option>
+            <option value="done">Concluído</option>
+          </select>
+          <button class="kanban-modal-close" id="task-modal-close"
+            onclick="closeTaskModal()" title="Fechar">
+            <span data-icon="x"></span>
+          </button>
+        </div>
+        <div id="task-modal-body">
+          <div class="task-field">
+            <label class="task-label">Descrição (markdown)</label>
+            <textarea id="task-desc-textarea"
+              placeholder="Detalhes, contexto, links…" rows="5"></textarea>
+          </div>
+          <div class="task-meta-row">
+            <div class="task-field">
+              <label class="task-label">Data limite</label>
+              <input id="task-due-input" type="date" />
+            </div>
+            <div class="task-field" style="position:relative">
+              <label class="task-label">Nota vinculada</label>
+              <div id="task-note-wrap">
+                <input id="task-note-input" type="text"
+                  placeholder="Buscar nota…" autocomplete="off"
+                  oninput="filterNoteSearch()" onfocus="filterNoteSearch()" />
+                <button id="task-note-clear" onclick="clearNoteLink()"
+                  title="Remover nota" style="display:none">
+                  <span data-icon="x"></span>
+                </button>
+              </div>
+              <div id="task-note-dropdown"></div>
+              <input type="hidden" id="task-note-id" />
+            </div>
+          </div>
+        </div>
+        <div id="task-modal-footer">
+          <button class="tool-btn danger" id="task-delete-btn"
+            style="display:none" onclick="deleteCurrentTask()">
+            <span data-icon="trash"></span>
+          </button>
+          <div class="task-footer-spacer"></div>
+          <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
+          <button class="tool-btn primary"
+            onclick="saveCurrentTask()">Salvar</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Annotation popover -->
-<div id="annot-popover">
-  <div id="pop-head">
-    <span id="pop-label">TRECHO</span>
-    <span id="pop-quote"></span>
-  </div>
-  <div id="pop-types">
-    <button class="type-btn active" data-type="note"     onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
-    <button class="type-btn"        data-type="decision" onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
-    <button class="type-btn"        data-type="question" onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
-    <button class="type-btn"        data-type="todo"     onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
-    <button class="type-btn"        data-type="warning"  onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
-  </div>
-  <div id="pop-body"><textarea id="pop-textarea" placeholder="Escreva a anotação…"></textarea></div>
-  <div id="pop-foot">
-    <button class="pop-btn" id="pop-delete" onclick="deleteAnnotation()">Excluir</button>
-    <button class="pop-btn" id="pop-cancel" onclick="closeAnnotPopover()">Cancelar</button>
-    <button class="pop-btn primary" id="pop-save" onclick="saveAnnotation()">Salvar</button>
-  </div>
-</div>
-
-<!-- Confirm modal (webview não suporta window.confirm) -->
-<div id="modal-overlay">
-  <div id="modal">
-    <div id="modal-msg"></div>
-    <div id="modal-actions">
-      <button id="modal-cancel" class="pop-btn">Cancelar</button>
-      <button id="modal-ok" class="pop-btn primary">Confirmar</button>
+    <!-- Annotation popover -->
+    <div id="annot-popover">
+      <div id="pop-head">
+        <span id="pop-label">TRECHO</span>
+        <span id="pop-quote"></span>
+      </div>
+      <div id="pop-types">
+        <button class="type-btn active" data-type="note"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
+        <button class="type-btn" data-type="decision"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
+        <button class="type-btn" data-type="question"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
+        <button class="type-btn" data-type="todo"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
+        <button class="type-btn" data-type="warning"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
+      </div>
+      <div id="pop-body">
+        <textarea id="pop-textarea"
+          placeholder="Escreva a anotação…"></textarea>
+      </div>
+      <div id="pop-foot">
+        <button class="pop-btn" id="pop-delete"
+          onclick="deleteAnnotation()">Excluir</button>
+        <button class="pop-btn" id="pop-cancel"
+          onclick="closeAnnotPopover()">Cancelar</button>
+        <button class="pop-btn primary" id="pop-save"
+          onclick="saveAnnotation()">Salvar</button>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- ════ AI Chat FAB ════ -->
-<button id="chat-fab" onclick="toggleChat()" title="Chat com IA">
-  <span data-icon="bot"></span>
-</button>
+    <!-- Confirm modal (webview não suporta window.confirm) -->
+    <div id="modal-overlay">
+      <div id="modal">
+        <div id="modal-msg"></div>
+        <div id="modal-actions">
+          <button id="modal-cancel" class="pop-btn">Cancelar</button>
+          <button id="modal-ok" class="pop-btn primary">Confirmar</button>
+        </div>
+      </div>
+    </div>
 
-<div id="chat-panel">
-  <div id="chat-header">
-    <span id="chat-title">
+    <!-- ════ AI Chat FAB ════ -->
+    <button id="chat-fab" onclick="toggleChat()" title="Chat com IA">
       <span data-icon="bot"></span>
-      <select id="chat-provider" title="Provedor de IA">
-        <option value="ollama">Ollama (local)</option>
-        <option value="deepseek">DeepSeek</option>
-      </select>
-    </span>
-    <div id="chat-header-actions">
-      <button class="ghost-btn" id="chat-minimize" onclick="toggleMinimizeChat()" title="Minimizar">
-        <span data-icon="minus" id="chat-minimize-icon"></span>
-      </button>
-      <button class="ghost-btn" onclick="clearChat()">limpar</button>
-      <button class="ghost-btn" onclick="toggleChat()"><span data-icon="x"></span></button>
+    </button>
+
+    <div id="chat-panel">
+      <div id="chat-header">
+        <span id="chat-title">
+          <span data-icon="bot"></span>
+          <select id="chat-provider" title="Provedor de IA">
+            <option value="ollama">Ollama (local)</option>
+            <option value="deepseek">DeepSeek</option>
+          </select>
+        </span>
+        <div id="chat-header-actions">
+          <button class="ghost-btn" id="chat-minimize"
+            onclick="toggleMinimizeChat()" title="Minimizar">
+            <span data-icon="minus" id="chat-minimize-icon"></span>
+          </button>
+          <button class="ghost-btn" onclick="clearChat()">limpar</button>
+          <button class="ghost-btn"
+            onclick="toggleChat()"><span data-icon="x"></span></button>
+        </div>
+      </div>
+      <div id="chat-feed"></div>
+      <div id="chat-composer">
+        <button id="chat-stop" onclick="stopChat()"
+          style="display:none"><span data-icon="x"></span> Parar</button>
+        <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
+          rows="1"></textarea>
+        <button id="chat-send" onclick="sendChatMessage()"
+          data-icon="sparkles"></button>
+      </div>
     </div>
-  </div>
-  <div id="chat-feed"></div>
-  <div id="chat-composer">
-    <button id="chat-stop" onclick="stopChat()" style="display:none"><span data-icon="x"></span> Parar</button>
-    <textarea id="chat-input" placeholder="Pergunte qualquer coisa… " rows="1"></textarea>
-    <button id="chat-send" onclick="sendChatMessage()" data-icon="sparkles"></button>
-  </div>
-</div>
 
-<div id="tooltip"></div>
-<div id="toast"></div>
+    <div id="tooltip"></div>
+    <div id="toast"></div>
 
-<script>
+    <script>
 // ════ Ícones SVG (estilo Lucide, stroke currentColor) ════
 // Uso estático: <span data-icon="map"></span>  → hidratado no load.
 // Uso dinâmico: ICON('map')  → retorna o markup SVG.
@@ -5203,7 +7140,7 @@ const hydrateIcons = (root = document) => {
 document.addEventListener('DOMContentLoaded', () => hydrateIcons());
 
 </script>
-<script>
+    <script>
 // ════ DOM helpers (puros) ════
 
 const $ = (id) => document.getElementById(id);
@@ -5287,7 +7224,7 @@ const confirmDialog = (message, opts = {}) =>
   });
 
 </script>
-<script>
+    <script>
 // ════ Theme toggle (dark/light) — persiste em localStorage ════
 
 const THEME_KEY = 'docmap-theme';
@@ -5324,7 +7261,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
-<script>
+    <script>
 // ════ App shell — alternância de modos e atalhos globais ════
 
 let currentMode = 'map';
@@ -5388,7 +7325,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 </script>
-<script>
+    <script>
 // ════ Workspace — seleção de pasta ════
 
 let currentWorkspace = null;
@@ -5447,7 +7384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
-<script>
+    <script>
 // ════ Force graph (D3) ════
 
 let sim = null;
@@ -5649,7 +7586,7 @@ const moveTooltip = (e) => {
 const hideTooltip = () => { $('tooltip').style.opacity = '0'; };
 
 </script>
-<script>
+    <script>
 // ════ Markmap — renderiza o documento selecionado ════
 
 let currentFile = null;
@@ -5817,7 +7754,7 @@ const copyFilePath = () => {
 };
 
 </script>
-<script>
+    <script>
 // ════ Busca (topbar) — docs no modo Mapa, notas no modo Notas ════
 
 const searchInput   = $('search-input');
@@ -5890,7 +7827,7 @@ document.addEventListener('mousedown', (e) => {
 });
 
 </script>
-<script>
+    <script>
 // ════ Anotações do markmap (contextuais ao documento) ════
 // Persistidas via /comments no backend. Separado da base de Notas.
 
@@ -6044,7 +7981,7 @@ document.addEventListener('mousedown', (e) => {
 });
 
 </script>
-<script>
+    <script>
 // ════ Notas — base de conhecimento (CRUD, exposta à IA via API) ════
 
 let allNotes           = [];
@@ -6300,7 +8237,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 </script>
-<script>
+    <script>
 // ════ Macros — runner de scripts bash/deno com output em tempo real ════
 
 let allMacros    = [];
@@ -6569,7 +8506,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 </script>
-<script>
+    <script>
 // ════ Skills — gerenciamento local, leitura pela IA ════
 
 let allSkills    = [];
@@ -6744,7 +8681,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 </script>
-<script>
+    <script>
 // ════ Diagramas Mermaid ════
 
 let allDiagrams     = [];
@@ -6981,7 +8918,7 @@ const connectDiagramEvents = () => {
 connectDiagramEvents();
 
 </script>
-<script>
+    <script>
 // ════ Kanban — tasks globais ════
 
 let allTasks      = [];
@@ -7387,7 +9324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
-<script>
+    <script>
 // ════ Mocks — HTTP Mock Server Manager ════
 
 const MOCK_SERVER = 'http://127.0.0.1:3335';
@@ -8050,7 +9987,7 @@ const updateGroupsDatalist = () => {
 };
 
 </script>
-<script>
+    <script>
 // ════ Favorites / Bookmarks Manager ════
 
 const FAV_TYPES = {
@@ -8776,7 +10713,7 @@ const initFavorites = () => {
 document.addEventListener('DOMContentLoaded', initFavorites);
 
 </script>
-<script>
+    <script>
 // ════ Sistema — update, backup, restore ════
 
 let updateInfo = null;
@@ -8867,7 +10804,7 @@ const triggerRestore = async () => {
 document.addEventListener('DOMContentLoaded', initSystem);
 
 </script>
-<script>
+    <script>
 // ════ AI Chat — provider-agnostic via proxy /ai/chat ════
 // Backend escolhe adapter (ollama | deepseek) e devolve NDJSON normalizado.
 // A chave da DeepSeek nunca chega ao webview.
@@ -9501,6 +11438,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
-</body>
+  </body>
 </html>
 `;

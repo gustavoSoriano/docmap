@@ -15,7 +15,10 @@ const formatNote = (note: Note): string => {
   ].join('\n');
 };
 
-export const exportNotesToMarkdown = (notes: Note[], workspaceName: string): string => {
+export const exportNotesToMarkdown = (
+  notes: Note[],
+  workspaceName: string,
+): string => {
   const date = new Date().toLocaleDateString('pt-BR');
   const header = [
     `# Notas — ${workspaceName}`,

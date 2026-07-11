@@ -26,8 +26,9 @@ const matchPath = (
 };
 
 const corsHeaders = {
-  'access-control-allow-origin':  '*',
-  'access-control-allow-methods': 'GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS',
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods':
+    'GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS',
   'access-control-allow-headers': 'Content-Type, Authorization',
 };
 
@@ -37,23 +38,31 @@ export const startMockServer = (kv: Deno.Kv): Deno.HttpServer => {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    const url      = new URL(req.url);
-    const method   = req.method;
+    const url = new URL(req.url);
+    const method = req.method;
     const pathname = url.pathname;
 
     let body: unknown = null;
     const ct = req.headers.get('content-type') ?? '';
     if (ct.includes('application/json')) {
-      try { body = await req.json(); } catch { body = null; }
+      try {
+        body = await req.json();
+      } catch {
+        body = null;
+      }
     } else if (ct.includes('text/')) {
       body = await req.text();
     }
 
     const query: Record<string, string> = {};
-    url.searchParams.forEach((v, k) => { query[k] = v; });
+    url.searchParams.forEach((v, k) => {
+      query[k] = v;
+    });
 
     const headers: Record<string, string> = {};
-    req.headers.forEach((v, k) => { headers[k] = v; });
+    req.headers.forEach((v, k) => {
+      headers[k] = v;
+    });
 
     const mocks = await listMocks(kv);
     for (const mock of mocks) {
@@ -61,7 +70,14 @@ export const startMockServer = (kv: Deno.Kv): Deno.HttpServer => {
       const params = matchPath(mock.path, pathname);
       if (params === null) continue;
 
-      const ctx: MockContext = { method, path: pathname, params, query, headers, body };
+      const ctx: MockContext = {
+        method,
+        path: pathname,
+        params,
+        query,
+        headers,
+        body,
+      };
       const result = await executeScript(mock.script, ctx, mock.collectionId);
 
       const resHeaders = new Headers({ ...corsHeaders, ...result.headers });
@@ -72,19 +88,34 @@ export const startMockServer = (kv: Deno.Kv): Deno.HttpServer => {
       const resBody = result.body === undefined
         ? ''
         : typeof result.body === 'string'
-          ? result.body
-          : JSON.stringify(result.body);
+        ? result.body
+        : JSON.stringify(result.body);
 
-      return new Response(resBody, { status: result.status ?? 200, headers: resHeaders });
+      return new Response(resBody, {
+        status: result.status ?? 200,
+        headers: resHeaders,
+      });
     }
 
     return new Response(
-      JSON.stringify({ error: 'no_mock', message: `No mock for ${method} ${pathname}` }),
-      { status: 404, headers: { ...corsHeaders, 'content-type': 'application/json; charset=utf-8' } },
+      JSON.stringify({
+        error: 'no_mock',
+        message: `No mock for ${method} ${pathname}`,
+      }),
+      {
+        status: 404,
+        headers: {
+          ...corsHeaders,
+          'content-type': 'application/json; charset=utf-8',
+        },
+      },
     );
   };
 
-  const server = Deno.serve({ port: MOCK_PORT, hostname: '127.0.0.1' }, handler);
+  const server = Deno.serve(
+    { port: MOCK_PORT, hostname: '127.0.0.1' },
+    handler,
+  );
   console.log(`  🎭 Mocks  → http://127.0.0.1:${MOCK_PORT}`);
   return server;
 };

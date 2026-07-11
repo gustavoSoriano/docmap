@@ -29,13 +29,20 @@ const assetName = (): string => {
 
 export const checkForUpdate = async (): Promise<UpdateStatus> => {
   const base: UpdateStatus = {
-    current: APP_VERSION, latest: null, available: false,
-    url: null, assetUrl: null, checkedAt: new Date().toISOString(),
+    current: APP_VERSION,
+    latest: null,
+    available: false,
+    url: null,
+    assetUrl: null,
+    checkedAt: new Date().toISOString(),
   };
   try {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
-      headers: { Accept: 'application/vnd.github+json' },
-    });
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`,
+      {
+        headers: { Accept: 'application/vnd.github+json' },
+      },
+    );
     if (!res.ok) return { ...base, error: `GitHub ${res.status}` };
 
     const rel = await res.json() as {
@@ -53,6 +60,9 @@ export const checkForUpdate = async (): Promise<UpdateStatus> => {
       assetUrl: asset?.browser_download_url ?? null,
     };
   } catch (err) {
-    return { ...base, error: err instanceof Error ? err.message : 'erro desconhecido' };
+    return {
+      ...base,
+      error: err instanceof Error ? err.message : 'erro desconhecido',
+    };
   }
 };

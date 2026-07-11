@@ -7,12 +7,18 @@ import { UI_PORT } from './server/server.ts';
 // webview navega antes do servidor responder.
 const startServerWorker = (): Promise<Worker> =>
   new Promise((resolve) => {
-    const worker = new Worker(new URL('./worker.ts', import.meta.url).href, { type: 'module' });
+    const worker = new Worker(new URL('./worker.ts', import.meta.url).href, {
+      type: 'module',
+    });
     worker.onmessage = (e) => {
       if (e.data?.type === 'ready') {
         const ws = e.data.workspace;
         console.log(`\n  ⬡  docmap desktop`);
-        console.log(ws ? `     Workspace: ${ws}\n` : `     Nenhum workspace — selecione uma pasta.\n`);
+        console.log(
+          ws
+            ? `     Workspace: ${ws}\n`
+            : `     Nenhum workspace — selecione uma pasta.\n`,
+        );
         resolve(worker);
       }
     };

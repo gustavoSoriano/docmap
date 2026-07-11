@@ -22,7 +22,8 @@ const extractSnippet = (content: string, query: string): string => {
   if (idx < 0) return content.slice(0, 120);
   const start = Math.max(0, idx - 40);
   const end = Math.min(content.length, idx + query.length + 80);
-  return (start > 0 ? '…' : '') + content.slice(start, end) + (end < content.length ? '…' : '');
+  return (start > 0 ? '…' : '') + content.slice(start, end) +
+    (end < content.length ? '…' : '');
 };
 
 export const searchNotes = async (
@@ -36,7 +37,15 @@ export const searchNotes = async (
     const score = scoreNote(note, query);
     if (score === 0) continue;
     results.push({
-      note: { id: note.id, title: note.title, tags: note.tags, category: note.category, createdAt: note.createdAt, updatedAt: note.updatedAt, preview: note.content.slice(0, 120) },
+      note: {
+        id: note.id,
+        title: note.title,
+        tags: note.tags,
+        category: note.category,
+        createdAt: note.createdAt,
+        updatedAt: note.updatedAt,
+        preview: note.content.slice(0, 120),
+      },
       score,
       snippet: extractSnippet(note.content, query),
     });

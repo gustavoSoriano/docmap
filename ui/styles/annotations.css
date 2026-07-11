@@ -7,7 +7,9 @@
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
-#annot-panel.visible { display: flex; }
+#annot-panel.visible {
+  display: flex;
+}
 
 #annot-head {
   display: flex;
@@ -16,7 +18,12 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-#annot-head-title { font-size: 12px; font-weight: 700; letter-spacing: .01em; color: var(--text-2); }
+#annot-head-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: var(--text-2);
+}
 .ghost-btn {
   margin-left: auto;
   display: flex;
@@ -33,10 +40,22 @@
   cursor: pointer;
   transition: all .13s;
 }
-.ghost-btn:hover { border-color: var(--accent-line); color: var(--accent); }
+.ghost-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
 
-#annot-list { flex: 1; overflow-y: auto; padding: 6px 0; }
-#annot-empty { padding: 22px 18px; text-align: center; color: var(--text-3); font-size: 12px; }
+#annot-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+#annot-empty {
+  padding: 22px 18px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12px;
+}
 
 .annot-item {
   padding: 11px 18px;
@@ -45,9 +64,20 @@
   gap: 12px;
   align-items: flex-start;
 }
-.annot-item:last-child { border-bottom: none; }
-.annot-type-bar { width: 3px; align-self: stretch; border-radius: 3px; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
-.annot-main { flex: 1; min-width: 0; }
+.annot-item:last-child {
+  border-bottom: none;
+}
+.annot-type-bar {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+.annot-main {
+  flex: 1;
+  min-width: 0;
+}
 .annot-quote {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -63,9 +93,21 @@
   white-space: nowrap;
   margin-bottom: 6px;
 }
-.annot-type-label { font-size: 10px; font-weight: 700; margin-left: 8px; }
-.annot-note { font-size: 12.5px; color: var(--text); line-height: 1.5; }
-.annot-actions { display: flex; gap: 5px; flex-shrink: 0; }
+.annot-type-label {
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 8px;
+}
+.annot-note {
+  font-size: 12.5px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.annot-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
 .annot-btn {
   background: none;
   border: 1px solid var(--border);
@@ -77,9 +119,18 @@
   display: inline-flex;
   align-items: center;
 }
-.annot-btn .ico { width: 13px; height: 13px; }
-.annot-btn:hover { border-color: var(--accent-line); color: var(--accent); }
-.annot-btn.del:hover { border-color: var(--cat-security); color: var(--cat-security); }
+.annot-btn .ico {
+  width: 13px;
+  height: 13px;
+}
+.annot-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.annot-btn.del:hover {
+  border-color: var(--cat-security);
+  color: var(--cat-security);
+}
 
 /* ════════ Annotation popover ════════ */
 #annot-popover {
@@ -93,8 +144,20 @@
   box-shadow: var(--sh-lg);
   overflow: hidden;
 }
-#annot-popover.visible { display: block; animation: popIn .15s ease; }
-@keyframes popIn { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+#annot-popover.visible {
+  display: block;
+  animation: popIn .15s ease;
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 #pop-head {
   background: var(--surface);
@@ -104,11 +167,37 @@
   gap: 10px;
   align-items: flex-start;
 }
-#pop-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--accent); flex-shrink: 0; padding-top: 2px; }
-#pop-quote { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); line-height: 1.45; word-break: break-word; }
+#pop-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--accent);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+#pop-quote {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.45;
+  word-break: break-word;
+}
 
-#pop-types { display: flex; gap: 6px; padding: 12px 15px 0; flex-wrap: wrap; }
-.type-swatch { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; vertical-align: middle; transform: rotate(45deg); }
+#pop-types {
+  display: flex;
+  gap: 6px;
+  padding: 12px 15px 0;
+  flex-wrap: wrap;
+}
+.type-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+  transform: rotate(45deg);
+}
 .type-btn {
   padding: 4px 11px;
   border-radius: var(--r-xl);
@@ -121,10 +210,19 @@
   cursor: pointer;
   transition: all .12s;
 }
-.type-btn:hover { border-color: var(--border-hi); color: var(--text); }
-.type-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.type-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+.type-btn.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
 
-#pop-body { padding: 12px 15px 0; }
+#pop-body {
+  padding: 12px 15px 0;
+}
 #pop-textarea {
   width: 100%;
   height: 88px;
@@ -139,10 +237,19 @@
   background: var(--surface);
   transition: border .15s;
 }
-#pop-textarea:focus { border-color: var(--accent-line); }
-#pop-textarea::placeholder { color: var(--text-3); }
+#pop-textarea:focus {
+  border-color: var(--accent-line);
+}
+#pop-textarea::placeholder {
+  color: var(--text-3);
+}
 
-#pop-foot { display: flex; gap: 8px; padding: 12px 15px 14px; justify-content: flex-end; }
+#pop-foot {
+  display: flex;
+  gap: 8px;
+  padding: 12px 15px 14px;
+  justify-content: flex-end;
+}
 .pop-btn {
   padding: 7px 15px;
   border-radius: var(--r-sm);
@@ -155,8 +262,21 @@
   color: var(--text-2);
   transition: all .12s;
 }
-.pop-btn:hover { border-color: var(--border-hi); color: var(--text); }
-.pop-btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.pop-btn.primary:hover { background: var(--accent-2); }
-#pop-delete { color: var(--cat-security); }
-#pop-delete:hover { border-color: var(--cat-security); }
+.pop-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+.pop-btn.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.pop-btn.primary:hover {
+  background: var(--accent-2);
+}
+#pop-delete {
+  color: var(--cat-security);
+}
+#pop-delete:hover {
+  border-color: var(--cat-security);
+}

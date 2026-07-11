@@ -1,4 +1,10 @@
-export type NodeGroup = 'entry' | 'arch' | 'design' | 'security' | 'process' | 'default';
+export type NodeGroup =
+  | 'entry'
+  | 'arch'
+  | 'design'
+  | 'security'
+  | 'process'
+  | 'default';
 
 export type GraphNode = {
   readonly id: string;

@@ -1,869 +1,1009 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>docmap — atlas de documentação</title>
-<script>(function(){var t=localStorage.getItem('docmap-theme');if(t)document.documentElement.dataset.theme=t;})();</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
-<script src="https://cdn.jsdelivr.net/npm/markmap-lib/dist/browser/index.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
-<link rel="stylesheet" href="/styles/tokens.css">
-<link rel="stylesheet" href="/styles/layout.css">
-<link rel="stylesheet" href="/styles/graph.css">
-<link rel="stylesheet" href="/styles/markmap.css">
-<link rel="stylesheet" href="/styles/search.css">
-<link rel="stylesheet" href="/styles/annotations.css">
-<link rel="stylesheet" href="/styles/notes.css">
-<link rel="stylesheet" href="/styles/ai-chat.css">
-<link rel="stylesheet" href="/styles/macros.css">
-<link rel="stylesheet" href="/styles/skills.css">
-<link rel="stylesheet" href="/styles/diagrams.css">
-<link rel="stylesheet" href="/styles/tasks.css">
-<link rel="stylesheet" href="/styles/mocks.css">
-<link rel="stylesheet" href="/styles/favorites.css">
-</head>
-<body>
-
-<!-- ════ Left rail — mode switcher ════ -->
-<nav id="rail">
-  <div id="rail-logo" title="docmap">◆</div>
-  <button class="rail-btn active" id="rail-map" onclick="setMode('map')" title="Mapa">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>docmap — atlas de documentação</title>
+    <script>
+    (function () {
+      var t = localStorage.getItem('docmap-theme');
+      if (t) document.documentElement.dataset.theme = t;
+    })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet">
+    <script
+      src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/markmap-lib/dist/browser/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/graph.css">
+    <link rel="stylesheet" href="/styles/markmap.css">
+    <link rel="stylesheet" href="/styles/search.css">
+    <link rel="stylesheet" href="/styles/annotations.css">
+    <link rel="stylesheet" href="/styles/notes.css">
+    <link rel="stylesheet" href="/styles/ai-chat.css">
+    <link rel="stylesheet" href="/styles/macros.css">
+    <link rel="stylesheet" href="/styles/skills.css">
+    <link rel="stylesheet" href="/styles/diagrams.css">
+    <link rel="stylesheet" href="/styles/tasks.css">
+    <link rel="stylesheet" href="/styles/mocks.css">
+    <link rel="stylesheet" href="/styles/favorites.css">
+  </head>
+  <body>
+    <!-- ════ Left rail — mode switcher ════ -->
+    <nav id="rail">
+      <div id="rail-logo" title="docmap">◆</div>
+      <button class="rail-btn active" id="rail-map" onclick="setMode('map')"
+        title="Mapa">
     <span class="rail-ico" data-icon="map"></span><span class="rail-lbl">Mapa</span>
   </button>
-  <button class="rail-btn" id="rail-notes" onclick="setMode('notes')" title="Notas">
+      <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
+        title="Notas">
     <span class="rail-ico" data-icon="notebook"></span><span class="rail-lbl">Notas</span>
   </button>
-  <button class="rail-btn" id="rail-macros" onclick="setMode('macros')" title="Macros">
+      <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
+        title="Macros">
     <span class="rail-ico" data-icon="bot"></span><span class="rail-lbl">Macros</span>
   </button>
-  <button class="rail-btn" id="rail-skills" onclick="setMode('skills')" title="Skills">
+      <button class="rail-btn" id="rail-skills" onclick="setMode('skills')"
+        title="Skills">
     <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skills</span>
   </button>
-  <button class="rail-btn" id="rail-diagrams" onclick="setMode('diagrams')" title="Diagramas">
+      <button class="rail-btn" id="rail-diagrams" onclick="setMode('diagrams')"
+        title="Diagramas">
     <span class="rail-ico" data-icon="git-branch"></span><span class="rail-lbl">Diag</span>
   </button>
-  <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')" title="Kanban">
+      <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')"
+        title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
   </button>
-  <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')" title="Mocks HTTP">
+      <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
+        title="Mocks HTTP">
     <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
   </button>
-  <button class="rail-btn" id="rail-favorites" onclick="setMode('favorites')" title="Favoritos">
+      <button class="rail-btn" id="rail-favorites"
+        onclick="setMode('favorites')" title="Favoritos">
     <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
   </button>
-  <div class="rail-spacer"></div>
-  <button class="rail-btn" id="rail-skill" onclick="copySkill()" title="Copiar skill da API para colar numa IA">
+      <div class="rail-spacer"></div>
+      <button class="rail-btn" id="rail-skill" onclick="copySkill()"
+        title="Copiar skill da API para colar numa IA">
     <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skill</span>
   </button>
-  <button class="rail-btn" id="rail-backup" onclick="downloadBackup()" title="Backup completo (notas, skills, diagramas, anotações)">
+      <button class="rail-btn" id="rail-backup" onclick="downloadBackup()"
+        title="Backup completo (notas, skills, diagramas, anotações)">
     <span class="rail-ico" data-icon="download"></span><span class="rail-lbl">Backup</span>
   </button>
-  <button class="rail-btn" id="rail-restore" onclick="triggerRestore()" title="Restaurar de um backup">
+      <button class="rail-btn" id="rail-restore" onclick="triggerRestore()"
+        title="Restaurar de um backup">
     <span class="rail-ico" data-icon="upload"></span><span class="rail-lbl">Restore</span>
   </button>
-</nav>
+    </nav>
 
-<!-- ════ Content ════ -->
-<div id="stage">
+    <!-- ════ Content ════ -->
+    <div id="stage">
+      <!-- Update banner -->
+      <div id="update-banner">
+        <span id="update-text"></span>
+        <button id="update-apply"
+          onclick="applyUpdate()">Atualizar agora</button>
+        <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
+      </div>
 
-  <!-- Update banner -->
-  <div id="update-banner">
-    <span id="update-text"></span>
-    <button id="update-apply" onclick="applyUpdate()">Atualizar agora</button>
-    <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
-  </div>
+      <!-- Topbar -->
+      <header id="topbar">
+        <div id="topbar-crumb">
+          <span id="topbar-mode">Mapa</span>
+          <span id="topbar-sep">/</span>
+          <span id="topbar-path">nenhuma pasta</span>
+        </div>
+        <div id="topbar-actions"></div>
+        <div id="search-wrap">
+          <span id="search-icon" data-icon="search"></span>
+          <input id="search-input" type="text"
+            placeholder="Buscar nos documentos…" autocomplete="off"
+            spellcheck="false" />
+          <div id="search-results"></div>
+        </div>
+        <button id="theme-toggle" title="Alternar tema"></button>
+      </header>
 
-  <!-- Topbar -->
-  <header id="topbar">
-    <div id="topbar-crumb">
-      <span id="topbar-mode">Mapa</span>
-      <span id="topbar-sep">/</span>
-      <span id="topbar-path">nenhuma pasta</span>
-    </div>
-    <div id="topbar-actions">
-    </div>
-    <div id="search-wrap">
-      <span id="search-icon" data-icon="search"></span>
-      <input id="search-input" type="text" placeholder="Buscar nos documentos…" autocomplete="off" spellcheck="false"/>
-      <div id="search-results"></div>
-    </div>
-    <button id="theme-toggle" title="Alternar tema"></button>
-  </header>
-
-  <!-- ═══ MODE: MAP ═══ -->
-  <main id="mode-map" class="mode active">
-
-    <!-- Tabs -->
-    <div id="map-tabs">
-      <button class="map-tab active" id="tab-graph" onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
-      <button id="map-open-btn" onclick="pickWorkspace()" title="Abrir pasta">
+      <!-- ═══ MODE: MAP ═══ -->
+      <main id="mode-map" class="mode active">
+        <!-- Tabs -->
+        <div id="map-tabs">
+          <button class="map-tab active" id="tab-graph"
+            onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
+          <button id="map-open-btn" onclick="pickWorkspace()"
+            title="Abrir pasta">
         <span data-icon="folder"></span> Pasta
       </button>
-    </div>
-
-    <div id="map-panes">
-
-      <!-- Graph pane -->
-      <section id="graph-pane" class="map-pane active">
-        <div id="no-workspace">
-          <div id="no-workspace-mark" data-icon="share"></div>
-          <div id="no-workspace-title">Nenhum território carregado</div>
-          <div id="no-workspace-hint">Selecione uma pasta para mapear seus documentos</div>
-          <button id="no-workspace-btn" onclick="pickWorkspace()"><span data-icon="folder"></span> Abrir pasta</button>
         </div>
-        <svg id="graph"></svg>
-        <button class="map-tool fit-btn" title="Centralizar" onclick="fitGraph()" data-icon="fit"></button>
 
-        <!-- Node metadata panel -->
-        <div id="node-meta">
-          <div id="node-meta-header">
-            <span id="node-meta-name"></span>
-            <button id="node-meta-close" onclick="clearNodeMeta()" title="Fechar" data-icon="x"></button>
-          </div>
-          <div id="node-meta-stats">
-            <div class="node-meta-row">
-              <span class="node-meta-label">Commits</span>
-              <span class="node-meta-value" id="nm-commits">—</span>
+        <div id="map-panes">
+          <!-- Graph pane -->
+          <section id="graph-pane" class="map-pane active">
+            <div id="no-workspace">
+              <div id="no-workspace-mark" data-icon="share"></div>
+              <div id="no-workspace-title">Nenhum território carregado</div>
+              <div
+                id="no-workspace-hint">Selecione uma pasta para mapear seus documentos</div>
+              <button id="no-workspace-btn"
+                onclick="pickWorkspace()"><span data-icon="folder"></span> Abrir pasta</button>
             </div>
-            <div class="node-meta-row">
-              <span class="node-meta-label">Atualizado</span>
-              <span class="node-meta-value" id="nm-date">—</span>
-            </div>
-          </div>
-          <div id="nm-authors-section">
-            <span class="node-meta-label">Autores</span>
-            <div id="nm-authors-list"><span class="nm-placeholder">—</span></div>
-          </div>
-          <button id="nm-open-markmap" onclick="openMarkmap()">
+            <svg id="graph"></svg>
+            <button class="map-tool fit-btn" title="Centralizar"
+              onclick="fitGraph()" data-icon="fit"></button>
+
+            <!-- Node metadata panel -->
+            <div id="node-meta">
+              <div id="node-meta-header">
+                <span id="node-meta-name"></span>
+                <button id="node-meta-close" onclick="clearNodeMeta()"
+                  title="Fechar" data-icon="x"></button>
+              </div>
+              <div id="node-meta-stats">
+                <div class="node-meta-row">
+                  <span class="node-meta-label">Commits</span>
+                  <span class="node-meta-value" id="nm-commits">—</span>
+                </div>
+                <div class="node-meta-row">
+                  <span class="node-meta-label">Atualizado</span>
+                  <span class="node-meta-value" id="nm-date">—</span>
+                </div>
+              </div>
+              <div id="nm-authors-section">
+                <span class="node-meta-label">Autores</span>
+                <div
+                  id="nm-authors-list"><span class="nm-placeholder">—</span></div>
+              </div>
+              <button id="nm-open-markmap" onclick="openMarkmap()">
             <span data-icon="tree"></span> Mapa Mental
           </button>
-        </div>
+            </div>
 
-        <div class="legend">
-          <div class="legend-title">Legenda</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-entry)"></i>Entrada</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-arch)"></i>Arquitetura</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-design)"></i>Design</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-security)"></i>Segurança</div>
-          <div class="legend-item"><i class="legend-dot" style="background:var(--cat-process)"></i>Processo</div>
-        </div>
-      </section>
+            <div class="legend">
+              <div class="legend-title">Legenda</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-entry)"></i>Entrada</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-arch)"></i>Arquitetura</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-design)"></i>Design</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-security)"></i>Segurança</div>
+              <div
+                class="legend-item"><i class="legend-dot" style="background:var(--cat-process)"></i>Processo</div>
+            </div>
+          </section>
 
-      <!-- Markmap pane -->
-      <section id="markmap-pane" class="map-pane">
-        <div id="markmap-header">
-          <button id="btn-back-graph" onclick="setMapTab('graph')"><span data-icon="arrow-left"></span> Documentos</button>
-          <div id="markmap-titles">
-            <span id="markmap-filename">Nenhum documento</span>
-            <span id="markmap-filepath"></span>
-          </div>
-          <div id="markmap-actions">
-            <button class="pill-btn" id="btn-annot" style="display:none" onclick="toggleAnnotations()">
+          <!-- Markmap pane -->
+          <section id="markmap-pane" class="map-pane">
+            <div id="markmap-header">
+              <button id="btn-back-graph"
+                onclick="setMapTab('graph')"><span data-icon="arrow-left"></span> Documentos</button>
+              <div id="markmap-titles">
+                <span id="markmap-filename">Nenhum documento</span>
+                <span id="markmap-filepath"></span>
+              </div>
+              <div id="markmap-actions">
+                <button class="pill-btn" id="btn-annot" style="display:none"
+                  onclick="toggleAnnotations()">
               <span data-icon="highlighter"></span> Anotações <span class="pill-count" id="annot-count">0</span>
             </button>
-            <button class="pill-btn" id="btn-copy-path" style="display:none" onclick="copyFilePath()"><span data-icon="copy"></span> Copiar caminho</button>
-          </div>
-        </div>
+                <button class="pill-btn" id="btn-copy-path" style="display:none"
+                  onclick="copyFilePath()"><span data-icon="copy"></span> Copiar caminho</button>
+              </div>
+            </div>
 
-        <div id="markmap-container">
-          <div id="map-empty">
-            <div id="map-empty-mark" data-icon="tree"></div>
-            <div id="map-empty-text">Clique duas vezes num nó do grafo para abrir seu mapa mental</div>
-          </div>
-          <div id="markmap-hint"></div>
-          <button id="markmap-comment-btn" type="button" style="display:none">Comentar</button>
-          <div id="markmap-tools">
-            <button class="map-tool mm-tool" data-icon="zoom-in" title="Aproximar" onclick="markmapZoom(1.25)"></button>
-            <button class="map-tool mm-tool" data-icon="zoom-out" title="Afastar" onclick="markmapZoom(0.8)"></button>
-            <button class="map-tool mm-tool" data-icon="fit" title="Centralizar / ajustar" onclick="markmapFit()"></button>
-          </div>
-        </div>
+            <div id="markmap-container">
+              <div id="map-empty">
+                <div id="map-empty-mark" data-icon="tree"></div>
+                <div
+                  id="map-empty-text">Clique duas vezes num nó do grafo para abrir seu mapa mental</div>
+              </div>
+              <div id="markmap-hint"></div>
+              <button id="markmap-comment-btn" type="button"
+                style="display:none">Comentar</button>
+              <div id="markmap-tools">
+                <button class="map-tool mm-tool" data-icon="zoom-in"
+                  title="Aproximar" onclick="markmapZoom(1.25)"></button>
+                <button class="map-tool mm-tool" data-icon="zoom-out"
+                  title="Afastar" onclick="markmapZoom(0.8)"></button>
+                <button class="map-tool mm-tool" data-icon="fit"
+                  title="Centralizar / ajustar" onclick="markmapFit()"></button>
+              </div>
+            </div>
 
-        <!-- Annotations drawer (contextual to current doc) -->
-        <aside id="annot-panel">
-          <div id="annot-head">
-            <span id="annot-head-title">Anotações do documento</span>
-            <button class="ghost-btn" id="annot-copy-all" onclick="copyAnnotationsForAI()" title="Copiar todas para colar numa IA">
+            <!-- Annotations drawer (contextual to current doc) -->
+            <aside id="annot-panel">
+              <div id="annot-head">
+                <span id="annot-head-title">Anotações do documento</span>
+                <button class="ghost-btn" id="annot-copy-all"
+                  onclick="copyAnnotationsForAI()"
+                  title="Copiar todas para colar numa IA">
               <span data-icon="sparkles"></span> Copiar p/ IA
             </button>
+              </div>
+              <div id="annot-list">
+                <div
+                  id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>
+              </div>
+            </aside>
+          </section>
+        </div>
+      </main>
+
+      <!-- ═══ MODE: NOTES ═══ -->
+      <main id="mode-notes" class="mode">
+        <section id="notes-col">
+          <div id="notes-col-head">
+            <div id="notes-col-title">Notas</div>
+            <button id="notes-new-btn" title="Nova nota" onclick="newNote()"
+              data-icon="plus"></button>
           </div>
-          <div id="annot-list">
-            <div id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>
+          <div id="notes-search-box">
+            <input id="notes-search-input" type="text"
+              placeholder="Buscar notas…" autocomplete="off"
+              spellcheck="false" />
           </div>
-        </aside>
-      </section>
-
-    </div>
-
-  </main>
-
-  <!-- ═══ MODE: NOTES ═══ -->
-  <main id="mode-notes" class="mode">
-    <section id="notes-col">
-      <div id="notes-col-head">
-        <div id="notes-col-title">Notas</div>
-        <button id="notes-new-btn" title="Nova nota" onclick="newNote()" data-icon="plus"></button>
-      </div>
-      <div id="notes-search-box">
-        <input id="notes-search-input" type="text" placeholder="Buscar notas…" autocomplete="off" spellcheck="false"/>
-      </div>
-      <div id="notes-filters">
-        <select id="notes-filter-cat" onchange="applyFilters()">
-          <option value="">Todas as categorias</option>
-        </select>
-        <select id="notes-filter-tag" onchange="applyFilters()">
-          <option value="">Todas as tags</option>
-        </select>
-      </div>
-      <div id="notes-list"></div>
-      <footer id="notes-footer">
-        <div id="notes-ai-badge" title="Qualquer IA pode ler/criar notas neste endereço">
-          <span class="ai-dot"></span> API da IA · <code>127.0.0.1:3334</code>
-        </div>
-      </footer>
-      <input type="file" id="restore-file" accept="application/json" style="display:none" onchange="restoreBackup(event)"/>
-    </section>
-
-    <section id="notes-editor">
-      <div id="notes-editor-empty">
-        <div id="notes-editor-empty-mark" data-icon="pencil"></div>
-        <div id="notes-editor-empty-text">Selecione ou crie uma nota</div>
-      </div>
-
-      <div id="notes-editor-form">
-        <div id="note-head">
-          <input id="note-title-input" type="text" placeholder="Título da nota…"/>
-          <span id="note-id-badge" style="display:none" onclick="copyNoteId()" title="Clique para copiar o ID (use numa IA)"></span>
-          <button class="note-head-btn" id="btn-note-markmap" style="display:none" onclick="toggleNoteMarkmap()" title="Ver como mapa mental"><span data-icon="tree"></span></button>
-        </div>
-        <div id="note-toolbar">
-          <div id="note-cat-field">
-            <span id="note-cat-dot" class="note-cat-dot"></span>
-            <input id="note-cat-input" list="note-cat-list" placeholder="categoria" autocomplete="off"/>
-            <datalist id="note-cat-list"></datalist>
-          </div>
-          <input id="note-tags-input" type="text" placeholder="tags, separadas, por vírgula"/>
-          <button class="tool-btn" id="btn-preview" onclick="toggleNotePreview()"><span data-icon="eye"></span> Preview</button>
-          <button class="tool-btn" id="btn-copy-note" style="display:none" onclick="copyNoteId()"><span data-icon="hash"></span> ID</button>
-          <button class="tool-btn danger" id="btn-delete-note" style="display:none" onclick="deleteCurrentNote()"><span data-icon="trash"></span></button>
-          <button class="tool-btn primary" onclick="saveCurrentNote()">Salvar</button>
-        </div>
-        <div id="note-body">
-          <textarea id="note-content-textarea" placeholder="Escreva em markdown…"></textarea>
-          <div id="note-preview"></div>
-          <div id="note-markmap"></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ═══ MODE: MACROS ═══ -->
-  <main id="mode-macros" class="mode">
-
-    <section id="macros-col">
-      <div id="macros-col-head">
-        <div id="macros-col-title">Macros</div>
-        <button id="macros-new-btn" title="Nova macro" onclick="newMacro()" data-icon="plus"></button>
-      </div>
-      <div id="macros-list"></div>
-    </section>
-
-    <section id="macros-editor">
-      <div id="macros-editor-empty">
-        <div id="macros-editor-empty-mark" data-icon="bot"></div>
-        <div id="macros-editor-empty-text">Selecione ou crie uma macro</div>
-      </div>
-
-      <div id="macros-editor-form">
-
-        <div id="macro-head">
-          <input id="macro-title-input" type="text" placeholder="Nome da macro…"/>
-          <span id="macro-interp-badge" title="Interpretador detectado pelo shebang"></span>
-          <div id="macro-head-actions">
-            <button class="tool-btn" id="btn-macro-delete" style="display:none" onclick="deleteCurrentMacro()"><span data-icon="trash"></span></button>
-            <button class="tool-btn primary" id="btn-macro-save" onclick="saveCurrentMacro()">Salvar</button>
-            <button class="tool-btn macro-run-btn" id="btn-macro-run" onclick="runCurrentMacro()">
-              <span data-icon="sparkles"></span> Executar
-            </button>
-          </div>
-        </div>
-
-        <div id="macro-desc-row">
-          <input id="macro-desc-input" type="text" placeholder="Descrição curta…"/>
-        </div>
-
-        <div id="macro-body">
-          <textarea id="macro-script" spellcheck="false" placeholder="#!/bin/bash&#10;# Seu script aqui&#10;# Variáveis disponíveis:&#10;#   $DOCMAP_API       → http://127.0.0.1:3334&#10;#   $DOCMAP_WORKSPACE → pasta aberta&#10;&#10;echo &quot;Olá do docmap!&quot;"></textarea>
-        </div>
-
-        <div id="macro-output-panel">
-          <div id="macro-output-header">
-            <span id="macro-output-title">Output</span>
-            <span id="macro-status-badge"></span>
-            <button class="ghost-btn" id="btn-macro-clear" onclick="clearOutput()" style="display:none">limpar</button>
-            <button class="ghost-btn danger" id="btn-macro-stop" onclick="stopMacro()" style="display:none">⬛ Parar</button>
-          </div>
-          <pre id="macro-output"></pre>
-        </div>
-
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ═══ MODE: SKILLS ═══ -->
-  <main id="mode-skills" class="mode">
-
-    <section id="skills-col">
-      <div id="skills-col-head">
-        <div id="skills-col-title">Skills</div>
-        <button id="skills-new-btn" title="Nova skill" onclick="newSkill()" data-icon="plus"></button>
-      </div>
-      <div id="skills-search-box">
-        <input id="skills-search-input" type="text" placeholder="Buscar skills…" autocomplete="off" spellcheck="false"/>
-      </div>
-      <div id="skills-list"></div>
-    </section>
-
-    <section id="skills-editor">
-      <div id="skills-editor-empty">
-        <div id="skills-editor-empty-mark" data-icon="sparkles"></div>
-        <div id="skills-editor-empty-text">Selecione ou crie uma skill</div>
-      </div>
-
-      <div id="skills-editor-form">
-        <div id="skill-head">
-          <input id="skill-title-input" type="text" placeholder="Título da skill…"/>
-          <span id="skill-name-badge" title="Nome/slug (use numa IA: GET /skills/nome)"></span>
-        </div>
-        <div id="skill-toolbar">
-          <div id="skill-name-field">
-            <span id="skill-name-prefix">@</span>
-            <input id="skill-name-input" type="text" placeholder="nome-da-skill" autocomplete="off" spellcheck="false"/>
-          </div>
-          <input id="skill-tags-input" type="text" placeholder="tags, separadas, por vírgula"/>
-          <button class="tool-btn" id="btn-skill-preview" onclick="toggleSkillPreview()"><span data-icon="eye"></span> Preview</button>
-          <button class="tool-btn" id="btn-skill-copy" style="display:none" onclick="copySkillRef()"><span data-icon="copy"></span> Ref</button>
-          <button class="tool-btn danger" id="btn-skill-delete" style="display:none" onclick="deleteCurrentSkill()"><span data-icon="trash"></span></button>
-          <button class="tool-btn primary" onclick="saveCurrentSkill()">Salvar</button>
-        </div>
-        <div id="skill-desc-row">
-          <input id="skill-desc-input" type="text" placeholder="Descrição curta (aparece na listagem da IA)…"/>
-        </div>
-        <div id="skill-body">
-          <textarea id="skill-content-textarea" placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;```bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;```"></textarea>
-          <div id="skill-preview"></div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ═══ MODE: DIAGRAMS ═══ -->
-  <main id="mode-diagrams" class="mode">
-
-    <section id="diag-col">
-      <div id="diag-col-head">
-        <div id="diag-col-title">Diagramas</div>
-        <button id="diag-new-btn" title="Novo diagrama" onclick="newDiagram()" data-icon="plus"></button>
-      </div>
-      <div id="diag-list"></div>
-    </section>
-
-    <section id="diag-editor">
-      <div id="diag-editor-empty">
-        <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
-        <div id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
-      </div>
-
-      <div id="diag-editor-form">
-        <div id="diag-head">
-          <input id="diag-title-input" type="text" placeholder="Título do diagrama…"/>
-          <span id="diag-id-badge" style="display:none" title="Clique para copiar o deep link"></span>
-          <div id="diag-head-actions">
-            <button class="tool-btn" id="btn-diag-copy-link" style="display:none" onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
-            <button class="tool-btn danger" id="btn-diag-delete" style="display:none" onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
-            <button class="tool-btn primary" onclick="saveCurrentDiagram()">Salvar</button>
-          </div>
-        </div>
-
-        <div id="diag-body">
-          <div id="diag-preview-col">
-            <div id="diag-zoom-bar">
-              <button class="diag-zoom-btn" onclick="diagZoomOut()" title="Afastar" data-icon="zoom-out"></button>
-              <span id="diag-zoom-label">100%</span>
-              <button class="diag-zoom-btn" onclick="diagZoomIn()" title="Aproximar" data-icon="zoom-in"></button>
-              <button class="diag-zoom-btn" onclick="diagZoomReset()" title="Resetar zoom" data-icon="maximize-2"></button>
-            </div>
-            <div id="diag-preview"></div>
-          </div>
-          <div id="diag-source-col">
-            <div id="diag-source-header" onclick="toggleDiagSource()">
-              <span>⌨ Código Mermaid</span>
-              <span id="diag-source-toggle">▸</span>
-              <a href="https://mermaid.js.org/syntax/flowchart.html" target="_blank" id="diag-docs-link" onclick="event.stopPropagation()">docs ↗</a>
-            </div>
-            <textarea id="diag-source" placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]" spellcheck="false"></textarea>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ═══ MODE: MOCKS ═══ -->
-  <main id="mode-mocks" class="mode">
-
-    <section id="mocks-col">
-
-      <div id="mocks-col-head">
-        <span class="mocks-section-label">Collections</span>
-        <button class="mocks-hd-btn" onclick="newCollection()" title="Nova collection" data-icon="plus"></button>
-      </div>
-      <div id="mocks-col-list"></div>
-
-      <div id="mocks-list-head">
-        <span id="mocks-list-heading">Todos os mocks</span>
-        <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock" data-icon="plus"></button>
-      </div>
-      <div id="mocks-list"></div>
-
-      <footer id="mocks-col-footer">
-        <div id="mocks-server-badge">
-          <span class="mocks-server-pulse"></span>
-          <span class="mocks-server-url">127.0.0.1:3335</span>
-          <span id="mocks-server-count" data-count="0"></span>
-        </div>
-        <button id="mocks-clear-btn" onclick="clearMockDatabase()">
-          <span data-icon="trash"></span>
-          <span class="mocks-clear-label">Zerar tudo</span>
-        </button>
-      </footer>
-
-    </section>
-
-    <section id="mocks-editor">
-
-      <div id="mocks-editor-empty">
-        <div id="mocks-editor-empty-mark" data-icon="share"></div>
-        <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
-      </div>
-
-      <div id="mocks-editor-form">
-
-        <div id="mock-head">
-          <span id="mock-id-badge" data-method="GET">— novo mock —</span>
-          <div id="mock-head-actions">
-            <button class="tool-btn danger" id="btn-mock-delete" style="display:none" onclick="deleteCurrentMock()">
-              <span data-icon="trash"></span>
-            </button>
-            <button class="tool-btn" id="btn-mock-curl" onclick="copyCurl()" title="Copiar curl">
-              <span data-icon="copy"></span> curl
-            </button>
-            <button class="tool-btn" id="btn-mock-test" onclick="showTestPanel()">
-              <span data-icon="scan-line"></span> Testar
-            </button>
-            <button class="tool-btn primary" onclick="saveMock()">Salvar</button>
-          </div>
-        </div>
-
-        <div id="mock-meta-row">
-          <div class="mock-field">
-            <label class="mock-label">Collection</label>
-            <select id="mock-collection-select" class="mock-select"></select>
-          </div>
-          <div class="mock-field">
-            <label class="mock-label">Método</label>
-            <select id="mock-method-select" class="mock-select" data-method="GET" onchange="onMethodChange(this)">
-              <option>GET</option>
-              <option>POST</option>
-              <option>PUT</option>
-              <option>PATCH</option>
-              <option>DELETE</option>
-              <option>HEAD</option>
-              <option>OPTIONS</option>
+          <div id="notes-filters">
+            <select id="notes-filter-cat" onchange="applyFilters()">
+              <option value="">Todas as categorias</option>
+            </select>
+            <select id="notes-filter-tag" onchange="applyFilters()">
+              <option value="">Todas as tags</option>
             </select>
           </div>
+          <div id="notes-list"></div>
+          <footer id="notes-footer">
+            <div id="notes-ai-badge"
+              title="Qualquer IA pode ler/criar notas neste endereço">
+          <span class="ai-dot"></span> API da IA · <code>127.0.0.1:3334</code>
         </div>
+          </footer>
+          <input type="file" id="restore-file" accept="application/json"
+            style="display:none" onchange="restoreBackup(event)" />
+        </section>
 
-        <div class="mock-field">
-          <label class="mock-label">Path</label>
-          <input id="mock-path-input" type="text" class="mock-input" placeholder="/users/:id" spellcheck="false" autocomplete="off"/>
-        </div>
-
-        <div id="mock-meta-row-2">
-          <div class="mock-field">
-            <label class="mock-label">Nome</label>
-            <input id="mock-name-input" type="text" class="mock-input" placeholder="Get user by ID" autocomplete="off"/>
+        <section id="notes-editor">
+          <div id="notes-editor-empty">
+            <div id="notes-editor-empty-mark" data-icon="pencil"></div>
+            <div id="notes-editor-empty-text">Selecione ou crie uma nota</div>
           </div>
-          <div class="mock-field">
-            <label class="mock-label">Grupo</label>
-            <input id="mock-group-input" type="text" class="mock-input" placeholder="Authentication" autocomplete="off" list="mock-groups-list"/>
-            <datalist id="mock-groups-list"></datalist>
-          </div>
-        </div>
 
-        <div class="mock-field mock-field-script">
-          <div id="mock-script-label-row">
-            <label class="mock-label">Script JS</label>
-            <span id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
-            <button class="ghost-btn" id="btn-format-script" onclick="formatScript()" title="Formatar código">
+          <div id="notes-editor-form">
+            <div id="note-head">
+              <input id="note-title-input" type="text"
+                placeholder="Título da nota…" />
+              <span id="note-id-badge" style="display:none"
+                onclick="copyNoteId()"
+                title="Clique para copiar o ID (use numa IA)"></span>
+              <button class="note-head-btn" id="btn-note-markmap"
+                style="display:none" onclick="toggleNoteMarkmap()"
+                title="Ver como mapa mental"><span data-icon="tree"></span></button>
+            </div>
+            <div id="note-toolbar">
+              <div id="note-cat-field">
+                <span id="note-cat-dot" class="note-cat-dot"></span>
+                <input id="note-cat-input" list="note-cat-list"
+                  placeholder="categoria" autocomplete="off" />
+                <datalist id="note-cat-list"></datalist>
+              </div>
+              <input id="note-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
+              <button class="tool-btn" id="btn-preview"
+                onclick="toggleNotePreview()"><span data-icon="eye"></span> Preview</button>
+              <button class="tool-btn" id="btn-copy-note" style="display:none"
+                onclick="copyNoteId()"><span data-icon="hash"></span> ID</button>
+              <button class="tool-btn danger" id="btn-delete-note"
+                style="display:none"
+                onclick="deleteCurrentNote()"><span data-icon="trash"></span></button>
+              <button class="tool-btn primary"
+                onclick="saveCurrentNote()">Salvar</button>
+            </div>
+            <div id="note-body">
+              <textarea id="note-content-textarea"
+                placeholder="Escreva em markdown…"></textarea>
+              <div id="note-preview"></div>
+              <div id="note-markmap"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ═══ MODE: MACROS ═══ -->
+      <main id="mode-macros" class="mode">
+        <section id="macros-col">
+          <div id="macros-col-head">
+            <div id="macros-col-title">Macros</div>
+            <button id="macros-new-btn" title="Nova macro" onclick="newMacro()"
+              data-icon="plus"></button>
+          </div>
+          <div id="macros-list"></div>
+        </section>
+
+        <section id="macros-editor">
+          <div id="macros-editor-empty">
+            <div id="macros-editor-empty-mark" data-icon="bot"></div>
+            <div id="macros-editor-empty-text">Selecione ou crie uma macro</div>
+          </div>
+
+          <div id="macros-editor-form">
+            <div id="macro-head">
+              <input id="macro-title-input" type="text"
+                placeholder="Nome da macro…" />
+              <span id="macro-interp-badge"
+                title="Interpretador detectado pelo shebang"></span>
+              <div id="macro-head-actions">
+                <button class="tool-btn" id="btn-macro-delete"
+                  style="display:none"
+                  onclick="deleteCurrentMacro()"><span data-icon="trash"></span></button>
+                <button class="tool-btn primary" id="btn-macro-save"
+                  onclick="saveCurrentMacro()">Salvar</button>
+                <button class="tool-btn macro-run-btn" id="btn-macro-run"
+                  onclick="runCurrentMacro()">
+              <span data-icon="sparkles"></span> Executar
+            </button>
+              </div>
+            </div>
+
+            <div id="macro-desc-row">
+              <input id="macro-desc-input" type="text"
+                placeholder="Descrição curta…" />
+            </div>
+
+            <div id="macro-body">
+              <textarea id="macro-script" spellcheck="false"
+                placeholder="#!/bin/bash&#10;# Seu script aqui&#10;# Variáveis disponíveis:&#10;#   $DOCMAP_API       → http://127.0.0.1:3334&#10;#   $DOCMAP_WORKSPACE → pasta aberta&#10;&#10;echo &quot;Olá do docmap!&quot;"></textarea>
+            </div>
+
+            <div id="macro-output-panel">
+              <div id="macro-output-header">
+                <span id="macro-output-title">Output</span>
+                <span id="macro-status-badge"></span>
+                <button class="ghost-btn" id="btn-macro-clear"
+                  onclick="clearOutput()" style="display:none">limpar</button>
+                <button class="ghost-btn danger" id="btn-macro-stop"
+                  onclick="stopMacro()" style="display:none">⬛ Parar</button>
+              </div>
+              <pre id="macro-output"></pre>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ═══ MODE: SKILLS ═══ -->
+      <main id="mode-skills" class="mode">
+        <section id="skills-col">
+          <div id="skills-col-head">
+            <div id="skills-col-title">Skills</div>
+            <button id="skills-new-btn" title="Nova skill" onclick="newSkill()"
+              data-icon="plus"></button>
+          </div>
+          <div id="skills-search-box">
+            <input id="skills-search-input" type="text"
+              placeholder="Buscar skills…" autocomplete="off"
+              spellcheck="false" />
+          </div>
+          <div id="skills-list"></div>
+        </section>
+
+        <section id="skills-editor">
+          <div id="skills-editor-empty">
+            <div id="skills-editor-empty-mark" data-icon="sparkles"></div>
+            <div id="skills-editor-empty-text">Selecione ou crie uma skill</div>
+          </div>
+
+          <div id="skills-editor-form">
+            <div id="skill-head">
+              <input id="skill-title-input" type="text"
+                placeholder="Título da skill…" />
+              <span id="skill-name-badge"
+                title="Nome/slug (use numa IA: GET /skills/nome)"></span>
+            </div>
+            <div id="skill-toolbar">
+              <div id="skill-name-field">
+                <span id="skill-name-prefix">@</span>
+                <input id="skill-name-input" type="text"
+                  placeholder="nome-da-skill" autocomplete="off"
+                  spellcheck="false" />
+              </div>
+              <input id="skill-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
+              <button class="tool-btn" id="btn-skill-preview"
+                onclick="toggleSkillPreview()"><span data-icon="eye"></span> Preview</button>
+              <button class="tool-btn" id="btn-skill-copy" style="display:none"
+                onclick="copySkillRef()"><span data-icon="copy"></span> Ref</button>
+              <button class="tool-btn danger" id="btn-skill-delete"
+                style="display:none"
+                onclick="deleteCurrentSkill()"><span data-icon="trash"></span></button>
+              <button class="tool-btn primary"
+                onclick="saveCurrentSkill()">Salvar</button>
+            </div>
+            <div id="skill-desc-row">
+              <input id="skill-desc-input" type="text"
+                placeholder="Descrição curta (aparece na listagem da IA)…" />
+            </div>
+            <div id="skill-body">
+              <textarea id="skill-content-textarea"
+                placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;```bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;```"></textarea>
+              <div id="skill-preview"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ═══ MODE: DIAGRAMS ═══ -->
+      <main id="mode-diagrams" class="mode">
+        <section id="diag-col">
+          <div id="diag-col-head">
+            <div id="diag-col-title">Diagramas</div>
+            <button id="diag-new-btn" title="Novo diagrama"
+              onclick="newDiagram()" data-icon="plus"></button>
+          </div>
+          <div id="diag-list"></div>
+        </section>
+
+        <section id="diag-editor">
+          <div id="diag-editor-empty">
+            <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
+            <div id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
+          </div>
+
+          <div id="diag-editor-form">
+            <div id="diag-head">
+              <input id="diag-title-input" type="text"
+                placeholder="Título do diagrama…" />
+              <span id="diag-id-badge" style="display:none"
+                title="Clique para copiar o deep link"></span>
+              <div id="diag-head-actions">
+                <button class="tool-btn" id="btn-diag-copy-link"
+                  style="display:none"
+                  onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
+                <button class="tool-btn danger" id="btn-diag-delete"
+                  style="display:none"
+                  onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
+                <button class="tool-btn primary"
+                  onclick="saveCurrentDiagram()">Salvar</button>
+              </div>
+            </div>
+
+            <div id="diag-body">
+              <div id="diag-preview-col">
+                <div id="diag-zoom-bar">
+                  <button class="diag-zoom-btn" onclick="diagZoomOut()"
+                    title="Afastar" data-icon="zoom-out"></button>
+                  <span id="diag-zoom-label">100%</span>
+                  <button class="diag-zoom-btn" onclick="diagZoomIn()"
+                    title="Aproximar" data-icon="zoom-in"></button>
+                  <button class="diag-zoom-btn" onclick="diagZoomReset()"
+                    title="Resetar zoom" data-icon="maximize-2"></button>
+                </div>
+                <div id="diag-preview"></div>
+              </div>
+              <div id="diag-source-col">
+                <div id="diag-source-header" onclick="toggleDiagSource()">
+                  <span>⌨ Código Mermaid</span>
+                  <span id="diag-source-toggle">▸</span>
+                  <a href="https://mermaid.js.org/syntax/flowchart.html"
+                    target="_blank" id="diag-docs-link"
+                    onclick="event.stopPropagation()">docs ↗</a>
+                </div>
+                <textarea id="diag-source"
+                  placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]"
+                  spellcheck="false"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ═══ MODE: MOCKS ═══ -->
+      <main id="mode-mocks" class="mode">
+        <section id="mocks-col">
+          <div id="mocks-col-head">
+            <span class="mocks-section-label">Collections</span>
+            <button class="mocks-hd-btn" onclick="newCollection()"
+              title="Nova collection" data-icon="plus"></button>
+          </div>
+          <div id="mocks-col-list"></div>
+
+          <div id="mocks-list-head">
+            <span id="mocks-list-heading">Todos os mocks</span>
+            <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
+              data-icon="plus"></button>
+          </div>
+          <div id="mocks-list"></div>
+
+          <footer id="mocks-col-footer">
+            <div id="mocks-server-badge">
+              <span class="mocks-server-pulse"></span>
+              <span class="mocks-server-url">127.0.0.1:3335</span>
+              <span id="mocks-server-count" data-count="0"></span>
+            </div>
+            <button id="mocks-clear-btn" onclick="clearMockDatabase()">
+              <span data-icon="trash"></span>
+              <span class="mocks-clear-label">Zerar tudo</span>
+            </button>
+          </footer>
+        </section>
+
+        <section id="mocks-editor">
+          <div id="mocks-editor-empty">
+            <div id="mocks-editor-empty-mark" data-icon="share"></div>
+            <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
+          </div>
+
+          <div id="mocks-editor-form">
+            <div id="mock-head">
+              <span id="mock-id-badge" data-method="GET">— novo mock —</span>
+              <div id="mock-head-actions">
+                <button class="tool-btn danger" id="btn-mock-delete"
+                  style="display:none" onclick="deleteCurrentMock()">
+                  <span data-icon="trash"></span>
+                </button>
+                <button class="tool-btn" id="btn-mock-curl" onclick="copyCurl()"
+                  title="Copiar curl">
+              <span data-icon="copy"></span> curl
+            </button>
+                <button class="tool-btn" id="btn-mock-test"
+                  onclick="showTestPanel()">
+              <span data-icon="scan-line"></span> Testar
+            </button>
+                <button class="tool-btn primary"
+                  onclick="saveMock()">Salvar</button>
+              </div>
+            </div>
+
+            <div id="mock-meta-row">
+              <div class="mock-field">
+                <label class="mock-label">Collection</label>
+                <select id="mock-collection-select"
+                  class="mock-select"></select>
+              </div>
+              <div class="mock-field">
+                <label class="mock-label">Método</label>
+                <select id="mock-method-select" class="mock-select"
+                  data-method="GET" onchange="onMethodChange(this)">
+                  <option>GET</option>
+                  <option>POST</option>
+                  <option>PUT</option>
+                  <option>PATCH</option>
+                  <option>DELETE</option>
+                  <option>HEAD</option>
+                  <option>OPTIONS</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mock-field">
+              <label class="mock-label">Path</label>
+              <input id="mock-path-input" type="text" class="mock-input"
+                placeholder="/users/:id" spellcheck="false"
+                autocomplete="off" />
+            </div>
+
+            <div id="mock-meta-row-2">
+              <div class="mock-field">
+                <label class="mock-label">Nome</label>
+                <input id="mock-name-input" type="text" class="mock-input"
+                  placeholder="Get user by ID" autocomplete="off" />
+              </div>
+              <div class="mock-field">
+                <label class="mock-label">Grupo</label>
+                <input id="mock-group-input" type="text" class="mock-input"
+                  placeholder="Authentication" autocomplete="off"
+                  list="mock-groups-list" />
+                <datalist id="mock-groups-list"></datalist>
+              </div>
+            </div>
+
+            <div class="mock-field mock-field-script">
+              <div id="mock-script-label-row">
+                <label class="mock-label">Script JS</label>
+                <span
+                  id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
+                <button class="ghost-btn" id="btn-format-script"
+                  onclick="formatScript()" title="Formatar código">
               <span data-icon="sparkles"></span> formatar
             </button>
+              </div>
+              <textarea id="mock-script-textarea" spellcheck="false"
+                placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
+            </div>
+
+            <!-- Painel de teste -->
+            <div id="mock-test-panel" style="display:none">
+              <div class="test-panel-head">
+                <span class="test-panel-title">Testar mock</span>
+                <button class="ghost-btn"
+                  onclick="hideTestPanel()"><span data-icon="x"></span></button>
+              </div>
+              <div id="mock-test-params"></div>
+              <button class="tool-btn" id="btn-test-run"
+                onclick="runTest()">Executar</button>
+              <div id="mock-test-result" style="display:none"></div>
+            </div>
           </div>
-          <textarea id="mock-script-textarea" spellcheck="false"
-            placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
-        </div>
+        </section>
+      </main>
 
-        <!-- Painel de teste -->
-        <div id="mock-test-panel" style="display:none">
-          <div class="test-panel-head">
-            <span class="test-panel-title">Testar mock</span>
-            <button class="ghost-btn" onclick="hideTestPanel()"><span data-icon="x"></span></button>
+      <!-- ═══ MODE: TASKS / KANBAN ═══ -->
+      <main id="mode-tasks" class="mode">
+        <div id="kanban-board">
+          <div class="kanban-col" id="kanban-col-todo" data-status="todo">
+            <div class="kanban-col-head">
+              <span class="kanban-col-dot" data-col="todo"></span>
+              <span class="kanban-col-title">A Fazer</span>
+              <span class="kanban-col-count" id="kanban-count-todo">0</span>
+              <button class="kanban-col-add" onclick="openNewTask('todo')"
+                title="Adicionar task">
+                <span data-icon="plus"></span>
+              </button>
+            </div>
+            <div class="kanban-cards" id="kanban-cards-todo"></div>
           </div>
-          <div id="mock-test-params"></div>
-          <button class="tool-btn" id="btn-test-run" onclick="runTest()">Executar</button>
-          <div id="mock-test-result" style="display:none"></div>
+
+          <div class="kanban-col" id="kanban-col-in-progress"
+            data-status="in-progress">
+            <div class="kanban-col-head">
+              <span class="kanban-col-dot" data-col="in-progress"></span>
+              <span class="kanban-col-title">Em Andamento</span>
+              <span class="kanban-col-count"
+                id="kanban-count-in-progress">0</span>
+              <button class="kanban-col-add"
+                onclick="openNewTask('in-progress')" title="Adicionar task">
+                <span data-icon="plus"></span>
+              </button>
+            </div>
+            <div class="kanban-cards" id="kanban-cards-in-progress"></div>
+          </div>
+
+          <div class="kanban-col" id="kanban-col-done" data-status="done">
+            <div class="kanban-col-head">
+              <span class="kanban-col-dot" data-col="done"></span>
+              <span class="kanban-col-title">Concluído</span>
+              <span class="kanban-col-count" id="kanban-count-done">0</span>
+              <button class="kanban-col-add" onclick="openNewTask('done')"
+                title="Adicionar task">
+                <span data-icon="plus"></span>
+              </button>
+            </div>
+            <div class="kanban-cards" id="kanban-cards-done"></div>
+          </div>
         </div>
+      </main>
 
-      </div>
-    </section>
+      <!-- ═══ MODE: FAVORITES ═══ -->
+      <main id="mode-favorites" class="mode">
+        <!-- Sidebar -->
+        <aside id="fav-sidebar">
+          <div class="fav-sidebar-section">
+            <div class="fav-sidebar-label">Categorias</div>
+            <div id="fav-cat-list"></div>
+          </div>
+          <div class="fav-sidebar-divider"></div>
+          <div class="fav-sidebar-section">
+            <div class="fav-sidebar-label">Tags</div>
+            <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
+          </div>
+        </aside>
 
-  </main>
-
-  <!-- ═══ MODE: TASKS / KANBAN ═══ -->
-  <main id="mode-tasks" class="mode">
-    <div id="kanban-board">
-
-      <div class="kanban-col" id="kanban-col-todo" data-status="todo">
-        <div class="kanban-col-head">
-          <span class="kanban-col-dot" data-col="todo"></span>
-          <span class="kanban-col-title">A Fazer</span>
-          <span class="kanban-col-count" id="kanban-count-todo">0</span>
-          <button class="kanban-col-add" onclick="openNewTask('todo')" title="Adicionar task">
-            <span data-icon="plus"></span>
-          </button>
-        </div>
-        <div class="kanban-cards" id="kanban-cards-todo"></div>
-      </div>
-
-      <div class="kanban-col" id="kanban-col-in-progress" data-status="in-progress">
-        <div class="kanban-col-head">
-          <span class="kanban-col-dot" data-col="in-progress"></span>
-          <span class="kanban-col-title">Em Andamento</span>
-          <span class="kanban-col-count" id="kanban-count-in-progress">0</span>
-          <button class="kanban-col-add" onclick="openNewTask('in-progress')" title="Adicionar task">
-            <span data-icon="plus"></span>
-          </button>
-        </div>
-        <div class="kanban-cards" id="kanban-cards-in-progress"></div>
-      </div>
-
-      <div class="kanban-col" id="kanban-col-done" data-status="done">
-        <div class="kanban-col-head">
-          <span class="kanban-col-dot" data-col="done"></span>
-          <span class="kanban-col-title">Concluído</span>
-          <span class="kanban-col-count" id="kanban-count-done">0</span>
-          <button class="kanban-col-add" onclick="openNewTask('done')" title="Adicionar task">
-            <span data-icon="plus"></span>
-          </button>
-        </div>
-        <div class="kanban-cards" id="kanban-cards-done"></div>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- ═══ MODE: FAVORITES ═══ -->
-  <main id="mode-favorites" class="mode">
-
-    <!-- Sidebar -->
-    <aside id="fav-sidebar">
-      <div class="fav-sidebar-section">
-        <div class="fav-sidebar-label">Categorias</div>
-        <div id="fav-cat-list"></div>
-      </div>
-      <div class="fav-sidebar-divider"></div>
-      <div class="fav-sidebar-section">
-        <div class="fav-sidebar-label">Tags</div>
-        <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
-      </div>
-    </aside>
-
-    <!-- Main -->
-    <div id="fav-main">
-
-      <!-- Toolbar -->
-      <div id="fav-toolbar">
-        <div id="fav-search-wrap">
-          <span id="fav-search-icon" data-icon="search"></span>
-          <input id="fav-search" type="text" placeholder="Buscar por título, tag, categoria, URL…" autocomplete="off" spellcheck="false">
-          <span id="fav-search-clear" data-icon="x"></span>
-        </div>
-        <button id="fav-add-btn">
+        <!-- Main -->
+        <div id="fav-main">
+          <!-- Toolbar -->
+          <div id="fav-toolbar">
+            <div id="fav-search-wrap">
+              <span id="fav-search-icon" data-icon="search"></span>
+              <input id="fav-search" type="text"
+                placeholder="Buscar por título, tag, categoria, URL…"
+                autocomplete="off" spellcheck="false">
+              <span id="fav-search-clear" data-icon="x"></span>
+            </div>
+            <button id="fav-add-btn">
           <span data-icon="plus"></span>
           Adicionar
           <span class="fav-add-kbd">⌘K</span>
         </button>
-      </div>
+          </div>
 
-      <!-- Type tabs -->
-      <div id="fav-type-tabs">
-        <div class="fav-type-tab active" data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
-        <div class="fav-type-tab" data-type="site">
+          <!-- Type tabs -->
+          <div id="fav-type-tabs">
+            <div class="fav-type-tab active"
+              data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
+            <div class="fav-type-tab" data-type="site">
           <span class="fav-tab-dot" style="background:var(--fav-site)"></span>
           Sites <span class="fav-tab-count" id="fav-count-site">0</span>
         </div>
-        <div class="fav-type-tab" data-type="slack">
+            <div class="fav-type-tab" data-type="slack">
           <span class="fav-tab-dot" style="background:var(--fav-slack)"></span>
           Slack <span class="fav-tab-count" id="fav-count-slack">0</span>
         </div>
-        <div class="fav-type-tab" data-type="grid">
+            <div class="fav-type-tab" data-type="grid">
           <span class="fav-tab-dot" style="background:var(--fav-grid)"></span>
           Grid <span class="fav-tab-count" id="fav-count-grid">0</span>
         </div>
-        <div class="fav-type-tab" data-type="dash">
+            <div class="fav-type-tab" data-type="dash">
           <span class="fav-tab-dot" style="background:var(--fav-dash)"></span>
           Dashboards <span class="fav-tab-count" id="fav-count-dash">0</span>
         </div>
-        <div class="fav-type-tab" data-type="github">
+            <div class="fav-type-tab" data-type="github">
           <span class="fav-tab-dot" style="background:var(--fav-github)"></span>
           GitHub <span class="fav-tab-count" id="fav-count-github">0</span>
         </div>
-      </div>
-
-      <!-- Scrollable content -->
-      <div id="fav-scroll">
-
-        <!-- Most visited -->
-        <div id="fav-most-visited" style="display:none">
-          <div class="fav-section-header">
-            <span class="fav-section-title">⚡ Mais visitados</span>
           </div>
-          <div class="fav-featured-row" id="fav-featured-row"></div>
+
+          <!-- Scrollable content -->
+          <div id="fav-scroll">
+            <!-- Most visited -->
+            <div id="fav-most-visited" style="display:none">
+              <div class="fav-section-header">
+                <span class="fav-section-title">⚡ Mais visitados</span>
+              </div>
+              <div class="fav-featured-row" id="fav-featured-row"></div>
+            </div>
+
+            <!-- Grid header -->
+            <div class="fav-section-header">
+              <span class="fav-section-title">◈ Links</span>
+              <span class="fav-section-count"
+                id="fav-result-count">0 links</span>
+            </div>
+
+            <!-- Grid -->
+            <div id="fav-grid"></div>
+
+            <!-- Pagination -->
+            <div id="fav-pagination"></div>
+
+            <!-- Empty -->
+            <div id="fav-empty" style="display:none">
+              <span class="fav-empty-icon" data-icon="bookmark"></span>
+              <div class="fav-empty-title">Nenhum favorito encontrado</div>
+              <div
+                class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
+            </div>
+          </div>
         </div>
-
-        <!-- Grid header -->
-        <div class="fav-section-header">
-          <span class="fav-section-title">◈ Links</span>
-          <span class="fav-section-count" id="fav-result-count">0 links</span>
-        </div>
-
-        <!-- Grid -->
-        <div id="fav-grid"></div>
-
-        <!-- Pagination -->
-        <div id="fav-pagination"></div>
-
-        <!-- Empty -->
-        <div id="fav-empty" style="display:none">
-          <span class="fav-empty-icon" data-icon="bookmark"></span>
-          <div class="fav-empty-title">Nenhum favorito encontrado</div>
-          <div class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
-        </div>
-
-      </div>
+      </main>
     </div>
-  </main>
 
-</div>
-
-<!-- Quick-Add / Edit Modal -->
-<div id="fav-modal-overlay">
-  <div id="fav-modal">
-    <div class="fav-modal-header">
-      <span class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
-      <button class="fav-modal-close" id="fav-modal-close" data-icon="x"></button>
-    </div>
-    <div class="fav-modal-body">
-      <div>
-        <div class="fav-field-label">URL</div>
-        <div class="fav-url-wrap">
-          <input class="fav-field-input" id="fav-modal-url" placeholder="cole ou digite a URL…" autocomplete="off" spellcheck="false">
-          <span class="fav-url-detected" id="fav-url-detected"></span>
+    <!-- Quick-Add / Edit Modal -->
+    <div id="fav-modal-overlay">
+      <div id="fav-modal">
+        <div class="fav-modal-header">
+          <span
+            class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
+          <button class="fav-modal-close" id="fav-modal-close"
+            data-icon="x"></button>
         </div>
-      </div>
-      <div>
-        <div class="fav-field-label">Título</div>
-        <input class="fav-field-input" id="fav-modal-title" placeholder="Nome do link…">
-      </div>
-      <div>
-        <div class="fav-field-label">Tipo</div>
-        <div class="fav-type-selector">
-          <button class="fav-type-btn active" data-t="site">🌐 Site</button>
-          <button class="fav-type-btn" data-t="slack">💬 Slack</button>
-          <button class="fav-type-btn" data-t="grid">📁 Grid</button>
-          <button class="fav-type-btn" data-t="dash">📊 Dash</button>
-          <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
+        <div class="fav-modal-body">
+          <div>
+            <div class="fav-field-label">URL</div>
+            <div class="fav-url-wrap">
+              <input class="fav-field-input" id="fav-modal-url"
+                placeholder="cole ou digite a URL…" autocomplete="off"
+                spellcheck="false">
+              <span class="fav-url-detected" id="fav-url-detected"></span>
+            </div>
+          </div>
+          <div>
+            <div class="fav-field-label">Título</div>
+            <input class="fav-field-input" id="fav-modal-title"
+              placeholder="Nome do link…">
+          </div>
+          <div>
+            <div class="fav-field-label">Tipo</div>
+            <div class="fav-type-selector">
+              <button class="fav-type-btn active" data-t="site">🌐 Site</button>
+              <button class="fav-type-btn" data-t="slack">💬 Slack</button>
+              <button class="fav-type-btn" data-t="grid">📁 Grid</button>
+              <button class="fav-type-btn" data-t="dash">📊 Dash</button>
+              <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
+            </div>
+          </div>
+          <div>
+            <div class="fav-field-label">Categoria</div>
+            <div class="fav-cat-sel" id="fav-cat-sel"></div>
+          </div>
+          <div>
+            <div
+              class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
+            <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
+              <input class="fav-tags-input" id="fav-modal-tags-input"
+                placeholder="#api, #design…">
+            </div>
+          </div>
+          <div>
+            <div class="fav-field-label">Nota (opcional)</div>
+            <input class="fav-field-input" id="fav-modal-note"
+              placeholder="Para que serve esse link…">
+          </div>
         </div>
-      </div>
-      <div>
-        <div class="fav-field-label">Categoria</div>
-        <div class="fav-cat-sel" id="fav-cat-sel"></div>
-      </div>
-      <div>
-        <div class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
-        <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
-          <input class="fav-tags-input" id="fav-modal-tags-input" placeholder="#api, #design…">
-        </div>
-      </div>
-      <div>
-        <div class="fav-field-label">Nota (opcional)</div>
-        <input class="fav-field-input" id="fav-modal-note" placeholder="Para que serve esse link…">
-      </div>
-    </div>
-    <div class="fav-modal-footer">
-      <div class="fav-kbd-hint">
+        <div class="fav-modal-footer">
+          <div class="fav-kbd-hint">
         <kbd class="fav-kbd">Enter</kbd> salva · <kbd class="fav-kbd">Esc</kbd> fecha
       </div>
-      <div class="fav-modal-btns">
-        <button class="fav-btn-cancel" id="fav-modal-cancel">Cancelar</button>
-        <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ════ Task Modal ════ -->
-<div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
-  <div id="task-modal">
-    <div id="task-modal-head">
-      <input id="task-title-input" type="text" placeholder="Título da task…" autocomplete="off"/>
-      <select id="task-status-select">
-        <option value="todo">A Fazer</option>
-        <option value="in-progress">Em Andamento</option>
-        <option value="done">Concluído</option>
-      </select>
-      <button class="kanban-modal-close" id="task-modal-close" onclick="closeTaskModal()" title="Fechar">
-        <span data-icon="x"></span>
-      </button>
-    </div>
-    <div id="task-modal-body">
-      <div class="task-field">
-        <label class="task-label">Descrição (markdown)</label>
-        <textarea id="task-desc-textarea" placeholder="Detalhes, contexto, links…" rows="5"></textarea>
-      </div>
-      <div class="task-meta-row">
-        <div class="task-field">
-          <label class="task-label">Data limite</label>
-          <input id="task-due-input" type="date"/>
-        </div>
-        <div class="task-field" style="position:relative">
-          <label class="task-label">Nota vinculada</label>
-          <div id="task-note-wrap">
-            <input id="task-note-input" type="text" placeholder="Buscar nota…" autocomplete="off" oninput="filterNoteSearch()" onfocus="filterNoteSearch()"/>
-            <button id="task-note-clear" onclick="clearNoteLink()" title="Remover nota" style="display:none">
-              <span data-icon="x"></span>
-            </button>
+          <div class="fav-modal-btns">
+            <button class="fav-btn-cancel"
+              id="fav-modal-cancel">Cancelar</button>
+            <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
           </div>
-          <div id="task-note-dropdown"></div>
-          <input type="hidden" id="task-note-id"/>
         </div>
       </div>
     </div>
-    <div id="task-modal-footer">
-      <button class="tool-btn danger" id="task-delete-btn" style="display:none" onclick="deleteCurrentTask()">
-        <span data-icon="trash"></span>
-      </button>
-      <div class="task-footer-spacer"></div>
-      <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
-      <button class="tool-btn primary" onclick="saveCurrentTask()">Salvar</button>
+
+    <!-- ════ Task Modal ════ -->
+    <div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
+      <div id="task-modal">
+        <div id="task-modal-head">
+          <input id="task-title-input" type="text" placeholder="Título da task…"
+            autocomplete="off" />
+          <select id="task-status-select">
+            <option value="todo">A Fazer</option>
+            <option value="in-progress">Em Andamento</option>
+            <option value="done">Concluído</option>
+          </select>
+          <button class="kanban-modal-close" id="task-modal-close"
+            onclick="closeTaskModal()" title="Fechar">
+            <span data-icon="x"></span>
+          </button>
+        </div>
+        <div id="task-modal-body">
+          <div class="task-field">
+            <label class="task-label">Descrição (markdown)</label>
+            <textarea id="task-desc-textarea"
+              placeholder="Detalhes, contexto, links…" rows="5"></textarea>
+          </div>
+          <div class="task-meta-row">
+            <div class="task-field">
+              <label class="task-label">Data limite</label>
+              <input id="task-due-input" type="date" />
+            </div>
+            <div class="task-field" style="position:relative">
+              <label class="task-label">Nota vinculada</label>
+              <div id="task-note-wrap">
+                <input id="task-note-input" type="text"
+                  placeholder="Buscar nota…" autocomplete="off"
+                  oninput="filterNoteSearch()" onfocus="filterNoteSearch()" />
+                <button id="task-note-clear" onclick="clearNoteLink()"
+                  title="Remover nota" style="display:none">
+                  <span data-icon="x"></span>
+                </button>
+              </div>
+              <div id="task-note-dropdown"></div>
+              <input type="hidden" id="task-note-id" />
+            </div>
+          </div>
+        </div>
+        <div id="task-modal-footer">
+          <button class="tool-btn danger" id="task-delete-btn"
+            style="display:none" onclick="deleteCurrentTask()">
+            <span data-icon="trash"></span>
+          </button>
+          <div class="task-footer-spacer"></div>
+          <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
+          <button class="tool-btn primary"
+            onclick="saveCurrentTask()">Salvar</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Annotation popover -->
-<div id="annot-popover">
-  <div id="pop-head">
-    <span id="pop-label">TRECHO</span>
-    <span id="pop-quote"></span>
-  </div>
-  <div id="pop-types">
-    <button class="type-btn active" data-type="note"     onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
-    <button class="type-btn"        data-type="decision" onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
-    <button class="type-btn"        data-type="question" onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
-    <button class="type-btn"        data-type="todo"     onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
-    <button class="type-btn"        data-type="warning"  onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
-  </div>
-  <div id="pop-body"><textarea id="pop-textarea" placeholder="Escreva a anotação…"></textarea></div>
-  <div id="pop-foot">
-    <button class="pop-btn" id="pop-delete" onclick="deleteAnnotation()">Excluir</button>
-    <button class="pop-btn" id="pop-cancel" onclick="closeAnnotPopover()">Cancelar</button>
-    <button class="pop-btn primary" id="pop-save" onclick="saveAnnotation()">Salvar</button>
-  </div>
-</div>
-
-<!-- Confirm modal (webview não suporta window.confirm) -->
-<div id="modal-overlay">
-  <div id="modal">
-    <div id="modal-msg"></div>
-    <div id="modal-actions">
-      <button id="modal-cancel" class="pop-btn">Cancelar</button>
-      <button id="modal-ok" class="pop-btn primary">Confirmar</button>
+    <!-- Annotation popover -->
+    <div id="annot-popover">
+      <div id="pop-head">
+        <span id="pop-label">TRECHO</span>
+        <span id="pop-quote"></span>
+      </div>
+      <div id="pop-types">
+        <button class="type-btn active" data-type="note"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
+        <button class="type-btn" data-type="decision"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
+        <button class="type-btn" data-type="question"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
+        <button class="type-btn" data-type="todo"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
+        <button class="type-btn" data-type="warning"
+          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
+      </div>
+      <div id="pop-body">
+        <textarea id="pop-textarea"
+          placeholder="Escreva a anotação…"></textarea>
+      </div>
+      <div id="pop-foot">
+        <button class="pop-btn" id="pop-delete"
+          onclick="deleteAnnotation()">Excluir</button>
+        <button class="pop-btn" id="pop-cancel"
+          onclick="closeAnnotPopover()">Cancelar</button>
+        <button class="pop-btn primary" id="pop-save"
+          onclick="saveAnnotation()">Salvar</button>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- ════ AI Chat FAB ════ -->
-<button id="chat-fab" onclick="toggleChat()" title="Chat com IA">
-  <span data-icon="bot"></span>
-</button>
+    <!-- Confirm modal (webview não suporta window.confirm) -->
+    <div id="modal-overlay">
+      <div id="modal">
+        <div id="modal-msg"></div>
+        <div id="modal-actions">
+          <button id="modal-cancel" class="pop-btn">Cancelar</button>
+          <button id="modal-ok" class="pop-btn primary">Confirmar</button>
+        </div>
+      </div>
+    </div>
 
-<div id="chat-panel">
-  <div id="chat-header">
-    <span id="chat-title">
+    <!-- ════ AI Chat FAB ════ -->
+    <button id="chat-fab" onclick="toggleChat()" title="Chat com IA">
       <span data-icon="bot"></span>
-      <select id="chat-provider" title="Provedor de IA">
-        <option value="ollama">Ollama (local)</option>
-        <option value="deepseek">DeepSeek</option>
-      </select>
-    </span>
-    <div id="chat-header-actions">
-      <button class="ghost-btn" id="chat-minimize" onclick="toggleMinimizeChat()" title="Minimizar">
-        <span data-icon="minus" id="chat-minimize-icon"></span>
-      </button>
-      <button class="ghost-btn" onclick="clearChat()">limpar</button>
-      <button class="ghost-btn" onclick="toggleChat()"><span data-icon="x"></span></button>
+    </button>
+
+    <div id="chat-panel">
+      <div id="chat-header">
+        <span id="chat-title">
+          <span data-icon="bot"></span>
+          <select id="chat-provider" title="Provedor de IA">
+            <option value="ollama">Ollama (local)</option>
+            <option value="deepseek">DeepSeek</option>
+          </select>
+        </span>
+        <div id="chat-header-actions">
+          <button class="ghost-btn" id="chat-minimize"
+            onclick="toggleMinimizeChat()" title="Minimizar">
+            <span data-icon="minus" id="chat-minimize-icon"></span>
+          </button>
+          <button class="ghost-btn" onclick="clearChat()">limpar</button>
+          <button class="ghost-btn"
+            onclick="toggleChat()"><span data-icon="x"></span></button>
+        </div>
+      </div>
+      <div id="chat-feed"></div>
+      <div id="chat-composer">
+        <button id="chat-stop" onclick="stopChat()"
+          style="display:none"><span data-icon="x"></span> Parar</button>
+        <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
+          rows="1"></textarea>
+        <button id="chat-send" onclick="sendChatMessage()"
+          data-icon="sparkles"></button>
+      </div>
     </div>
-  </div>
-  <div id="chat-feed"></div>
-  <div id="chat-composer">
-    <button id="chat-stop" onclick="stopChat()" style="display:none"><span data-icon="x"></span> Parar</button>
-    <textarea id="chat-input" placeholder="Pergunte qualquer coisa… " rows="1"></textarea>
-    <button id="chat-send" onclick="sendChatMessage()" data-icon="sparkles"></button>
-  </div>
-</div>
 
-<div id="tooltip"></div>
-<div id="toast"></div>
+    <div id="tooltip"></div>
+    <div id="toast"></div>
 
-<script src="/scripts/icons.js"></script>
-<script src="/scripts/dom.js"></script>
-<script src="/scripts/theme.js"></script>
-<script src="/scripts/app.js"></script>
-<script src="/scripts/workspace.js"></script>
-<script src="/scripts/graph.js"></script>
-<script src="/scripts/markmap.js"></script>
-<script src="/scripts/search.js"></script>
-<script src="/scripts/annotations.js"></script>
-<script src="/scripts/notes.js"></script>
-<script src="/scripts/macros.js"></script>
-<script src="/scripts/skills.js"></script>
-<script src="/scripts/diagrams.js"></script>
-<script src="/scripts/tasks.js"></script>
-<script src="/scripts/mocks.js"></script>
-<script src="/scripts/favorites.js"></script>
-<script src="/scripts/system.js"></script>
-<script src="/scripts/ai-chat.js"></script>
-</body>
+    <script src="/scripts/icons.js"></script>
+    <script src="/scripts/dom.js"></script>
+    <script src="/scripts/theme.js"></script>
+    <script src="/scripts/app.js"></script>
+    <script src="/scripts/workspace.js"></script>
+    <script src="/scripts/graph.js"></script>
+    <script src="/scripts/markmap.js"></script>
+    <script src="/scripts/search.js"></script>
+    <script src="/scripts/annotations.js"></script>
+    <script src="/scripts/notes.js"></script>
+    <script src="/scripts/macros.js"></script>
+    <script src="/scripts/skills.js"></script>
+    <script src="/scripts/diagrams.js"></script>
+    <script src="/scripts/tasks.js"></script>
+    <script src="/scripts/mocks.js"></script>
+    <script src="/scripts/favorites.js"></script>
+    <script src="/scripts/system.js"></script>
+    <script src="/scripts/ai-chat.js"></script>
+  </body>
 </html>

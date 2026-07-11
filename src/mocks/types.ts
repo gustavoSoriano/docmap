@@ -1,7 +1,20 @@
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'HEAD'
+  | 'OPTIONS';
 
 export const HTTP_METHODS: readonly HttpMethod[] = [
-  'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS',
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'HEAD',
+  'OPTIONS',
 ];
 
 export type MockCollection = {
@@ -17,7 +30,7 @@ export type Mock = {
   readonly method: HttpMethod;
   readonly path: string;
   readonly name: string;
-  readonly group: string;  // visual grouper within a collection (empty = ungrouped)
+  readonly group: string; // visual grouper within a collection (empty = ungrouped)
   readonly script: string;
   readonly createdAt: string;
   readonly updatedAt: string;

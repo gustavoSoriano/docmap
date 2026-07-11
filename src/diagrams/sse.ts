@@ -14,14 +14,22 @@ export const subscribe = (): ReadableStream<Uint8Array> => {
       subscribers.add(ctrl);
       ctrl.enqueue(enc.encode(': ping\n\n'));
     },
-    cancel() { subscribers.delete(ctrl); },
+    cancel() {
+      subscribers.delete(ctrl);
+    },
   });
   return stream;
 };
 
 export const broadcast = (event: DiagramEvent): void => {
-  const msg = enc.encode(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
+  const msg = enc.encode(
+    `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`,
+  );
   for (const ctrl of subscribers) {
-    try { ctrl.enqueue(msg); } catch { subscribers.delete(ctrl); }
+    try {
+      ctrl.enqueue(msg);
+    } catch {
+      subscribers.delete(ctrl);
+    }
   }
 };

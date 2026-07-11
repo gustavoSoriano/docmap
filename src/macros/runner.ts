@@ -10,13 +10,13 @@ const BLOCKLIST: RegExp[] = [
   /Deno\.removeSync/,
   /DROP\s+TABLE/i,
   /DELETE\s+FROM/i,
-  /format\s+[A-Z]:/i,       // Windows format
-  /mkfs\./,                  // Linux format
-  />\s*\/dev\/sd/,           // disk overwrite
+  /format\s+[A-Z]:/i, // Windows format
+  /mkfs\./, // Linux format
+  />\s*\/dev\/sd/, // disk overwrite
 ];
 
 export type BlockedResult = { blocked: true; reason: string };
-export type RunResult     = { blocked: false; stream: ReadableStream<Uint8Array> };
+export type RunResult = { blocked: false; stream: ReadableStream<Uint8Array> };
 
 const checkBlocklist = (script: string): string | null => {
   for (const pattern of BLOCKLIST) {
@@ -33,12 +33,12 @@ export const runMacro = async (
   if (blocked) return { blocked: true, reason: blocked };
 
   // escreve o script em arquivo temporário
-  const ext     = macro.interpreter === 'deno' ? '.ts' : '.sh';
+  const ext = macro.interpreter === 'deno' ? '.ts' : '.sh';
   const tmpFile = await Deno.makeTempFile({ suffix: ext });
   await Deno.writeTextFile(tmpFile, macro.script);
   if (macro.interpreter === 'bash') await Deno.chmod(tmpFile, 0o755);
 
-  const cmd   = macro.interpreter === 'deno'
+  const cmd = macro.interpreter === 'deno'
     ? ['deno', 'run', '--allow-all', '--unstable-kv', tmpFile]
     : ['bash', tmpFile];
 
@@ -46,40 +46,50 @@ export const runMacro = async (
     ...Object.fromEntries(
       Object.entries(Deno.env.toObject()).filter(([k]) =>
         ['HOME', 'PATH', 'USER', 'SHELL', 'LANG', 'TERM'].includes(k)
-      )
+      ),
     ),
-    DOCMAP_API:       'http://127.0.0.1:3334',
+    DOCMAP_API: 'http://127.0.0.1:3334',
     DOCMAP_WORKSPACE: workspace ?? '',
-    DOCMAP_KV:        `${Deno.env.get('HOME')}/Library/Application Support/docmap/data.sqlite3`,
+    DOCMAP_KV: `${
+      Deno.env.get('HOME')
+    }/Library/Application Support/docmap/data.sqlite3`,
   };
 
   // macOS GUI apps não herdam o PATH do shell.
   // Adiciona diretórios comuns de package managers se existirem no sistema.
   const extraPaths = ['/opt/homebrew/bin', '/usr/local/bin'].filter((p) => {
-    try { Deno.statSync(p); return true; } catch { return false; }
+    try {
+      Deno.statSync(p);
+      return true;
+    } catch {
+      return false;
+    }
   });
   if (extraPaths.length > 0) {
     env.PATH = `${extraPaths.join(':')}:${env.PATH}`;
   }
 
   const proc = new Deno.Command(cmd[0], {
-    args:   cmd.slice(1),
-    cwd:    dirname(tmpFile),
+    args: cmd.slice(1),
+    cwd: dirname(tmpFile),
     env,
     stdout: 'piped',
     stderr: 'piped',
   });
 
   const child = proc.spawn();
-  const enc   = new TextEncoder();
-  const sse   = (type: string, data: string) =>
+  const enc = new TextEncoder();
+  const sse = (type: string, data: string) =>
     enc.encode(`event: ${type}\ndata: ${JSON.stringify(data)}\n\n`);
 
   const stream = new ReadableStream<Uint8Array>({
     async start(ctrl) {
-      const pump = async (readable: ReadableStream<Uint8Array>, type: 'stdout' | 'stderr') => {
+      const pump = async (
+        readable: ReadableStream<Uint8Array>,
+        type: 'stdout' | 'stderr',
+      ) => {
         const reader = readable.getReader();
-        const dec    = new TextDecoder();
+        const dec = new TextDecoder();
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -100,9 +110,15 @@ export const runMacro = async (
       ctrl.close();
 
       // limpa o arquivo temporário
-      try { await Deno.remove(tmpFile); } catch { /* noop */ }
+      try {
+        await Deno.remove(tmpFile);
+      } catch { /* noop */ }
     },
-    cancel() { try { child.kill(); } catch { /* noop */ } },
+    cancel() {
+      try {
+        child.kill();
+      } catch { /* noop */ }
+    },
   });
 
   return { blocked: false, stream };

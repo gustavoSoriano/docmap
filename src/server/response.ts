@@ -14,4 +14,7 @@ export const badRequest = (msg: string): Response =>
   new Response(msg, { status: 400 });
 
 export const noWorkspace = (): Response =>
-  json({ error: 'no_workspace', message: 'Nenhum workspace selecionado.' }, 400);
+  json(
+    { error: 'no_workspace', message: 'Nenhum workspace selecionado.' },
+    400,
+  );

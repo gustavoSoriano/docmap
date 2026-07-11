@@ -9,7 +9,11 @@ export const applyUpdate = async (assetUrl: string): Promise<void> => {
   const res = await fetch(assetUrl);
   if (!res.ok || !res.body) throw new Error(`Download falhou: ${res.status}`);
 
-  const file = await Deno.open(staging, { write: true, create: true, truncate: true });
+  const file = await Deno.open(staging, {
+    write: true,
+    create: true,
+    truncate: true,
+  });
   await res.body.pipeTo(file.writable);
 
   await Deno.chmod(staging, 0o755);

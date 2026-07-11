@@ -1,9 +1,14 @@
-import type { Note, NotePreview, CreateNoteInput, UpdateNoteInput } from './types.ts';
+import type {
+  CreateNoteInput,
+  Note,
+  NotePreview,
+  UpdateNoteInput,
+} from './types.ts';
 
 // Notas são globais — não dependem do workspace aberto.
 const GLOBAL = '_global_';
-const key    = (id: string)  => ['notes', GLOBAL, id] as const;
-const PREFIX =                   ['notes', GLOBAL]    as const;
+const key = (id: string) => ['notes', GLOBAL, id] as const;
+const PREFIX = ['notes', GLOBAL] as const;
 
 const toPreview = (note: Note): NotePreview => ({
   id: note.id,
@@ -15,7 +20,10 @@ const toPreview = (note: Note): NotePreview => ({
   preview: note.content.slice(0, 120),
 });
 
-export const createNote = async (kv: Deno.Kv, input: CreateNoteInput): Promise<Note> => {
+export const createNote = async (
+  kv: Deno.Kv,
+  input: CreateNoteInput,
+): Promise<Note> => {
   const note: Note = {
     id: crypto.randomUUID(),
     title: input.title,
@@ -29,7 +37,10 @@ export const createNote = async (kv: Deno.Kv, input: CreateNoteInput): Promise<N
   return note;
 };
 
-export const getNoteById = async (kv: Deno.Kv, id: string): Promise<Note | null> => {
+export const getNoteById = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<Note | null> => {
   const entry = await kv.get<Note>(key(id));
   return entry.value;
 };
@@ -43,9 +54,9 @@ export const updateNote = async (
   if (!existing) return null;
   const updated: Note = {
     ...existing,
-    ...(input.title    !== undefined ? { title:    input.title    } : {}),
-    ...(input.content  !== undefined ? { content:  input.content  } : {}),
-    ...(input.tags     !== undefined ? { tags:     input.tags     } : {}),
+    ...(input.title !== undefined ? { title: input.title } : {}),
+    ...(input.content !== undefined ? { content: input.content } : {}),
+    ...(input.tags !== undefined ? { tags: input.tags } : {}),
     ...(input.category !== undefined ? { category: input.category } : {}),
     updatedAt: new Date().toISOString(),
   };

@@ -1,9 +1,10 @@
-import { setWorkspace, getRecentWorkspaces } from '../../workspace/manager.ts';
+import { getRecentWorkspaces, setWorkspace } from '../../workspace/manager.ts';
 import { openFolderDialog } from '../../window/dialog.ts';
 import { json, noWorkspace } from '../response.ts';
 import type { HandlerDeps } from '../types.ts';
 
-export const createWorkspaceHandler = ({ kv, workspace }: HandlerDeps) =>
+export const createWorkspaceHandler =
+  ({ kv, workspace }: HandlerDeps) =>
   async (req: Request, url: URL): Promise<Response> => {
     if (req.method === 'GET' && url.pathname === '/workspace') {
       return json({
@@ -25,10 +26,18 @@ export const createWorkspaceHandler = ({ kv, workspace }: HandlerDeps) =>
 
     if (req.method === 'POST' && url.pathname === '/workspace/set') {
       let body: unknown;
-      try { body = await req.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+      try {
+        body = await req.json();
+      } catch {
+        return json({ error: 'invalid_json' }, 400);
+      }
       const { path } = body as { path: string };
       if (!path) return json({ error: 'missing_path' }, 400);
-      try { Deno.statSync(path); } catch { return json({ error: 'path_not_found' }, 404); }
+      try {
+        Deno.statSync(path);
+      } catch {
+        return json({ error: 'path_not_found' }, 404);
+      }
       await setWorkspace(kv, workspace, path);
       return json({ root: path, name: path.split('/').pop() });
     }

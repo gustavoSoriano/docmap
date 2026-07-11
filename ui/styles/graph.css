@@ -5,34 +5,60 @@
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(1200px 700px at 50% 45%, rgba(255,255,255,.015), transparent 70%),
+    radial-gradient(1200px 700px at 50% 45%, rgba(255,255,255,.015), transparent
+    70%),
     var(--bg);
 }
 /* faint dot grid */
 #graph-pane::before {
   content: '';
-  position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,.035) 1px, transparent 1px);
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.035) 1px,
+    transparent 1px);
   background-size: 26px 26px;
   pointer-events: none;
 }
 
-svg#graph { width: 100%; height: 100%; display: block; position: relative; }
+svg#graph {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: relative;
+}
 
 /* ── Links ── */
-.link { stroke: var(--border-hi); stroke-width: 1.3px; stroke-opacity: .6; }
-.link.highlighted { stroke: var(--accent); stroke-width: 2px; stroke-opacity: 1; }
+.link {
+  stroke: var(--border-hi);
+  stroke-width: 1.3px;
+  stroke-opacity: .6;
+}
+.link.highlighted {
+  stroke: var(--accent);
+  stroke-width: 2px;
+  stroke-opacity: 1;
+}
 
 /* ── Nodes ── */
-.node { cursor: pointer; }
-.node circle { transition: transform .18s ease, filter .18s; }
+.node {
+  cursor: pointer;
+}
+.node circle {
+  transition: transform .18s ease, filter .18s;
+}
 .node .node-core {
   stroke-width: 2px;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,.5));
 }
-.node:hover .node-core { transform: scale(1.16); }
-.node.selected .node-core { stroke-width: 2.5px; }
-.node.dimmed { opacity: .22; }
+.node:hover .node-core {
+  transform: scale(1.16);
+}
+.node.selected .node-core {
+  stroke-width: 2.5px;
+}
+.node.dimmed {
+  opacity: .22;
+}
 
 .node text {
   font-family: var(--font-ui);
@@ -45,12 +71,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   stroke-width: 3.5px;
   stroke-linejoin: round;
 }
-.node:hover text, .node.selected text { fill: var(--text); }
+.node:hover text,
+.node.selected text {
+  fill: var(--text);
+}
 
 /* ── Legend ── */
 .legend {
   position: absolute;
-  bottom: 18px; left: 18px;
+  bottom: 18px;
+  left: 18px;
   background: rgba(16,18,22,.82);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
@@ -68,9 +98,23 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text-3);
   margin-bottom: 9px;
 }
-.legend-item { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; line-height: 1; }
-.legend-item:last-child { margin-bottom: 0; }
-.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.legend-item:last-child {
+  margin-bottom: 0;
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
 
 /* ── Fit button ── */
 .map-tool {
@@ -84,17 +128,25 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   color: var(--text-2);
 }
 .fit-btn {
-  bottom: 18px; right: 18px;
-  width: 40px; height: 40px;
+  bottom: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-md);
-  display: grid; place-items: center;
+  display: grid;
+  place-items: center;
   font-size: 18px;
 }
-.fit-btn:hover { border-color: var(--accent-line); color: var(--accent); transform: translateY(-2px); }
+.fit-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
 
 /* ── No workspace ── */
 #no-workspace {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   display: none;
   flex-direction: column;
   align-items: center;
@@ -102,10 +154,14 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   gap: 14px;
   z-index: 10;
 }
-#no-workspace.visible { display: flex; }
+#no-workspace.visible {
+  display: flex;
+}
 #no-workspace-mark {
-  width: 72px; height: 72px;
-  display: grid; place-items: center;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
   font-size: 32px;
   color: var(--accent);
   background: var(--accent-dim);
@@ -113,8 +169,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   border-radius: 20px;
   margin-bottom: 4px;
 }
-#no-workspace-title { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
-#no-workspace-hint { font-size: 13px; color: var(--text-3); }
+#no-workspace-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.01em;
+}
+#no-workspace-hint {
+  font-size: 13px;
+  color: var(--text-3);
+}
 #no-workspace-btn {
   margin-top: 10px;
   padding: 10px 22px;
@@ -129,12 +193,16 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   box-shadow: 0 4px 16px rgba(55,217,154,.3);
   transition: all .15s;
 }
-#no-workspace-btn:hover { background: var(--accent-2); transform: translateY(-2px); }
+#no-workspace-btn:hover {
+  background: var(--accent-2);
+  transform: translateY(-2px);
+}
 
 /* ── Node metadata panel ── */
 #node-meta {
   position: absolute;
-  bottom: 18px; right: 70px;
+  bottom: 18px;
+  right: 70px;
   background: rgba(16,18,22,.92);
   backdrop-filter: blur(14px);
   border: 1px solid var(--border-hi);
@@ -149,7 +217,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   z-index: 20;
   animation: popIn .14s ease;
 }
-#node-meta.visible { display: flex; }
+#node-meta.visible {
+  display: flex;
+}
 #node-meta-header {
   display: flex;
   align-items: center;
@@ -166,8 +236,10 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 #node-meta-close {
   flex-shrink: 0;
-  width: 20px; height: 20px;
-  display: grid; place-items: center;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
   border: none;
   background: transparent;
   color: var(--text-3);
@@ -176,9 +248,19 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   font-size: 13px;
   transition: color .12s, background .12s;
 }
-#node-meta-close:hover { color: var(--text); background: var(--surface-3); }
-#node-meta-close .ico { width: 12px; height: 12px; }
-#node-meta-stats { display: flex; flex-direction: column; gap: 7px; }
+#node-meta-close:hover {
+  color: var(--text);
+  background: var(--surface-3);
+}
+#node-meta-close .ico {
+  width: 12px;
+  height: 12px;
+}
+#node-meta-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
 .node-meta-row {
   display: flex;
   justify-content: space-between;
@@ -220,7 +302,9 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   padding: 3px 0;
   border-bottom: 1px solid var(--border);
 }
-.nm-author-row:last-child { border-bottom: none; }
+.nm-author-row:last-child {
+  border-bottom: none;
+}
 .nm-author-name {
   font-family: var(--font-mono);
   font-size: 11.5px;
@@ -261,5 +345,11 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
   cursor: pointer;
   transition: all .13s;
 }
-#nm-open-markmap:hover { background: var(--accent); color: var(--on-accent); }
-#nm-open-markmap .ico { width: 13px; height: 13px; }
+#nm-open-markmap:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+#nm-open-markmap .ico {
+  width: 13px;
+  height: 13px;
+}

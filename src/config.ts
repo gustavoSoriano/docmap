@@ -4,7 +4,8 @@ export const APP_VERSION = '1.0.0';
 
 // Repositório GitHub usado para auto-update (owner/repo).
 // Pode ser sobrescrito pela env DOCMAP_REPO.
-export const GITHUB_REPO = Deno.env.get('DOCMAP_REPO') ?? 'gustavosoriano/docmap';
+export const GITHUB_REPO = Deno.env.get('DOCMAP_REPO') ??
+  'gustavosoriano/docmap';
 
 const APP_DIR_NAME = 'docmap';
 
@@ -21,7 +22,9 @@ export const dataDir = (): string => {
       return `${Deno.env.get('APPDATA') ?? home}\\${APP_DIR_NAME}`;
     default: {
       const xdg = Deno.env.get('XDG_DATA_HOME');
-      return xdg ? `${xdg}/${APP_DIR_NAME}` : `${home}/.local/share/${APP_DIR_NAME}`;
+      return xdg
+        ? `${xdg}/${APP_DIR_NAME}`
+        : `${home}/.local/share/${APP_DIR_NAME}`;
     }
   }
 };
@@ -31,9 +34,10 @@ export const kvPath = (): string => `${dataDir()}/data.sqlite3`;
 // ════ AI providers ════
 // Ollama roda localmente (default). DeepSeek é OpenAI-compatible na nuvem.
 
-export const OLLAMA_URL     = 'http://localhost:11434/api/chat';
-export const OLLAMA_MODEL   = Deno.env.get('DOCMAP_OLLAMA_MODEL') ?? 'gemma4:12b';
-export const DEEPSEEK_URL   = 'https://api.deepseek.com/chat/completions';
-export const DEEPSEEK_MODEL = Deno.env.get('DOCMAP_DEEPSEEK_MODEL') ?? 'deepseek-v4-flash';
+export const OLLAMA_URL = 'http://localhost:11434/api/chat';
+export const OLLAMA_MODEL = Deno.env.get('DOCMAP_OLLAMA_MODEL') ?? 'gemma4:12b';
+export const DEEPSEEK_URL = 'https://api.deepseek.com/chat/completions';
+export const DEEPSEEK_MODEL = Deno.env.get('DOCMAP_DEEPSEEK_MODEL') ??
+  'deepseek-v4-flash';
 // A chave NUNCA vai para o frontend — só o adapter do backend a lê.
 export const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY') ?? '';

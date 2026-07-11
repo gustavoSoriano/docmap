@@ -50,9 +50,15 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
-.kanban-col-dot[data-col="todo"]        { background: var(--text-3); }
-.kanban-col-dot[data-col="in-progress"] { background: var(--cat-entry); }
-.kanban-col-dot[data-col="done"]        { background: var(--accent); }
+.kanban-col-dot[data-col="todo"] {
+  background: var(--text-3);
+}
+.kanban-col-dot[data-col="in-progress"] {
+  background: var(--cat-entry);
+}
+.kanban-col-dot[data-col="done"] {
+  background: var(--accent);
+}
 
 .kanban-col-title {
   font-size: 0.8125rem;
@@ -264,7 +270,9 @@
   color: var(--text);
   font-family: var(--font-ui);
 }
-#task-title-input::placeholder { color: var(--text-4); }
+#task-title-input::placeholder {
+  color: var(--text-4);
+}
 
 #task-status-select {
   font-size: 0.78rem;
@@ -284,7 +292,9 @@
   border-radius: var(--r-xs);
   transition: color 0.12s;
 }
-#task-modal-close:hover { color: var(--text); }
+#task-modal-close:hover {
+  color: var(--text);
+}
 
 #task-modal-body {
   flex: 1;
@@ -332,7 +342,9 @@
   line-height: 1.55;
   transition: border-color 0.12s;
 }
-#task-desc-textarea:focus { border-color: var(--accent-line); }
+#task-desc-textarea:focus {
+  border-color: var(--accent-line);
+}
 
 /* metadados: coluna vertical à direita */
 .task-meta-row {
@@ -357,7 +369,9 @@
   transition: border-color 0.12s;
   width: 100%;
 }
-#task-due-input:focus { border-color: var(--accent-line); }
+#task-due-input:focus {
+  border-color: var(--accent-line);
+}
 
 #task-note-wrap {
   display: flex;
@@ -368,7 +382,9 @@
   transition: border-color 0.12s;
   overflow: hidden;
 }
-#task-note-wrap:focus-within { border-color: var(--accent-line); }
+#task-note-wrap:focus-within {
+  border-color: var(--accent-line);
+}
 
 #task-note-input {
   flex: 1;
@@ -380,8 +396,12 @@
   font-family: var(--font-ui);
   padding: 6px 10px;
 }
-#task-note-input::placeholder { color: var(--text-4); }
-#task-note-input.has-link { color: var(--accent); }
+#task-note-input::placeholder {
+  color: var(--text-4);
+}
+#task-note-input.has-link {
+  color: var(--accent);
+}
 
 #task-note-clear {
   border: none;
@@ -393,7 +413,9 @@
   align-items: center;
   transition: color 0.12s;
 }
-#task-note-clear:hover { color: var(--text); }
+#task-note-clear:hover {
+  color: var(--text);
+}
 
 #task-note-dropdown {
   position: fixed;
@@ -406,7 +428,9 @@
   overflow-y: auto;
   display: none;
 }
-#task-note-dropdown.open { display: block; }
+#task-note-dropdown.open {
+  display: block;
+}
 
 .note-search-item {
   padding: 7px 12px;
@@ -438,7 +462,9 @@
   gap: 8px;
 }
 
-.task-footer-spacer { flex: 1; }
+.task-footer-spacer {
+  flex: 1;
+}
 
 /* ── Empty state coluna ── */
 .kanban-col-empty {

@@ -4,7 +4,12 @@
 import { DEEPSEEK_API_KEY } from '../../config.ts';
 import { callDeepSeek } from './deepseek.ts';
 import { callOllama } from './ollama.ts';
-import type { ChatChunk, ChatMessage, Provider, ToolDefinition } from '../types.ts';
+import type {
+  ChatChunk,
+  ChatMessage,
+  Provider,
+  ToolDefinition,
+} from '../types.ts';
 
 export const streamChat = (
   provider: Provider,

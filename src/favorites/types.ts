@@ -31,3 +31,18 @@ export type UpdateFavoriteInput = {
   readonly tags?: readonly string[];
   readonly note?: string;
 };
+
+export type FavoriteSortBy =
+  | 'accessCount'
+  | 'createdAt'
+  | 'lastAccessed'
+  | 'title';
+
+export type FavoriteFilters = {
+  readonly q?: string;
+  readonly types?: readonly FavoriteType[];
+  readonly category?: string;
+  readonly tags?: readonly string[];
+  readonly sortBy?: FavoriteSortBy;
+  readonly order?: 'asc' | 'desc';
+};

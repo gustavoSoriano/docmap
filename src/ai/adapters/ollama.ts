@@ -6,7 +6,12 @@
 // - mensagens role:'tool' não aceitam tool_call_id
 
 import { OLLAMA_MODEL, OLLAMA_URL } from '../../config.ts';
-import type { ChatChunk, ChatMessage, ToolCall, ToolDefinition } from '../types.ts';
+import type {
+  ChatChunk,
+  ChatMessage,
+  ToolCall,
+  ToolDefinition,
+} from '../types.ts';
 
 // Converte mensagens do formato OpenAI interno para o formato nativo do Ollama.
 const toOllamaMessages = (messages: readonly ChatMessage[]): unknown[] =>
@@ -22,7 +27,13 @@ const toOllamaMessages = (messages: readonly ChatMessage[]): unknown[] =>
         function: {
           ...tc.function,
           arguments: typeof tc.function.arguments === 'string'
-            ? (() => { try { return JSON.parse(tc.function.arguments); } catch { return {}; } })()
+            ? (() => {
+              try {
+                return JSON.parse(tc.function.arguments);
+              } catch {
+                return {};
+              }
+            })()
             : tc.function.arguments,
         },
       }));
