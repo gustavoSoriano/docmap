@@ -1,3 +1,4 @@
+import { dirname } from 'jsr:@std/path@1/dirname';
 import type { Macro } from './types.ts';
 
 // Padrões bloqueados por padrão — protegem contra scripts destrutivos acidentais.
@@ -63,6 +64,7 @@ export const runMacro = async (
 
   const proc = new Deno.Command(cmd[0], {
     args:   cmd.slice(1),
+    cwd:    dirname(tmpFile),
     env,
     stdout: 'piped',
     stderr: 'piped',

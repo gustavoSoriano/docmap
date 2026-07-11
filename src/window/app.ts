@@ -1,4 +1,5 @@
 import { Webview } from 'webview';
+import { injectEditShortcuts } from './edit-shortcuts.ts';
 
 export type WindowConfig = {
   readonly port: number;
@@ -13,6 +14,7 @@ export const openWindow = (config: WindowConfig): void => {
   const webview = new Webview(true);
   webview.title = title;
   webview.size = { width, height, hint: 0 };
+  injectEditShortcuts(webview);
   webview.navigate(`http://127.0.0.1:${port}`);
   webview.run();
 };
