@@ -84,6 +84,18 @@ Use o nome que o usuário te passar: \`GET /skills/analyze-pr\`
 
 ---
 
+## Macros
+
+- \`GET /macros\` — lista macros (id, name, title, description, interpreter, datas)
+- \`GET /macros/:id\` — macro completa com \`script\` e \`interpreter\`
+- \`POST /macros\` — cria. Body: \`{ name, title, description?, script }\`
+- \`PUT /macros/:id\` — edita (só os campos que mudam)
+
+O \`interpreter\` é detectado automaticamente pelo shebang: \`bash\` ou \`deno\`.
+Use para salvar scripts auxiliares que o usuário executa manualmente no app.
+
+---
+
 ## Tasks — Kanban global
 
 Colunas fixas: \`todo\` (A Fazer) · \`in-progress\` (Em Andamento) · \`done\` (Concluído).

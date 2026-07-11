@@ -60,12 +60,17 @@ Tipos Mermaid: `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram-v2`
 
 ---
 
-## Macros (read-only para IA)
+## Macros
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| GET | `/macros` | Lista macros |
+| GET | `/macros` | Lista macros (id, name, title, description, interpreter) |
 | GET | `/macros/:id` | Macro completa com `script` e `interpreter` |
+| POST | `/macros` | Cria `{ name, title, description?, script }` |
+| PUT | `/macros/:id` | Edita (campos parciais) |
+
+O `interpreter` (`bash` ou `deno`) é detectado automaticamente pelo shebang.
+Execução continua sendo manual pelo usuário dentro do app.
 
 ---
 

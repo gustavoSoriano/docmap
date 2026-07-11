@@ -1,4 +1,5 @@
 import { createApiNotesHandler } from './handlers/notes.ts';
+import { createApiMacrosHandler } from './handlers/macros.ts';
 import { createApiSearchHandler } from './handlers/search.ts';
 import { createApiGraphHandler } from './handlers/graph.ts';
 import { createApiGraphRelationsHandler } from './handlers/graph-relations.ts';
@@ -25,6 +26,7 @@ const withCors = (res: Response): Response => {
 
 export const createApiRouter = (deps: HandlerDeps) => {
   const notes            = createApiNotesHandler(deps);
+  const macros           = createApiMacrosHandler(deps);
   const search           = createApiSearchHandler(deps);
   const graph            = createApiGraphHandler(deps);
   const graphRelations   = createApiGraphRelationsHandler(deps);
@@ -45,6 +47,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
 
     let res: Response;
     if (pathname.startsWith('/notes')) res = await notes(req, url);
+    else if (pathname.startsWith('/macros')) res = await macros(req, url);
     else if (pathname.startsWith('/diagrams')) res = await diagrams(req, url);
     else if (pathname.startsWith('/skills')) res = await skills(req, url);
     else if (pathname.startsWith('/tasks')) res = await tasks(req, url);
