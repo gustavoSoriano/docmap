@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>docmap — atlas de documentação</title>
+<script>(function(){var t=localStorage.getItem('docmap-theme');if(t)document.documentElement.dataset.theme=t;})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -96,6 +97,7 @@
       <input id="search-input" type="text" placeholder="Buscar nos documentos…" autocomplete="off" spellcheck="false"/>
       <div id="search-results"></div>
     </div>
+    <button id="theme-toggle" title="Alternar tema"></button>
   </header>
 
   <!-- ═══ MODE: MAP ═══ -->
@@ -846,6 +848,7 @@
 
 <script src="/scripts/icons.js"></script>
 <script src="/scripts/dom.js"></script>
+<script src="/scripts/theme.js"></script>
 <script src="/scripts/app.js"></script>
 <script src="/scripts/workspace.js"></script>
 <script src="/scripts/graph.js"></script>

@@ -5,6 +5,7 @@ export const UI_HTML = `<!DOCTYPE html>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>docmap — atlas de documentação</title>
+<script>(function(){var t=localStorage.getItem('docmap-theme');if(t)document.documentElement.dataset.theme=t;})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -80,6 +81,41 @@ export const UI_HTML = `<!DOCTYPE html>
   --sh-md: 0 8px 24px rgba(0,0,0,.45);
   --sh-lg: 0 20px 60px rgba(0,0,0,.6);
   --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
+
+  /* ── Topbar ── */
+  --topbar-bg: rgba(16,18,22,.6);
+}
+
+/* ════════ Light theme ════════ */
+:root[data-theme='light'] {
+  --bg:        #f6f7f9;
+  --surface:   #ffffff;
+  --surface-2: #eef0f4;
+  --surface-3: #e3e6ec;
+  --surface-4: #d6dae2;
+
+  --border:      #d4d8e0;
+  --border-soft: rgba(0,0,0,.05);
+  --border-mid:  rgba(0,0,0,.10);
+  --border-hi:   rgba(0,0,0,.18);
+
+  --text:   #1a1d23;
+  --text-2: #525a68;
+  --text-3: #828b9a;
+  --text-4: #aab2bf;
+
+  --accent:     #0e9f6e;
+  --accent-2:   #0b8a5e;
+  --accent-dim: rgba(14,159,110,.12);
+  --accent-line: rgba(14,159,110,.32);
+  --on-accent:  #ffffff;
+
+  --sh-sm: 0 1px 2px rgba(0,0,0,.08);
+  --sh-md: 0 8px 24px rgba(0,0,0,.10);
+  --sh-lg: 0 20px 60px rgba(0,0,0,.14);
+  --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
+
+  --topbar-bg: rgba(255,255,255,.72);
 }
 
 </style>
@@ -227,7 +263,7 @@ body::before {
   align-items: center;
   padding: 0 20px;
   gap: 18px;
-  background: rgba(16,18,22,.6);
+  background: var(--topbar-bg);
   backdrop-filter: blur(10px);
   position: relative;
   z-index: 60;   /* acima do #mode-map para o dropdown de busca não ficar atrás do canvas */
@@ -254,6 +290,29 @@ body::before {
   white-space: nowrap;
 }
 #topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+
+/* ════════ Theme toggle ════════ */
+#theme-toggle {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+  outline: none;
+  transition: all .15s;
+}
+#theme-toggle:hover {
+  background: var(--surface-3);
+  color: var(--text);
+  border-color: var(--border-hi);
+}
+#theme-toggle .ico { width: 17px; height: 17px; }
 
 /* ════════ Modes (fill remaining height) ════════ */
 .mode { flex: 1; min-height: 0; overflow: hidden; }
@@ -4300,6 +4359,7 @@ mark.fav-hl {
       <input id="search-input" type="text" placeholder="Buscar nos documentos…" autocomplete="off" spellcheck="false"/>
       <div id="search-results"></div>
     </div>
+    <button id="theme-toggle" title="Alternar tema"></button>
   </header>
 
   <!-- ═══ MODE: MAP ═══ -->
@@ -5085,6 +5145,8 @@ const ICON_PATHS = {
   bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
   'external-link': '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   'arrow-left': '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -5183,6 +5245,43 @@ const confirmDialog = (message, opts = {}) =>
     overlay.onclick = (e) => { if (e.target === overlay) finish(false); };
     document.addEventListener('keydown', onKey, true);
   });
+
+</script>
+<script>
+// ════ Theme toggle (dark/light) — persiste em localStorage ════
+
+const THEME_KEY = 'docmap-theme';
+const THEMES = ['dark', 'light'];
+
+const getStoredTheme = () => {
+  const t = localStorage.getItem(THEME_KEY);
+  return THEMES.includes(t) ? t : 'dark';
+};
+
+const iconFor = (theme) => (theme === 'dark' ? 'moon' : 'sun');
+
+const applyTheme = (theme) => {
+  const root = document.documentElement;
+  if (theme === 'dark') delete root.dataset.theme;
+  else root.dataset.theme = theme;
+  const btn = $('theme-toggle');
+  if (btn) {
+    btn.innerHTML = ICON(iconFor(theme));
+    btn.title = theme === 'dark' ? 'Mudar para claro' : 'Mudar para escuro';
+  }
+};
+
+const toggleTheme = () => {
+  const next = getStoredTheme() === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(THEME_KEY, next); } catch { /* quota */ }
+  applyTheme(next);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme(getStoredTheme());
+  const btn = $('theme-toggle');
+  if (btn) btn.addEventListener('click', toggleTheme);
+});
 
 </script>
 <script>

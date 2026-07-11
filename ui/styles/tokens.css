@@ -60,4 +60,39 @@
   --sh-md: 0 8px 24px rgba(0,0,0,.45);
   --sh-lg: 0 20px 60px rgba(0,0,0,.6);
   --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
+
+  /* ── Topbar ── */
+  --topbar-bg: rgba(16,18,22,.6);
+}
+
+/* ════════ Light theme ════════ */
+:root[data-theme='light'] {
+  --bg:        #f6f7f9;
+  --surface:   #ffffff;
+  --surface-2: #eef0f4;
+  --surface-3: #e3e6ec;
+  --surface-4: #d6dae2;
+
+  --border:      #d4d8e0;
+  --border-soft: rgba(0,0,0,.05);
+  --border-mid:  rgba(0,0,0,.10);
+  --border-hi:   rgba(0,0,0,.18);
+
+  --text:   #1a1d23;
+  --text-2: #525a68;
+  --text-3: #828b9a;
+  --text-4: #aab2bf;
+
+  --accent:     #0e9f6e;
+  --accent-2:   #0b8a5e;
+  --accent-dim: rgba(14,159,110,.12);
+  --accent-line: rgba(14,159,110,.32);
+  --on-accent:  #ffffff;
+
+  --sh-sm: 0 1px 2px rgba(0,0,0,.08);
+  --sh-md: 0 8px 24px rgba(0,0,0,.10);
+  --sh-lg: 0 20px 60px rgba(0,0,0,.14);
+  --glow:  0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
+
+  --topbar-bg: rgba(255,255,255,.72);
 }
