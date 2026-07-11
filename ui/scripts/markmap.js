@@ -1,7 +1,8 @@
 // ════ Markmap — renderiza o documento selecionado ════
 
 let currentFile = null;
-let contextMenuBound = false;
+let currentSelectionQuote = null;
+let selectionBtnTimer = null;
 
 const loadFile = async (fileId) => {
   currentFile = fileId;
@@ -50,28 +51,96 @@ const renderMarkmap = (markdown, tries = 0) => {
   window._markmap = mk.Markmap.create(svg, { autoFit: false }, root);
 
   setTimeout(() => {
-    bindContextMenu();
+    bindSelectionButton();
     showMarkmapHint();
     window._markmap?.fit?.();
   }, 300);
 };
 
+// Mostra/esconde o botão flutuante "Comentar" logo abaixo da seleção.
+const updateCommentButton = () => {
+  const btn = $('markmap-comment-btn');
+  const sel = window.getSelection();
+  const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
+  if (!range || range.collapsed) {
+    hideCommentButton();
+    return;
+  }
+
+  const container = $('markmap-container');
+  const text = sel.toString().trim();
+  if (!text || !container.contains(range.commonAncestorContainer)) {
+    hideCommentButton();
+    return;
+  }
+
+  currentSelectionQuote = text;
+  const rect = range.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+
+  // Só mostra se a seleção estiver visível dentro do container.
+  if (rect.bottom < containerRect.top || rect.top > containerRect.bottom) {
+    hideCommentButton();
+    return;
+  }
+
+  const x = rect.left + rect.width / 2;
+  const y = rect.bottom + 8;
+
+  btn.style.left = `${x}px`;
+  btn.style.top = `${y}px`;
+  btn.classList.add('visible');
+  btn.style.display = 'block';
+};
+
+const hideCommentButton = () => {
+  currentSelectionQuote = null;
+  const btn = $('markmap-comment-btn');
+  btn.classList.remove('visible');
+  btn.style.display = 'none';
+};
+
+const onCommentButtonClick = () => {
+  const btn = $('markmap-comment-btn');
+  const quote = currentSelectionQuote;
+  if (!quote) return;
+  const rect = btn.getBoundingClientRect();
+  hideCommentButton();
+  openAnnotPopover(quote, rect.left + rect.width / 2, rect.bottom + 6);
+};
+
 // Bind uma única vez no container; a seleção de texto é lida no momento do clique.
-const bindContextMenu = () => {
-  if (contextMenuBound) return;
-  contextMenuBound = true;
-  $('markmap-container').addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    const sel = window.getSelection()?.toString().trim();
-    if (!sel) { showMarkmapHint('Selecione um trecho do mapa primeiro'); return; }
-    openAnnotPopover(sel, e.clientX, e.clientY);
+let selectionBound = false;
+const bindSelectionButton = () => {
+  if (selectionBound) return;
+  selectionBound = true;
+
+  const container = $('markmap-container');
+
+  // selectionchange pode disparar muito durante a seleção; debounce leve.
+  document.addEventListener('selectionchange', () => {
+    clearTimeout(selectionBtnTimer);
+    selectionBtnTimer = setTimeout(updateCommentButton, 80);
   });
+
+  // Esconde ao clicar fora do botão (cliques no SVG não devem manter o botão antigo).
+  document.addEventListener('mousedown', (e) => {
+    const btn = $('markmap-comment-btn');
+    if (!btn.classList.contains('visible')) return;
+    if (e.target === btn || btn.contains(e.target)) return;
+    hideCommentButton();
+  });
+
+  // Esconde ao interagir com o markmap (zoom/pan/scroll).
+  container.addEventListener('scroll', hideCommentButton);
+
+  $('markmap-comment-btn').addEventListener('click', onCommentButtonClick);
 };
 
 let hintTimer = null;
 const showMarkmapHint = (msg) => {
   const hint = $('markmap-hint');
-  hint.textContent = msg || 'Selecione um trecho e clique com o botão direito para anotar';
+  hint.textContent = msg || 'Selecione um trecho do mapa para comentar';
   hint.classList.add('visible');
   clearTimeout(hintTimer);
   hintTimer = setTimeout(() => hint.classList.remove('visible'), 3000);

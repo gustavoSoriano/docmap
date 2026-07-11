@@ -859,6 +859,45 @@ svg#graph { width: 100%; height: 100%; display: block; position: relative; }
 }
 #markmap-hint.visible { display: block; }
 
+/* ── Floating comment button ── */
+#markmap-comment-btn {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-xl);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--sh-md);
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity .12s ease, transform .12s ease;
+}
+#markmap-comment-btn.visible {
+  opacity: 1;
+  animation: popIn .15s ease;
+}
+#markmap-comment-btn:hover {
+  background: var(--accent-2);
+  transform: translateX(-50%) translateY(-1px);
+}
+#markmap-comment-btn::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid var(--accent);
+}
+
 /* ── Empty state ── */
 #map-empty {
   position: absolute; inset: 0;
@@ -4443,6 +4482,7 @@ mark.fav-hl {
             <div id="map-empty-text">Clique duas vezes num nó do grafo para abrir seu mapa mental</div>
           </div>
           <div id="markmap-hint"></div>
+          <button id="markmap-comment-btn" type="button" style="display:none">Comentar</button>
           <div id="markmap-tools">
             <button class="map-tool mm-tool" data-icon="zoom-in" title="Aproximar" onclick="markmapZoom(1.25)"></button>
             <button class="map-tool mm-tool" data-icon="zoom-out" title="Afastar" onclick="markmapZoom(0.8)"></button>
@@ -5613,7 +5653,8 @@ const hideTooltip = () => { $('tooltip').style.opacity = '0'; };
 // ════ Markmap — renderiza o documento selecionado ════
 
 let currentFile = null;
-let contextMenuBound = false;
+let currentSelectionQuote = null;
+let selectionBtnTimer = null;
 
 const loadFile = async (fileId) => {
   currentFile = fileId;
@@ -5662,28 +5703,96 @@ const renderMarkmap = (markdown, tries = 0) => {
   window._markmap = mk.Markmap.create(svg, { autoFit: false }, root);
 
   setTimeout(() => {
-    bindContextMenu();
+    bindSelectionButton();
     showMarkmapHint();
     window._markmap?.fit?.();
   }, 300);
 };
 
+// Mostra/esconde o botão flutuante "Comentar" logo abaixo da seleção.
+const updateCommentButton = () => {
+  const btn = $('markmap-comment-btn');
+  const sel = window.getSelection();
+  const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
+  if (!range || range.collapsed) {
+    hideCommentButton();
+    return;
+  }
+
+  const container = $('markmap-container');
+  const text = sel.toString().trim();
+  if (!text || !container.contains(range.commonAncestorContainer)) {
+    hideCommentButton();
+    return;
+  }
+
+  currentSelectionQuote = text;
+  const rect = range.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+
+  // Só mostra se a seleção estiver visível dentro do container.
+  if (rect.bottom < containerRect.top || rect.top > containerRect.bottom) {
+    hideCommentButton();
+    return;
+  }
+
+  const x = rect.left + rect.width / 2;
+  const y = rect.bottom + 8;
+
+  btn.style.left = \`\${x}px\`;
+  btn.style.top = \`\${y}px\`;
+  btn.classList.add('visible');
+  btn.style.display = 'block';
+};
+
+const hideCommentButton = () => {
+  currentSelectionQuote = null;
+  const btn = $('markmap-comment-btn');
+  btn.classList.remove('visible');
+  btn.style.display = 'none';
+};
+
+const onCommentButtonClick = () => {
+  const btn = $('markmap-comment-btn');
+  const quote = currentSelectionQuote;
+  if (!quote) return;
+  const rect = btn.getBoundingClientRect();
+  hideCommentButton();
+  openAnnotPopover(quote, rect.left + rect.width / 2, rect.bottom + 6);
+};
+
 // Bind uma única vez no container; a seleção de texto é lida no momento do clique.
-const bindContextMenu = () => {
-  if (contextMenuBound) return;
-  contextMenuBound = true;
-  $('markmap-container').addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    const sel = window.getSelection()?.toString().trim();
-    if (!sel) { showMarkmapHint('Selecione um trecho do mapa primeiro'); return; }
-    openAnnotPopover(sel, e.clientX, e.clientY);
+let selectionBound = false;
+const bindSelectionButton = () => {
+  if (selectionBound) return;
+  selectionBound = true;
+
+  const container = $('markmap-container');
+
+  // selectionchange pode disparar muito durante a seleção; debounce leve.
+  document.addEventListener('selectionchange', () => {
+    clearTimeout(selectionBtnTimer);
+    selectionBtnTimer = setTimeout(updateCommentButton, 80);
   });
+
+  // Esconde ao clicar fora do botão (cliques no SVG não devem manter o botão antigo).
+  document.addEventListener('mousedown', (e) => {
+    const btn = $('markmap-comment-btn');
+    if (!btn.classList.contains('visible')) return;
+    if (e.target === btn || btn.contains(e.target)) return;
+    hideCommentButton();
+  });
+
+  // Esconde ao interagir com o markmap (zoom/pan/scroll).
+  container.addEventListener('scroll', hideCommentButton);
+
+  $('markmap-comment-btn').addEventListener('click', onCommentButtonClick);
 };
 
 let hintTimer = null;
 const showMarkmapHint = (msg) => {
   const hint = $('markmap-hint');
-  hint.textContent = msg || 'Selecione um trecho e clique com o botão direito para anotar';
+  hint.textContent = msg || 'Selecione um trecho do mapa para comentar';
   hint.classList.add('visible');
   clearTimeout(hintTimer);
   hintTimer = setTimeout(() => hint.classList.remove('visible'), 3000);
@@ -5819,7 +5928,7 @@ const toggleAnnotations = () => {
 const renderAnnotations = () => {
   const list = $('annot-list');
   if (!annotations.length) {
-    list.innerHTML = '<div id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>';
+    list.innerHTML = '<div id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>';
     return;
   }
   list.innerHTML = annotations.map((a) => {
@@ -5848,6 +5957,7 @@ const selectAnnotType = (btn) => {
 };
 
 const openAnnotPopover = (quote, x, y) => {
+  if (typeof hideCommentButton === 'function') hideCommentButton();
   popQuote = quote;
   const existing = annotations.find((a) => a.quote === quote);
   $('pop-quote').textContent = quote;

@@ -145,6 +145,45 @@
 }
 #markmap-hint.visible { display: block; }
 
+/* ── Floating comment button ── */
+#markmap-comment-btn {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-xl);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--sh-md);
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity .12s ease, transform .12s ease;
+}
+#markmap-comment-btn.visible {
+  opacity: 1;
+  animation: popIn .15s ease;
+}
+#markmap-comment-btn:hover {
+  background: var(--accent-2);
+  transform: translateX(-50%) translateY(-1px);
+}
+#markmap-comment-btn::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid var(--accent);
+}
+
 /* ── Empty state ── */
 #map-empty {
   position: absolute; inset: 0;

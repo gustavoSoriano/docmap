@@ -35,7 +35,7 @@ const toggleAnnotations = () => {
 const renderAnnotations = () => {
   const list = $('annot-list');
   if (!annotations.length) {
-    list.innerHTML = '<div id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>';
+    list.innerHTML = '<div id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>';
     return;
   }
   list.innerHTML = annotations.map((a) => {
@@ -64,6 +64,7 @@ const selectAnnotType = (btn) => {
 };
 
 const openAnnotPopover = (quote, x, y) => {
+  if (typeof hideCommentButton === 'function') hideCommentButton();
   popQuote = quote;
   const existing = annotations.find((a) => a.quote === quote);
   $('pop-quote').textContent = quote;
