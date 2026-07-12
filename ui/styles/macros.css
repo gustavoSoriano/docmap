@@ -277,6 +277,43 @@
   color: var(--text-3);
 }
 
+/* CodeMirror — substitui o textarea quando inicializado.
+   `color` sem !important: garante texto legível se o tema CDN não carregar,
+   mas perde para seletores mais específicos quando o tema está presente. */
+#macro-body .CodeMirror {
+  flex: 1;
+  min-height: 120px;
+  font-family: var(--font-mono) !important;
+  font-size: 12.5px;
+  line-height: 1.75;
+  background: var(--surface) !important;
+  color: var(--text);
+  border: none;
+  height: auto;
+}
+#macro-body .CodeMirror-focused {
+  /* sem borda extra, o editor já preenche o container */
+}
+#macro-body .CodeMirror-scroll {
+  min-height: 120px;
+}
+#macro-body .CodeMirror-gutters {
+  background: var(--surface-2) !important;
+  border-right: 1px solid var(--border) !important;
+  padding-right: 4px;
+}
+#macro-body .CodeMirror-linenumber {
+  color: var(--text-4) !important;
+  font-size: 0.68rem;
+}
+#macro-body .CodeMirror-cursor {
+  border-left-color: var(--accent) !important;
+}
+#macro-body .CodeMirror-selectedtext,
+#macro-body .CodeMirror-selected {
+  background: rgba(55,217,154,.15) !important;
+}
+
 /* ── Output panel ── */
 #macro-output-panel {
   flex-shrink: 0;

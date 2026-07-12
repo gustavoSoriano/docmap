@@ -30,6 +30,8 @@ export const UI_HTML = `<!DOCTYPE html>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
     <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+    <script
       src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
     <style>
 :root {
@@ -2829,6 +2831,43 @@ svg#graph {
 }
 #macro-script::placeholder {
   color: var(--text-3);
+}
+
+/* CodeMirror — substitui o textarea quando inicializado.
+   \`color\` sem !important: garante texto legível se o tema CDN não carregar,
+   mas perde para seletores mais específicos quando o tema está presente. */
+#macro-body .CodeMirror {
+  flex: 1;
+  min-height: 120px;
+  font-family: var(--font-mono) !important;
+  font-size: 12.5px;
+  line-height: 1.75;
+  background: var(--surface) !important;
+  color: var(--text);
+  border: none;
+  height: auto;
+}
+#macro-body .CodeMirror-focused {
+  /* sem borda extra, o editor já preenche o container */
+}
+#macro-body .CodeMirror-scroll {
+  min-height: 120px;
+}
+#macro-body .CodeMirror-gutters {
+  background: var(--surface-2) !important;
+  border-right: 1px solid var(--border) !important;
+  padding-right: 4px;
+}
+#macro-body .CodeMirror-linenumber {
+  color: var(--text-4) !important;
+  font-size: 0.68rem;
+}
+#macro-body .CodeMirror-cursor {
+  border-left-color: var(--accent) !important;
+}
+#macro-body .CodeMirror-selectedtext,
+#macro-body .CodeMirror-selected {
+  background: rgba(55,217,154,.15) !important;
 }
 
 /* ── Output panel ── */
@@ -8270,6 +8309,59 @@ document.addEventListener('keydown', (e) => {
 let allMacros    = [];
 let currentMacro = null;
 let runReader    = null; // leitor SSE ativo
+let macroEditor  = null; // instância CodeMirror (lazy init)
+
+// ── CodeMirror helpers ──
+const initMacroEditor = () => {
+  if (macroEditor || typeof CodeMirror === 'undefined') return;
+  const ta = $('macro-script');
+  if (!ta) return;
+
+  macroEditor = CodeMirror.fromTextArea(ta, {
+    mode:           'shell',
+    theme:          'default',
+    lineNumbers:    true,
+    tabSize:        2,
+    indentWithTabs: false,
+    lineWrapping:   true,
+    viewportMargin: Infinity,
+    extraKeys: {
+      Tab: (cm) => cm.replaceSelection('  '),
+    },
+  });
+
+  // auto-detecta interpretador ao editar e troca o mode
+  macroEditor.on('change', () => {
+    const first = macroEditor.getLine(0) ?? '';
+    const interp = first.includes('deno') ? 'deno' : 'bash';
+    $('macro-interp-badge').textContent = interp;
+    $('macro-interp-badge').className   = \`macro-badge \${interp}\`;
+    setMacroMode(interp);
+  });
+};
+
+const macroGet = () =>
+  macroEditor ? macroEditor.getValue() : ($('macro-script')?.value ?? '');
+
+const macroSet = (value) => {
+  if (macroEditor) {
+    macroEditor.setValue(value);
+  } else {
+    const ta = $('macro-script');
+    if (ta) ta.value = value;
+  }
+};
+
+const setMacroMode = (interp) => {
+  if (!macroEditor) return;
+  const mode = interp === 'deno' ? 'javascript' : 'shell';
+  macroEditor.setOption('mode', mode);
+};
+
+const macroFocus = () => {
+  if (macroEditor) macroEditor.focus();
+  else $('macro-script')?.focus();
+};
 
 // ── Lista ──
 const loadMacrosList = async () => {
@@ -8342,9 +8434,10 @@ const newMacro = () => {
   currentMacro = null;
   $('macro-title-input').value = '';
   $('macro-desc-input').value  = '';
-  $('macro-script').value      = '#!/bin/bash\\n# Seu script aqui\\n# $DOCMAP_API       → http://127.0.0.1:3334\\n# $DOCMAP_WORKSPACE → pasta aberta\\n\\necho "Olá do docmap!"';
+  macroSet('#!/bin/bash\\n# Seu script aqui\\n# $DOCMAP_API       → http://127.0.0.1:3334\\n# $DOCMAP_WORKSPACE → pasta aberta\\n\\necho "Olá do docmap!"');
   $('macro-interp-badge').textContent = 'bash';
   $('macro-interp-badge').className   = 'macro-badge bash';
+  setMacroMode('bash');
   $('btn-macro-delete').style.display = 'none';
   clearOutput();
   showMacroEditor();
@@ -8354,9 +8447,10 @@ const newMacro = () => {
 const fillMacroEditor = (m) => {
   $('macro-title-input').value       = m.title;
   $('macro-desc-input').value        = m.description || '';
-  $('macro-script').value            = m.script;
+  macroSet(m.script);
   $('macro-interp-badge').textContent = m.interpreter;
   $('macro-interp-badge').className   = \`macro-badge \${m.interpreter}\`;
+  setMacroMode(m.interpreter);
   $('btn-macro-delete').style.display = 'inline-flex';
   clearOutput();
   showMacroEditor();
@@ -8365,23 +8459,18 @@ const fillMacroEditor = (m) => {
 const showMacroEditor = () => {
   $('macros-editor-empty').style.display = 'none';
   $('macros-editor-form').classList.add('visible');
+  initMacroEditor();
 };
 
-// auto-detecta interpretador ao editar o script
-$('macro-script').addEventListener('input', () => {
-  const first = $('macro-script').value.split('\\n')[0] ?? '';
-  const interp = first.includes('deno') ? 'deno' : 'bash';
-  $('macro-interp-badge').textContent = interp;
-  $('macro-interp-badge').className   = \`macro-badge \${interp}\`;
-});
+// auto-detect é feita no evento 'change' do CodeMirror dentro de initMacroEditor
 
 // ── Salvar / Excluir ──
 const saveCurrentMacro = async () => {
   const title  = $('macro-title-input').value.trim();
   const desc   = $('macro-desc-input').value.trim();
-  const script = $('macro-script').value.trim();
+  const script = macroGet().trim();
   if (!title)  { $('macro-title-input').focus(); return toast('Dê um nome à macro'); }
-  if (!script) { $('macro-script').focus();      return toast('Script vazio'); }
+  if (!script) { macroFocus();                   return toast('Script vazio'); }
 
   const url    = currentMacro ? '/macros/' + currentMacro.id : '/macros';
   const method = currentMacro ? 'PUT' : 'POST';
