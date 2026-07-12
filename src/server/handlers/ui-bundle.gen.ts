@@ -2785,6 +2785,28 @@ svg#graph {
   color: var(--text-3);
 }
 
+#macro-path-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 15px 20px 0;
+  padding: 8px 12px;
+  background: rgba(96,165,250,.08);
+  border: 1px solid rgba(96,165,250,.2);
+  border-radius: var(--r-sm);
+  font-size: 11.5px;
+  color: var(--cat-arch);
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+#macro-path-hint .ico {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-3);
+}
+
 #macro-body {
   flex: 1;
   min-height: 0;
@@ -6441,6 +6463,11 @@ mark.fav-hl {
           <div id="macros-editor-empty">
             <div id="macros-editor-empty-mark" data-icon="bot"></div>
             <div id="macros-editor-empty-text">Selecione ou crie uma macro</div>
+          </div>
+
+          <div id="macro-path-hint">
+            <span data-icon="info"></span>
+            Apps GUI não herdam o PATH do terminal. Prefira caminhos absolutos ou source seu perfil no script.
           </div>
 
           <div id="macros-editor-form">

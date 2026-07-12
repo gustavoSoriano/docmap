@@ -72,6 +72,9 @@ Tipos Mermaid: `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram-v2`
 O `interpreter` (`bash` ou `deno`) é detectado automaticamente pelo shebang.
 Execução continua sendo manual pelo usuário dentro do app.
 
+> **PATH limitado**: apps GUI não herdam o PATH do terminal. Ferramentas como `node`, `deno`, `cargo` etc.
+> podem não ser encontradas. Use sempre caminhos absolutos ou source seu perfil no script.
+
 ---
 
 ## Fluxos comuns
