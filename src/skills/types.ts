@@ -5,6 +5,7 @@ export type Skill = {
   readonly description: string;
   readonly content: string; // markdown — pode ter blocos de código/scripts
   readonly tags: readonly string[];
+  readonly docSetId?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -17,6 +18,7 @@ export type CreateSkillInput = {
   readonly description: string;
   readonly content: string;
   readonly tags?: string[];
+  readonly docSetId?: string;
 };
 
 export type UpdateSkillInput = Partial<CreateSkillInput>;

@@ -1,13 +1,14 @@
 ---
 name: docmap
-version: 3.0.0
+version: 3.1.0
 description: >
-  API REST local do docmap desktop — notas, diagramas Mermaid, skills, macros e kanban de tasks.
-  Use quando o usuário mencionar notas, diagramas, skills, macros, tasks, kanban, ou compartilhar
-  um ID/link do docmap. O app precisa estar rodando (deno task dev).
+  API REST local do docmap desktop — notas, diagramas Mermaid, skills, macros, kanban de tasks
+  e visões Diátaxis. Use quando o usuário mencionar notas, diagramas, skills, macros, tasks,
+  kanban, visões Diátaxis, docsets, ou compartilhar um ID/link do docmap. O app precisa estar
+  rodando (deno task dev).
 metadata:
   category: productivity
-  tags: [notes, diagrams, mermaid, skills, macros, tasks, kanban, knowledge-base]
+  tags: [notes, diagrams, mermaid, skills, macros, tasks, kanban, diataxis, docsets, knowledge-base]
 ---
 
 # docmap — AI Skill
@@ -46,6 +47,74 @@ Categoria: texto livre (`general`, `prode`, `ai`, etc.).
 Mande o `deepLink` ao usuário para abrir direto no app.
 
 Tipos Mermaid: `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram-v2`, `erDiagram`, `gantt`, `pie`, `gitGraph`.
+
+---
+
+## Visões Diátaxis
+
+Visões Diátaxis organizam a documentação de um workspace em 4 quadrantes (tutorial, how-to, reference, explanation) com base em um propósito.
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/docsets` | Lista visões do workspace atual |
+| GET | `/docsets/:id` | Visão completa com itens, títulos e flag `exists` |
+| POST | `/docsets` | Cria visão manualmente `{ title, purpose, audience?, depth?, items }` |
+| PUT | `/docsets/:id` | Edita visão |
+| DELETE | `/docsets/:id` | Remove a visão (não apaga entidades referenciadas/geradas) |
+| POST | `/docsets/suggest` | Gera sugestão heurística ou via IA `{ purpose, audience?, depth?, useAi? }` |
+| POST | `/docsets/apply` | Aplica uma sugestão (JSON) e cria entidades geradas |
+| POST | `/docsets/:id/regenerate` | Regenera apenas os itens gerados pela IA |
+
+**Schema de item:**
+```json
+{
+  "type": "tutorial | how-to | reference | explanation",
+  "action": "reference | create",
+  "ref": { "kind": "file|note|skill|macro|diagram|task|mock|favorite", "id": "string" },
+  "entityKind": "note|skill|macro|diagram|task",
+  "proposedTitle": "string",
+  "proposedContent": { },
+  "reason": "string",
+  "userQuestion": "string"
+}
+```
+
+- `action: "reference"` → `ref` obrigatório, aponta para entidade existente.
+- `action: "create"` → `entityKind` e `proposedContent` obrigatórios.
+- Entidades geradas recebem `docSetId` da visão para rastreabilidade.
+
+### Como criar uma visão Diátaxis via IA
+
+A IA DEVE usar as ferramentas/funções disponíveis para:
+1. Listar recursos do workspace:
+   - `GET /notes` — notas
+   - `GET /skills` — skills
+   - `GET /macros` — macros
+   - `GET /diagrams` — diagramas
+   - `GET /tasks` — tasks
+   - `GET /mocks` — mocks
+   - `GET /workspace/files` — arquivos do workspace
+2. Ler arquivos `.md` relevantes com `read_file`.
+3. Classificar cada recurso nos 4 quadrantes do Diátaxis.
+4. Criar novos itens quando necessário (note, skill, macro, diagram, task).
+5. **Chamar `POST /docsets/apply` com o JSON da visão** para criá-la no DocMap.
+6. Informar o usuário o resultado.
+
+**Requisição de criação:**
+```
+POST /docsets/apply
+Content-Type: application/json
+
+{
+  "title": "Nome da visão",
+  "purpose": "Propósito",
+  "audience": "Público-alvo",
+  "depth": "quick | complete | deep",
+  "items": [ ... ]
+}
+```
+
+**Importante:** notas do tipo `tutorial` devem usar HTML no campo `content` para criar tutoriais visualmente ricos.
 
 ---
 

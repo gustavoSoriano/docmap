@@ -68,7 +68,6 @@ export const executeScript = async (
 ): Promise<MockResult> => {
   try {
     const db = makeDb(colId);
-    // deno-lint-ignore no-new-func
     const fn = new Function(
       'ctx',
       'db',

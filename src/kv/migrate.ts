@@ -15,6 +15,10 @@ const migrations: Migration[] = [
   async (kv) => {
     await kv.set(['ai', 'config'], { provider: 'ollama' });
   },
+
+  // v3 — introduz DocSets Diátaxis e docSetId em entidades geráveis.
+  // Não exige transformação de dados existentes.
+  async (_kv) => {},
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

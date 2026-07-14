@@ -36,9 +36,10 @@ export const createMacro = async (
     id: crypto.randomUUID(),
     name: toSlug(input.name || input.title),
     title: input.title,
-    description: input.description,
+    description: input.description ?? '',
     script: input.script,
     interpreter: detectInterpreter(input.script),
+    ...(input.docSetId ? { docSetId: input.docSetId } : {}),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

@@ -7,6 +7,7 @@ export type Macro = {
   readonly description: string;
   readonly script: string;
   readonly interpreter: MacroInterpreter;
+  readonly docSetId?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -16,8 +17,9 @@ export type MacroPreview = Omit<Macro, 'script'>;
 export type CreateMacroInput = {
   readonly name: string;
   readonly title: string;
-  readonly description: string;
+  readonly description?: string;
   readonly script: string;
+  readonly docSetId?: string;
 };
 
 export type UpdateMacroInput = Partial<CreateMacroInput>;

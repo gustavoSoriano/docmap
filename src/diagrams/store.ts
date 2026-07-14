@@ -25,6 +25,7 @@ export const createDiagram = async (
     id: crypto.randomUUID(),
     title: input.title,
     source: input.source,
+    ...(input.docSetId ? { docSetId: input.docSetId } : {}),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

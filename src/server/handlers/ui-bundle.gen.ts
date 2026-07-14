@@ -6203,6 +6203,774 @@ mark.fav-hl {
 }
 
 </style>
+    <style>
+/* ════ Diátaxis — visões de estudo ════ */
+
+#diataxis-pane {
+  background: var(--bg);
+}
+
+#diataxis-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Sidebar ── */
+#diataxis-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+#diataxis-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+#diataxis-sidebar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+#diataxis-new-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .13s;
+}
+
+#diataxis-new-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+#diataxis-sets-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.diataxis-set-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 11px 13px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all .13s;
+  border: 1px solid transparent;
+}
+
+.diataxis-set-item:hover {
+  background: var(--surface-2);
+}
+
+.diataxis-set-item.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
+}
+
+.diataxis-set-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.diataxis-set-purpose {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.diataxis-set-meta {
+  font-size: 10px;
+  color: var(--text-4);
+  margin-top: 2px;
+}
+
+/* ── Main ── */
+#diataxis-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+#diataxis-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 40px;
+}
+
+#diataxis-empty-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+
+#diataxis-empty-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+#diataxis-empty-hint {
+  font-size: 13px;
+  color: var(--text-3);
+  max-width: 340px;
+  line-height: 1.45;
+}
+
+#diataxis-empty-btn {
+  margin-top: 8px;
+  height: 36px;
+  padding: 0 18px;
+  border: 1px solid var(--accent);
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all .13s;
+}
+
+#diataxis-empty-btn:hover {
+  filter: brightness(1.08);
+}
+
+#diataxis-content {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+}
+
+#diataxis-content.visible {
+  display: flex;
+}
+
+/* ── Header ── */
+#diataxis-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+}
+
+#diataxis-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+#diataxis-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+#diataxis-meta span {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 3px 9px;
+  border-radius: var(--r-xl);
+}
+
+#diataxis-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#diataxis-header-actions .tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Columns ── */
+#diataxis-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding: 16px 22px 22px;
+  overflow-x: auto;
+}
+
+.diataxis-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  overflow: hidden;
+}
+
+.diataxis-col[data-type="tutorial"] {
+  border-top: 3px solid #37d99a;
+}
+.diataxis-col[data-type="how-to"] {
+  border-top: 3px solid #f59e0b;
+}
+.diataxis-col[data-type="reference"] {
+  border-top: 3px solid #60a5fa;
+}
+.diataxis-col[data-type="explanation"] {
+  border-top: 3px solid #a78bfa;
+}
+
+.diataxis-col-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.diataxis-col-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.diataxis-col[data-type="tutorial"] .diataxis-col-dot { background: #37d99a; }
+.diataxis-col[data-type="how-to"] .diataxis-col-dot { background: #f59e0b; }
+.diataxis-col[data-type="reference"] .diataxis-col-dot { background: #60a5fa; }
+.diataxis-col[data-type="explanation"] .diataxis-col-dot { background: #a78bfa; }
+
+.diataxis-col-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.diataxis-col-count {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+  background: var(--surface-3);
+  padding: 2px 7px;
+  border-radius: var(--r-xl);
+}
+
+.diataxis-col-cards {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Cards ── */
+.diataxis-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 11px 12px;
+  cursor: pointer;
+  transition: all .13s;
+  position: relative;
+  overflow: hidden;
+}
+
+.diataxis-card:hover {
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+  transform: translateY(-1px);
+}
+
+.diataxis-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--text-4);
+  opacity: .5;
+}
+
+.diataxis-card[data-kind="file"]::before { background: #94a3b8; }
+.diataxis-card[data-kind="note"]::before { background: #fbbf24; }
+.diataxis-card[data-kind="skill"]::before { background: #a78bfa; }
+.diataxis-card[data-kind="macro"]::before { background: #f472b6; }
+.diataxis-card[data-kind="diagram"]::before { background: #60a5fa; }
+.diataxis-card[data-kind="task"]::before { background: #37d99a; }
+.diataxis-card[data-kind="mock"]::before { background: #fb923c; }
+.diataxis-card[data-kind="favorite"]::before { background: #fb7185; }
+
+.diataxis-card.missing {
+  opacity: .55;
+  border-style: dashed;
+}
+
+.diataxis-card.missing::after {
+  content: 'não encontrado';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--cat-security);
+  background: rgba(251,113,133,.12);
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+}
+
+.diataxis-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.diataxis-card-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  background: var(--surface-4);
+  color: var(--text-2);
+}
+
+.diataxis-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.diataxis-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.diataxis-card-badge {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  color: var(--text-3);
+}
+
+.diataxis-card-badge.generated {
+  background: rgba(55,217,154,.14);
+  color: var(--accent);
+}
+
+.diataxis-card-reason {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.4;
+  margin-top: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.diataxis-card-question {
+  font-size: 10.5px;
+  color: var(--text-4);
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* ── Modals ── */
+#diataxis-wizard-overlay,
+#diataxis-review-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,7,9,.65);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 800;
+  padding: 24px;
+}
+
+#diataxis-wizard-overlay.visible,
+#diataxis-review-overlay.visible {
+  display: flex;
+}
+
+#diataxis-wizard,
+#diataxis-review {
+  width: 560px;
+  max-width: 100%;
+  max-height: calc(100vh - 48px);
+  background: var(--surface-2);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#diataxis-review {
+  width: 720px;
+}
+
+#diataxis-wizard-head,
+#diataxis-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+#diataxis-wizard-title,
+#diataxis-review-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+#diataxis-wizard-close,
+#diataxis-review-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+}
+
+#diataxis-wizard-close:hover,
+#diataxis-review-close:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+#diataxis-wizard-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.diataxis-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diataxis-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 14px;
+}
+
+.diataxis-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.diataxis-required {
+  color: var(--cat-security);
+}
+
+.diataxis-field input[type="text"],
+.diataxis-field textarea,
+.diataxis-field select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  outline: none;
+  transition: all .13s;
+}
+
+.diataxis-field input[type="text"]:focus,
+.diataxis-field textarea:focus,
+.diataxis-field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.diataxis-field textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+.diataxis-field-check {
+  justify-content: flex-end;
+  padding-bottom: 4px;
+}
+
+.diataxis-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.diataxis-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#diataxis-wizard-footer,
+#diataxis-review-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.diataxis-wizard-spacer {
+  flex: 1;
+}
+
+/* ── Review lists ── */
+#diataxis-review-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+#diataxis-review-summary {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+#diataxis-apply-instructions {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+#diataxis-response-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--cat-security);
+  display: none;
+}
+
+#diataxis-return-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diataxis-return-crumb {
+  padding: 0 !important;
+}
+
+#diataxis-return-crumb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-md);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .13s;
+}
+
+#diataxis-return-crumb-btn:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+#diataxis-return-crumb-btn .ico {
+  width: 15px;
+  height: 15px;
+}
+
+.diataxis-return-label {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diataxis-review-section {
+  margin-bottom: 18px;
+}
+
+.diataxis-review-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diataxis-review-section-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: var(--surface-3);
+  padding: 2px 7px;
+  border-radius: var(--r-xl);
+}
+
+.diataxis-review-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: 8px;
+}
+
+.diataxis-review-kind {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+
+.diataxis-review-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.diataxis-review-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.diataxis-review-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.diataxis-review-type {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  padding: 3px 8px;
+  border-radius: var(--r-xs);
+  flex-shrink: 0;
+}
+
+.diataxis-review-type.tutorial { background: rgba(55,217,154,.14); color: #37d99a; }
+.diataxis-review-type.how-to { background: rgba(245,158,11,.14); color: #f59e0b; }
+.diataxis-review-type.reference { background: rgba(96,165,250,.14); color: #60a5fa; }
+.diataxis-review-type.explanation { background: rgba(167,139,250,.14); color: #a78bfa; }
+
+</style>
   </head>
   <body>
     <!-- ════ Left rail — mode switcher ════ -->
@@ -6289,6 +7057,8 @@ mark.fav-hl {
         <div id="map-tabs">
           <button class="map-tab active" id="tab-graph"
             onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
+          <button class="map-tab" id="tab-diataxis"
+            onclick="setMapTab('diataxis')"><span data-icon="compass"></span> Diátaxis</button>
           <button id="map-open-btn" onclick="pickWorkspace()"
             title="Abrir pasta">
         <span data-icon="folder"></span> Pasta
@@ -6405,6 +7175,100 @@ mark.fav-hl {
                   id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>
               </div>
             </aside>
+          </section>
+
+          <!-- Diátaxis pane -->
+          <section id="diataxis-pane" class="map-pane">
+            <div id="diataxis-layout">
+              <aside id="diataxis-sidebar">
+                <div id="diataxis-sidebar-head">
+                  <span id="diataxis-sidebar-title">Visões Diátaxis</span>
+                  <button id="diataxis-new-btn" onclick="openDiataxisWizard()"
+                    title="Nova visão" data-icon="plus"></button>
+                </div>
+                <div id="diataxis-sets-list"></div>
+              </aside>
+
+              <div id="diataxis-main">
+                <div id="diataxis-empty">
+                  <div id="diataxis-empty-mark" data-icon="compass"></div>
+                  <div id="diataxis-empty-title">Nenhuma visão Diátaxis</div>
+                  <div id="diataxis-empty-hint">Crie uma visão para estudar este
+                    workspace com propósito.</div>
+                  <button id="diataxis-empty-btn"
+                    onclick="openDiataxisWizard()"><span data-icon="compass"></span>
+                    Nova visão Diátaxis</button>
+                </div>
+
+                <div id="diataxis-content">
+                  <div id="diataxis-header">
+                    <div id="diataxis-header-text">
+                      <div id="diataxis-title"></div>
+                      <div id="diataxis-meta">
+                        <span id="diataxis-purpose"></span>
+                        <span id="diataxis-audience"></span>
+                        <span id="diataxis-depth"></span>
+                      </div>
+                    </div>
+                    <div id="diataxis-header-actions">
+                      <button class="tool-btn" id="btn-diataxis-regenerate"
+                        onclick="regenerateCurrentDocSet()"
+                        title="Regenerar itens gerados pela IA"><span
+                          data-icon="refresh-cw"></span>
+                        Regerar</button>
+                      <button class="tool-btn" id="btn-diataxis-copy-prompt"
+                        onclick="copyDiataxisPrompt()"
+                        title="Copiar prompt para IA externa"><span
+                          data-icon="copy"></span> Prompt</button>
+                      <button class="tool-btn danger" id="btn-diataxis-delete"
+                        onclick="deleteCurrentDocSet()"
+                        title="Excluir visão"><span data-icon="trash"></span></button>
+                    </div>
+                  </div>
+
+                  <div id="diataxis-columns">
+                    <div class="diataxis-col" data-type="tutorial">
+                      <div class="diataxis-col-head">
+                        <span class="diataxis-col-dot"></span>
+                        <span class="diataxis-col-title">Tutorial</span>
+                        <span class="diataxis-col-count" data-type="tutorial">0</span>
+                      </div>
+                      <div class="diataxis-col-cards"
+                        data-type="tutorial"></div>
+                    </div>
+                    <div class="diataxis-col" data-type="how-to">
+                      <div class="diataxis-col-head">
+                        <span class="diataxis-col-dot"></span>
+                        <span class="diataxis-col-title">How-to</span>
+                        <span class="diataxis-col-count" data-type="how-to">0</span>
+                      </div>
+                      <div class="diataxis-col-cards"
+                        data-type="how-to"></div>
+                    </div>
+                    <div class="diataxis-col" data-type="reference">
+                      <div class="diataxis-col-head">
+                        <span class="diataxis-col-dot"></span>
+                        <span class="diataxis-col-title">Referência</span>
+                        <span class="diataxis-col-count"
+                          data-type="reference">0</span>
+                      </div>
+                      <div class="diataxis-col-cards"
+                        data-type="reference"></div>
+                    </div>
+                    <div class="diataxis-col" data-type="explanation">
+                      <div class="diataxis-col-head">
+                        <span class="diataxis-col-dot"></span>
+                        <span class="diataxis-col-title">Explicação</span>
+                        <span class="diataxis-col-count"
+                          data-type="explanation">0</span>
+                      </div>
+                      <div class="diataxis-col-cards"
+                        data-type="explanation"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
         </div>
       </main>
@@ -7102,6 +7966,86 @@ mark.fav-hl {
       </div>
     </div>
 
+    <!-- ════ Diátaxis Wizard Modal ════ -->
+    <div id="diataxis-wizard-overlay">
+      <div id="diataxis-wizard">
+        <div id="diataxis-wizard-head">
+          <span id="diataxis-wizard-title">Nova visão Diátaxis</span>
+          <button id="diataxis-wizard-close" onclick="closeDiataxisWizard()"
+            data-icon="x"></button>
+        </div>
+        <div id="diataxis-wizard-body">
+          <div class="diataxis-field">
+            <label class="diataxis-label">Título da visão</label>
+            <input id="diataxis-wizard-title-input" type="text"
+              placeholder="Ex: Onboarding de novos devs" autocomplete="off" />
+          </div>
+          <div class="diataxis-field">
+            <label class="diataxis-label">Propósito <span
+                class="diataxis-required">*</span></label>
+            <textarea id="diataxis-wizard-purpose-input" rows="3"
+              placeholder="O que alguém vai conseguir fazer ao estudar esta documentação? Ex: Aprender a fazer deploy em produção."></textarea>
+          </div>
+          <div class="diataxis-field">
+            <label class="diataxis-label">Para quem é? (público)</label>
+            <input id="diataxis-wizard-audience-input" type="text"
+              placeholder="Ex: Tech leads e devs seniores" autocomplete="off" />
+          </div>
+          <div class="diataxis-field">
+            <label class="diataxis-label">Profundidade</label>
+            <select id="diataxis-wizard-depth-input">
+              <option value="quick">Rápida</option>
+              <option value="complete" selected>Completa</option>
+              <option value="deep">Máxima</option>
+            </select>
+          </div>
+        </div>
+        <div id="diataxis-wizard-footer">
+          <div class="diataxis-wizard-spacer"></div>
+          <button class="tool-btn" onclick="closeDiataxisWizard()">Cancelar</button>
+          <button class="tool-btn primary" id="btn-diataxis-create-prompt"
+            onclick="createAndCopyDiataxisPrompt()">
+            <span data-icon="copy"></span> Criar prompt
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Diátaxis Apply Response Modal ════ -->
+    <div id="diataxis-review-overlay">
+      <div id="diataxis-review">
+        <div id="diataxis-review-head">
+          <span id="diataxis-review-title">Aplicar resposta da IA</span>
+          <button id="diataxis-review-close" onclick="closeDiataxisReview()"
+            data-icon="x"></button>
+        </div>
+        <div id="diataxis-review-body">
+          <div id="diataxis-apply-instructions">
+            O prompt foi copiado. Envie para a IA integrada (chat do DocMap) ou
+            para uma IA externa. Cole aqui o JSON retornado.
+          </div>
+          <div class="diataxis-field" style="margin-top:14px">
+            <label class="diataxis-label">Resposta JSON da IA</label>
+            <textarea id="diataxis-response-input" rows="16"
+              placeholder='{&#10;  "title": "...",&#10;  "purpose": "...",&#10;  "items": [...]&#10;}'></textarea>
+          </div>
+          <div id="diataxis-response-error"></div>
+        </div>
+        <div id="diataxis-review-footer">
+          <button class="tool-btn" id="btn-diataxis-copy-prompt-review"
+            onclick="copyDiataxisPromptFromReview()">
+            <span data-icon="copy"></span> Copiar prompt
+          </button>
+          <div class="diataxis-wizard-spacer"></div>
+          <button class="tool-btn" onclick="closeDiataxisReview()">Cancelar</button>
+          <button class="tool-btn primary" id="btn-diataxis-apply"
+            onclick="applyDiataxisResponse()">
+            <span data-icon="save"></span> Aplicar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Confirm modal (webview não suporta window.confirm) -->
     <div id="modal-overlay">
       <div id="modal">
@@ -7190,6 +8134,9 @@ const ICON_PATHS = {
   'arrow-left': '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  compass: '<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-7.48 3.74-3.74 7.48 7.48-3.74z"/>',
+  'refresh-cw': '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/>',
+  save: '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h5"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -7343,7 +8290,7 @@ const setMode = (mode) => {
   document.querySelectorAll('.rail-btn').forEach((b) => b.classList.remove('active'));
   $('rail-' + mode)?.classList.add('active');
 
-  $('topbar-mode').textContent = MODE_LABEL[mode];
+  updateTopbarCrumb();
 
   // Search placeholder muda conforme o modo
   const search = $('search-input');
@@ -7363,16 +8310,52 @@ const setMode = (mode) => {
   else if (sim) requestAnimationFrame(fitGraph);
 };
 
+const updateTopbarCrumb = () => {
+  const crumb = $('topbar-crumb');
+  if (!crumb) return;
+
+  // Se veio de uma visão Diátaxis, o crumb vira botão de retorno.
+  if (window.diataxisReturnState && currentMode !== 'map') {
+    crumb.classList.add('diataxis-return-crumb');
+    crumb.innerHTML = \`<button id="diataxis-return-crumb-btn">
+      <span data-icon="arrow-left"></span>
+      <span class="diataxis-return-label">\${escHtml(window.diataxisReturnState.title)}</span>
+    </button>\`;
+    hydrateIcons(crumb);
+    const btn = crumb.querySelector('#diataxis-return-crumb-btn');
+    if (btn && typeof returnToDiataxis === 'function') {
+      btn.onclick = (e) => { e.preventDefault(); returnToDiataxis(); };
+    }
+    return;
+  }
+
+  // Restaura o crumb padrão (vazio — título de cada página fica na sidebar).
+  crumb.classList.remove('diataxis-return-crumb');
+  crumb.innerHTML = '';
+};
+
 // ── Tabs dentro do modo Mapa ──
 let currentMapTab = 'graph';
 
 const setMapTab = (tab) => {
   currentMapTab = tab;
   document.querySelectorAll('.map-pane').forEach((p) => p.classList.remove('active'));
-  $(tab === 'graph' ? 'graph-pane' : 'markmap-pane').classList.add('active');
+  document.querySelectorAll('.map-tab').forEach((t) => t.classList.remove('active'));
+
+  const paneId = tab === 'graph' ? 'graph-pane'
+    : tab === 'markmap' ? 'markmap-pane'
+    : tab === 'diataxis' ? 'diataxis-pane'
+    : null;
+  const tabId = 'tab-' + tab;
+
+  if (paneId && $(paneId)) $(paneId).classList.add('active');
+  if ($(tabId)) $(tabId).classList.add('active');
 
   // O grafo precisa recentralizar quando sua aba fica visível (offsetWidth muda).
   if (tab === 'graph' && sim) requestAnimationFrame(fitGraph);
+
+  // Diátaxis recarrega a visão ao tornar-se visível.
+  if (tab === 'diataxis' && typeof loadDiataxis === 'function') loadDiataxis();
 };
 
 // ── Global keyboard shortcuts ──
@@ -7400,6 +8383,7 @@ const setNoWorkspace = (on) => {
   $('no-workspace').classList.toggle('visible', on);
   $('graph').style.opacity = on ? '0' : '1';
   $('topbar-path').textContent = on ? 'nenhuma pasta' : (currentWorkspace?.name + '/');
+  if (typeof updateTopbarCrumb === 'function') updateTopbarCrumb();
 };
 
 const applyWorkspace = (data) => {
@@ -10827,6 +11811,483 @@ const initFavorites = () => {
 };
 
 document.addEventListener('DOMContentLoaded', initFavorites);
+
+</script>
+    <script>
+// ════ Diátaxis — visões de estudo do workspace ════
+
+let diataxisDocSets = [];
+let currentDocSet = null;
+let currentPromptInput = null;
+
+const DIATAXIS_LABEL = {
+  tutorial: 'Tutorial',
+  'how-to': 'How-to',
+  reference: 'Referência',
+  explanation: 'Explicação',
+};
+
+const KIND_LABEL = {
+  file: 'Arquivo',
+  note: 'Nota',
+  skill: 'Skill',
+  macro: 'Macro',
+  diagram: 'Diagrama',
+  task: 'Task',
+  mock: 'Mock',
+  favorite: 'Favorito',
+};
+
+const KIND_ICON = {
+  file: '📄',
+  note: '📝',
+  skill: '✨',
+  macro: '🤖',
+  diagram: '📊',
+  task: '✅',
+  mock: '🔌',
+  favorite: '🔖',
+};
+
+const loadDiataxis = async () => {
+  try {
+    const res = await fetch('/docsets');
+    diataxisDocSets = await res.json();
+    renderDiataxisSidebar();
+    if (currentDocSet) {
+      const refreshed = diataxisDocSets.find((d) => d.id === currentDocSet.id);
+      if (refreshed) await openDocSet(refreshed.id);
+      else showDiataxisEmpty();
+    } else if (diataxisDocSets.length > 0) {
+      await openDocSet(diataxisDocSets[0].id);
+    } else {
+      showDiataxisEmpty();
+    }
+  } catch (err) {
+    console.error('Erro ao carregar visões Diátaxis:', err);
+    toast('Erro ao carregar visões Diátaxis');
+  }
+};
+
+const renderDiataxisSidebar = () => {
+  const list = $('diataxis-sets-list');
+  if (!diataxisDocSets.length) {
+    list.innerHTML = \`<div class="diataxis-set-item" style="opacity:.6;cursor:default">
+      <span class="diataxis-set-title">Nenhuma visão ainda</span>
+      <span class="diataxis-set-purpose">Clique em + para criar.</span>
+    </div>\`;
+    return;
+  }
+  list.innerHTML = diataxisDocSets.map((d) => \`
+    <div class="diataxis-set-item\${currentDocSet?.id === d.id ? ' active' : ''}"
+      onclick="openDocSet('\${d.id}')">
+      <span class="diataxis-set-title">\${escHtml(d.title)}</span>
+      <span class="diataxis-set-purpose">\${escHtml(d.purpose)}</span>
+      <span class="diataxis-set-meta">\${escHtml(d.depth)} · \${new Date(d.updatedAt).toLocaleDateString('pt-BR')}</span>
+    </div>
+  \`).join('');
+};
+
+const showDiataxisEmpty = () => {
+  currentDocSet = null;
+  $('diataxis-content').classList.remove('visible');
+  $('diataxis-empty').style.display = 'flex';
+  renderDiataxisSidebar();
+};
+
+const openDocSet = async (id) => {
+  try {
+    const res = await fetch('/docsets/' + id);
+    if (!res.ok) {
+      showDiataxisEmpty();
+      return;
+    }
+    currentDocSet = await res.json();
+    renderDiataxisSidebar();
+    renderCurrentDocSet();
+  } catch (err) {
+    console.error('Erro ao abrir visão:', err);
+    toast('Erro ao abrir visão Diátaxis');
+  }
+};
+
+const renderCurrentDocSet = () => {
+  if (!currentDocSet) return;
+
+  $('diataxis-empty').style.display = 'none';
+  $('diataxis-content').classList.add('visible');
+
+  $('diataxis-title').textContent = currentDocSet.title;
+  $('diataxis-purpose').textContent = currentDocSet.purpose;
+  $('diataxis-audience').style.display = currentDocSet.audience ? 'inline-flex' : 'none';
+  $('diataxis-audience').textContent = currentDocSet.audience
+    ? 'Para: ' + currentDocSet.audience
+    : '';
+  $('diataxis-depth').textContent = 'Profundidade: ' + currentDocSet.depth;
+
+  const byType = {
+    tutorial: [],
+    'how-to': [],
+    reference: [],
+    explanation: [],
+  };
+  for (const item of currentDocSet.items) {
+    if (byType[item.type]) byType[item.type].push(item);
+  }
+
+  for (const type of Object.keys(byType)) {
+    const col = document.querySelector(\`.diataxis-col-cards[data-type="\${type}"]\`);
+    const count = document.querySelector(\`.diataxis-col-count[data-type="\${type}"]\`);
+    if (!col || !count) continue;
+    count.textContent = String(byType[type].length);
+    col.innerHTML = byType[type].length
+      ? byType[type].map(renderDiataxisCard).join('')
+      : \`<div class="diataxis-card" style="opacity:.5;cursor:default">
+          <div class="diataxis-card-title">Nenhum item</div>
+          <div class="diataxis-card-reason">Nada classificado como \${DIATAXIS_LABEL[type]} nesta visão.</div>
+        </div>\`;
+  }
+};
+
+const renderDiataxisCard = (item) => {
+  const kind = item.ref.kind;
+  const title = item.title ?? \`\${KIND_LABEL[kind]} · \${item.ref.id.slice(0, 22)}\`;
+  const missingClass = item.exists === false ? ' missing' : '';
+  const originBadge = item.origin === 'generated'
+    ? \`<span class="diataxis-card-badge generated">gerado por IA</span>\`
+    : \`<span class="diataxis-card-badge">existente</span>\`;
+  return \`
+    <div class="diataxis-card\${missingClass}" data-kind="\${kind}"
+      onclick="openDiataxisItem('\${kind}', '\${item.ref.id}')">
+      <div class="diataxis-card-top">
+        <span class="diataxis-card-icon">\${KIND_ICON[kind]}</span>
+        <span class="diataxis-card-title">\${escHtml(title)}</span>
+      </div>
+      <div class="diataxis-card-badges">
+        <span class="diataxis-card-badge">\${KIND_LABEL[kind]}</span>
+        \${originBadge}
+      </div>
+      <div class="diataxis-card-reason">\${escHtml(item.reason)}</div>
+      <div class="diataxis-card-question">\${escHtml(item.userQuestion)}</div>
+    </div>
+  \`;
+};
+
+const setDiataxisReturnState = () => {
+  if (!currentDocSet) return;
+  window.diataxisReturnState = {
+    docSetId: currentDocSet.id,
+    title: currentDocSet.title,
+  };
+};
+
+const openDiataxisItem = async (kind, id) => {
+  setDiataxisReturnState();
+  switch (kind) {
+    case 'file':
+      setMapTab('markmap');
+      await loadFile(id);
+      break;
+    case 'note':
+      await openNote(id);
+      break;
+    case 'skill':
+      await openSkill(id);
+      break;
+    case 'macro':
+      await openMacro(id);
+      break;
+    case 'diagram':
+      await openDiagram(id);
+      break;
+    case 'task':
+      await openTaskModal(id);
+      break;
+    case 'mock':
+      openMockEditor(id);
+      break;
+    case 'favorite':
+      await openFavLink(id);
+      break;
+  }
+  renderDiataxisReturnButton();
+};
+
+// ── Wizard ──
+const openDiataxisWizard = () => {
+  $('diataxis-wizard-overlay').classList.add('visible');
+  $('diataxis-wizard-title-input').value = '';
+  $('diataxis-wizard-purpose-input').value = '';
+  $('diataxis-wizard-audience-input').value = '';
+  $('diataxis-wizard-depth-input').value = 'complete';
+  $('diataxis-wizard-purpose-input').focus();
+};
+
+const closeDiataxisWizard = () => {
+  $('diataxis-wizard-overlay').classList.remove('visible');
+};
+
+const getWizardInput = () => ({
+  title: $('diataxis-wizard-title-input').value.trim(),
+  purpose: $('diataxis-wizard-purpose-input').value.trim(),
+  audience: $('diataxis-wizard-audience-input').value.trim() || undefined,
+  depth: $('diataxis-wizard-depth-input').value,
+});
+
+const createAndCopyDiataxisPrompt = () => {
+  const input = getWizardInput();
+  if (!input.purpose) {
+    toast('Defina o propósito da visão.');
+    return;
+  }
+  currentPromptInput = input;
+  const prompt = buildDiataxisPrompt(input);
+  navigator.clipboard.writeText(prompt).then(() => {
+    closeDiataxisWizard();
+    openDiataxisApplyModal();
+    toast('Prompt copiado! Cole a resposta da IA.');
+  });
+};
+
+const buildDiataxisPrompt = (input) => {
+  return \`Você é um organizador de documentação especialista no framework Diátaxis, operando dentro do DocMap.
+
+Sua tarefa é criar uma visão Diátaxis no DocMap para o workspace atual.
+
+## Dados da visão
+
+- Propósito: \${input.purpose}
+- Público-alvo: \${input.audience || 'não especificado'}
+- Profundidade desejada: \${input.depth}
+
+## Ferramentas disponíveis
+
+Você tem acesso às seguintes ferramentas. USE-AS para coletar contexto do workspace:
+
+- list_files(pattern?) — lista arquivos do workspace. Ex: list_files({"pattern": "\\\\.md$"})
+- read_file(file) — lê um arquivo. Ex: read_file({"file": "README.md"})
+- http_request(method, path, body?) — chama a API do DocMap.
+  - GET /notes, GET /skills, GET /macros, GET /diagrams, GET /tasks, GET /mocks, GET /favorites
+  - GET /workspace/files — lista arquivos do workspace
+
+## Framework Diátaxis
+
+Classifique cada recurso em um dos 4 quadrantes:
+
+- tutorial: leva alguém do zero até a primeira experiência prática guiada.
+- how-to: guia para resolver uma tarefa real específica.
+- reference: material de consulta factual (env vars, comandos, endpoints, etc.).
+- explanation: aprofunda o entendimento do porquê, contexto e decisões.
+
+## Instruções
+
+1. Use list_files e read_file para ler os arquivos .md relevantes do workspace.
+2. Use http_request GET para listar notas, skills, macros, diagramas, tasks, mocks e favoritos.
+3. Para cada recurso útil ao propósito, classifique-o em um quadrante com action "reference" e o ID exato.
+4. Se faltar conteúdo para cobrir o propósito, crie novos itens com action "create".
+5. Tipos criáveis: note, skill, macro, diagram, task.
+6. Cada item deve ter: type, action, reason e userQuestion.
+7. Notas do tipo tutorial devem usar HTML no campo content.
+
+## Como criar a visão no DocMap
+
+Após montar a visão, você DEVE criá-la no DocMap chamando:
+
+POST /docsets/apply
+
+Com o body sendo exatamente este JSON:
+
+{
+  "title": "string",
+  "purpose": "string",
+  "audience": "string",
+  "depth": "quick | complete | deep",
+  "items": [
+    {
+      "type": "tutorial | how-to | reference | explanation",
+      "action": "reference | create",
+      "ref": { "kind": "file|note|skill|macro|diagram|task|mock|favorite", "id": "string" },
+      "entityKind": "note|skill|macro|diagram|task",
+      "proposedTitle": "string",
+      "proposedContent": { },
+      "reason": "string",
+      "userQuestion": "string"
+    }
+  ]
+}
+
+Regras do JSON:
+- Se action for "reference", "ref" é obrigatório e deve usar IDs reais do workspace.
+- Se action for "create", "entityKind" e "proposedContent" são obrigatórios.
+- proposedContent deve seguir o formato de criação da entidade no DocMap:
+  - note: { title, content, category?, tags? }
+  - skill: { name, title, description, content, tags? }
+  - macro: { name, title, description?, script }
+  - diagram: { title, source }
+  - task: { title, description?, status? }
+- Notas do tipo tutorial devem ser escritas em HTML.
+
+NÃO responda apenas com o JSON. Execute as ferramentas, gere a visão e chame POST /docsets/apply para criá-la. Depois informe o usuário que a visão foi criada.\`;
+};
+
+// ── Review ──
+const showDiataxisReview = () => {
+  if (!currentSuggestion) return;
+  $('diataxis-review-overlay').classList.add('visible');
+
+  const toCreate = currentSuggestion.items.filter((i) => i.action === 'create');
+  const toReference = currentSuggestion.items.filter((i) => i.action === 'reference');
+
+  $('diataxis-review-summary').innerHTML = \`
+    <strong>\${escHtml(currentSuggestion.title)}</strong><br>
+    Propósito: \${escHtml(currentSuggestion.purpose)}<br>
+    \${currentSuggestion.audience ? \`Público: \${escHtml(currentSuggestion.audience)}<br>\` : ''}
+    Itens sugeridos: \${currentSuggestion.items.length} (\${toCreate.length} novos, \${toReference.length} existentes)
+  \`;
+
+  const sections = [];
+  if (toCreate.length) {
+    sections.push(renderReviewSection('Serão criados', toCreate));
+  }
+  if (toReference.length) {
+    sections.push(renderReviewSection('Serão referenciados', toReference));
+  }
+  $('diataxis-review-lists').innerHTML = sections.join('');
+};
+
+const renderReviewSection = (title, items) => {
+  return \`
+    <div class="diataxis-review-section">
+      <div class="diataxis-review-section-title">
+        \${escHtml(title)}
+        <span class="diataxis-review-section-count">\${items.length}</span>
+      </div>
+      \${items.map((i) => \`
+        <div class="diataxis-review-item">
+          <span class="diataxis-review-kind">\${KIND_ICON[i.entityKind || i.ref?.kind] || '•'}</span>
+          <div class="diataxis-review-info">
+            <div class="diataxis-review-title">\${escHtml(i.proposedTitle || i.ref?.id || 'Sem título')}</div>
+            <div class="diataxis-review-meta">\${escHtml(i.reason)}</div>
+          </div>
+          <span class="diataxis-review-type \${i.type}">\${DIATAXIS_LABEL[i.type]}</span>
+        </div>
+      \`).join('')}
+    </div>
+  \`;
+};
+
+const closeDiataxisReview = () => {
+  $('diataxis-review-overlay').classList.remove('visible');
+  currentSuggestion = null;
+};
+
+const applyDiataxisSuggestion = async () => {
+  if (!currentSuggestion) return;
+  setLoading('btn-diataxis-apply', true);
+  try {
+    const res = await fetch('/docsets/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentSuggestion),
+    });
+    const docSet = await res.json();
+    if (docSet.error) throw new Error(docSet.error);
+    currentDocSet = docSet;
+    closeDiataxisReview();
+    await loadDiataxis();
+    toast('Visão Diátaxis salva!');
+  } catch (err) {
+    console.error('Erro ao aplicar visão:', err);
+    toast('Erro ao salvar visão Diátaxis');
+  } finally {
+    setLoading('btn-diataxis-apply', false);
+  }
+};
+
+// ── Actions ──
+const deleteCurrentDocSet = () => {
+  if (!currentDocSet) return;
+  confirmDialog(
+    \`Excluir a visão "\${currentDocSet.title}"? As notas, skills e outras entidades criadas por ela não serão apagadas.\`,
+    { danger: true },
+  ).then(async (confirmed) => {
+    if (!confirmed) return;
+    try {
+      const res = await fetch('/docsets/' + currentDocSet.id, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('delete_failed');
+      currentDocSet = null;
+      await loadDiataxis();
+      toast('Visão excluída');
+    } catch (err) {
+      console.error('Erro ao excluir visão:', err);
+      toast('Erro ao excluir visão');
+    }
+  });
+};
+
+const regenerateCurrentDocSet = async () => {
+  if (!currentDocSet) return;
+  setLoading('btn-diataxis-regenerate', true);
+  try {
+    const res = await fetch('/docsets/' + currentDocSet.id + '/regenerate', {
+      method: 'POST',
+    });
+    const docSet = await res.json();
+    if (docSet.error) throw new Error(docSet.error);
+    currentDocSet = docSet;
+    renderCurrentDocSet();
+    toast('Visão regenerada');
+  } catch (err) {
+    console.error('Erro ao regenerar visão:', err);
+    toast('Erro ao regenerar visão');
+  } finally {
+    setLoading('btn-diataxis-regenerate', false);
+  }
+};
+
+const copyDiataxisPrompt = () => {
+  if (!currentDocSet) return;
+  const input = {
+    purpose: currentDocSet.purpose,
+    audience: currentDocSet.audience,
+    depth: currentDocSet.depth,
+    allowCreation: true,
+  };
+  const prompt = buildDiataxisPrompt(input);
+  navigator.clipboard.writeText(prompt).then(() => toast('Prompt copiado!'));
+};
+
+const setLoading = (id, loading) => {
+  const btn = $(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.style.opacity = loading ? '.6' : '1';
+};
+
+// ── Botão de retorno para Diátaxis ──
+const renderDiataxisReturnButton = () => {
+  if (typeof updateTopbarCrumb === 'function') updateTopbarCrumb();
+};
+
+const clearDiataxisReturnState = () => {
+  window.diataxisReturnState = null;
+  if (typeof updateTopbarCrumb === 'function') updateTopbarCrumb();
+};
+
+const returnToDiataxis = async () => {
+  if (!window.diataxisReturnState) return;
+  const { docSetId } = window.diataxisReturnState;
+  clearDiataxisReturnState();
+  setMode('map');
+  setMapTab('diataxis');
+  await openDocSet(docSetId);
+};
+
+window.returnToDiataxis = returnToDiataxis;
+
+
 
 </script>
     <script>

@@ -7,6 +7,7 @@ export type Note = {
   readonly content: string;
   readonly tags: readonly string[];
   readonly category: NoteCategory;
+  readonly docSetId?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -18,6 +19,7 @@ export type CreateNoteInput = {
   readonly content: string;
   readonly tags?: string[];
   readonly category?: NoteCategory;
+  readonly docSetId?: string;
 };
 
 export type UpdateNoteInput = Partial<CreateNoteInput>;

@@ -6,6 +6,7 @@ const setNoWorkspace = (on) => {
   $('no-workspace').classList.toggle('visible', on);
   $('graph').style.opacity = on ? '0' : '1';
   $('topbar-path').textContent = on ? 'nenhuma pasta' : (currentWorkspace?.name + '/');
+  if (typeof updateTopbarCrumb === 'function') updateTopbarCrumb();
 };
 
 const applyWorkspace = (data) => {
