@@ -101,6 +101,24 @@ export const getMock = async (
   return null;
 };
 
+export const findMockByEndpoint = async (
+  kv: Deno.Kv,
+  collectionId: string,
+  method: string,
+  path: string,
+  excludeId?: string,
+): Promise<Mock | null> => {
+  for await (
+    const entry of kv.list<Mock>({ prefix: mockColPrefix(collectionId) })
+  ) {
+    const mock = entry.value;
+    if (!mock) continue;
+    if (mock.id === excludeId) continue;
+    if (mock.method === method && mock.path === path) return mock;
+  }
+  return null;
+};
+
 export const createMock = async (
   kv: Deno.Kv,
   input: CreateMockInput,

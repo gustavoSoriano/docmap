@@ -217,6 +217,8 @@ curl http://127.0.0.1:${MOCK_PORT}/seu-path
 - \`PUT /mocks/:id\` — edita campos (parcial)
 - \`DELETE /mocks/:id\` — remove
 
+**Validação de duplicidade:** dentro de uma mesma collection, não é permitido ter dois mocks com o mesmo \`method\` + \`path\`. \`POST /mocks\` e \`PUT /mocks/:id\` retornam \`409 Conflict\` se o endpoint já existir.
+
 Campos:
 - \`method\`: GET | POST | PUT | PATCH | DELETE | HEAD | OPTIONS
 - \`path\`: padrão com params (\`/users/:id\`, \`/posts/:postId/comments\`)

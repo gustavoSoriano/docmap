@@ -5,6 +5,7 @@ import {
   createMock,
   deleteCollection,
   deleteMock,
+  findMockByEndpoint,
   getCollection,
   getMock,
   listCollections,
@@ -13,7 +14,7 @@ import {
   updateMock,
 } from './store.ts';
 import { clearAllDbs, clearCollectionDb } from './executor.ts';
-import { badRequest, json, notFound } from '../server/response.ts';
+import { badRequest, conflict, json, notFound } from '../server/response.ts';
 import { HTTP_METHODS } from './types.ts';
 import type {
   CreateCollectionInput,
@@ -127,11 +128,23 @@ export const mocksHandler =
       }
       if (!input.path?.trim()) return badRequest('path required');
       if (input.script === undefined) return badRequest('script required');
+      const trimmedPath = input.path.trim();
+      const existing = await findMockByEndpoint(
+        kv,
+        input.collectionId,
+        input.method,
+        trimmedPath,
+      );
+      if (existing) {
+        return conflict(
+          `Duplicate endpoint: ${input.method} ${trimmedPath} already exists in collection`,
+        );
+      }
       return json(
         await createMock(kv, {
           ...input,
           method: input.method as HttpMethod,
-          path: input.path.trim(),
+          path: trimmedPath,
         }),
         201,
       );
@@ -151,7 +164,35 @@ export const mocksHandler =
       ) {
         return badRequest(`method must be one of: ${HTTP_METHODS.join(', ')}`);
       }
-      const updated = await updateMock(kv, id, input);
+
+      const existing = await getMock(kv, id);
+      if (!existing) return notFound();
+
+      const nextCollectionId = input.collectionId ?? existing.collectionId;
+      const nextMethod = input.method ?? existing.method;
+      const nextPath = input.path !== undefined
+        ? input.path.trim()
+        : existing.path;
+
+      if (nextPath === '') return badRequest('path required');
+
+      const duplicate = await findMockByEndpoint(
+        kv,
+        nextCollectionId,
+        nextMethod,
+        nextPath,
+        id,
+      );
+      if (duplicate) {
+        return conflict(
+          `Duplicate endpoint: ${nextMethod} ${nextPath} already exists in collection`,
+        );
+      }
+
+      const updated = await updateMock(kv, id, {
+        ...input,
+        path: nextPath,
+      });
       if (!updated) return notFound();
       return json(updated);
     }
