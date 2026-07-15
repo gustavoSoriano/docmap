@@ -17,16 +17,22 @@ const applyWorkspace = (data) => {
 };
 
 const pickWorkspace = async () => {
-  try {
-    const res = await fetch('/workspace/pick', { method: 'POST' });
-    const data = await res.json();
-    if (data.cancelled) return;
-    applyWorkspace(data);
-    toast('Pasta carregada: ' + data.name);
-  } catch (err) {
-    console.error('Erro ao selecionar pasta:', err);
-    toast('Erro ao abrir pasta');
+  const before = currentWorkspace?.root ?? null;
+  fetch('/workspace/pick', { method: 'POST' }).catch(() => {});
+
+  for (let i = 0; i < 60; i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    try {
+      const res = await fetch('/workspace');
+      const data = await res.json();
+      if (data.root && data.root !== before) {
+        applyWorkspace(data);
+        toast('Pasta carregada: ' + data.name);
+        return;
+      }
+    } catch { /* servidor ocupado, tenta de novo */ }
   }
+  // Timeout de 30s: usuário cancelou o diálogo.
 };
 
 const initWorkspace = async () => {

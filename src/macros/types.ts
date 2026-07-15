@@ -7,7 +7,6 @@ export type Macro = {
   readonly description: string;
   readonly script: string;
   readonly interpreter: MacroInterpreter;
-  readonly docSetId?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -19,7 +18,6 @@ export type CreateMacroInput = {
   readonly title: string;
   readonly description?: string;
   readonly script: string;
-  readonly docSetId?: string;
 };
 
 export type UpdateMacroInput = Partial<CreateMacroInput>;

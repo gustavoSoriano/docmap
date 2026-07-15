@@ -34,7 +34,6 @@ export const createSkill = async (
     description: input.description,
     content: input.content,
     tags: input.tags ?? [],
-    ...(input.docSetId ? { docSetId: input.docSetId } : {}),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

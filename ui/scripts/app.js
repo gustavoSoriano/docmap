@@ -36,24 +36,6 @@ const setMode = (mode) => {
 const updateTopbarCrumb = () => {
   const crumb = $('topbar-crumb');
   if (!crumb) return;
-
-  // Se veio de uma visão Diátaxis, o crumb vira botão de retorno.
-  if (window.diataxisReturnState && currentMode !== 'map') {
-    crumb.classList.add('diataxis-return-crumb');
-    crumb.innerHTML = `<button id="diataxis-return-crumb-btn">
-      <span data-icon="arrow-left"></span>
-      <span class="diataxis-return-label">${escHtml(window.diataxisReturnState.title)}</span>
-    </button>`;
-    hydrateIcons(crumb);
-    const btn = crumb.querySelector('#diataxis-return-crumb-btn');
-    if (btn && typeof returnToDiataxis === 'function') {
-      btn.onclick = (e) => { e.preventDefault(); returnToDiataxis(); };
-    }
-    return;
-  }
-
-  // Restaura o crumb padrão (vazio — título de cada página fica na sidebar).
-  crumb.classList.remove('diataxis-return-crumb');
   crumb.innerHTML = '';
 };
 
@@ -67,18 +49,13 @@ const setMapTab = (tab) => {
 
   const paneId = tab === 'graph' ? 'graph-pane'
     : tab === 'markmap' ? 'markmap-pane'
-    : tab === 'diataxis' ? 'diataxis-pane'
     : null;
   const tabId = 'tab-' + tab;
 
   if (paneId && $(paneId)) $(paneId).classList.add('active');
   if ($(tabId)) $(tabId).classList.add('active');
 
-  // O grafo precisa recentralizar quando sua aba fica visível (offsetWidth muda).
   if (tab === 'graph' && sim) requestAnimationFrame(fitGraph);
-
-  // Diátaxis recarrega a visão ao tornar-se visível.
-  if (tab === 'diataxis' && typeof loadDiataxis === 'function') loadDiataxis();
 };
 
 // ── Global keyboard shortcuts ──

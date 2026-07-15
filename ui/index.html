@@ -46,7 +46,6 @@
     <link rel="stylesheet" href="/styles/tasks.css">
     <link rel="stylesheet" href="/styles/mocks.css">
     <link rel="stylesheet" href="/styles/favorites.css">
-    <link rel="stylesheet" href="/styles/diataxis.css">
   </head>
   <body>
     <!-- ════ Left rail — mode switcher ════ -->
@@ -133,8 +132,6 @@
         <div id="map-tabs">
           <button class="map-tab active" id="tab-graph"
             onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
-          <button class="map-tab" id="tab-diataxis"
-            onclick="setMapTab('diataxis')"><span data-icon="compass"></span> Diátaxis</button>
           <button id="map-open-btn" onclick="pickWorkspace()"
             title="Abrir pasta">
         <span data-icon="folder"></span> Pasta
@@ -251,100 +248,6 @@
                   id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>
               </div>
             </aside>
-          </section>
-
-          <!-- Diátaxis pane -->
-          <section id="diataxis-pane" class="map-pane">
-            <div id="diataxis-layout">
-              <aside id="diataxis-sidebar">
-                <div id="diataxis-sidebar-head">
-                  <span id="diataxis-sidebar-title">Visões Diátaxis</span>
-                  <button id="diataxis-new-btn" onclick="openDiataxisWizard()"
-                    title="Nova visão" data-icon="plus"></button>
-                </div>
-                <div id="diataxis-sets-list"></div>
-              </aside>
-
-              <div id="diataxis-main">
-                <div id="diataxis-empty">
-                  <div id="diataxis-empty-mark" data-icon="compass"></div>
-                  <div id="diataxis-empty-title">Nenhuma visão Diátaxis</div>
-                  <div id="diataxis-empty-hint">Crie uma visão para estudar este
-                    workspace com propósito.</div>
-                  <button id="diataxis-empty-btn"
-                    onclick="openDiataxisWizard()"><span data-icon="compass"></span>
-                    Nova visão Diátaxis</button>
-                </div>
-
-                <div id="diataxis-content">
-                  <div id="diataxis-header">
-                    <div id="diataxis-header-text">
-                      <div id="diataxis-title"></div>
-                      <div id="diataxis-meta">
-                        <span id="diataxis-purpose"></span>
-                        <span id="diataxis-audience"></span>
-                        <span id="diataxis-depth"></span>
-                      </div>
-                    </div>
-                    <div id="diataxis-header-actions">
-                      <button class="tool-btn" id="btn-diataxis-regenerate"
-                        onclick="regenerateCurrentDocSet()"
-                        title="Regenerar itens gerados pela IA"><span
-                          data-icon="refresh-cw"></span>
-                        Regerar</button>
-                      <button class="tool-btn" id="btn-diataxis-copy-prompt"
-                        onclick="copyDiataxisPrompt()"
-                        title="Copiar prompt para IA externa"><span
-                          data-icon="copy"></span> Prompt</button>
-                      <button class="tool-btn danger" id="btn-diataxis-delete"
-                        onclick="deleteCurrentDocSet()"
-                        title="Excluir visão"><span data-icon="trash"></span></button>
-                    </div>
-                  </div>
-
-                  <div id="diataxis-columns">
-                    <div class="diataxis-col" data-type="tutorial">
-                      <div class="diataxis-col-head">
-                        <span class="diataxis-col-dot"></span>
-                        <span class="diataxis-col-title">Tutorial</span>
-                        <span class="diataxis-col-count" data-type="tutorial">0</span>
-                      </div>
-                      <div class="diataxis-col-cards"
-                        data-type="tutorial"></div>
-                    </div>
-                    <div class="diataxis-col" data-type="how-to">
-                      <div class="diataxis-col-head">
-                        <span class="diataxis-col-dot"></span>
-                        <span class="diataxis-col-title">How-to</span>
-                        <span class="diataxis-col-count" data-type="how-to">0</span>
-                      </div>
-                      <div class="diataxis-col-cards"
-                        data-type="how-to"></div>
-                    </div>
-                    <div class="diataxis-col" data-type="reference">
-                      <div class="diataxis-col-head">
-                        <span class="diataxis-col-dot"></span>
-                        <span class="diataxis-col-title">Referência</span>
-                        <span class="diataxis-col-count"
-                          data-type="reference">0</span>
-                      </div>
-                      <div class="diataxis-col-cards"
-                        data-type="reference"></div>
-                    </div>
-                    <div class="diataxis-col" data-type="explanation">
-                      <div class="diataxis-col-head">
-                        <span class="diataxis-col-dot"></span>
-                        <span class="diataxis-col-title">Explicação</span>
-                        <span class="diataxis-col-count"
-                          data-type="explanation">0</span>
-                      </div>
-                      <div class="diataxis-col-cards"
-                        data-type="explanation"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </section>
         </div>
       </main>
@@ -1042,86 +945,6 @@
       </div>
     </div>
 
-    <!-- ════ Diátaxis Wizard Modal ════ -->
-    <div id="diataxis-wizard-overlay">
-      <div id="diataxis-wizard">
-        <div id="diataxis-wizard-head">
-          <span id="diataxis-wizard-title">Nova visão Diátaxis</span>
-          <button id="diataxis-wizard-close" onclick="closeDiataxisWizard()"
-            data-icon="x"></button>
-        </div>
-        <div id="diataxis-wizard-body">
-          <div class="diataxis-field">
-            <label class="diataxis-label">Título da visão</label>
-            <input id="diataxis-wizard-title-input" type="text"
-              placeholder="Ex: Onboarding de novos devs" autocomplete="off" />
-          </div>
-          <div class="diataxis-field">
-            <label class="diataxis-label">Propósito <span
-                class="diataxis-required">*</span></label>
-            <textarea id="diataxis-wizard-purpose-input" rows="3"
-              placeholder="O que alguém vai conseguir fazer ao estudar esta documentação? Ex: Aprender a fazer deploy em produção."></textarea>
-          </div>
-          <div class="diataxis-field">
-            <label class="diataxis-label">Para quem é? (público)</label>
-            <input id="diataxis-wizard-audience-input" type="text"
-              placeholder="Ex: Tech leads e devs seniores" autocomplete="off" />
-          </div>
-          <div class="diataxis-field">
-            <label class="diataxis-label">Profundidade</label>
-            <select id="diataxis-wizard-depth-input">
-              <option value="quick">Rápida</option>
-              <option value="complete" selected>Completa</option>
-              <option value="deep">Máxima</option>
-            </select>
-          </div>
-        </div>
-        <div id="diataxis-wizard-footer">
-          <div class="diataxis-wizard-spacer"></div>
-          <button class="tool-btn" onclick="closeDiataxisWizard()">Cancelar</button>
-          <button class="tool-btn primary" id="btn-diataxis-create-prompt"
-            onclick="createAndCopyDiataxisPrompt()">
-            <span data-icon="copy"></span> Criar prompt
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════ Diátaxis Apply Response Modal ════ -->
-    <div id="diataxis-review-overlay">
-      <div id="diataxis-review">
-        <div id="diataxis-review-head">
-          <span id="diataxis-review-title">Aplicar resposta da IA</span>
-          <button id="diataxis-review-close" onclick="closeDiataxisReview()"
-            data-icon="x"></button>
-        </div>
-        <div id="diataxis-review-body">
-          <div id="diataxis-apply-instructions">
-            O prompt foi copiado. Envie para a IA integrada (chat do DocMap) ou
-            para uma IA externa. Cole aqui o JSON retornado.
-          </div>
-          <div class="diataxis-field" style="margin-top:14px">
-            <label class="diataxis-label">Resposta JSON da IA</label>
-            <textarea id="diataxis-response-input" rows="16"
-              placeholder='{&#10;  "title": "...",&#10;  "purpose": "...",&#10;  "items": [...]&#10;}'></textarea>
-          </div>
-          <div id="diataxis-response-error"></div>
-        </div>
-        <div id="diataxis-review-footer">
-          <button class="tool-btn" id="btn-diataxis-copy-prompt-review"
-            onclick="copyDiataxisPromptFromReview()">
-            <span data-icon="copy"></span> Copiar prompt
-          </button>
-          <div class="diataxis-wizard-spacer"></div>
-          <button class="tool-btn" onclick="closeDiataxisReview()">Cancelar</button>
-          <button class="tool-btn primary" id="btn-diataxis-apply"
-            onclick="applyDiataxisResponse()">
-            <span data-icon="save"></span> Aplicar
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Confirm modal (webview não suporta window.confirm) -->
     <div id="modal-overlay">
       <div id="modal">
@@ -1187,7 +1010,6 @@
     <script src="/scripts/tasks.js"></script>
     <script src="/scripts/mocks.js"></script>
     <script src="/scripts/favorites.js"></script>
-    <script src="/scripts/diataxis.js"></script>
     <script src="/scripts/system.js"></script>
     <script src="/scripts/ai-chat.js"></script>
   </body>

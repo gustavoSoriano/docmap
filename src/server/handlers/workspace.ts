@@ -4,8 +4,10 @@ import { json, noWorkspace } from '../response.ts';
 import type { HandlerDeps } from '../types.ts';
 
 export const createWorkspaceHandler =
-  ({ kv, workspace }: HandlerDeps) =>
-  async (req: Request, url: URL): Promise<Response> => {
+  ({ kv, workspace }: HandlerDeps) => {
+  let pickInProgress = false;
+
+  return async (req: Request, url: URL): Promise<Response> => {
     if (req.method === 'GET' && url.pathname === '/workspace') {
       return json({
         root: workspace.root,
@@ -18,10 +20,18 @@ export const createWorkspaceHandler =
     }
 
     if (req.method === 'POST' && url.pathname === '/workspace/pick') {
-      const selected = await openFolderDialog();
-      if (!selected) return json({ cancelled: true });
-      await setWorkspace(kv, workspace, selected);
-      return json({ root: selected, name: selected.split('/').pop() });
+      if (!pickInProgress) {
+        pickInProgress = true;
+        (async () => {
+          try {
+            const selected = await openFolderDialog();
+            if (selected) await setWorkspace(kv, workspace, selected);
+          } finally {
+            pickInProgress = false;
+          }
+        })();
+      }
+      return json({ polling: true });
     }
 
     if (req.method === 'POST' && url.pathname === '/workspace/set') {
@@ -44,3 +54,4 @@ export const createWorkspaceHandler =
 
     return noWorkspace();
   };
+};

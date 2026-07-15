@@ -39,7 +39,6 @@ export const createMacro = async (
     description: input.description ?? '',
     script: input.script,
     interpreter: detectInterpreter(input.script),
-    ...(input.docSetId ? { docSetId: input.docSetId } : {}),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

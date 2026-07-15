@@ -30,7 +30,6 @@ export const createNote = async (
     content: input.content,
     tags: input.tags ?? [],
     category: input.category?.trim() || 'general',
-    ...(input.docSetId ? { docSetId: input.docSetId } : {}),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

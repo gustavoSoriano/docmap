@@ -51,7 +51,6 @@ export const createTask = async (
     order: input.order ?? maxOrd + 1,
     ...(input.dueDate ? { dueDate: input.dueDate } : {}),
     ...(input.noteId ? { noteId: input.noteId } : {}),
-    ...(input.docSetId ? { docSetId: input.docSetId } : {}),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
