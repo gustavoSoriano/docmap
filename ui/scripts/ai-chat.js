@@ -128,15 +128,12 @@ const getSystemPrompt = async () => {
 
 // ── Estado ──
 let chatMessages  = [];
-let chatOpen      = false;
 let chatStreaming = false;
 let chatAbort     = null;
 let chatProvider  = 'ollama';  // default; sobrescrito no boot por /ai/config
-let chatMinimized = false;
-let chatDragged   = false;
-let chatDrag      = { active: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 };
+let agentOpen     = false;
 
-const CHAT_LAYOUT_KEY = 'docmap-chat-layout';
+const AGENT_OPEN_KEY = 'docmap-agent-open';
 
 // ── Provider config (persiste no KV) ──
 const loadProvider = async () => {
@@ -472,126 +469,31 @@ const setChatStreaming = (on) => {
   stop.style.display = on ? 'flex' : 'none';
 };
 
-// ── Layout: posição e minimização ──
-const loadChatLayout = () => {
-  try {
-    const raw = localStorage.getItem(CHAT_LAYOUT_KEY);
-    if (!raw) return;
-    const layout = JSON.parse(raw);
-    if (typeof layout.minimized === 'boolean') chatMinimized = layout.minimized;
-    if (layout.left != null && layout.top != null) {
-      const panel = $('chat-panel');
-      panel.classList.add('dragged');
-      panel.style.left = `${layout.left}px`;
-      panel.style.top = `${layout.top}px`;
-      chatDragged = true;
-    }
-    applyMinimizeState();
-  } catch { /* ignora layout corrompido */ }
-};
-
-const saveChatLayout = () => {
-  try {
-    const panel = $('chat-panel');
-    const layout = { minimized: chatMinimized };
-    if (chatDragged) {
-      layout.left = parseInt(panel.style.left || '0', 10);
-      layout.top = parseInt(panel.style.top || '0', 10);
-    }
-    localStorage.setItem(CHAT_LAYOUT_KEY, JSON.stringify(layout));
-  } catch { /* ignora quota excedida */ }
-};
-
-const applyMinimizeState = () => {
-  const panel = $('chat-panel');
-  const icon = $('chat-minimize-icon');
-  panel.classList.toggle('minimized', chatMinimized);
-  if (icon) {
-    icon.dataset.icon = chatMinimized ? 'maximize' : 'minus';
-    icon.dataset.hydrated = '';
-    icon.innerHTML = ICON(chatMinimized ? 'maximize' : 'minus');
-    icon.dataset.hydrated = '1';
-  }
-  const btn = $('chat-minimize');
-  if (btn) btn.title = chatMinimized ? 'Expandir' : 'Minimizar';
-};
-
-const toggleMinimizeChat = () => {
-  chatMinimized = !chatMinimized;
-  applyMinimizeState();
-  saveChatLayout();
-};
-
-const clampChatPosition = (left, top) => {
-  const panel = $('chat-panel');
-  const rect = panel.getBoundingClientRect();
-  const minVisible = 48;
-  const maxLeft = window.innerWidth - minVisible;
-  const maxTop = window.innerHeight - minVisible;
-  return {
-    left: Math.max(minVisible - rect.width, Math.min(left, maxLeft)),
-    top: Math.max(minVisible - rect.height, Math.min(top, maxTop)),
-  };
-};
-
-const startChatDrag = (e) => {
-  if (e.button !== 0) return;
-  if (e.target.closest('#chat-provider, .ghost-btn')) return;
-
-  const panel = $('chat-panel');
-  const rect = panel.getBoundingClientRect();
-  chatDrag.active = true;
-  chatDrag.startX = e.clientX;
-  chatDrag.startY = e.clientY;
-  chatDrag.startLeft = rect.left;
-  chatDrag.startTop = rect.top;
-
-  panel.classList.add('dragged');
-  panel.style.left = `${rect.left}px`;
-  panel.style.top = `${rect.top}px`;
-  panel.style.right = 'auto';
-  panel.style.transform = 'none';
-
-  window.addEventListener('mousemove', onChatDrag);
-  window.addEventListener('mouseup', stopChatDrag);
-  e.preventDefault();
-};
-
-const onChatDrag = (e) => {
-  if (!chatDrag.active) return;
-  const dx = e.clientX - chatDrag.startX;
-  const dy = e.clientY - chatDrag.startY;
-  const { left, top } = clampChatPosition(chatDrag.startLeft + dx, chatDrag.startTop + dy);
-  const panel = $('chat-panel');
-  panel.style.left = `${left}px`;
-  panel.style.top = `${top}px`;
-};
-
-const stopChatDrag = () => {
-  if (!chatDrag.active) return;
-  chatDrag.active = false;
-  chatDragged = true;
-  window.removeEventListener('mousemove', onChatDrag);
-  window.removeEventListener('mouseup', stopChatDrag);
-  saveChatLayout();
-};
-
-// ── Abrir / fechar FAB ──
-const toggleChat = () => {
-  chatOpen = !chatOpen;
-  const panel = $('chat-panel');
-  panel.classList.toggle('open', chatOpen);
-  $('chat-fab').classList.toggle('active', chatOpen);
-  if (chatOpen) {
-    if (chatDragged) {
-      panel.style.transform = 'none';
-      panel.style.right = 'auto';
-    }
+// ── Sidebar: abrir / recolher (persiste no localStorage) ──
+const setAgentOpen = (open, persist = true) => {
+  agentOpen = open;
+  const panel = $('agent-panel');
+  if (!panel) return;
+  panel.classList.toggle('open', open);
+  if (persist) saveAgentState();
+  if (open) {
     if (!chatMessages.length) {
       appendChatBubble('assistant', 'Olá! Posso acessar suas notas, diagramas, skills e macros. Como posso ajudar?');
     }
-    setTimeout(() => $('chat-input').focus(), 150);
+    setTimeout(() => $('chat-input')?.focus(), 180);
   }
+};
+
+const toggleAgent = () => setAgentOpen(!agentOpen);
+
+const loadAgentState = () => {
+  let open = false;
+  try { open = localStorage.getItem(AGENT_OPEN_KEY) === '1'; } catch { /* ignora */ }
+  setAgentOpen(open, false);
+};
+
+const saveAgentState = () => {
+  try { localStorage.setItem(AGENT_OPEN_KEY, agentOpen ? '1' : '0'); } catch { /* ignora quota */ }
 };
 
 const stopChat = () => {
@@ -611,12 +513,10 @@ const clearChat = async () => {
 // ── Event listeners ──
 document.addEventListener('DOMContentLoaded', () => {
   loadProvider();
-  loadChatLayout();
+  loadAgentState();
 
   const sel = $('chat-provider');
   if (sel) sel.addEventListener('change', (e) => changeProvider(e.target.value));
-
-  $('chat-header').addEventListener('mousedown', startChatDrag);
 
   $('chat-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
@@ -626,6 +526,6 @@ document.addEventListener('DOMContentLoaded', () => {
     this.style.height = Math.min(this.scrollHeight, 140) + 'px';
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && chatOpen) toggleChat();
+    if (e.key === 'Escape' && agentOpen) toggleAgent();
   });
 });

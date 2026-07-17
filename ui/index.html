@@ -956,40 +956,44 @@
       </div>
     </div>
 
-    <!-- ════ AI Chat FAB ════ -->
-    <button id="chat-fab" onclick="toggleChat()" title="Chat com IA">
-      <span data-icon="bot"></span>
-    </button>
+    <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
+    <aside id="agent-panel">
+      <!-- Estado recolhido: rail fino vertical -->
+      <button id="agent-collapsed" onclick="toggleAgent()" title="Abrir assistente">
+        <span class="agent-orb"><span data-icon="bot"></span></span>
+        <span class="agent-collapsed-label">Assistente</span>
+      </button>
 
-    <div id="chat-panel">
-      <div id="chat-header">
-        <span id="chat-title">
-          <span data-icon="bot"></span>
+      <!-- Estado expandido: sidebar completa -->
+      <div class="agent-body">
+        <header id="chat-header">
+          <span id="chat-title">
+            <span class="agent-chip"><span data-icon="bot"></span></span>
+            Assistente<span class="agent-presence" title="Disponível"></span>
+          </span>
           <select id="chat-provider" title="Provedor de IA">
             <option value="ollama">Ollama (local)</option>
             <option value="deepseek">DeepSeek</option>
           </select>
-        </span>
-        <div id="chat-header-actions">
-          <button class="ghost-btn" id="chat-minimize"
-            onclick="toggleMinimizeChat()" title="Minimizar">
-            <span data-icon="minus" id="chat-minimize-icon"></span>
-          </button>
-          <button class="ghost-btn" onclick="clearChat()">limpar</button>
-          <button class="ghost-btn"
-            onclick="toggleChat()"><span data-icon="x"></span></button>
+          <div id="chat-header-actions">
+            <button class="ghost-btn" onclick="clearChat()" title="Limpar conversa">limpar</button>
+            <button class="ghost-btn" id="agent-collapse"
+              onclick="toggleAgent()" title="Recolher">
+              <span data-icon="panel-right"></span>
+            </button>
+          </div>
+        </header>
+        <div id="chat-feed"></div>
+        <div id="chat-composer">
+          <button id="chat-stop" onclick="stopChat()"
+            style="display:none"><span data-icon="x"></span> Parar</button>
+          <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
+            rows="1"></textarea>
+          <button id="chat-send" onclick="sendChatMessage()"
+            data-icon="sparkles"></button>
         </div>
       </div>
-      <div id="chat-feed"></div>
-      <div id="chat-composer">
-        <button id="chat-stop" onclick="stopChat()"
-          style="display:none"><span data-icon="x"></span> Parar</button>
-        <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
-          rows="1"></textarea>
-        <button id="chat-send" onclick="sendChatMessage()"
-          data-icon="sparkles"></button>
-      </div>
-    </div>
+    </aside>
 
     <div id="tooltip"></div>
     <div id="toast"></div>
