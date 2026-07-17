@@ -127,6 +127,75 @@ Fluxos comuns:
 
 ---
 
+## Podcasts — áudio gerado por IA (2+ vozes)
+
+Gera podcasts em áudio a partir de conteúdo de estudo. Sempre com **2+ personas**
+com vozes distintas. A geração é **assíncrona**: o POST retorna 202 imediatamente
+e o áudio fica pronto segundos/minutos depois (status \`generating\` → \`ready\`).
+
+Pré-requisitos na máquina: \`edge-tts\` (pip) e \`ffmpeg\` (brew install ffmpeg).
+
+### Endpoints
+
+- \`GET /podcasts/health\` — verifica dependências externas (edge-tts, ffmpeg, ffprobe). Retorna \`{ ready, edgeTts, ffmpeg, ffprobe, instructions[] }\`. Se \`ready=false\`, inclui os comandos de instalação
+- \`GET /podcasts?q=&folder=\` — lista previews (sem \`script\`); \`q\` busca no título
+- \`GET /podcasts/:id\` — podcast completo (com \`script\`) + \`deepLink\`
+- \`GET /podcasts/:id/audio\` — stream MP3 com suporte a Range (pra player)
+- \`GET /podcasts/voices\` — vozes pt-BR disponíveis (id + gender + style)
+- \`GET /podcasts/folders\` — pastas derivadas dos podcasts existentes
+- \`POST /podcasts\` — gera. Body:
+  - \`title\` (obrigatório)
+  - \`content\` **ou** \`script\` (obrigatório um dos dois):
+    - \`content\`: texto bruto → o docmap gera o roteiro via provider configurado
+    - \`script\`: roteiro pronto com tags \`<Person1>…</Person1>\` → só sintetiza o áudio
+  - \`voices\` (opcional): array de \`{ name, voice }\` — mínimo 2, vozes distintas.
+    Omitido → o docmap sorteia 2 vozes pt-BR. Use \`GET /podcasts/voices\` pra escolher.
+  - \`folder\` (opcional, default "geral")
+  - Retorna **202** com \`{ id, deepLink, status: "generating" }\`
+- \`PUT /podcasts/:id\` — edita \`title\` e/ou \`folder\`
+- \`DELETE /podcasts/:id\` — remove metadados + áudio
+
+### Formato do roteiro (campo \`script\`)
+
+Use as tags \`<NomeDaPersona>…</NomeDaPersona>\`. Cada nome deve ter uma voz em \`voices\`.
+
+\`\`\`bash
+curl -X POST http://127.0.0.1:${API_PORT}/podcasts \\
+  -H 'Content-Type: application/json' -d '{
+    "title": "Redes neurais — introdução",
+    "folder": "IA",
+    "voices": [
+      { "name": "Ana", "voice": "pt-BR-FranciscaNeural" },
+      { "name": "Bruno", "voice": "pt-BR-AntonioNeural" }
+    ],
+    "script": "<Ana>Olá! Hoje vamos falar de redes neurais.</Ana>\\n<Bruno>Boa! Começa explicando o que são.</Bruno>\\n<Ana>São modelos inspirados no cérebro…</Ana>"
+  }'
+# → 202 { "id": "...", "deepLink": "http://127.0.0.1:3333/#podcast/...", "status": "generating" }
+\`\`\`
+
+### Gerar a partir de texto (docmap escreve o roteiro)
+
+\`\`\`bash
+curl -X POST http://127.0.0.1:${API_PORT}/podcasts \\
+  -H 'Content-Type: application/json' -d '{
+    "title": "Kimi K3 — análise",
+    "content": "<cole aqui o texto/artigo/resumo de estudo>",
+    "folder": "IA"
+  }'
+# O docmap gera o diálogo via provider ativo (DeepSeek/Ollama) e sorteia 2 vozes.
+\`\`\`
+
+### Descobrir vozes disponíveis
+
+\`\`\`bash
+curl http://127.0.0.1:${API_PORT}/podcasts/voices
+# → [{ "id": "pt-BR-AntonioNeural", "gender": "M", "style": "neutro, locução" }, ...]
+\`\`\`
+
+Deep link: \`GET /podcasts/:id\` retorna \`{ deepLink: "http://127.0.0.1:3333/#podcast/<id>" }\`.
+
+---
+
 ## Fluxo sugerido
 
 ### Notas

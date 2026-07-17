@@ -6225,6 +6225,389 @@ mark.fav-hl {
 }
 
 </style>
+    <style>
+/* ════ Podcasts mode ════ */
+#mode-podcasts {
+  background: var(--bg);
+}
+
+/* ── List column ── */
+#pod-col {
+  width: 300px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+#pod-col-head {
+  display: flex;
+  align-items: center;
+  padding: 18px 18px 10px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+#pod-col-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#pod-col-title .ico { width: 18px; height: 18px; color: var(--accent); }
+
+/* ── Health badge ── */
+#pod-health {
+  width: auto;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  transition: all .12s;
+}
+#pod-health .ico { width: 12px; height: 12px; }
+#pod-health:hover { background: var(--surface-3); }
+.pod-health-checking { color: var(--text-4); }
+.pod-health-ok { color: var(--accent); border-color: var(--accent-line); background: var(--accent-dim); }
+.pod-health-bad { color: #fbbf24; border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.1); }
+
+.pod-health-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .2s ease;
+  flex-shrink: 0;
+}
+.pod-health-panel.open { max-height: 240px; padding: 0 18px 12px; overflow-y: auto; }
+.pod-health-row {
+  font-size: 12px;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pod-health-row.ok { color: var(--accent); }
+.pod-health-row.bad { color: #fbbf24; }
+.pod-health-row .ico { width: 13px; height: 13px; }
+.pod-health-row code { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); }
+.pod-health-cmd {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 7px 10px;
+  margin: 6px 0;
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+}
+.pod-health-dep { font-size: 11px; font-weight: 700; color: var(--accent); }
+.pod-health-cmd code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+.pod-health-note {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.6;
+  padding-top: 8px;
+}
+.pod-health-note code { font-family: var(--font-mono); color: var(--accent); background: var(--surface-2); padding: 1px 4px; border-radius: 3px; }
+
+#pod-filters {
+  padding: 0 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+#pod-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 11px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12.5px;
+  font-family: var(--font-ui);
+}
+#pod-search:focus { outline: none; border-color: var(--accent-line); }
+#pod-folder-filter {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 11px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12.5px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+}
+
+#pod-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.pod-empty {
+  padding: 34px 22px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.pod-empty code {
+  background: var(--surface-3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.pod-item {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: background .1s;
+  border-left: 2px solid transparent;
+}
+.pod-item:hover { background: var(--surface-2); }
+.pod-item.active {
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+.pod-item.active .pod-item-title { color: var(--accent); }
+.pod-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.pod-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.pod-item-title .ico { width: 14px; height: 14px; flex-shrink: 0; }
+.pod-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-3);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.pod-folder {
+  color: var(--accent);
+  font-weight: 500;
+}
+.pod-dot { color: var(--text-4); }
+
+.pod-status {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.pod-status.gen {
+  background: rgba(96, 165, 250, .14);
+  color: #60a5fa;
+}
+.pod-status.gen .ico { width: 11px; height: 11px; animation: pod-spin 1s linear infinite; }
+@keyframes pod-spin { to { transform: rotate(360deg); } }
+.pod-status.err {
+  background: rgba(251, 113, 133, .14);
+  color: #fb7185;
+}
+
+/* ── Player column ── */
+#pod-player {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+#pod-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+#pod-empty-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+}
+#pod-empty-mark .ico { width: 22px; height: 22px; color: var(--text-4); }
+
+#pod-detail {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#pod-head {
+  padding: 18px 24px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+#pod-title-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 6px 9px;
+  font-family: var(--font-ui);
+}
+#pod-title-input:hover { border-color: var(--border); }
+#pod-title-input:focus { outline: none; border-color: var(--accent-line); background: var(--surface); }
+
+#pod-folder-input {
+  width: 150px;
+  font-size: 12.5px;
+  color: var(--accent);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  font-family: var(--font-ui);
+}
+#pod-folder-input:focus { outline: none; border-color: var(--accent-line); }
+
+#pod-id-badge {
+  font-size: 11px;
+  color: var(--text-4);
+  font-family: var(--font-mono);
+  padding: 4px 8px;
+  background: var(--surface-2);
+  border-radius: var(--r-xs);
+}
+
+#pod-head-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: all .12s;
+}
+.tool-btn:hover { background: var(--surface-3); color: var(--text); }
+.tool-btn.danger:hover { background: rgba(251, 113, 133, .14); color: #fb7185; border-color: rgba(251, 113, 133, .35); }
+.tool-btn .ico { width: 14px; height: 14px; }
+
+#pod-audio-wrap {
+  padding: 16px 24px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-soft);
+}
+#pod-audio {
+  width: 100%;
+  height: 38px;
+  border-radius: var(--r-md);
+}
+
+#pod-meta {
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-3);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-soft);
+  flex-wrap: wrap;
+}
+#pod-meta .ico { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
+#pod-meta span { display: inline-flex; align-items: center; }
+
+/* ── Script (roteiro) ── */
+#pod-script {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pod-script-pending {
+  color: var(--text-3);
+  font-size: 13px;
+  font-style: italic;
+}
+.pod-line {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.pod-line-name {
+  flex-shrink: 0;
+  width: 90px;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding-top: 1px;
+}
+.pod-line-text {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+</style>
   </head>
   <body>
     <!-- ════ Left rail — mode switcher ════ -->
@@ -6261,6 +6644,10 @@ mark.fav-hl {
       <button class="rail-btn" id="rail-favorites"
         onclick="setMode('favorites')" title="Favoritos">
     <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
+  </button>
+      <button class="rail-btn" id="rail-podcasts"
+        onclick="setMode('podcasts')" title="Podcasts">
+    <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
       <div class="rail-spacer"></div>
       <button class="rail-btn" id="rail-skill" onclick="copySkill()"
@@ -6969,6 +7356,53 @@ mark.fav-hl {
           </div>
         </div>
       </main>
+
+      <!-- ═══ MODE: PODCASTS ═══ -->
+      <main id="mode-podcasts" class="mode">
+        <section id="pod-col">
+          <div id="pod-col-head">
+            <div id="pod-col-title"><span data-icon="mic"></span>Podcasts</div>
+            <button id="pod-health" class="pod-health-checking" title="Verificando dependências…"
+              onclick="togglePodHealth()"></button>
+          </div>
+          <div id="pod-health-panel" class="pod-health-panel"></div>
+          <div id="pod-filters">
+            <input id="pod-search" type="text" placeholder="Buscar podcasts…" />
+            <select id="pod-folder-filter">
+              <option value="">Todas as pastas</option>
+            </select>
+          </div>
+          <div id="pod-list"></div>
+        </section>
+
+        <section id="pod-player">
+          <div id="pod-empty">
+            <div id="pod-empty-mark" data-icon="mic"></div>
+            <div id="pod-empty-text">Selecione um podcast para ouvir</div>
+          </div>
+
+          <div id="pod-detail" style="display:none">
+            <div id="pod-head">
+              <input id="pod-title-input" type="text" placeholder="Título do podcast…" />
+              <input id="pod-folder-input" type="text" placeholder="pasta" list="pod-folder-list" />
+              <datalist id="pod-folder-list"></datalist>
+              <span id="pod-id-badge" title="ID do podcast"></span>
+              <div id="pod-head-actions">
+                <button class="tool-btn" id="btn-pod-copy" style="display:none"
+                  onclick="copyPodcastLink()"><span data-icon="copy"></span> Link</button>
+                <button class="tool-btn danger" id="btn-pod-delete" style="display:none"
+                  onclick="deleteCurrentPodcast()"><span data-icon="trash"></span></button>
+              </div>
+            </div>
+
+            <div id="pod-audio-wrap" style="display:none">
+              <audio id="pod-audio" controls preload="metadata"></audio>
+            </div>
+            <div id="pod-meta"></div>
+            <div id="pod-script"></div>
+          </div>
+        </section>
+      </main>
     </div>
 
     <!-- Quick-Add / Edit Modal -->
@@ -7222,6 +7656,13 @@ const ICON_PATHS = {
   'panel-right': '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/>',
   'chevron-right': '<path d="m9 18 6-6-6-6"/>',
   'chevron-left': '<path d="m15 18-6-6 6-6"/>',
+  mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  pause: '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
+  rewind: '<polygon points="11 19 2 12 11 5 11 19"/><polygon points="22 19 13 12 22 5 22 19"/>',
+  'fast-forward': '<polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  'audio-lines': '<path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -7364,7 +7805,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let currentMode = 'map';
 
-const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos' };
+const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts' };
 
 const setMode = (mode) => {
   currentMode = mode;
@@ -7392,6 +7833,7 @@ const setMode = (mode) => {
   else if (mode === 'tasks')    loadTasks();
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
+  else if (mode === 'podcasts')  loadPodcastsList();
   else if (sim) requestAnimationFrame(fitGraph);
 };
 
@@ -7485,14 +7927,21 @@ const initWorkspace = async () => {
   }
 };
 
-// ── Deep link: #diagram/:id ──
+// ── Deep link: #diagram/:id  |  #podcast/:id ──
 const handleDeepLink = () => {
   const hash = window.location.hash;
-  const match = hash.match(/^#diagram\\/([a-f0-9-]{36})$/);
-  if (match) {
+  const diag = hash.match(/^#diagram\\/([a-f0-9-]{36})$/);
+  if (diag) {
     setMode('diagrams');
-    openDiagram(match[1]);
-    history.replaceState(null, '', '/'); // limpa o hash depois de navegar
+    openDiagram(diag[1]);
+    history.replaceState(null, '', '/');
+    return;
+  }
+  const pod = hash.match(/^#podcast\\/([a-f0-9-]{36})$/);
+  if (pod) {
+    setMode('podcasts');
+    openPodcast(pod[1]);
+    history.replaceState(null, '', '/');
   }
 };
 
@@ -10882,6 +11331,356 @@ document.addEventListener('DOMContentLoaded', initFavorites);
 
 </script>
     <script>
+// ════ Podcasts — ouvir, buscar, organizar em pastas, apagar ════
+// A geração acontece só via IA (integrada/externa) batendo na API. Aqui na UI
+// não há botão "gerar": só consumo do que já existe.
+
+let allPodcasts = [];
+let allFolders = [];
+let currentPodcast = null;
+let podSearchTimer = null;
+let podHealth = null;
+
+// ── Health check das dependências externas ──
+const loadPodHealth = async () => {
+  const btn = $('pod-health');
+  if (!btn) return;
+  try {
+    const res = await fetch('/podcasts/health');
+    podHealth = await res.json();
+  } catch {
+    podHealth = null;
+  }
+  renderPodHealth();
+};
+
+const renderPodHealth = () => {
+  const btn = $('pod-health');
+  if (!btn || !podHealth) return;
+  btn.classList.remove('pod-health-checking');
+  if (podHealth.ready) {
+    btn.classList.add('pod-health-ok');
+    btn.classList.remove('pod-health-bad');
+    btn.innerHTML = \`\${ICON('mic')}<span>deps OK</span>\`;
+    btn.title = 'edge-tts, ffmpeg e ffprobe disponíveis';
+  } else {
+    btn.classList.add('pod-health-bad');
+    btn.classList.remove('pod-health-ok');
+    btn.innerHTML = \`\${ICON('audio-lines')}<span>faltam deps</span>\`;
+    const missing = [
+      !podHealth.edgeTts && 'edge-tts',
+      !podHealth.ffmpeg && 'ffmpeg',
+    ].filter(Boolean).join(', ');
+    btn.title = \`Faltando: \${missing}. Clique para ver como instalar.\`;
+  }
+};
+
+const togglePodHealth = () => {
+  const panel = $('pod-health-panel');
+  if (!panel || !podHealth) return;
+  if (panel.classList.contains('open')) {
+    panel.classList.remove('open');
+    return;
+  }
+  panel.classList.add('open');
+  if (podHealth.ready) {
+    panel.innerHTML = \`<div class="pod-health-row ok">
+      <span>\${ICON('mic')} Todas as dependências de áudio estão instaladas:</span>
+      <code>edge-tts ✓ · ffmpeg ✓ · ffprobe ✓</code>
+    </div>\`;
+    return;
+  }
+  panel.innerHTML = '<div class="pod-health-row bad"><span>Dependências faltando para gerar podcasts:</span></div>' +
+    podHealth.instructions.map((i) =>
+      \`<div class="pod-health-cmd"><span class="pod-health-dep">\${escHtml(i.dep)}</span><code onclick="copyToClipboard(this.textContent,'Comando copiado')">\${escHtml(i.cmd)}</code></div>\`
+    ).join('') +
+    '<div class="pod-health-note">Após instalar, reinicie o docmap. Se o binário não estiver no PATH, defina <code>DOCMAP_EDGE_TTS</code> no arquivo <code>.env</code> da pasta de dados do app.</div>';
+};
+
+// ── Lista ──
+const loadPodcastsList = async () => {
+  loadPodHealth();
+  try {
+    const [listRes, foldersRes] = await Promise.all([
+      fetch('/podcasts'), fetch('/podcasts/folders'),
+    ]);
+    allPodcasts = await listRes.json();
+    allFolders = await foldersRes.json();
+    renderPodcastsList();
+    renderFolderFilter();
+  } catch (err) { console.error('Erro ao carregar podcasts:', err); }
+};
+
+const activeFolderFilter = () => $('pod-folder-filter')?.value || '';
+const activeSearch = () => $('pod-search')?.value?.trim().toLowerCase() || '';
+
+const renderFolderFilter = () => {
+  const sel = $('pod-folder-filter');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todas as pastas</option>' +
+    allFolders.map((f) => \`<option value="\${escHtml(f)}"\${f === cur ? ' selected' : ''}>\${escHtml(f)}</option>\`).join('');
+  const dl = $('pod-folder-list');
+  if (dl) dl.innerHTML = allFolders.map((f) => \`<option value="\${escHtml(f)}">\`).join('');
+};
+
+const renderPodcastsList = () => {
+  const list = $('pod-list');
+  const q = activeSearch();
+  const folder = activeFolderFilter();
+
+  let items = allPodcasts;
+  if (folder) items = items.filter((p) => p.folder === folder);
+  if (q) items = items.filter((p) => p.title.toLowerCase().includes(q));
+
+  if (!items.length) {
+    list.innerHTML = allPodcasts.length
+      ? \`<div class="pod-empty">Nenhum podcast para este filtro.</div>\`
+      : \`<div class="pod-empty">Nenhum podcast ainda.<br>Peça à IA integrada ou externa para gerar um via <code>POST /podcasts</code>.</div>\`;
+    return;
+  }
+
+  list.innerHTML = items.map((p) => {
+    const status = p.status === 'generating'
+      ? '<span class="pod-status gen">gerando…</span>'
+      : p.status === 'error'
+      ? '<span class="pod-status err">erro</span>'
+      : '';
+    const dur = p.durationMs ? formatDuration(p.durationMs) : '';
+    return \`<div class="pod-item\${currentPodcast?.id === p.id ? ' active' : ''}" onclick="openPodcast('\${p.id}')">
+      <div class="pod-item-top">
+        <span class="pod-item-title">\${ICON('mic')} \${escHtml(p.title)}</span>
+        \${status}
+      </div>
+      <div class="pod-item-meta">
+        <span class="pod-folder">\${escHtml(p.folder)}</span>
+        <span class="pod-dot">·</span>
+        <span>\${p.voices?.length || 0} vozes</span>
+        \${dur ? \`<span class="pod-dot">·</span><span>\${dur}</span>\` : ''}
+      </div>
+    </div>\`;
+  }).join('');
+};
+
+// ── Abrir ──
+const openPodcast = async (id) => {
+  if (currentMode !== 'podcasts') setMode('podcasts');
+  try {
+    const res = await fetch('/podcasts/' + id);
+    currentPodcast = await res.json();
+    fillPodcastPlayer(currentPodcast);
+    renderPodcastsList();
+  } catch (err) { console.error('Erro ao abrir podcast:', err); }
+};
+
+const fillPodcastPlayer = (p) => {
+  $('pod-empty').style.display = 'none';
+  $('pod-detail').style.display = 'flex';
+
+  const titleInput = $('pod-title-input');
+  const folderInput = $('pod-folder-input');
+  if (document.activeElement !== titleInput) titleInput.value = p.title;
+  if (document.activeElement !== folderInput) folderInput.value = p.folder;
+
+  $('pod-id-badge').textContent = p.id.slice(0, 8);
+  $('btn-pod-delete').style.display = 'inline-flex';
+  $('btn-pod-copy').style.display = 'inline-flex';
+
+  renderPodStatus(p);
+  renderPodScript(p);
+};
+
+const renderPodStatus = (p) => {
+  const audio = $('pod-audio');
+  const wrap = $('pod-audio-wrap');
+  const meta = $('pod-meta');
+
+  if (p.status === 'generating') {
+    wrap.style.display = 'none';
+    meta.innerHTML = \`<span class="pod-status gen">\${ICON('refresh-cw')} gerando áudio…</span>\`;
+  } else if (p.status === 'error') {
+    wrap.style.display = 'none';
+    meta.innerHTML = \`<span class="pod-status err">erro: \${escHtml(p.error || 'desconhecido')}</span>\`;
+  } else {
+    wrap.style.display = 'block';
+    audio.src = '/podcasts/' + p.id + '/audio';
+    audio.load();
+    const voices = (p.voices || []).map((v) => escHtml(v.name)).join(' · ');
+    meta.innerHTML = [
+      p.durationMs ? \`<span>\${ICON('clock')} \${formatDuration(p.durationMs)}</span>\` : '',
+      voices ? \`<span>\${ICON('audio-lines')} \${voices}</span>\` : '',
+      \`<span>\${ICON('folder')} \${escHtml(p.folder)}</span>\`,
+      \`<span>\${new Date(p.createdAt).toLocaleDateString('pt-BR')}</span>\`,
+    ].join('');
+  }
+};
+
+const renderPodScript = (p) => {
+  const box = $('pod-script');
+  if (!p.script || p.status !== 'ready') {
+    box.innerHTML = p.status === 'generating'
+      ? '<div class="pod-script-pending">Roteiro será exibido quando o áudio estiver pronto.</div>'
+      : '';
+    return;
+  }
+  // Quebra o script em falas por persona, com cor por índice.
+  const voiceNames = (p.voices || []).map((v) => v.name);
+  const colorOf = (name) => {
+    const idx = voiceNames.indexOf(name);
+    return idx < 0 ? 'var(--text-2)' : \`hsl(\${(idx * 137) % 360} 55% 62%)\`;
+  };
+  const re = /<([A-Za-z][A-Za-z0-9_-]*)>([\\s\\S]*?)<\\/\\1>/g;
+  let html = '';
+  let m;
+  while ((m = re.exec(p.script)) !== null) {
+    const name = m[1];
+    const text = m[2].trim();
+    if (!text) continue;
+    html += \`<div class="pod-line">
+      <span class="pod-line-name" style="color:\${colorOf(name)}">\${escHtml(name)}</span>
+      <span class="pod-line-text">\${escHtml(text)}</span>
+    </div>\`;
+  }
+  box.innerHTML = html || \`<div class="pod-script-pending">Roteiro sem falas parseáveis.</div>\`;
+};
+
+// ── Editar metadados (title/folder) ──
+const savePodcastMeta = async () => {
+  if (!currentPodcast) return;
+  const title = $('pod-title-input').value.trim();
+  const folder = $('pod-folder-input').value.trim() || 'geral';
+  if (!title) { $('pod-title-input').focus(); return toast('Título obrigatório'); }
+  try {
+    const res = await fetch('/podcasts/' + currentPodcast.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, folder }),
+    });
+    currentPodcast = { ...currentPodcast, title, folder };
+    renderPodcastsList();
+    toast('Podcast atualizado');
+    void res;
+  } catch { toast('Erro ao atualizar'); }
+};
+
+const deleteCurrentPodcast = async () => {
+  if (!currentPodcast) return;
+  const ok = await confirmDialog(\`Excluir o podcast "\${currentPodcast.title}"?\`, { danger: true, okLabel: 'Excluir' });
+  if (!ok) return;
+  await fetch('/podcasts/' + currentPodcast.id, { method: 'DELETE' });
+  currentPodcast = null;
+  $('pod-detail').style.display = 'none';
+  $('pod-empty').style.display = 'flex';
+  loadPodcastsList();
+  toast('Podcast excluído');
+};
+
+const copyPodcastLink = () => {
+  if (!currentPodcast) return;
+  copyToClipboard(
+    \`http://127.0.0.1:3333/#podcast/\${currentPodcast.id}\`,
+    'Link copiado',
+  );
+};
+
+const formatDuration = (ms) => {
+  const s = Math.round(ms / 1000);
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return \`\${m}:\${String(r).padStart(2, '0')}\`;
+};
+
+// ── Filtros ──
+$('pod-search')?.addEventListener('input', () => {
+  clearTimeout(podSearchTimer);
+  podSearchTimer = setTimeout(renderPodcastsList, 150);
+});
+$('pod-folder-filter')?.addEventListener('change', renderPodcastsList);
+
+// Salvar título/pasta ao perder foco
+$('pod-title-input')?.addEventListener('blur', savePodcastMeta);
+$('pod-folder-input')?.addEventListener('blur', savePodcastMeta);
+
+// ── SSE: atualiza status de geração em tempo real ──
+const connectPodcastEvents = () => {
+  const es = new EventSource('/podcasts/events');
+
+  es.addEventListener('created', (e) => {
+    const { podcast } = JSON.parse(e.data);
+    if (!allPodcasts.find((p) => p.id === podcast.id)) {
+      allPodcasts = [podcast, ...allPodcasts];
+      renderPodcastsList();
+    }
+  });
+
+  es.addEventListener('progress', (e) => {
+    const { id, stage, detail } = JSON.parse(e.data);
+    const item = allPodcasts.find((p) => p.id === id);
+    if (!item) return;
+    item.status = 'generating';
+    renderPodcastsList();
+    if (currentPodcast?.id === id) {
+      const label = stage === 'script' ? 'escrevendo roteiro…'
+        : stage === 'tts' ? \`sintetizando vozes \${detail || ''}\`
+        : stage === 'concat' ? 'montando áudio…' : 'processando…';
+      $('pod-meta').innerHTML = \`<span class="pod-status gen">\${ICON('refresh-cw')} \${label}</span>\`;
+    }
+  });
+
+  es.addEventListener('ready', (e) => {
+    const { podcast } = JSON.parse(e.data);
+    allPodcasts = allPodcasts.map((p) => p.id === podcast.id
+      ? { ...p, status: 'ready', durationMs: podcast.durationMs }
+      : p);
+    renderPodcastsList();
+    if (currentPodcast?.id === podcast.id) {
+      currentPodcast = { ...currentPodcast, status: 'ready', durationMs: podcast.durationMs };
+      renderPodStatus(currentPodcast);
+      // Recarrega o roteiro agora que está disponível.
+      openPodcast(podcast.id);
+    }
+  });
+
+  es.addEventListener('error', (e) => {
+    try {
+      const { id, error } = JSON.parse(e.data);
+      allPodcasts = allPodcasts.map((p) => p.id === id ? { ...p, status: 'error' } : p);
+      renderPodcastsList();
+      if (currentPodcast?.id === id) {
+        currentPodcast = { ...currentPodcast, status: 'error', error };
+        renderPodStatus(currentPodcast);
+      }
+    } catch { /* reconexão automática do EventSource */ }
+  });
+
+  es.addEventListener('deleted', (e) => {
+    const { id } = JSON.parse(e.data);
+    allPodcasts = allPodcasts.filter((p) => p.id !== id);
+    if (currentPodcast?.id === id) {
+      currentPodcast = null;
+      $('pod-detail').style.display = 'none';
+      $('pod-empty').style.display = 'flex';
+    }
+    renderPodcastsList();
+  });
+
+  es.addEventListener('updated', (e) => {
+    const { podcast } = JSON.parse(e.data);
+    allPodcasts = allPodcasts.map((p) => p.id === podcast.id
+      ? { ...p, ...podcast }
+      : p);
+    renderPodcastsList();
+    if (currentPodcast?.id === podcast.id) {
+      currentPodcast = { ...currentPodcast, ...podcast };
+      fillPodcastPlayer(currentPodcast);
+    }
+  });
+};
+
+connectPodcastEvents();
+
+</script>
+    <script>
 // ════ Sistema — update, backup, restore ════
 
 let updateInfo = null;
@@ -10987,7 +11786,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'http_request',
-      description: 'Faz uma requisição HTTP para a API do docmap. Use para ler e criar notas, diagramas, skills e macros.',
+      description: 'Faz uma requisição HTTP para a API do docmap. Use para ler e criar notas, diagramas, skills, macros e podcasts (POST /podcasts).',
       parameters: {
         type: 'object',
         required: ['method', 'path'],

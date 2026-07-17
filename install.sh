@@ -18,6 +18,22 @@ fi
 
 cd "$SCRIPT_DIR"
 
+# Dependências do módulo de podcasts (edge-tts + ffmpeg)
+echo "0/4  Verificando dependências de podcasts (edge-tts + ffmpeg)..."
+if ! command -v edge-tts &>/dev/null; then
+  echo "  ⚠  edge-tts não encontrado. Instale com: pip3 install edge-tts"
+  echo "     (necessário para gerar podcasts)"
+else
+  echo "  ✓  edge-tts encontrado ($(command -v edge-tts))"
+fi
+if ! command -v ffmpeg &>/dev/null; then
+  echo "  ⚠  ffmpeg não encontrado. Instale com: brew install ffmpeg"
+  echo "     (necessário para gerar podcasts)"
+else
+  echo "  ✓  ffmpeg encontrado ($(command -v ffmpeg))"
+fi
+echo ""
+
 echo "1/4  Gerando bundle da UI..."
 deno run --allow-read --allow-write scripts/bundle-ui.ts
 

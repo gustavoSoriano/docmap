@@ -46,14 +46,21 @@ const initWorkspace = async () => {
   }
 };
 
-// ── Deep link: #diagram/:id ──
+// ── Deep link: #diagram/:id  |  #podcast/:id ──
 const handleDeepLink = () => {
   const hash = window.location.hash;
-  const match = hash.match(/^#diagram\/([a-f0-9-]{36})$/);
-  if (match) {
+  const diag = hash.match(/^#diagram\/([a-f0-9-]{36})$/);
+  if (diag) {
     setMode('diagrams');
-    openDiagram(match[1]);
-    history.replaceState(null, '', '/'); // limpa o hash depois de navegar
+    openDiagram(diag[1]);
+    history.replaceState(null, '', '/');
+    return;
+  }
+  const pod = hash.match(/^#podcast\/([a-f0-9-]{36})$/);
+  if (pod) {
+    setMode('podcasts');
+    openPodcast(pod[1]);
+    history.replaceState(null, '', '/');
   }
 };
 

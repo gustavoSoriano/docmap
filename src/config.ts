@@ -41,3 +41,13 @@ export const DEEPSEEK_MODEL = Deno.env.get('DOCMAP_DEEPSEEK_MODEL') ??
   'deepseek-v4-flash';
 // A chave NUNCA vai para o frontend — só o adapter do backend a lê.
 export const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY') ?? '';
+
+// ════ Podcasts ════
+// Áudio MP3 fica fora do KV (limite de tamanho por valor), junto do data dir.
+export const podcastsDir = (): string => `${dataDir()}/podcasts`;
+
+// Binários externos usados na síntese/concatenação de áudio.
+// edge-tts: CLI Python (pip install edge-tts). ffmpeg/ffprobe: brew install ffmpeg.
+export const EDGE_TTS_BIN = Deno.env.get('DOCMAP_EDGE_TTS') ?? 'edge-tts';
+export const FFMPEG_BIN = Deno.env.get('DOCMAP_FFMPEG') ?? 'ffmpeg';
+export const FFPROBE_BIN = Deno.env.get('DOCMAP_FFPROBE') ?? 'ffprobe';

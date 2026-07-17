@@ -1,0 +1,347 @@
+// ════ Podcasts — ouvir, buscar, organizar em pastas, apagar ════
+// A geração acontece só via IA (integrada/externa) batendo na API. Aqui na UI
+// não há botão "gerar": só consumo do que já existe.
+
+let allPodcasts = [];
+let allFolders = [];
+let currentPodcast = null;
+let podSearchTimer = null;
+let podHealth = null;
+
+// ── Health check das dependências externas ──
+const loadPodHealth = async () => {
+  const btn = $('pod-health');
+  if (!btn) return;
+  try {
+    const res = await fetch('/podcasts/health');
+    podHealth = await res.json();
+  } catch {
+    podHealth = null;
+  }
+  renderPodHealth();
+};
+
+const renderPodHealth = () => {
+  const btn = $('pod-health');
+  if (!btn || !podHealth) return;
+  btn.classList.remove('pod-health-checking');
+  if (podHealth.ready) {
+    btn.classList.add('pod-health-ok');
+    btn.classList.remove('pod-health-bad');
+    btn.innerHTML = `${ICON('mic')}<span>deps OK</span>`;
+    btn.title = 'edge-tts, ffmpeg e ffprobe disponíveis';
+  } else {
+    btn.classList.add('pod-health-bad');
+    btn.classList.remove('pod-health-ok');
+    btn.innerHTML = `${ICON('audio-lines')}<span>faltam deps</span>`;
+    const missing = [
+      !podHealth.edgeTts && 'edge-tts',
+      !podHealth.ffmpeg && 'ffmpeg',
+    ].filter(Boolean).join(', ');
+    btn.title = `Faltando: ${missing}. Clique para ver como instalar.`;
+  }
+};
+
+const togglePodHealth = () => {
+  const panel = $('pod-health-panel');
+  if (!panel || !podHealth) return;
+  if (panel.classList.contains('open')) {
+    panel.classList.remove('open');
+    return;
+  }
+  panel.classList.add('open');
+  if (podHealth.ready) {
+    panel.innerHTML = `<div class="pod-health-row ok">
+      <span>${ICON('mic')} Todas as dependências de áudio estão instaladas:</span>
+      <code>edge-tts ✓ · ffmpeg ✓ · ffprobe ✓</code>
+    </div>`;
+    return;
+  }
+  panel.innerHTML = '<div class="pod-health-row bad"><span>Dependências faltando para gerar podcasts:</span></div>' +
+    podHealth.instructions.map((i) =>
+      `<div class="pod-health-cmd"><span class="pod-health-dep">${escHtml(i.dep)}</span><code onclick="copyToClipboard(this.textContent,'Comando copiado')">${escHtml(i.cmd)}</code></div>`
+    ).join('') +
+    '<div class="pod-health-note">Após instalar, reinicie o docmap. Se o binário não estiver no PATH, defina <code>DOCMAP_EDGE_TTS</code> no arquivo <code>.env</code> da pasta de dados do app.</div>';
+};
+
+// ── Lista ──
+const loadPodcastsList = async () => {
+  loadPodHealth();
+  try {
+    const [listRes, foldersRes] = await Promise.all([
+      fetch('/podcasts'), fetch('/podcasts/folders'),
+    ]);
+    allPodcasts = await listRes.json();
+    allFolders = await foldersRes.json();
+    renderPodcastsList();
+    renderFolderFilter();
+  } catch (err) { console.error('Erro ao carregar podcasts:', err); }
+};
+
+const activeFolderFilter = () => $('pod-folder-filter')?.value || '';
+const activeSearch = () => $('pod-search')?.value?.trim().toLowerCase() || '';
+
+const renderFolderFilter = () => {
+  const sel = $('pod-folder-filter');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todas as pastas</option>' +
+    allFolders.map((f) => `<option value="${escHtml(f)}"${f === cur ? ' selected' : ''}>${escHtml(f)}</option>`).join('');
+  const dl = $('pod-folder-list');
+  if (dl) dl.innerHTML = allFolders.map((f) => `<option value="${escHtml(f)}">`).join('');
+};
+
+const renderPodcastsList = () => {
+  const list = $('pod-list');
+  const q = activeSearch();
+  const folder = activeFolderFilter();
+
+  let items = allPodcasts;
+  if (folder) items = items.filter((p) => p.folder === folder);
+  if (q) items = items.filter((p) => p.title.toLowerCase().includes(q));
+
+  if (!items.length) {
+    list.innerHTML = allPodcasts.length
+      ? `<div class="pod-empty">Nenhum podcast para este filtro.</div>`
+      : `<div class="pod-empty">Nenhum podcast ainda.<br>Peça à IA integrada ou externa para gerar um via <code>POST /podcasts</code>.</div>`;
+    return;
+  }
+
+  list.innerHTML = items.map((p) => {
+    const status = p.status === 'generating'
+      ? '<span class="pod-status gen">gerando…</span>'
+      : p.status === 'error'
+      ? '<span class="pod-status err">erro</span>'
+      : '';
+    const dur = p.durationMs ? formatDuration(p.durationMs) : '';
+    return `<div class="pod-item${currentPodcast?.id === p.id ? ' active' : ''}" onclick="openPodcast('${p.id}')">
+      <div class="pod-item-top">
+        <span class="pod-item-title">${ICON('mic')} ${escHtml(p.title)}</span>
+        ${status}
+      </div>
+      <div class="pod-item-meta">
+        <span class="pod-folder">${escHtml(p.folder)}</span>
+        <span class="pod-dot">·</span>
+        <span>${p.voices?.length || 0} vozes</span>
+        ${dur ? `<span class="pod-dot">·</span><span>${dur}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+};
+
+// ── Abrir ──
+const openPodcast = async (id) => {
+  if (currentMode !== 'podcasts') setMode('podcasts');
+  try {
+    const res = await fetch('/podcasts/' + id);
+    currentPodcast = await res.json();
+    fillPodcastPlayer(currentPodcast);
+    renderPodcastsList();
+  } catch (err) { console.error('Erro ao abrir podcast:', err); }
+};
+
+const fillPodcastPlayer = (p) => {
+  $('pod-empty').style.display = 'none';
+  $('pod-detail').style.display = 'flex';
+
+  const titleInput = $('pod-title-input');
+  const folderInput = $('pod-folder-input');
+  if (document.activeElement !== titleInput) titleInput.value = p.title;
+  if (document.activeElement !== folderInput) folderInput.value = p.folder;
+
+  $('pod-id-badge').textContent = p.id.slice(0, 8);
+  $('btn-pod-delete').style.display = 'inline-flex';
+  $('btn-pod-copy').style.display = 'inline-flex';
+
+  renderPodStatus(p);
+  renderPodScript(p);
+};
+
+const renderPodStatus = (p) => {
+  const audio = $('pod-audio');
+  const wrap = $('pod-audio-wrap');
+  const meta = $('pod-meta');
+
+  if (p.status === 'generating') {
+    wrap.style.display = 'none';
+    meta.innerHTML = `<span class="pod-status gen">${ICON('refresh-cw')} gerando áudio…</span>`;
+  } else if (p.status === 'error') {
+    wrap.style.display = 'none';
+    meta.innerHTML = `<span class="pod-status err">erro: ${escHtml(p.error || 'desconhecido')}</span>`;
+  } else {
+    wrap.style.display = 'block';
+    audio.src = '/podcasts/' + p.id + '/audio';
+    audio.load();
+    const voices = (p.voices || []).map((v) => escHtml(v.name)).join(' · ');
+    meta.innerHTML = [
+      p.durationMs ? `<span>${ICON('clock')} ${formatDuration(p.durationMs)}</span>` : '',
+      voices ? `<span>${ICON('audio-lines')} ${voices}</span>` : '',
+      `<span>${ICON('folder')} ${escHtml(p.folder)}</span>`,
+      `<span>${new Date(p.createdAt).toLocaleDateString('pt-BR')}</span>`,
+    ].join('');
+  }
+};
+
+const renderPodScript = (p) => {
+  const box = $('pod-script');
+  if (!p.script || p.status !== 'ready') {
+    box.innerHTML = p.status === 'generating'
+      ? '<div class="pod-script-pending">Roteiro será exibido quando o áudio estiver pronto.</div>'
+      : '';
+    return;
+  }
+  // Quebra o script em falas por persona, com cor por índice.
+  const voiceNames = (p.voices || []).map((v) => v.name);
+  const colorOf = (name) => {
+    const idx = voiceNames.indexOf(name);
+    return idx < 0 ? 'var(--text-2)' : `hsl(${(idx * 137) % 360} 55% 62%)`;
+  };
+  const re = /<([A-Za-z][A-Za-z0-9_-]*)>([\s\S]*?)<\/\1>/g;
+  let html = '';
+  let m;
+  while ((m = re.exec(p.script)) !== null) {
+    const name = m[1];
+    const text = m[2].trim();
+    if (!text) continue;
+    html += `<div class="pod-line">
+      <span class="pod-line-name" style="color:${colorOf(name)}">${escHtml(name)}</span>
+      <span class="pod-line-text">${escHtml(text)}</span>
+    </div>`;
+  }
+  box.innerHTML = html || `<div class="pod-script-pending">Roteiro sem falas parseáveis.</div>`;
+};
+
+// ── Editar metadados (title/folder) ──
+const savePodcastMeta = async () => {
+  if (!currentPodcast) return;
+  const title = $('pod-title-input').value.trim();
+  const folder = $('pod-folder-input').value.trim() || 'geral';
+  if (!title) { $('pod-title-input').focus(); return toast('Título obrigatório'); }
+  try {
+    const res = await fetch('/podcasts/' + currentPodcast.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, folder }),
+    });
+    currentPodcast = { ...currentPodcast, title, folder };
+    renderPodcastsList();
+    toast('Podcast atualizado');
+    void res;
+  } catch { toast('Erro ao atualizar'); }
+};
+
+const deleteCurrentPodcast = async () => {
+  if (!currentPodcast) return;
+  const ok = await confirmDialog(`Excluir o podcast "${currentPodcast.title}"?`, { danger: true, okLabel: 'Excluir' });
+  if (!ok) return;
+  await fetch('/podcasts/' + currentPodcast.id, { method: 'DELETE' });
+  currentPodcast = null;
+  $('pod-detail').style.display = 'none';
+  $('pod-empty').style.display = 'flex';
+  loadPodcastsList();
+  toast('Podcast excluído');
+};
+
+const copyPodcastLink = () => {
+  if (!currentPodcast) return;
+  copyToClipboard(
+    `http://127.0.0.1:3333/#podcast/${currentPodcast.id}`,
+    'Link copiado',
+  );
+};
+
+const formatDuration = (ms) => {
+  const s = Math.round(ms / 1000);
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${String(r).padStart(2, '0')}`;
+};
+
+// ── Filtros ──
+$('pod-search')?.addEventListener('input', () => {
+  clearTimeout(podSearchTimer);
+  podSearchTimer = setTimeout(renderPodcastsList, 150);
+});
+$('pod-folder-filter')?.addEventListener('change', renderPodcastsList);
+
+// Salvar título/pasta ao perder foco
+$('pod-title-input')?.addEventListener('blur', savePodcastMeta);
+$('pod-folder-input')?.addEventListener('blur', savePodcastMeta);
+
+// ── SSE: atualiza status de geração em tempo real ──
+const connectPodcastEvents = () => {
+  const es = new EventSource('/podcasts/events');
+
+  es.addEventListener('created', (e) => {
+    const { podcast } = JSON.parse(e.data);
+    if (!allPodcasts.find((p) => p.id === podcast.id)) {
+      allPodcasts = [podcast, ...allPodcasts];
+      renderPodcastsList();
+    }
+  });
+
+  es.addEventListener('progress', (e) => {
+    const { id, stage, detail } = JSON.parse(e.data);
+    const item = allPodcasts.find((p) => p.id === id);
+    if (!item) return;
+    item.status = 'generating';
+    renderPodcastsList();
+    if (currentPodcast?.id === id) {
+      const label = stage === 'script' ? 'escrevendo roteiro…'
+        : stage === 'tts' ? `sintetizando vozes ${detail || ''}`
+        : stage === 'concat' ? 'montando áudio…' : 'processando…';
+      $('pod-meta').innerHTML = `<span class="pod-status gen">${ICON('refresh-cw')} ${label}</span>`;
+    }
+  });
+
+  es.addEventListener('ready', (e) => {
+    const { podcast } = JSON.parse(e.data);
+    allPodcasts = allPodcasts.map((p) => p.id === podcast.id
+      ? { ...p, status: 'ready', durationMs: podcast.durationMs }
+      : p);
+    renderPodcastsList();
+    if (currentPodcast?.id === podcast.id) {
+      currentPodcast = { ...currentPodcast, status: 'ready', durationMs: podcast.durationMs };
+      renderPodStatus(currentPodcast);
+      // Recarrega o roteiro agora que está disponível.
+      openPodcast(podcast.id);
+    }
+  });
+
+  es.addEventListener('error', (e) => {
+    try {
+      const { id, error } = JSON.parse(e.data);
+      allPodcasts = allPodcasts.map((p) => p.id === id ? { ...p, status: 'error' } : p);
+      renderPodcastsList();
+      if (currentPodcast?.id === id) {
+        currentPodcast = { ...currentPodcast, status: 'error', error };
+        renderPodStatus(currentPodcast);
+      }
+    } catch { /* reconexão automática do EventSource */ }
+  });
+
+  es.addEventListener('deleted', (e) => {
+    const { id } = JSON.parse(e.data);
+    allPodcasts = allPodcasts.filter((p) => p.id !== id);
+    if (currentPodcast?.id === id) {
+      currentPodcast = null;
+      $('pod-detail').style.display = 'none';
+      $('pod-empty').style.display = 'flex';
+    }
+    renderPodcastsList();
+  });
+
+  es.addEventListener('updated', (e) => {
+    const { podcast } = JSON.parse(e.data);
+    allPodcasts = allPodcasts.map((p) => p.id === podcast.id
+      ? { ...p, ...podcast }
+      : p);
+    renderPodcastsList();
+    if (currentPodcast?.id === podcast.id) {
+      currentPodcast = { ...currentPodcast, ...podcast };
+      fillPodcastPlayer(currentPodcast);
+    }
+  });
+};
+
+connectPodcastEvents();

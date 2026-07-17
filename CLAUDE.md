@@ -26,6 +26,7 @@ src/
   fs/                  ← walker e extração de links (funções puras)
   graph/               ← construção do grafo (função pura)
   search/              ← busca full-text nos .md (função pura)
+  podcasts/            ← tipos, store KV, pipeline de geração (edge-tts + ffmpeg), TTS
   server/              ← servidor :3333 (handlers da UI)
   api/                 ← servidor :3334 (handlers da AI API)
   window/              ← webview e folder picker
@@ -69,6 +70,7 @@ Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100
 ["macros",         "_global_", macroId]          → Macro
 ["skills",         "_global_", skillId]          → Skill
 ["comments",       workspacePath, fileId]        → Comment[]
+["podcasts",       "_global_", podcastId]        → Podcast (metadados; áudio MP3 vai no filesystem)
 ["mock_collections", id]                         → MockCollection
 ["mocks_data",     collectionId, mockId]         → Mock
 ```
@@ -86,6 +88,8 @@ Windows: %APPDATA%\docmap\data.sqlite3
 Definido em `src/config.ts`. NUNCA usar `Deno.openKv()` sem caminho — o default é um hash do caminho do binário e muda a cada build, órfãozando os dados. Sempre `openAppKv()` de `src/kv/path.ts`.
 
 **Migração de schema:** `src/kv/migrate.ts` — chave `["_meta","schemaVersion"]`. Cada migração leva de N para N+1. Adicione novas ao array `migrations`, nunca edite as antigas.
+
+**Podcasts (binários externos):** o módulo `src/podcasts/` é o único domínio que escreve arquivos fora do KV — o áudio MP3 fica em `<dataDir>/podcasts/<id>.mp3` (KV tem limite de ~64 KiB/valor, áudio é maior). A geração depende de **3 binários externos não empacotados**: `edge-tts` (Python, `pip install edge-tts`), `ffmpeg` e `ffprobe` (`brew install ffmpeg`). Paths configuráveis via env `DOCMAP_EDGE_TTS`, `DOCMAP_FFMPEG`, `DOCMAP_FFPROBE`. O endpoint `GET /podcasts/health` (função em `src/podcasts/health.ts`) verifica os três e devolve instruções de instalação; o `POST /podcasts` faz fail-fast se faltar algum. A geração é assíncrona: o POST retorna 202 e o pipeline (`src/podcasts/pipeline.ts`) roda em background, gravando `status` no KV (`generating`→`ready`/`error`) e emitindo eventos SSE. O roteiro de diálogo pode ser gerado pelo provider de IA configurado (`src/podcasts/script.ts`, reusa `src/ai/adapters`) ou enviado pronto com tags `<Person1>…</Person1>` (parser em `src/podcasts/parser.ts`). Sempre 2+ personas com vozes pt-BR distintas.
 
 **Backup/restore:** `src/kv/backup.ts` — exporta/importa todo o KV em JSON. Endpoints `/system/backup` e `/system/restore`.
 

@@ -46,6 +46,7 @@
     <link rel="stylesheet" href="/styles/tasks.css">
     <link rel="stylesheet" href="/styles/mocks.css">
     <link rel="stylesheet" href="/styles/favorites.css">
+    <link rel="stylesheet" href="/styles/podcasts.css">
   </head>
   <body>
     <!-- ════ Left rail — mode switcher ════ -->
@@ -82,6 +83,10 @@
       <button class="rail-btn" id="rail-favorites"
         onclick="setMode('favorites')" title="Favoritos">
     <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
+  </button>
+      <button class="rail-btn" id="rail-podcasts"
+        onclick="setMode('podcasts')" title="Podcasts">
+    <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
       <div class="rail-spacer"></div>
       <button class="rail-btn" id="rail-skill" onclick="copySkill()"
@@ -790,6 +795,53 @@
           </div>
         </div>
       </main>
+
+      <!-- ═══ MODE: PODCASTS ═══ -->
+      <main id="mode-podcasts" class="mode">
+        <section id="pod-col">
+          <div id="pod-col-head">
+            <div id="pod-col-title"><span data-icon="mic"></span>Podcasts</div>
+            <button id="pod-health" class="pod-health-checking" title="Verificando dependências…"
+              onclick="togglePodHealth()"></button>
+          </div>
+          <div id="pod-health-panel" class="pod-health-panel"></div>
+          <div id="pod-filters">
+            <input id="pod-search" type="text" placeholder="Buscar podcasts…" />
+            <select id="pod-folder-filter">
+              <option value="">Todas as pastas</option>
+            </select>
+          </div>
+          <div id="pod-list"></div>
+        </section>
+
+        <section id="pod-player">
+          <div id="pod-empty">
+            <div id="pod-empty-mark" data-icon="mic"></div>
+            <div id="pod-empty-text">Selecione um podcast para ouvir</div>
+          </div>
+
+          <div id="pod-detail" style="display:none">
+            <div id="pod-head">
+              <input id="pod-title-input" type="text" placeholder="Título do podcast…" />
+              <input id="pod-folder-input" type="text" placeholder="pasta" list="pod-folder-list" />
+              <datalist id="pod-folder-list"></datalist>
+              <span id="pod-id-badge" title="ID do podcast"></span>
+              <div id="pod-head-actions">
+                <button class="tool-btn" id="btn-pod-copy" style="display:none"
+                  onclick="copyPodcastLink()"><span data-icon="copy"></span> Link</button>
+                <button class="tool-btn danger" id="btn-pod-delete" style="display:none"
+                  onclick="deleteCurrentPodcast()"><span data-icon="trash"></span></button>
+              </div>
+            </div>
+
+            <div id="pod-audio-wrap" style="display:none">
+              <audio id="pod-audio" controls preload="metadata"></audio>
+            </div>
+            <div id="pod-meta"></div>
+            <div id="pod-script"></div>
+          </div>
+        </section>
+      </main>
     </div>
 
     <!-- Quick-Add / Edit Modal -->
@@ -1014,6 +1066,7 @@
     <script src="/scripts/tasks.js"></script>
     <script src="/scripts/mocks.js"></script>
     <script src="/scripts/favorites.js"></script>
+    <script src="/scripts/podcasts.js"></script>
     <script src="/scripts/system.js"></script>
     <script src="/scripts/ai-chat.js"></script>
   </body>

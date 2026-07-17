@@ -12,7 +12,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'http_request',
-      description: 'Faz uma requisição HTTP para a API do docmap. Use para ler e criar notas, diagramas, skills e macros.',
+      description: 'Faz uma requisição HTTP para a API do docmap. Use para ler e criar notas, diagramas, skills, macros e podcasts (POST /podcasts).',
       parameters: {
         type: 'object',
         required: ['method', 'path'],
