@@ -48,6 +48,38 @@ export const podcastsDir = (): string => `${dataDir()}/podcasts`;
 
 // Binários externos usados na síntese/concatenação de áudio.
 // edge-tts: CLI Python (pip install edge-tts). ffmpeg/ffprobe: brew install ffmpeg.
-export const EDGE_TTS_BIN = Deno.env.get('DOCMAP_EDGE_TTS') ?? 'edge-tts';
-export const FFMPEG_BIN = Deno.env.get('DOCMAP_FFMPEG') ?? 'ffmpeg';
-export const FFPROBE_BIN = Deno.env.get('DOCMAP_FFPROBE') ?? 'ffprobe';
+//
+// Em apps desktop (macOS/Windows) o PATH herdado é mínimo — por isso resolvemos
+// o caminho absoluto verificando os diretórios de instalação mais comuns.
+// O env var de override (ex: DOCMAP_EDGE_TTS) sempre tem prioridade.
+// Fallback final: nome sem caminho (funciona quando chamado pelo terminal).
+const resolveBin = (name: string, envKey: string): string => {
+  const fromEnv = Deno.env.get(envKey);
+  if (fromEnv) return fromEnv;
+
+  const home = Deno.env.get('HOME') ?? Deno.env.get('USERPROFILE') ?? '';
+  const candidates: string[] = Deno.build.os === 'windows'
+    ? [`C:\\Windows\\System32\\${name}.exe`]
+    : [
+        `/usr/local/bin/${name}`,       // symlinks / Homebrew Intel Mac
+        `/opt/homebrew/bin/${name}`,    // Homebrew Apple Silicon
+        `${home}/.local/bin/${name}`,   // pipx / instalações de usuário
+        `/usr/bin/${name}`,
+        `/bin/${name}`,
+      ];
+
+  for (const p of candidates) {
+    try {
+      Deno.statSync(p);
+      return p;
+    } catch {
+      // não encontrado, tenta o próximo
+    }
+  }
+
+  return name; // fallback: PATH do processo resolve (funciona no terminal)
+};
+
+export const EDGE_TTS_BIN = resolveBin('edge-tts', 'DOCMAP_EDGE_TTS');
+export const FFMPEG_BIN = resolveBin('ffmpeg', 'DOCMAP_FFMPEG');
+export const FFPROBE_BIN = resolveBin('ffprobe', 'DOCMAP_FFPROBE');
