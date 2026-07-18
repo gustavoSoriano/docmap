@@ -1,6 +1,6 @@
 // ════ Vozes Edge TTS disponíveis para podcasts ════
 // Consulta o edge-tts dinamicamente (`edge-tts --list-voices`) em vez de
-// hardcodar uma lista que desatualiza. Filtra pt-BR e pt-PT automaticamente.
+// hardcodar uma lista que desatualiza. Filtra pt-BR, es-* e en-* automaticamente.
 // O resultado é cacheado em memória; chame refreshVoices() para forçar recarga.
 
 import { EDGE_TTS_BIN } from '../config.ts';
@@ -15,9 +15,8 @@ export type EdgeVoice = {
 // ── Cache em memória ──
 let cachedVoices: EdgeVoice[] | null = null;
 
-// Regex flexível: aceita qualquer voz pt-BR ou pt-PT que o edge-tts retornar.
-// Exemplos: pt-BR-AntonioNeural, pt-BR-ThalitaMultilingualNeural, pt-PT-DuarteNeural
-const VOICE_ID_RE = /^pt-[A-Z]{2}-[A-Za-z]+(Multilingual)?Neural$/;
+// Regex de validação: pt-BR, es-* e en-* (ex.: en-US-AriaNeural, es-MX-DaliaNeural)
+const VOICE_ID_RE = /^(pt-BR|es-[A-Z]{2}|en-[A-Z]{2})-[A-Za-z]+(Multilingual)?Neural$/;
 
 export const DEFAULT_FOLDER = 'geral';
 
@@ -27,7 +26,7 @@ export const DEFAULT_FOLDER = 'geral';
 //   ---------------------------------  --------  ---------------------  --------------------------------------
 //   pt-BR-AntonioNeural                Male      General                Friendly, Positive
 
-const VOICE_LINE_RE = /^(pt-(?:BR|PT)-\S+Neural)\s+(Male|Female)\s+\S+\s+(.+?)\s*$/;
+const VOICE_LINE_RE = /^((?:pt-BR|es-[A-Z]{2}|en-[A-Z]{2})-\S+Neural)\s+(Male|Female)\s+\S+\s+(.+?)\s*$/;
 
 const parseVoiceList = (stdout: string): EdgeVoice[] => {
   const voices: EdgeVoice[] = [];
