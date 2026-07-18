@@ -1,7 +1,9 @@
 // ════ Vozes Edge TTS disponíveis para podcasts ════
-// Lista curada pt-BR. A IA pode escolher da lista (GET /podcasts/voices)
-// ou deixar o docmap sortear (pickRandomVoices) — sempre 2+ personas.
+// Consulta o edge-tts dinamicamente (`edge-tts --list-voices`) em vez de
+// hardcodar uma lista que desatualiza. Filtra pt-BR e pt-PT automaticamente.
+// O resultado é cacheado em memória; chame refreshVoices() para forçar recarga.
 
+import { EDGE_TTS_BIN } from '../config.ts';
 import type { PodcastVoice } from './types.ts';
 
 export type EdgeVoice = {
@@ -10,31 +12,79 @@ export type EdgeVoice = {
   readonly style: string;
 };
 
-export const PT_BR_VOICES: readonly EdgeVoice[] = [
-  { id: 'pt-BR-AntonioNeural', gender: 'M', style: 'neutro, locução' },
-  { id: 'pt-BR-FabioNeural', gender: 'M', style: 'calmo, conversado' },
-  { id: 'pt-BR-HumbertoNeural', gender: 'M', style: 'grave, sério' },
-  { id: 'pt-BR-JulioNeural', gender: 'M', style: 'jovem, informal' },
-  { id: 'pt-BR-NicolauNeural', gender: 'M', style: 'leve, amigável' },
-  { id: 'pt-BR-ValerioNeural', gender: 'M', style: 'articulado, claro' },
-  { id: 'pt-BR-FranciscaNeural', gender: 'F', style: 'neutro, locução' },
-  { id: 'pt-BR-GiovannaNeural', gender: 'F', style: 'empolgada, viva' },
-  { id: 'pt-BR-LeilaNeural', gender: 'F', style: 'suave, acolhedora' },
-  { id: 'pt-BR-LeticiaNeural', gender: 'F', style: 'calma, didática' },
-  { id: 'pt-BR-ManuelaNeural', gender: 'F', style: 'articulada, clara' },
-  { id: 'pt-BR-YaraNeural', gender: 'F', style: 'madura, confiante' },
-];
+// ── Cache em memória ──
+let cachedVoices: EdgeVoice[] | null = null;
 
-const VOICE_ID_RE = /^pt-BR-[A-Za-z]+Neural$/;
+// Regex flexível: aceita qualquer voz pt-BR ou pt-PT que o edge-tts retornar.
+// Exemplos: pt-BR-AntonioNeural, pt-BR-ThalitaMultilingualNeural, pt-PT-DuarteNeural
+const VOICE_ID_RE = /^pt-[A-Z]{2}-[A-Za-z]+(Multilingual)?Neural$/;
 
 export const DEFAULT_FOLDER = 'geral';
+
+// ── Parser da tabela `edge-tts --list-voices` ──
+// Formato:
+//   Name                               Gender    ContentCategories      VoicePersonalities
+//   ---------------------------------  --------  ---------------------  --------------------------------------
+//   pt-BR-AntonioNeural                Male      General                Friendly, Positive
+
+const VOICE_LINE_RE = /^(pt-(?:BR|PT)-\S+Neural)\s+(Male|Female)\s+\S+\s+(.+?)\s*$/;
+
+const parseVoiceList = (stdout: string): EdgeVoice[] => {
+  const voices: EdgeVoice[] = [];
+  for (const line of stdout.split('\n')) {
+    const m = VOICE_LINE_RE.exec(line);
+    if (!m) continue;
+    const [, id, gender, style] = m;
+    voices.push({ id, gender: gender === 'Male' ? 'M' : 'F', style });
+  }
+  return voices;
+};
+
+// Chama edge-tts e faz parse da saída.
+const fetchFromEdgeTts = async (): Promise<EdgeVoice[]> => {
+  const cmd = new Deno.Command(EDGE_TTS_BIN, {
+    args: ['--list-voices'],
+    stdout: 'piped',
+    stderr: 'piped',
+  });
+  const { code, stdout, stderr } = await cmd.output();
+  if (code !== 0) {
+    const msg = new TextDecoder().decode(stderr).trim();
+    throw new Error(`edge-tts --list-voices falhou: ${msg}`);
+  }
+  return parseVoiceList(new TextDecoder().decode(stdout));
+};
+
+// Retorna as vozes disponíveis (cache em memória). Use refreshVoices() para forçar recarga.
+export const getVoices = async (): Promise<readonly EdgeVoice[]> => {
+  if (!cachedVoices) {
+    cachedVoices = await fetchFromEdgeTts();
+  }
+  return cachedVoices;
+};
+
+// Força recarga da lista de vozes (ex.: após instalar edge-tts).
+export const refreshVoices = async (): Promise<readonly EdgeVoice[]> => {
+  cachedVoices = await fetchFromEdgeTts();
+  return cachedVoices;
+};
+
+// Inicializa o cache no boot (não bloqueia — se falhar, tenta de novo na primeira request).
+export const warmVoicesCache = (): void => {
+  fetchFromEdgeTts()
+    .then((v) => { cachedVoices = v; })
+    .catch(() => { /* silencioso — getVoices tentará de novo depois */ });
+};
+
+// ── Seleção e validação ──
 
 const defaultName = (i: number): string => `Person${i + 1}`;
 
 // Sorteia `count` vozes distintas e alterna gêneros quando possível,
 // para o diálogo ficar fácil de distinguir no ouvido.
-export const pickRandomVoices = (count = 2): PodcastVoice[] => {
-  const pool = [...PT_BR_VOICES];
+export const pickRandomVoices = async (count = 2): Promise<PodcastVoice[]> => {
+  const all = await getVoices();
+  const pool = [...all];
   const picked: EdgeVoice[] = [];
   let wantGender: 'M' | 'F' = Math.random() < 0.5 ? 'M' : 'F';
 
@@ -51,6 +101,8 @@ export const pickRandomVoices = (count = 2): PodcastVoice[] => {
 };
 
 // Valida as personas enviadas pela IA. Retorna mensagem de erro ou null.
+// A validação é apenas de formato (regex) — a existência real da voz
+// depende do edge-tts instalado na máquina, e só falha na síntese.
 export const validateVoices = (
   voices: readonly PodcastVoice[],
 ): string | null => {

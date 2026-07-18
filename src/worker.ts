@@ -15,6 +15,7 @@ import { runMigrations } from './kv/migrate.ts';
 import { checkForUpdate } from './update/github.ts';
 import { freePort } from './net/free-port.ts';
 import type { HandlerDeps } from './server/types.ts';
+import { warmVoicesCache } from './podcasts/voices.ts';
 
 const post = (msg: unknown) =>
   (self as unknown as { postMessage: (m: unknown) => void }).postMessage(msg);
@@ -58,6 +59,9 @@ const boot = async (): Promise<void> => {
   checkForUpdate()
     .then((status) => kv.set(['_meta', 'update'], status))
     .catch(() => {});
+
+  // Pré-carrega a lista de vozes do edge-tts (não bloqueia).
+  warmVoicesCache();
 };
 
 await boot();

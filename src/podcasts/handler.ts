@@ -11,7 +11,7 @@ import {
   updatePodcast,
 } from './store.ts';
 import { runPodcastPipeline } from './pipeline.ts';
-import { PT_BR_VOICES, pickRandomVoices, validateVoices } from './voices.ts';
+import { getVoices, pickRandomVoices, validateVoices } from './voices.ts';
 import { broadcast, subscribe } from './sse.ts';
 import { parseScript, validateSegments } from './parser.ts';
 import { badRequest, json, notFound } from '../server/response.ts';
@@ -119,9 +119,10 @@ export const podcastsHandler =
       });
     }
 
-    // ── GET /podcasts/voices — vozes pt-BR disponíveis ──
+    // ── GET /podcasts/voices — vozes pt-BR e pt-PT disponíveis (dinâmico) ──
     if (req.method === 'GET' && id === 'voices') {
-      return json(PT_BR_VOICES);
+      const voices = await getVoices().catch(() => [] as const);
+      return json(voices);
     }
 
     // ── GET /podcasts/folders ──
@@ -176,7 +177,7 @@ export const podcastsHandler =
       // Vozes — enviadas ou sorteadas (sempre 2+).
       const voices = input.voices && input.voices.length > 0
         ? input.voices
-        : pickRandomVoices(2);
+        : await pickRandomVoices(2);
       const voiceError = validateVoices(voices);
       if (voiceError) return badRequest(voiceError);
 
