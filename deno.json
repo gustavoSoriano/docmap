@@ -1,4 +1,8 @@
 {
+  "name": "@gustavosoriano/docmap",
+  "version": "1.0.0",
+  "license": "MIT",
+  "exports": "./src/main.ts",
   "tasks": {
     "dev": "deno run --allow-read --allow-write scripts/bundle-ui.ts && deno run --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --unstable-kv src/main.ts",
     "bundle-ui": "deno run --allow-read --allow-write scripts/bundle-ui.ts",
