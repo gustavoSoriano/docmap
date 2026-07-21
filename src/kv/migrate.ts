@@ -18,6 +18,11 @@ const migrations: Migration[] = [
 
   // v3 — no-op (reservado para manter numeração de schema).
   async (_kv) => {},
+
+  // v4 — podcasts ganham `withSlides` e `slideMap` (opcionais). Sem
+  // transformação em dados existentes — podcasts antigos continuam válidos
+  // (sem slides por padrão). Apenas reservamos a versão.
+  async (_kv) => {},
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

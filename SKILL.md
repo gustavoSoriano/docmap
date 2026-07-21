@@ -1,20 +1,46 @@
 ---
 name: docmap
-version: 3.1.0
+version: 5.0.0
 description: >
-  API REST local do docmap desktop — notas, diagramas Mermaid, skills, macros, kanban de tasks
-  e visões Diátaxis. Use quando o usuário mencionar notas, diagramas, skills, macros, tasks,
-  kanban, visões Diátaxis, docsets, ou compartilhar um ID/link do docmap. O app precisa estar
-  rodando (deno task dev).
+  API REST local do docmap desktop — notas, diagramas Mermaid, skills, macros, kanban de tasks, favoritos,
+  podcasts com áudio por IA (2+ vozes) e slides visuais sincronizados (CSS art puro, sem JS),
+  e mocks HTTP.
+  Use quando o usuário mencionar notas, diagramas, skills, macros, tasks, kanban, favoritos, podcasts,
+  slides visuais, mocks, ou compartilhar um ID/link do docmap. O app precisa estar rodando (deno task dev).
 metadata:
   category: productivity
-  tags: [notes, diagrams, mermaid, skills, macros, tasks, kanban, diataxis, docsets, knowledge-base]
+  tags: [notes, diagrams, mermaid, skills, macros, tasks, kanban, favorites, podcasts, slides, mocks, knowledge-base]
 ---
 
-# docmap — AI Skill
+# docmap — API local (para IA)
 
 Base URL: `http://127.0.0.1:3334`  
-Formato: JSON em todas as respostas. App precisa estar rodando.
+Formato: JSON. App precisa estar rodando.
+
+---
+
+## Workspace (grafos e arquivos `.md`)
+
+Estes endpoints leem a pasta de trabalho que o usuário abriu no docmap.
+Retornam erro se nenhum workspace estiver selecionado.
+
+- `GET /graph` — grafo de links entre arquivos `.md`
+  - `nodes`: `{ id, label, group }` — `id` = caminho relativo
+  - `links`: `{ source, target }` — conexões baseadas em `[[...]]` e `[texto](arquivo.md)`
+- `GET /graph/relations?file=<caminho/relativo.md>` — relações de um arquivo
+  - Resposta: `{ file, outgoing: [...], incoming: [...] }`
+- `GET /content?file=<caminho/relativo.md>` — conteúdo bruto do arquivo
+  - Resposta: `{ path, raw }` com markdown completo
+- `GET /docs/search?q=termo` — busca full-text nos `.md` do workspace
+  - Resposta: array de `{ file, line, heading, snippet }`
+
+**Fluxo de exploração:**
+1. `GET /graph` — entenda a estrutura
+2. `GET /graph/relations?file=<caminho>` — veja conexões de um arquivo
+3. `GET /docs/search?q=termo` — localize menções
+4. `GET /content?file=<caminho>` — leia o conteúdo completo
+
+> Se o usuário pedir para alterar um arquivo, você já tem o caminho relativo nos endpoints acima. A edição em si deve ser feita pelo canal de escrita que o usuário indicar (o docmap não expõe escrita de arquivos por esta API).
 
 ---
 
@@ -50,74 +76,6 @@ Tipos Mermaid: `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram-v2`
 
 ---
 
-## Visões Diátaxis
-
-Visões Diátaxis organizam a documentação de um workspace em 4 quadrantes (tutorial, how-to, reference, explanation) com base em um propósito.
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/docsets` | Lista visões do workspace atual |
-| GET | `/docsets/:id` | Visão completa com itens, títulos e flag `exists` |
-| POST | `/docsets` | Cria visão manualmente `{ title, purpose, audience?, depth?, items }` |
-| PUT | `/docsets/:id` | Edita visão |
-| DELETE | `/docsets/:id` | Remove a visão (não apaga entidades referenciadas/geradas) |
-| POST | `/docsets/suggest` | Gera sugestão heurística ou via IA `{ purpose, audience?, depth?, useAi? }` |
-| POST | `/docsets/apply` | Aplica uma sugestão (JSON) e cria entidades geradas |
-| POST | `/docsets/:id/regenerate` | Regenera apenas os itens gerados pela IA |
-
-**Schema de item:**
-```json
-{
-  "type": "tutorial | how-to | reference | explanation",
-  "action": "reference | create",
-  "ref": { "kind": "file|note|skill|macro|diagram|task|mock|favorite", "id": "string" },
-  "entityKind": "note|skill|macro|diagram|task",
-  "proposedTitle": "string",
-  "proposedContent": { },
-  "reason": "string",
-  "userQuestion": "string"
-}
-```
-
-- `action: "reference"` → `ref` obrigatório, aponta para entidade existente.
-- `action: "create"` → `entityKind` e `proposedContent` obrigatórios.
-- Entidades geradas recebem `docSetId` da visão para rastreabilidade.
-
-### Como criar uma visão Diátaxis via IA
-
-A IA DEVE usar as ferramentas/funções disponíveis para:
-1. Listar recursos do workspace:
-   - `GET /notes` — notas
-   - `GET /skills` — skills
-   - `GET /macros` — macros
-   - `GET /diagrams` — diagramas
-   - `GET /tasks` — tasks
-   - `GET /mocks` — mocks
-   - `GET /workspace/files` — arquivos do workspace
-2. Ler arquivos `.md` relevantes com `read_file`.
-3. Classificar cada recurso nos 4 quadrantes do Diátaxis.
-4. Criar novos itens quando necessário (note, skill, macro, diagram, task).
-5. **Chamar `POST /docsets/apply` com o JSON da visão** para criá-la no DocMap.
-6. Informar o usuário o resultado.
-
-**Requisição de criação:**
-```
-POST /docsets/apply
-Content-Type: application/json
-
-{
-  "title": "Nome da visão",
-  "purpose": "Propósito",
-  "audience": "Público-alvo",
-  "depth": "quick | complete | deep",
-  "items": [ ... ]
-}
-```
-
-**Importante:** notas do tipo `tutorial` devem usar HTML no campo `content` para criar tutoriais visualmente ricos.
-
----
-
 ## Skills (read-only)
 
 | Método | Endpoint | Descrição |
@@ -141,36 +99,6 @@ Content-Type: application/json
 O `interpreter` (`bash` ou `deno`) é detectado automaticamente pelo shebang.
 Execução continua sendo manual pelo usuário dentro do app.
 
-> **PATH limitado**: apps GUI não herdam o PATH do terminal. Ferramentas como `node`, `deno`, `cargo` etc.
-> podem não ser encontradas. Use sempre caminhos absolutos ou source seu perfil no script.
-
----
-
-## Fluxos comuns
-
-### Criar diagrama e mandar deep link ao usuário
-```
-POST /diagrams { title, source }
-→ retorna { id, deepLink }
-→ mande o deepLink para o usuário abrir no app
-```
-
-### Encontrar e ler uma nota
-```
-GET /search?q=termo       → encontra por relevância
-GET /notes/:id            → lê conteúdo completo
-```
-
-### Ler uma skill pelo nome
-```
-GET /skills/analyze-pr    → conteúdo completo da skill
-```
-
-### Criar nota a partir de contexto da conversa
-```
-POST /notes { title, content, tags, category }
-```
-
 ---
 
 ## Tasks — Kanban global
@@ -185,7 +113,7 @@ Ordem dentro da coluna = prioridade (menor `order` = mais prioritário).
 | POST | `/tasks` | Cria `{ title, description?, status?, dueDate?, noteId? }` |
 | PUT | `/tasks/:id` | Edita campos (parcial). `dueDate: null` e `noteId: null` removem o campo |
 | DELETE | `/tasks/:id` | Remove |
-| PUT | `/tasks/reorder` | Reordena coluna: `{ status, ids: string[] }` — redefine ordem e status de todas as tasks listadas |
+| PUT | `/tasks/reorder` | Reordena coluna: `{ status, ids: string[] }` |
 
 **Campos:**
 - `title` (string, obrigatório)
@@ -197,26 +125,298 @@ Ordem dentro da coluna = prioridade (menor `order` = mais prioritário).
 
 **Deep link**: `GET /tasks/:id` retorna `{ deepLink: "http://127.0.0.1:3333/#task/<id>" }`.
 
-### Fluxos comuns
+---
 
-#### Criar task e vinculá-la a uma nota
-```
-GET /notes              → encontra o ID da nota relevante
-POST /tasks { title, description, status: "todo", noteId: "<id da nota>" }
+## Podcasts — áudio gerado por IA (2+ vozes) + slides visuais opcionais
+
+Gera podcasts em áudio a partir de conteúdo de estudo. Sempre com **2+ personas**
+com vozes distintas. A geração é **assíncrona**: o POST retorna 202 imediatamente
+e o áudio fica pronto segundos/minutos depois (status `generating` → `ready`).
+
+Opcionalmente, o podcast pode ter **slides visuais sincronizados com o áudio**
+(CSS art puro, sem JavaScript) — passe `withSlides: true` no POST ou cercas as
+falas com `<Slide>` no script. A UI troca os slides sozinha conforme o áudio toca.
+
+Pré-requisitos na máquina: `edge-tts` (pip) e `ffmpeg` (brew install ffmpeg).
+
+### Endpoints
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/podcasts/health` | Verifica dependências (edge-tts, ffmpeg, ffprobe) |
+| GET | `/podcasts?q=&folder=` | Lista previews (sem script) |
+| GET | `/podcasts/:id` | Podcast completo com `script`, `slideMap` + `deepLink` |
+| GET | `/podcasts/:id/audio` | Stream MP3 com suporte a Range |
+| GET | `/podcasts/:id/slides` | Documento HTML único com todos os slides (se `withSlides`) |
+| GET | `/podcasts/voices` | Vozes pt-BR disponíveis (id, gender, style) |
+| GET | `/podcasts/folders` | Pastas derivadas dos podcasts existentes |
+| POST | `/podcasts` | Gera podcast (assíncrono — retorna 202) |
+| PUT | `/podcasts/:id` | Edita `title` e/ou `folder` |
+| DELETE | `/podcasts/:id` | Remove metadados + áudio + slides |
+
+### POST /podcasts — body
+
+- `title` (obrigatório)
+- `content` **ou** `script` (obrigatório um dos dois):
+  - `content`: texto bruto → o docmap gera o roteiro via provider configurado
+  - `script`: roteiro pronto com tags `<Person1>…</Person1>` → só sintetiza o áudio
+- `voices` (opcional): array de `{ name, voice }` — mínimo 2, vozes distintas.
+  Omitido → o docmap sorteia 2 vozes. Use `GET /podcasts/voices` pra escolher.
+- `folder` (opcional, default "geral")
+- `withSlides` (opcional, default `false`): se `true`, o docmap gera slides
+  visuais sincronizados com o áudio. Aplica-se a qualquer modo:
+  - com `content`: o docmap gera diálogo + slides via LLM
+  - com `script`: o script precisa conter blocos `<Slide>` (e opcionalmente
+    manifesto `<Slides>` embutido) — senão o docmap falha gracioso sem slides
+  - com `script` + `slides[]`: você envia tudo pronto, o docmap só sintetiza
+- `slides` (opcional): array de slides prontos `{ index, title, transition?, html, css }`.
+  Ignorado se `withSlides` for falso/ausente. Exige `script` com blocos `<Slide>`
+  casando os mesmos índices (mapeamento de sincronização vem do script).
+- Retorna **202** com `{ id, deepLink, status: "generating" }`
+
+### Formato do roteiro (campo `script`)
+
+**Sem slides (formato clássico):**
+
+Use as tags `<NomeDaPersona>…</NomeDaPersona>`. Cada nome deve ter uma voz em `voices`.
+
+**Com slides (`withSlides: true`):**
+
+Cerque blocos de falas com `<Slide title="…" transition="…">…</Slide>`. Cada `<Slide>`
+agrupa 1+ turnos relacionados ao mesmo tema visual. Nenhuma fala pode ficar de fora
+de um `<Slide>`. A LLM decide a quebra — pode ter 1 slide para 1 turno ou 1 slide
+para N turnos. A sincronização é automática: cada slide aparece quando o áudio chega
+na primeira fala do bloco.
+
+```bash
+curl -X POST http://127.0.0.1:3334/podcasts \
+  -H 'Content-Type: application/json' -d '{
+    "title": "Buracos negros",
+    "folder": "cosmos",
+    "withSlides": true,
+    "content": "<cole aqui o texto/artigo>"
+  }'
+# → 202 { "id": "...", "deepLink": "...", "status": "generating" }
+# docmap gera diálogo com <Slide> + manifesto visual numa única chamada de LLM.
 ```
 
-#### Mover task para outra coluna
-```
-PUT /tasks/:id { status: "in-progress" }
+### Enviar roteiro pronto com slides (`script` + `withSlides`)
+
+O script precisa ter `<Slide>` blocos cercando as falas. Pode opcionalmente trazer
+um bloco `<Slides>` no fim com HTML/CSS de cada slide — se não vier, o docmap
+escreve um manifesto vazio e o podcast fica pronto **sem** slides visuais (só roteiro).
+
+```bash
+curl -X POST http://127.0.0.1:3334/podcasts \
+  -H 'Content-Type: application/json' -d '{
+    "title": "Redes neurais — introdução",
+    "folder": "IA",
+    "withSlides": true,
+    "voices": [
+      { "name": "Ana", "voice": "pt-BR-FranciscaNeural" },
+      { "name": "Bruno", "voice": "pt-BR-AntonioNeural" }
+    ],
+    "script": "<Slide title=\"Introdução\" transition=\"fade-zoom\">\n  <Ana>Olá! Hoje vamos falar de redes neurais.</Ana>\n  <Bruno>Boa! Começa explicando.</Bruno>\n</Slide>\n<Slide title=\"O que são\" transition=\"slide-left\">\n  <Ana>São modelos inspirados no cérebro…</Ana>\n</Slide>\n<Slides>\n  <Slide index=\"1\" title=\"Introdução\" transition=\"fade-zoom\">\n    <HTML>...markup sem <html>/<body>...</HTML>\n    <CSS>...CSS escopado por .slide-1...</CSS>\n  </Slide>\n  <Slide index=\"2\" title=\"O que são\" transition=\"slide-left\">\n    <HTML>...</HTML><CSS>...</CSS>\n  </Slide>\n</Slides>"
+  }'
 ```
 
-#### Reordenar prioridades numa coluna (ex: colocar task X na frente)
-```
-GET /tasks                          → lê ordem atual
-PUT /tasks/reorder { status: "todo", ids: ["<X>", "<A>", "<B>"] }
+### Enviar slides prontos (`script` + `slides[]` + `withSlides`)
+
+Quando você (ou outra LLM externa) já tem os slides HTML/CSS prontos, passe-os
+como array. O script precisa dos `<Slide>` blocos para mapear sincronização,
+mas o bloco `<Slides>` manifesto é ignorado — o que vale é `slides[]`.
+
+```bash
+curl -X POST http://127.0.0.1:3334/podcasts \
+  -H 'Content-Type: application/json' -d '{
+    "title": "...",
+    "withSlides": true,
+    "script": "<Slide title=\"Intro\">...</Slide><Slide title=\"Meio\">...</Slide>",
+    "slides": [
+      {
+        "index": 1,
+        "title": "Intro",
+        "transition": "fade-zoom",
+        "html": "<h1>Bem-vindos</h1>",
+        "css": ".slide-1 { background: radial-gradient(...); } .slide-1 h1 { color: white; }"
+      },
+      {
+        "index": 2,
+        "title": "Meio",
+        "html": "...",
+        "css": "..."
+      }
+    ]
+  }'
 ```
 
-#### Listar tasks pendentes
+### Especificação dos slides prontos (campo `slides[]`)
+
+Cada slide é um objeto:
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `index` | number (1-based) | Casa com a ordem dos `<Slide>` no script |
+| `title` | string | Acessibilidade + label na barra inferior |
+| `transition` | string (opcional) | Dica semântica: `fade-zoom`, `slide-left`, `flip`, `iris`, etc. O efeito real vem do CSS que você escreve |
+| `html` | string | Markup puro **sem** `<html>/<body>/<head>`. Sem `<script>`, sem `<iframe>`, sem `<img>` externa |
+| `css` | string | CSS art puro, **escopado por `.slide-N`** (onde N é o índice). Animações de entrada via `[data-state="entering"]`, permanência via `[data-state="active"]`, saída via `[data-state="leaving"]` |
+
+**Regras do CSS:**
+- ESCOPO todo seletor com `.slide-N` (ex.: `.slide-1 h1 { ... }`)
+- Sem JavaScript, sem `@font-face`, sem `@import`, sem URLs externas
+- Use system fonts: `system-ui`, `sans-serif`, `monospace`, `serif`
+- Animações via `@keyframes` + `[data-state]` selectors (o docmap aplica os atributos)
+- O container do slide ocupa 100% do espaço disponível — preencha tudo
+
+**Deep link**: `GET /podcasts/:id` retorna `{ deepLink: "http://127.0.0.1:3333/#podcast/<id>" }`.
+
+---
+
+## Mocks — Servidor HTTP em :3335
+
+O docmap sobe um servidor de mocks em `http://127.0.0.1:3335`.
+Cada mock tem um script JS executado a cada request. Os scripts recebem
+`ctx` (request) e `db` (banco in-memory da collection) e devem retornar
+`{ status?, headers?, body? }`.
+
+### Protocolo para agentes — siga esta ordem
+
+**Passo 1 — Descubra o estado atual (sempre, antes de criar qualquer coisa)**
+```bash
+curl http://127.0.0.1:3334/mocks/collections  # collections existentes
+curl http://127.0.0.1:3334/mocks              # todos os mocks existentes
 ```
-GET /tasks   → filtre client-side por status !== "done"
+
+**Passo 2 — Crie a collection se não existir**
+```bash
+curl -X POST http://127.0.0.1:3334/mocks/collections \
+  -H 'Content-Type: application/json' -d '{"name":"Minha API"}'
+# guarde o id retornado
+```
+
+**Passo 3 — Crie os mocks**
+Use `db` para mocks que precisam compartilhar estado (ex.: POST cria, GET lê).
+Use dados hardcoded para mocks simples e estáticos.
+
+**Passo 4 — Valide**
+```bash
+curl http://127.0.0.1:3335/seu-path
+```
+
+**Regras:**
+- Nunca crie uma collection duplicada — verifique no passo 1
+- Prefira `group` para organizar mocks do mesmo recurso (ex.: `"group": "Users"`)
+- Scripts com lógica condicional (404, validação) são muito melhores que retornos estáticos
+- Use `db` sempre que um mock precisar ler dados que outro escreveu
+
+### Gerenciamento de Collections (via AI API :3334)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/mocks/collections` | Lista collections |
+| GET | `/mocks/collections/:id` | Collection + seus mocks |
+| POST | `/mocks/collections` | Cria `{ name }` |
+| PUT | `/mocks/collections/:id` | Renomeia `{ name }` |
+| DELETE | `/mocks/collections/:id` | Remove collection + todos os mocks |
+| DELETE | `/mocks/collections/:id/clear` | Zera mocks, mantém a collection |
+| DELETE | `/mocks/clear` | Apaga **tudo** (todas collections + mocks) |
+
+### Gerenciamento de Mocks (via AI API :3334)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/mocks` | Lista todos (ou `?collectionId=<id>`) |
+| GET | `/mocks/:id` | Mock completo |
+| POST | `/mocks` | Cria (veja body abaixo) |
+| PUT | `/mocks/:id` | Edita campos parciais |
+| DELETE | `/mocks/:id` | Remove |
+
+**POST /mocks — body:**
+```json
+{
+  "collectionId": "<uuid>",
+  "method": "GET",
+  "path": "/users/:id",
+  "name": "Get user by ID",
+  "group": "Users",
+  "script": "return { status: 200, body: { id: ctx.params.id, name: 'Alice' } };"
+}
+```
+
+**Campos:** `method` (GET\|POST\|PUT\|PATCH\|DELETE\|HEAD\|OPTIONS), `path` (com params tipo `/users/:id`), `name` (opcional), `group` (opcional), `script` (corpo de função JS que recebe `ctx` e retorna a resposta).
+
+**Validação de duplicidade:** dentro de uma mesma collection, não é permitido ter dois mocks com o mesmo `method` + `path`. `POST /mocks` e `PUT /mocks/:id` retornam `409 Conflict` se o endpoint já existir.
+
+### Script do mock
+
+O script recebe **dois argumentos**: `ctx` (request) e `db` (banco in-memory da collection).
+
+**`ctx`**: `{ method, path, params, query, headers, body }`
+
+**`db`** — store in-memory compartilhado por todos os mocks da mesma collection:
+- `db.set(key, value)`, `db.get(key)`, `db.delete(key)`, `db.has(key)`
+- `db.list(prefix)` — array de todos os valores cujas chaves começam com `prefix`
+- `db.keys(prefix)`, `db.clear()`, `db.size()`
+
+Exemplo — CRUD real entre mocks:
+```js
+// POST /users — cria e persiste
+const user = { id: String(db.size() + 1), ...ctx.body };
+db.set('user:' + user.id, user);
+return { status: 201, body: user };
+
+// GET /users/:id — lê do db
+const user = db.get('user:' + ctx.params.id);
+if (!user) return { status: 404, body: { error: 'not_found' } };
+return { status: 200, body: user };
+```
+
+Suporta async/await.
+
+---
+
+## Favoritos
+
+Tipos: `site` · `slack` · `grid` · `dash` · `github`.
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/favorites` | Lista com busca e filtros (ver query params abaixo) |
+| GET | `/favorites/:id` | Favorito completo |
+| POST | `/favorites` | Cria `{ type, title, url, category, tags?, note? }` |
+| PUT | `/favorites/:id` | Edita campos parciais |
+| PUT | `/favorites/:id/access` | Registra acesso (incrementa `accessCount`) |
+| DELETE | `/favorites/:id` | Remove |
+
+**Query params de busca (`GET /favorites`):**
+
+- `q=<texto>` — busca livre em `title`, `url`, `note`, `category` e `tags`
+- `type=<tipo>` — filtra por tipo; pode repetir (`type=site&type=github`)
+- `category=<texto>` — filtra por categoria (substring, case-insensitive)
+- `tag=<tag>` — filtra por tag; pode repetir (`tag=produto&tag=api`) — exige todas as tags informadas
+- `sortBy=accessCount|createdAt|lastAccessed|title` — ordenação (padrão: `accessCount`)
+- `order=asc|desc` — direção (padrão: `desc`)
+
+**Campos:**
+- `type` (obrigatório): `"site"` | `"slack"` | `"grid"` | `"dash"` | `"github"`
+- `title` (obrigatório)
+- `url` (obrigatório)
+- `category` (obrigatório)
+- `tags` (array de strings, opcional)
+- `note` (markdown/texto, opcional)
+- `accessCount` (número, gerenciado automaticamente)
+- `lastAccessed` (ISO string, atualizado via `PUT /favorites/:id/access`)
+
+**Fluxos comuns:**
+
+```
+# Buscar favoritos de produto
+GET /favorites?category=produto&sortBy=accessCount&order=desc
+
+# Buscar sites e dashboards sobre API
+GET /favorites?q=api&type=site&type=dash
+
+# Cadastrar novo favorito
+POST /favorites { type: "site", title: "DocMap docs", url: "...", category: "docs", tags: ["produto"] }
 ```

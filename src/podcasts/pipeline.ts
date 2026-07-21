@@ -3,19 +3,37 @@
 // emite eventos SSE em cada etapa.
 
 import { audioPath, deleteAudio, ensureAudioDir } from './audio.ts';
-import { parseScript, validateSegments, voiceIdOf } from './parser.ts';
+import { deleteSlides, writeSlides } from './slides.ts';
+import {
+  extractSlidesManifest,
+  parseScript,
+  parseScriptWithSlides,
+  stripSlidesManifest,
+  validateSegments,
+  voiceIdOf,
+} from './parser.ts';
 import { broadcast } from './sse.ts';
-import { generateScript } from './script.ts';
+import { generateScript, generateScriptWithSlides } from './script.ts';
 import { concatAudio, probeDurationMs, synthesizeSegment } from './tts.ts';
 import { getPodcastById, patchGeneration, toPreview } from './store.ts';
-import type { Podcast } from './types.ts';
+import type { Podcast, SlideMapEntry } from './types.ts';
 
-const emitProgress = (id: string, stage: 'script' | 'tts' | 'concat', detail?: string) =>
-  broadcast({ type: 'progress', id, stage, detail });
+const emitProgress = (
+  id: string,
+  stage: 'script' | 'slides' | 'tts' | 'concat',
+  detail?: string,
+) => broadcast({ type: 'progress', id, stage, detail });
 
 const handleReady = async (kv: Deno.Kv, p: Podcast, durationMs?: number) => {
   await patchGeneration(kv, p.id, { status: 'ready', durationMs });
-  broadcast({ type: 'ready', podcast: toPreview({ ...p, status: 'ready', ...(durationMs !== undefined ? { durationMs } : {}) }) });
+  broadcast({
+    type: 'ready',
+    podcast: toPreview({
+      ...p,
+      status: 'ready',
+      ...(durationMs !== undefined ? { durationMs } : {}),
+    }),
+  });
 };
 
 const handleError = async (kv: Deno.Kv, id: string, error: string) => {
@@ -23,7 +41,26 @@ const handleError = async (kv: Deno.Kv, id: string, error: string) => {
   broadcast({ type: 'error', id, error });
 };
 
-export const runPodcastPipeline = async (kv: Deno.Kv, id: string): Promise<void> => {
+// Computa enterMs de cada entrada do slideMap acumulando a duração
+// (ffprobe por segmento) até o segmento inicial do slide.
+const computeSlideMap = (
+  slideMap: readonly SlideMapEntry[],
+  segDurationsMs: readonly number[],
+): SlideMapEntry[] => {
+  const starts: number[] = [0];
+  for (const d of segDurationsMs) {
+    starts.push(starts[starts.length - 1] + d);
+  }
+  return slideMap.map((e) => ({
+    ...e,
+    enterMs: starts[e.segmentStart] ?? 0,
+  }));
+};
+
+export const runPodcastPipeline = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<void> => {
   const podcast = await getPodcastById(kv, id);
   if (!podcast) return;
 
@@ -32,20 +69,57 @@ export const runPodcastPipeline = async (kv: Deno.Kv, id: string): Promise<void>
   try {
     // 1. Roteiro — se vier de content, gera agora via LLM.
     let { script } = podcast;
+    const wantSlides = podcast.withSlides === true;
+    // Preserva o bruto com <Slides> para extrair o manifesto visual antes
+    // de salvarmos a versão limpa no KV.
+    let scriptWithManifest: string | null = null;
     if (!script && podcast.sourceContent) {
       emitProgress(id, 'script');
-      script = await generateScript(kv, podcast.sourceContent, podcast.voices);
+      if (wantSlides) {
+        const raw = await generateScriptWithSlides(
+          kv,
+          podcast.sourceContent,
+          podcast.voices,
+        );
+        scriptWithManifest = raw;
+        script = stripSlidesManifest(raw);
+      } else {
+        script = await generateScript(kv, podcast.sourceContent, podcast.voices);
+      }
       await patchGeneration(kv, id, { script });
     }
 
     // 2. Parse + validação contra as personas.
-    const segments = parseScript(script);
+    const parsed = wantSlides
+      ? parseScriptWithSlides(script)
+      : { segments: parseScript(script), slideMap: [] as SlideMapEntry[] };
+    const { segments, slideMap } = parsed;
     const invalid = validateSegments(segments, podcast.voices);
     if (invalid) throw new Error(invalid);
 
-    // 3. Síntese — uma chamada edge-tts por fala.
+    // 3. Slides — extrai manifesto e escreve no filesystem.
+    //    Tolerante: se a LLM promiseu slides mas não entregou, slideMap
+    //    fica vazio e o podcast segue só em áudio (falha graciosa).
+    if (wantSlides) {
+      emitProgress(id, 'slides', `${slideMap.length} slides`);
+      // Fonte do manifesto: ou o bruto que acabamos de gerar, ou o script
+      // salvo (que já está limpo — não há <Slides> pra extrair e acaba
+      // virando array vazio, preservando a falha graciosa).
+      const manifestSrc = scriptWithManifest ?? script ?? '';
+      const slides = extractSlidesManifest(manifestSrc);
+      if (slides.length > 0) {
+        await writeSlides(id, slides);
+      } else if (slideMap.length > 0) {
+        // LLM cercou falas com <Slide> mas não produziu manifesto visual;
+        // zera o mapa para a UI não esperar slides inexistentes.
+        await patchGeneration(kv, id, { slideMap: [] });
+      }
+    }
+
+    // 4. Síntese — uma chamada edge-tts por fala.
     await ensureAudioDir();
     const files: string[] = [];
+    const segDurationsMs: number[] = [];
     for (let i = 0; i < segments.length; i++) {
       emitProgress(id, 'tts', `${i + 1}/${segments.length}`);
       const seg = segments[i];
@@ -54,21 +128,31 @@ export const runPodcastPipeline = async (kv: Deno.Kv, id: string): Promise<void>
       const file = `${tmpDir}/seg_${String(i).padStart(3, '0')}.mp3`;
       await synthesizeSegment(seg.text, voice, file);
       files.push(file);
+      // Probe por segmento — base da sincronização slide ↔ áudio.
+      const dur = await probeDurationMs(file);
+      segDurationsMs.push(dur ?? 0);
     }
 
-    // 4. Concatenação com ffmpeg.
+    // 5. Sincronização: calcula enterMs para cada slide.
+    if (slideMap.length > 0) {
+      const computed = computeSlideMap(slideMap, segDurationsMs);
+      await patchGeneration(kv, id, { slideMap: computed });
+    }
+
+    // 6. Concatenação com ffmpeg.
     emitProgress(id, 'concat');
     const out = audioPath(id);
     await concatAudio(files, out);
     const durationMs = await probeDurationMs(out);
 
-    // 5. Pronto.
+    // 7. Pronto.
     await handleReady(kv, podcast, durationMs);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     await handleError(kv, id, error);
-    // Limpa áudio parcial, se houver.
+    // Limpa áudio e slides parciais, se houver.
     await deleteAudio(id);
+    if (podcast.withSlides) await deleteSlides(id);
   } finally {
     await Deno.remove(tmpDir, { recursive: true }).catch(() => {});
   }

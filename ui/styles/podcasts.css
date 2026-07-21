@@ -378,3 +378,55 @@
   line-height: 1.65;
   color: var(--text);
 }
+
+/* ── Slides stage ── */
+#pod-slides-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  position: relative;
+}
+#pod-slides-host {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+#pod-slides-host:fullscreen { width: 100vw; height: 100vh; }
+#pod-slides-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, .9);
+  color: #fff;
+  font-size: 12px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+#pod-slide-counter {
+  font-family: var(--font-mono);
+  color: rgba(255, 255, 255, .6);
+  flex-shrink: 0;
+}
+#pod-slide-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, .85);
+  font-weight: 500;
+}
+#pod-slides-bar .tool-btn {
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(255, 255, 255, .12);
+  color: rgba(255, 255, 255, .7);
+  padding: 4px 8px;
+}
+#pod-slides-bar .tool-btn:hover {
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+}

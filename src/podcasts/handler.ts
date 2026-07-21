@@ -1,6 +1,8 @@
 // ════ Handler de podcasts — montado nos routers :3333 (UI) e :3334 (AI) ════
 
 import { audioPath, audioStat, deleteAudio } from './audio.ts';
+import { deleteScriptFile } from './scriptfile.ts';
+import { deleteSlides, readSlides, slidesExists, writeSlides } from './slides.ts';
 import {
   createPodcast,
   deletePodcast,
@@ -13,8 +15,14 @@ import {
 import { runPodcastPipeline } from './pipeline.ts';
 import { getVoices, pickRandomVoices, validateVoices } from './voices.ts';
 import { broadcast, subscribe } from './sse.ts';
-import { parseScript, validateSegments } from './parser.ts';
-import { badRequest, json, notFound } from '../server/response.ts';
+import {
+  extractSlidesManifest,
+  parseScript,
+  parseScriptWithSlides,
+  stripSlidesManifest,
+  validateSegments,
+} from './parser.ts';
+import { badRequest, html, json, notFound } from '../server/response.ts';
 import { checkDeps } from './health.ts';
 import {
   type GeneratePodcastInput,
@@ -183,13 +191,43 @@ export const podcastsHandler =
 
       // Se vier roteiro pronto, valida as tags já no POST (fail fast pra IA).
       let script = '';
+      // Guarda o bruto quando o roteiro vem com manifesto <Slides> embutido.
+      let scriptWithManifest: string | null = null;
+      const wantSlides = input.withSlides === true;
       if (hasScript) {
-        script = input.script!.trim();
-        const segErr = validateSegments(parseScript(script), voices);
-        if (segErr) return badRequest(segErr);
+        const raw = input.script!.trim();
+        // Quando o usuário quer slides, o roteiro pode trazer <Slide>…</Slide>
+        // e, no fim, um bloco <Slides>…</Slides> (manifesto visual). Aceita
+        // ambos — escrevemos o manifesto no filesystem e salvamos o script
+        // limpo no KV.
+        if (wantSlides) {
+          const parsed = parseScriptWithSlides(raw);
+          const segErr = validateSegments(parsed.segments, voices);
+          if (segErr) return badRequest(segErr);
+          scriptWithManifest = raw;
+          script = stripSlidesManifest(raw);
+        } else {
+          const segErr = validateSegments(parseScript(raw), voices);
+          if (segErr) return badRequest(segErr);
+          script = raw;
+        }
       }
 
       const folder = (input.folder?.trim() || 'geral');
+
+      // Slides prontos (API externa): escreve direto no filesystem; o
+      // pipeline apenas computa enterMs depois do TTS. Se vier slides sem
+      // script com <Slide> blocos, falha aqui mesmo.
+      let preSlideMap;
+      if (wantSlides && input.slides && input.slides.length > 0 && hasScript) {
+        const parsed = parseScriptWithSlides(script);
+        if (parsed.slideMap.length === 0) {
+          return badRequest(
+            'slides enviados mas o script não contém blocos <Slide>…</Slide>',
+          );
+        }
+        preSlideMap = parsed.slideMap;
+      }
 
       const podcast = await createPodcast(kv, {
         title,
@@ -198,7 +236,20 @@ export const podcastsHandler =
         ...(hasContent ? { sourceContent: input.content!.trim() } : {}),
         voices,
         status: 'generating',
+        ...(wantSlides ? { withSlides: true } : {}),
+        ...(preSlideMap ? { slideMap: preSlideMap } : {}),
       });
+
+      // Slides prontos ou manifesto no próprio script: escreve no FS agora.
+      // O pipeline (branch sourceContent) faz isso sozinho quando gera.
+      if (wantSlides && !hasContent) {
+        const manifest = input.slides && input.slides.length > 0
+          ? input.slides
+          : extractSlidesManifest(scriptWithManifest ?? script);
+        if (manifest.length > 0) {
+          await writeSlides(podcast.id, manifest);
+        }
+      }
 
       // Dispara o pipeline em background — não aguardamos.
       runPodcastPipeline(kv, podcast.id);
@@ -226,6 +277,18 @@ export const podcastsHandler =
       return serveAudio(id, req);
     }
 
+    // ── GET /podcasts/:id/slides — documento HTML único ──
+    if (req.method === 'GET' && sub === 'slides') {
+      const p = await getPodcastById(kv, id);
+      if (!p) return notFound();
+      if (!p.withSlides) return badRequest('podcast não tem slides');
+      const exists = await slidesExists(id);
+      if (!exists) return notFound();
+      const doc = await readSlides(id);
+      if (doc === null) return notFound();
+      return html(doc);
+    }
+
     // ── PUT /podcasts/:id — renomear / mover de pasta ──
     if (req.method === 'PUT' && !sub) {
       let body: unknown;
@@ -237,11 +300,13 @@ export const podcastsHandler =
       return json(payload);
     }
 
-    // ── DELETE /podcasts/:id — remove metadados + áudio ──
+    // ── DELETE /podcasts/:id — remove metadados + áudio + slides + script ──
     if (req.method === 'DELETE' && !sub) {
       const ok = await deletePodcast(kv, id);
       if (ok) {
         await deleteAudio(id);
+        await deleteSlides(id);
+        await deleteScriptFile(id);
         broadcast({ type: 'deleted', id });
       }
       return json({ ok });

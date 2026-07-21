@@ -2,6 +2,12 @@
 // O áudio MP3 NÃO vai no KV (limite ~64 KiB/valor) — ver audio.ts.
 
 import { DEFAULT_FOLDER } from './voices.ts';
+import {
+  SCRIPT_KV_MAX,
+  deleteScriptFile,
+  readScriptFile,
+  writeScriptFile,
+} from './scriptfile.ts';
 import type {
   GenerationPatch,
   Podcast,
@@ -31,9 +37,20 @@ export const createPodcast = async (
   kv: Deno.Kv,
   data: CreatePodcastData,
 ): Promise<Podcast> => {
+  const id = crypto.randomUUID();
+  // Offload do script oversized já na criação (roteiro pronto via API).
+  let script = data.script;
+  let scriptFs: boolean | undefined;
+  if (data.script.length > SCRIPT_KV_MAX) {
+    await writeScriptFile(id, data.script);
+    script = '';
+    scriptFs = true;
+  }
   const podcast: Podcast = {
     ...data,
-    id: crypto.randomUUID(),
+    id,
+    script,
+    ...(scriptFs !== undefined ? { scriptFs } : {}),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -41,7 +58,9 @@ export const createPodcast = async (
   return podcast;
 };
 
-export const getPodcastById = async (
+// Leitura "crua" do KV — sem hidratar script do FS. Usada em mutações
+// (update/patch) para evitar regravar um script oversized de volta no KV.
+const getPodcastRaw = async (
   kv: Deno.Kv,
   id: string,
 ): Promise<Podcast | null> => {
@@ -49,12 +68,26 @@ export const getPodcastById = async (
   return entry.value;
 };
 
+export const getPodcastById = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<Podcast | null> => {
+  const p = await getPodcastRaw(kv, id);
+  if (!p) return null;
+  // Hidrata o script a partir do FS quando ele foi offloaded.
+  if (p.scriptFs && !p.script) {
+    const fromFs = await readScriptFile(id);
+    if (fromFs !== null) return { ...p, script: fromFs };
+  }
+  return p;
+};
+
 export const updatePodcast = async (
   kv: Deno.Kv,
   id: string,
   input: UpdatePodcastInput,
 ): Promise<Podcast | null> => {
-  const existing = await getPodcastById(kv, id);
+  const existing = await getPodcastRaw(kv, id);
   if (!existing) return null;
   const updated: Podcast = {
     ...existing,
@@ -74,11 +107,23 @@ export const patchGeneration = async (
   id: string,
   patch: GenerationPatch,
 ): Promise<void> => {
-  const existing = await getPodcastById(kv, id);
+  const existing = await getPodcastRaw(kv, id);
   if (!existing) return;
+  // Offload do script quando oversized: escreve no FS e guarda flag.
+  let scriptPatch: { script?: string; scriptFs?: boolean } = {};
+  if (patch.script !== undefined) {
+    if (patch.script.length > SCRIPT_KV_MAX) {
+      await writeScriptFile(id, patch.script);
+      scriptPatch = { script: '', scriptFs: true };
+    } else {
+      // Se o script voltou a ser pequeno, limpa o arquivo do FS (se houver).
+      if (existing.scriptFs) await deleteScriptFile(id);
+      scriptPatch = { script: patch.script, scriptFs: false };
+    }
+  }
   const updated: Podcast = {
     ...existing,
-    ...(patch.script !== undefined ? { script: patch.script } : {}),
+    ...scriptPatch,
     ...(patch.status !== undefined ? { status: patch.status } : {}),
     // error presente → grava; ausente num patch de status → limpa erro antigo
     ...(patch.error !== undefined
@@ -87,6 +132,7 @@ export const patchGeneration = async (
       ? { error: undefined }
       : {}),
     ...(patch.durationMs !== undefined ? { durationMs: patch.durationMs } : {}),
+    ...(patch.slideMap !== undefined ? { slideMap: patch.slideMap } : {}),
     updatedAt: new Date().toISOString(),
   };
   await kv.set(key(id), updated);

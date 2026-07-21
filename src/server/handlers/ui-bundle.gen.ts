@@ -6607,6 +6607,58 @@ mark.fav-hl {
   color: var(--text);
 }
 
+/* ── Slides stage ── */
+#pod-slides-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  position: relative;
+}
+#pod-slides-host {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+#pod-slides-host:fullscreen { width: 100vw; height: 100vh; }
+#pod-slides-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, .9);
+  color: #fff;
+  font-size: 12px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+#pod-slide-counter {
+  font-family: var(--font-mono);
+  color: rgba(255, 255, 255, .6);
+  flex-shrink: 0;
+}
+#pod-slide-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, .85);
+  font-weight: 500;
+}
+#pod-slides-bar .tool-btn {
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(255, 255, 255, .12);
+  color: rgba(255, 255, 255, .7);
+  padding: 4px 8px;
+}
+#pod-slides-bar .tool-btn:hover {
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+}
+
 </style>
   </head>
   <body>
@@ -7399,6 +7451,18 @@ mark.fav-hl {
               <audio id="pod-audio" controls preload="metadata"></audio>
             </div>
             <div id="pod-meta"></div>
+
+            <div id="pod-slides-stage" style="display:none">
+              <div id="pod-slides-host"></div>
+              <div id="pod-slides-bar">
+                <span id="pod-slide-counter"></span>
+                <span id="pod-slide-title"></span>
+                <button class="tool-btn" id="btn-slide-prev" type="button" title="Slide anterior"><span data-icon="chevron-left"></span></button>
+                <button class="tool-btn" id="btn-slide-next" type="button" title="Próximo slide"><span data-icon="chevron-right"></span></button>
+                <button class="tool-btn" id="btn-slide-full" type="button" title="Tela cheia"><span data-icon="maximize"></span></button>
+              </div>
+            </div>
+
             <div id="pod-script"></div>
           </div>
         </section>
@@ -11488,6 +11552,8 @@ const fillPodcastPlayer = (p) => {
 
   renderPodStatus(p);
   renderPodScript(p);
+  // Dispara setup (ou teardown) de slides conforme o caso.
+  void setupSlides(p);
 };
 
 const renderPodStatus = (p) => {
@@ -11621,6 +11687,7 @@ const connectPodcastEvents = () => {
     renderPodcastsList();
     if (currentPodcast?.id === id) {
       const label = stage === 'script' ? 'escrevendo roteiro…'
+        : stage === 'slides' ? \`compondo slides \${detail || ''}\`
         : stage === 'tts' ? \`sintetizando vozes \${detail || ''}\`
         : stage === 'concat' ? 'montando áudio…' : 'processando…';
       $('pod-meta').innerHTML = \`<span class="pod-status gen">\${ICON('refresh-cw')} \${label}</span>\`;
@@ -11676,6 +11743,178 @@ const connectPodcastEvents = () => {
     }
   });
 };
+
+// ── Slides (sync via requestAnimationFrame) ──
+// Shadow DOM isola o CSS dos slides da UI do docmap. O rAF lê
+// audio.currentTime e troca o slide ativo aplicando [data-state] nos
+// <section>. Funciona com pause, seek, playbackRate — tudo reage ao
+// "tempo de mídia" (currentTime), não ao tempo de parede.
+
+let slidesShadow = null;
+let slidesRaf = null;
+let slidesMap = [];
+let slidesActiveIdx = -1;
+let slidesLeaveTimer = null;
+
+const SLIDE_LEAVE_MS = 700;
+
+const teardownSlides = () => {
+  if (slidesRaf) cancelAnimationFrame(slidesRaf);
+  slidesRaf = null;
+  if (slidesLeaveTimer) clearTimeout(slidesLeaveTimer);
+  slidesLeaveTimer = null;
+  if (slidesShadow) slidesShadow.innerHTML = '';
+  slidesMap = [];
+  slidesActiveIdx = -1;
+  $('pod-slides-stage').style.display = 'none';
+  $('pod-script').style.display = '';
+};
+
+const setSlideState = (index, state) => {
+  if (!slidesShadow || index < 0 || index >= slidesMap.length) return;
+  const el = slidesShadow.querySelector(
+    \`section[data-slide="\${slidesMap[index].index}"]\`,
+  );
+  if (el) el.setAttribute('data-state', state);
+};
+
+const applySlideTransition = (newIdx) => {
+  if (newIdx === slidesActiveIdx) return;
+  const prevIdx = slidesActiveIdx;
+  slidesActiveIdx = newIdx;
+
+  // Slide anterior: marca leaving e esconde após a animação de saída.
+  if (prevIdx >= 0) {
+    setSlideState(prevIdx, 'leaving');
+    const prevEl = slidesMap[prevIdx];
+    if (slidesLeaveTimer) clearTimeout(slidesLeaveTimer);
+    slidesLeaveTimer = setTimeout(() => {
+      // Só esconde se ainda estiver leaving (não foi reativado).
+      const el = slidesShadow?.querySelector(
+        \`section[data-slide="\${prevEl.index}"]\`,
+      );
+      if (el && el.getAttribute('data-state') === 'leaving') {
+        el.setAttribute('data-state', 'hidden');
+      }
+    }, SLIDE_LEAVE_MS);
+  }
+
+  // Novo slide: entering → active no próximo frame.
+  if (newIdx >= 0) {
+    setSlideState(newIdx, 'entering');
+    requestAnimationFrame(() => setSlideState(newIdx, 'active'));
+    updateSlidesBar(newIdx);
+  }
+};
+
+const updateSlidesBar = (idx) => {
+  if (idx < 0 || idx >= slidesMap.length) return;
+  const s = slidesMap[idx];
+  $('pod-slide-counter').textContent = \`\${idx + 1} / \${slidesMap.length}\`;
+  $('pod-slide-title').textContent = s.title || '';
+};
+
+const findSlideAt = (tMs) => {
+  // Busca linear — slideMap é pequeno (dezenas). Pode trocar por binária.
+  let idx = -1;
+  for (let i = 0; i < slidesMap.length; i++) {
+    if (slidesMap[i].enterMs <= tMs) idx = i;
+    else break;
+  }
+  return idx;
+};
+
+const startSlidesSync = () => {
+  if (slidesRaf) cancelAnimationFrame(slidesRaf);
+  const audio = $('pod-audio');
+  if (!audio) return;
+
+  const tick = () => {
+    slidesRaf = requestAnimationFrame(tick);
+    if (!slidesShadow || !audio.duration) return;
+    const tMs = audio.currentTime * 1000;
+    const idx = findSlideAt(tMs);
+    if (idx !== slidesActiveIdx) applySlideTransition(idx);
+  };
+  slidesRaf = requestAnimationFrame(tick);
+};
+
+const setupSlides = async (p) => {
+  // Sem slides → comportamento legado (só roteiro).
+  if (!p.withSlides || !p.slideMap || p.slideMap.length === 0 || p.status !== 'ready') {
+    teardownSlides();
+    return;
+  }
+  try {
+    const res = await fetch(\`/podcasts/\${p.id}/slides\`);
+    if (!res.ok) { teardownSlides(); return; }
+    const doc = await res.text();
+
+    if (!slidesShadow) {
+      slidesShadow = $('pod-slides-host').attachShadow({ mode: 'open' });
+    }
+    slidesShadow.innerHTML = doc;
+
+    // Ordena por enterMs e zera estados.
+    slidesMap = [...p.slideMap].sort((a, b) => a.enterMs - b.enterMs);
+    slidesActiveIdx = -1;
+    const sections = slidesShadow.querySelectorAll('section[data-slide]');
+    sections.forEach((s) => s.setAttribute('data-state', 'hidden'));
+
+    $('pod-slides-stage').style.display = 'flex';
+    $('pod-script').style.display = 'none';
+
+    // Estado inicial: mostra o primeiro slide antes do áudio tocar.
+    applySlideTransition(0);
+    startSlidesSync();
+  } catch (err) {
+    console.error('Erro ao carregar slides:', err);
+    teardownSlides();
+  }
+};
+
+// ── Controles da barra de slides ──
+const seekToSlide = (idx) => {
+  if (idx < 0 || idx >= slidesMap.length) return;
+  const audio = $('pod-audio');
+  if (!audio) return;
+  audio.currentTime = slidesMap[idx].enterMs / 1000;
+};
+
+const slidesNext = () => {
+  if (slidesActiveIdx < 0) return;
+  const next = Math.min(slidesActiveIdx + 1, slidesMap.length - 1);
+  seekToSlide(next);
+};
+
+const slidesPrev = () => {
+  if (slidesActiveIdx < 0) return;
+  const prev = Math.max(slidesActiveIdx - 1, 0);
+  seekToSlide(prev);
+};
+
+const slidesFullscreen = async () => {
+  const host = $('pod-slides-host');
+  if (!host) return;
+  if (document.fullscreenElement) {
+    await document.exitFullscreen().catch(() => {});
+  } else {
+    await host.requestFullscreen?.().catch(() => {});
+  }
+};
+
+$('btn-slide-prev')?.addEventListener('click', slidesPrev);
+$('btn-slide-next')?.addEventListener('click', slidesNext);
+$('btn-slide-full')?.addEventListener('click', slidesFullscreen);
+
+// Atalhos de teclado quando o stage está visível.
+document.addEventListener('keydown', (e) => {
+  if ($('pod-slides-stage').style.display !== 'flex') return;
+  if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (e.key === 'ArrowRight') { slidesNext(); e.preventDefault(); }
+  if (e.key === 'ArrowLeft') { slidesPrev(); e.preventDefault(); }
+  if (e.key === 'f' || e.key === 'F') { slidesFullscreen(); }
+});
 
 connectPodcastEvents();
 
