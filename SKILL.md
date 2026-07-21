@@ -14,8 +14,13 @@ metadata:
 
 # docmap — API local (para IA)
 
-Base URL: `http://127.0.0.1:3334`  
+Base URL: `http://127.0.0.1:3334`
 Formato: JSON. App precisa estar rodando.
+
+> **Instrução especial — podcasts com slides:** quando o usuário pedir para
+> gerar um podcast "com slides", "com apresentação visual", "com slides
+> sincronizados" ou qualquer variação, você DEVE enviar `"withSlides": true`
+> no body do `POST /podcasts`. Sem esse campo, o docmap gera apenas o áudio.
 
 ---
 
@@ -134,8 +139,25 @@ com vozes distintas. A geração é **assíncrona**: o POST retorna 202 imediata
 e o áudio fica pronto segundos/minutos depois (status `generating` → `ready`).
 
 Opcionalmente, o podcast pode ter **slides visuais sincronizados com o áudio**
-(CSS art puro, sem JavaScript) — passe `withSlides: true` no POST ou cercas as
-falas com `<Slide>` no script. A UI troca os slides sozinha conforme o áudio toca.
+(CSS art puro, sem JavaScript). A UI troca os slides sozinha conforme o áudio toca.
+
+### ⚡ Quick start — gerar podcast com slides
+
+```bash
+curl -X POST http://127.0.0.1:3334/podcasts \
+  -H 'Content-Type: application/json' -d '{
+    "title": "Buracos negros",
+    "folder": "cosmos",
+    "withSlides": true,
+    "content": "<cole aqui o texto/artigo de estudo>"
+  }'
+# → 202 { "id": "...", "deepLink": "...", "status": "generating" }
+# O docmap gera diálogo + slides via LLM e depois o áudio.
+```
+
+> **ATENÇÃO:** `withSlides: true` é **obrigatório** para ter slides. Sem esse
+> campo, o docmap gera apenas o áudio comum. A palavra-chave do campo é
+> exatamente `withSlides` (camelCase), não `slides`, não `hasSlides`.
 
 Pré-requisitos na máquina: `edge-tts` (pip) e `ffmpeg` (brew install ffmpeg).
 
@@ -249,6 +271,17 @@ curl -X POST http://127.0.0.1:3334/podcasts \
     ]
   }'
 ```
+
+### ❌ Erros comuns ao gerar slides
+
+1. **Esquecer `withSlides: true`** — sem isso, o docmap nunca gera slides.
+2. **Roteiro sem blocos `<Slide>`** — quando você envia `script` pronto, ele
+   precisa cercar as falas com `<Slide title="...">...</Slide>`. Caso contrário
+   não há mapeamento de sincronização.
+3. **CSS sem escopo `.slide-N`** — o CSS de cada slide deve usar seletores
+   como `.slide-1 h1`, `.slide-2 .grid`. CSS global vaza nos outros slides.
+4. **Slides sem conteúdo visual** — o campo `html` vazio gera slide preto.
+   A LLM precisa gerar markup + CSS art de verdade.
 
 ### Especificação dos slides prontos (campo `slides[]`)
 
