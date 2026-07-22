@@ -1,11 +1,10 @@
 import { createApiNotesHandler } from './handlers/notes.ts';
 import { createApiMacrosHandler } from './handlers/macros.ts';
 import { createApiSearchHandler } from './handlers/search.ts';
-import { createApiGraphHandler } from './handlers/graph.ts';
-import { createApiGraphRelationsHandler } from './handlers/graph-relations.ts';
 import { createApiContentHandler } from './handlers/content.ts';
 import { createApiSearchDocsHandler } from './handlers/search-docs.ts';
 import { createApiFavoritesHandler } from './handlers/favorites.ts';
+import { graphHandler } from '../graph/handler.ts';
 import { diagramsHandler } from '../diagrams/handler.ts';
 import { skillsApiHandler } from '../skills/handler.ts';
 import { tasksHandler } from '../tasks/handler.ts';
@@ -30,8 +29,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const notes = createApiNotesHandler(deps);
   const macros = createApiMacrosHandler(deps);
   const search = createApiSearchHandler(deps);
-  const graph = createApiGraphHandler(deps);
-  const graphRelations = createApiGraphRelationsHandler(deps);
+  const graph = graphHandler(deps.kv);
   const content = createApiContentHandler(deps);
   const searchDocs = createApiSearchDocsHandler(deps);
   const favorites = createApiFavoritesHandler(deps);
@@ -57,9 +55,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/tasks')) res = await tasks(req, url);
     else if (pathname === '/search') res = await search(req, url);
     else if (pathname === '/graph') res = await graph(req, url);
-    else if (pathname === '/graph/relations') {
-      res = await graphRelations(req, url);
-    } else if (pathname === '/content') res = await content(req, url);
+    else if (pathname === '/content') res = await content(req, url);
     else if (pathname === '/docs/search') res = await searchDocs(req, url);
     else if (pathname.startsWith('/favorites')) res = await favorites(req, url);
     else if (pathname.startsWith('/mocks')) res = await mocks(req, url);

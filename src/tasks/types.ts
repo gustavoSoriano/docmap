@@ -8,6 +8,7 @@ export type Task = {
   readonly order: number;
   readonly dueDate?: string; // YYYY-MM-DD
   readonly noteId?: string;
+  readonly tags: readonly string[]; // tema/assunto — eixo do grafo
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -19,6 +20,7 @@ export type CreateTaskInput = {
   readonly order?: number;
   readonly dueDate?: string;
   readonly noteId?: string;
+  readonly tags?: readonly string[];
 };
 
 export type UpdateTaskInput = {
@@ -28,6 +30,7 @@ export type UpdateTaskInput = {
   readonly order?: number;
   readonly dueDate?: string | null; // null = remover campo
   readonly noteId?: string | null; // null = remover campo
+  readonly tags?: readonly string[];
 };
 
 export type ReorderInput = {

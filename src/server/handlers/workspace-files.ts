@@ -5,7 +5,6 @@ import type { HandlerDeps } from '../types.ts';
 const IGNORED_DIRS = new Set([
   'node_modules',
   '.git',
-  '.nordic',
   'dist',
   'build',
   '.next',

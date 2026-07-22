@@ -5,6 +5,7 @@ import type {
   MacroPreview,
   UpdateMacroInput,
 } from './types.ts';
+import { normalizeTags } from '../tags/normalize.ts';
 
 const GLOBAL = '_global_';
 const key = (id: string) => ['macros', GLOBAL, id] as const;
@@ -24,6 +25,7 @@ const toPreview = (m: Macro): MacroPreview => ({
   title: m.title,
   description: m.description,
   interpreter: m.interpreter,
+  tags: m.tags,
   createdAt: m.createdAt,
   updatedAt: m.updatedAt,
 });
@@ -39,6 +41,7 @@ export const createMacro = async (
     description: input.description ?? '',
     script: input.script,
     interpreter: detectInterpreter(input.script),
+    tags: normalizeTags(input.tags),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -72,6 +75,7 @@ export const updateMacro = async (
     ...(input.script !== undefined
       ? { script, interpreter: detectInterpreter(script) }
       : {}),
+    ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     updatedAt: new Date().toISOString(),
   };
   await kv.set(key(id), updated);

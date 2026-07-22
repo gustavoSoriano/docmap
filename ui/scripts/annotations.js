@@ -1,9 +1,16 @@
-// ════ Anotações do markmap (contextuais ao documento) ════
+// ════ Anotações do markmap (contextuais ao documento/nota) ════
 // Persistidas via /comments no backend. Separado da base de Notas.
 
 let annotations = [];
 let popQuote = null;
 let popType  = 'note';
+let currentAnnotationContext = null; // 'note:<id>' ou caminho de arquivo
+let currentAnnotationLabel   = '';   // título legível para o cabeçalho ao copiar
+
+const setAnnotationContext = (ctx, label) => {
+  currentAnnotationContext = ctx;
+  currentAnnotationLabel   = label || '';
+};
 
 const TYPE_LABEL = {
   note:     'Nota',
@@ -87,14 +94,14 @@ const openAnnotPopover = (quote, x, y) => {
 const closeAnnotPopover = () => { $('annot-popover').classList.remove('visible'); popQuote = null; };
 
 const saveAnnotation = async () => {
-  if (!popQuote || !currentFile) return;
+  if (!popQuote || !currentAnnotationContext) return;
   const note = $('pop-textarea').value.trim();
   if (!note) return deleteAnnotation();
 
   await fetch('/comments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file: currentFile, quote: popQuote, note, type: popType }),
+    body: JSON.stringify({ file: currentAnnotationContext, quote: popQuote, note, type: popType }),
   });
   const idx = annotations.findIndex((a) => a.quote === popQuote);
   const entry = { quote: popQuote, note, type: popType, updatedAt: new Date().toISOString() };
@@ -107,7 +114,7 @@ const saveAnnotation = async () => {
 };
 
 const deleteAnnotation = async () => {
-  if (!popQuote || !currentFile) return;
+  if (!popQuote || !currentAnnotationContext) return;
   await postDeleteAnnotation(popQuote);
   closeAnnotPopover();
 };
@@ -116,7 +123,7 @@ const postDeleteAnnotation = async (quote) => {
   await fetch('/comments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file: currentFile, quote, note: '' }),
+    body: JSON.stringify({ file: currentAnnotationContext, quote, note: '' }),
   });
   annotations = annotations.filter((a) => a.quote !== quote);
   renderAnnotations();
@@ -124,7 +131,8 @@ const postDeleteAnnotation = async (quote) => {
 };
 
 const editAnnotation = (quote) => {
-  const rect = $('markmap-pane').getBoundingClientRect();
+  const anchor = $('note-markmap') || document.body;
+  const rect = anchor.getBoundingClientRect();
   openAnnotPopover(quote, rect.left + rect.width / 2 - 165, rect.top + 70);
 };
 
@@ -133,7 +141,8 @@ const removeAnnotation = (quote) => postDeleteAnnotation(quote);
 // ── Copiar para IA ──
 const copyAnnotationsForAI = () => {
   if (!annotations.length) return toast('Nenhuma anotação para copiar');
-  const lines = [`# Anotações — ${currentFile}`, ''];
+  const label = currentAnnotationLabel || currentAnnotationContext || 'nota';
+  const lines = [`# Anotações — ${label}`, ''];
   for (const a of annotations) {
     lines.push(`## ${TYPE_LABEL[a.type] || '◦ Nota'}`);
     lines.push(`> Trecho: "${a.quote}"`);

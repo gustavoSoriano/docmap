@@ -1,4 +1,4 @@
-import { createGraphHandler } from './handlers/graph.ts';
+import { graphHandler } from '../graph/handler.ts';
 import { createContentHandler } from './handlers/content.ts';
 import { createSearchHandler } from './handlers/search.ts';
 import { createCommentsHandler } from './handlers/comments.ts';
@@ -25,7 +25,7 @@ import { notFound } from './response.ts';
 import type { HandlerDeps } from './types.ts';
 
 export const createRouter = (deps: HandlerDeps) => {
-  const graph = createGraphHandler(deps);
+  const graph = graphHandler(deps.kv);
   const content = createContentHandler(deps);
   const search = createSearchHandler(deps);
   const comments = createCommentsHandler(deps);

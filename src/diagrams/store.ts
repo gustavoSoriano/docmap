@@ -4,6 +4,7 @@ import type {
   DiagramPreview,
   UpdateDiagramInput,
 } from './types.ts';
+import { normalizeTags } from '../tags/normalize.ts';
 
 const GLOBAL = '_global_';
 const key = (id: string) => ['diagrams', GLOBAL, id] as const;
@@ -12,6 +13,7 @@ const PREFIX = ['diagrams', GLOBAL] as const;
 const toPreview = (d: Diagram): DiagramPreview => ({
   id: d.id,
   title: d.title,
+  tags: d.tags,
   preview: d.source.slice(0, 120),
   createdAt: d.createdAt,
   updatedAt: d.updatedAt,
@@ -25,6 +27,7 @@ export const createDiagram = async (
     id: crypto.randomUUID(),
     title: input.title,
     source: input.source,
+    tags: normalizeTags(input.tags),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -51,6 +54,7 @@ export const updateDiagram = async (
     ...existing,
     ...(input.title !== undefined ? { title: input.title } : {}),
     ...(input.source !== undefined ? { source: input.source } : {}),
+    ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     updatedAt: new Date().toISOString(),
   };
   await kv.set(key(id), updated);

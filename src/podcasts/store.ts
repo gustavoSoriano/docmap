@@ -14,6 +14,7 @@ import type {
   PodcastPreview,
   UpdatePodcastInput,
 } from './types.ts';
+import { normalizeTags } from '../tags/normalize.ts';
 
 const GLOBAL = '_global_';
 const key = (id: string) => ['podcasts', GLOBAL, id] as const;
@@ -23,6 +24,7 @@ export const toPreview = (p: Podcast): PodcastPreview => ({
   id: p.id,
   title: p.title,
   folder: p.folder,
+  tags: p.tags,
   voices: p.voices,
   status: p.status,
   ...(p.error !== undefined ? { error: p.error } : {}),
@@ -95,6 +97,7 @@ export const updatePodcast = async (
     ...(input.folder !== undefined
       ? { folder: input.folder.trim() || DEFAULT_FOLDER }
       : {}),
+    ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     updatedAt: new Date().toISOString(),
   };
   await kv.set(key(id), updated);

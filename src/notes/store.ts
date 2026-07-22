@@ -4,6 +4,7 @@ import type {
   NotePreview,
   UpdateNoteInput,
 } from './types.ts';
+import { normalizeTags } from '../tags/normalize.ts';
 
 // Notas são globais — não dependem do workspace aberto.
 const GLOBAL = '_global_';
@@ -28,7 +29,7 @@ export const createNote = async (
     id: crypto.randomUUID(),
     title: input.title,
     content: input.content,
-    tags: input.tags ?? [],
+    tags: normalizeTags(input.tags),
     category: input.category?.trim() || 'general',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -56,7 +57,7 @@ export const updateNote = async (
     ...existing,
     ...(input.title !== undefined ? { title: input.title } : {}),
     ...(input.content !== undefined ? { content: input.content } : {}),
-    ...(input.tags !== undefined ? { tags: input.tags } : {}),
+    ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     ...(input.category !== undefined ? { category: input.category } : {}),
     updatedAt: new Date().toISOString(),
   };

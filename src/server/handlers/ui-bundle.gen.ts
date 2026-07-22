@@ -624,364 +624,6 @@ body::before {
 
 </style>
     <style>
-/* ════════ Graph pane ════════ */
-#graph-pane {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(1200px 700px at 50% 45%, rgba(255,255,255,.015), transparent
-    70%),
-    var(--bg);
-}
-/* faint dot grid */
-#graph-pane::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,.035) 1px,
-    transparent 1px);
-  background-size: 26px 26px;
-  pointer-events: none;
-}
-
-svg#graph {
-  width: 100%;
-  height: 100%;
-  display: block;
-  position: relative;
-}
-
-/* ── Links ── */
-.link {
-  stroke: var(--border-hi);
-  stroke-width: 1.3px;
-  stroke-opacity: .6;
-}
-.link.highlighted {
-  stroke: var(--accent);
-  stroke-width: 2px;
-  stroke-opacity: 1;
-}
-
-/* ── Nodes ── */
-.node {
-  cursor: pointer;
-}
-.node circle {
-  transition: transform .18s ease, filter .18s;
-}
-.node .node-core {
-  stroke-width: 2px;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.5));
-}
-.node:hover .node-core {
-  transform: scale(1.16);
-}
-.node.selected .node-core {
-  stroke-width: 2.5px;
-}
-.node.dimmed {
-  opacity: .22;
-}
-
-.node text {
-  font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 600;
-  fill: var(--text-2);
-  pointer-events: none;
-  paint-order: stroke;
-  stroke: var(--bg);
-  stroke-width: 3.5px;
-  stroke-linejoin: round;
-}
-.node:hover text,
-.node.selected text {
-  fill: var(--text);
-}
-
-/* ── Legend ── */
-.legend {
-  position: absolute;
-  bottom: 18px;
-  left: 18px;
-  background: rgba(16,18,22,.82);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 12px 14px;
-  font-size: 11.5px;
-  color: var(--text-2);
-  box-shadow: var(--sh-md);
-}
-.legend-title {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 9px;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 6px;
-  line-height: 1;
-}
-.legend-item:last-child {
-  margin-bottom: 0;
-}
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: 0 0 8px currentColor;
-}
-
-/* ── Fit button ── */
-.map-tool {
-  position: absolute;
-  border: 1px solid var(--border);
-  background: rgba(16,18,22,.82);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--sh-md);
-  cursor: pointer;
-  transition: all .15s;
-  color: var(--text-2);
-}
-.fit-btn {
-  bottom: 18px;
-  right: 18px;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-md);
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-}
-.fit-btn:hover {
-  border-color: var(--accent-line);
-  color: var(--accent);
-  transform: translateY(-2px);
-}
-
-/* ── No workspace ── */
-#no-workspace {
-  position: absolute;
-  inset: 0;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  z-index: 10;
-}
-#no-workspace.visible {
-  display: flex;
-}
-#no-workspace-mark {
-  width: 72px;
-  height: 72px;
-  display: grid;
-  place-items: center;
-  font-size: 32px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-line);
-  border-radius: 20px;
-  margin-bottom: 4px;
-}
-#no-workspace-title {
-  font-size: 19px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -.01em;
-}
-#no-workspace-hint {
-  font-size: 13px;
-  color: var(--text-3);
-}
-#no-workspace-btn {
-  margin-top: 10px;
-  padding: 10px 22px;
-  border: none;
-  border-radius: var(--r-md);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(55,217,154,.3);
-  transition: all .15s;
-}
-#no-workspace-btn:hover {
-  background: var(--accent-2);
-  transform: translateY(-2px);
-}
-
-/* ── Node metadata panel ── */
-#node-meta {
-  position: absolute;
-  bottom: 18px;
-  right: 70px;
-  background: rgba(16,18,22,.92);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--border-hi);
-  border-radius: var(--r-md);
-  padding: 14px 16px 12px;
-  box-shadow: var(--sh-lg);
-  min-width: 224px;
-  max-width: 300px;
-  display: none;
-  flex-direction: column;
-  gap: 11px;
-  z-index: 20;
-  animation: popIn .14s ease;
-}
-#node-meta.visible {
-  display: flex;
-}
-#node-meta-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-#node-meta-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-#node-meta-close {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  border: none;
-  background: transparent;
-  color: var(--text-3);
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 13px;
-  transition: color .12s, background .12s;
-}
-#node-meta-close:hover {
-  color: var(--text);
-  background: var(--surface-3);
-}
-#node-meta-close .ico {
-  width: 12px;
-  height: 12px;
-}
-#node-meta-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.node-meta-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-}
-.node-meta-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--text-3);
-  flex-shrink: 0;
-}
-.node-meta-value {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--text-2);
-  text-align: right;
-}
-/* ── Authors section ── */
-#nm-authors-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-}
-#nm-authors-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.nm-author-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 3px 0;
-  border-bottom: 1px solid var(--border);
-}
-.nm-author-row:last-child {
-  border-bottom: none;
-}
-.nm-author-name {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--text-2);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.nm-author-count {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-3);
-  flex-shrink: 0;
-  background: var(--surface-3);
-  padding: 1px 7px;
-  border-radius: 10px;
-}
-.nm-placeholder {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--text-3);
-}
-#nm-open-markmap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 12px;
-  border: 1px solid var(--accent-line);
-  border-radius: var(--r-sm);
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .13s;
-}
-#nm-open-markmap:hover {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-#nm-open-markmap .ico {
-  width: 13px;
-  height: 13px;
-}
-
-</style>
-    <style>
 /* ════════ Markmap pane ════════ */
 #markmap-pane {
   width: 100%;
@@ -1027,33 +669,6 @@ svg#graph {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
-}
-
-#btn-back-graph {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 11px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--text-3);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all .13s;
-}
-#btn-back-graph:hover {
-  border-color: var(--border-hi);
-  color: var(--text);
-  background: var(--surface-2);
-}
-#btn-back-graph .ico {
-  width: 13px;
-  height: 13px;
 }
 
 .pill-btn {
@@ -1208,6 +823,7 @@ svg#graph {
   transition: opacity .12s ease, transform .12s ease;
 }
 #markmap-comment-btn.visible {
+  display: block;
   opacity: 1;
   animation: popIn .15s ease;
 }
@@ -6660,14 +6276,162 @@ mark.fav-hl {
 }
 
 </style>
+    <style>
+/* ════ Grafo de conhecimento ════ */
+#mode-graph {
+  flex-direction: column;
+  position: relative;
+  /* cor por tipo de nó — lidas pelo graph.js via getComputedStyle */
+  --kg-note: #6ea8fe;
+  --kg-task: #f6a06a;
+  --kg-diagram: #a78bfa;
+  --kg-macro: #4ade80;
+  --kg-podcast: #f472b6;
+  --kg-favorite: #fbbf24;
+  --kg-skill: #22d3ee;
+  --kg-tag: var(--text-3);
+}
+
+#kg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+.kg-title {
+  font-weight: 600;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.kg-title .ico { width: 15px; height: 15px; }
+#kg-count {
+  color: var(--text-3);
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+.kg-tool-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  border-radius: 7px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+}
+.kg-tool-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+}
+
+#kg-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.kg-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+  cursor: pointer;
+  user-select: none;
+  transition: opacity .12s, color .12s;
+}
+.kg-leg:hover { color: var(--text); }
+.kg-leg.off { opacity: .38; text-decoration: line-through; }
+.kg-leg i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.kg-leg-note i { background: var(--kg-note); }
+.kg-leg-task i { background: var(--kg-task); }
+.kg-leg-diagram i { background: var(--kg-diagram); }
+.kg-leg-macro i { background: var(--kg-macro); }
+.kg-leg-podcast i { background: var(--kg-podcast); }
+.kg-leg-favorite i { background: var(--kg-favorite); }
+.kg-leg-skill i { background: var(--kg-skill); }
+.kg-leg-tag i { background: var(--kg-tag); }
+
+#kg-canvas {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background:
+    radial-gradient(1200px 700px at 50% 45%, rgba(255, 255, 255, .015),
+    transparent 70%), var(--bg);
+}
+svg#kg-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+svg#kg-svg:active { cursor: grabbing; }
+
+.kg-link { stroke: var(--border-hi); stroke-width: 1.2; stroke-opacity: .6; }
+.kg-link-reference { stroke: var(--kg-task); stroke-width: 2; stroke-opacity: .85; }
+.kg-link.kg-hi { stroke: var(--accent); stroke-width: 2.4; stroke-opacity: 1; }
+.kg-link.kg-dim { opacity: .06; }
+
+.kg-node { cursor: pointer; }
+.kg-halo { pointer-events: none; }
+.kg-core {
+  stroke: var(--bg);
+  stroke-width: 2;
+  transition: transform .16s ease;
+}
+.kg-node:hover .kg-core { transform: scale(1.15); }
+.kg-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  fill: var(--text-2);
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
+.kg-node-tag .kg-label { fill: var(--text-3); font-style: italic; }
+.kg-node.kg-selected .kg-core { stroke: var(--text); stroke-width: 3; }
+.kg-node.kg-selected .kg-label { fill: var(--text); font-weight: 600; }
+.kg-node.kg-dim { opacity: .15; }
+.kg-node.kg-dim .kg-label { opacity: 0; }
+
+#kg-empty {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-3);
+  text-align: center;
+  padding: 40px;
+}
+#kg-empty[data-show="1"] { display: flex; }
+.kg-empty-mark { width: 44px; height: 44px; opacity: .4; }
+.kg-empty-hint { font-size: 13px; max-width: 340px; line-height: 1.55; }
+
+</style>
   </head>
   <body>
     <!-- ════ Left rail — mode switcher ════ -->
     <nav id="rail">
       <div id="rail-logo" title="docmap">◆</div>
-      <button class="rail-btn active" id="rail-map" onclick="setMode('map')"
-        title="Mapa">
-    <span class="rail-ico" data-icon="map"></span><span class="rail-lbl">Mapa</span>
+      <button class="rail-btn active" id="rail-graph" onclick="setMode('graph')"
+        title="Grafo de conhecimento">
+    <span class="rail-ico" data-icon="waypoints"></span><span class="rail-lbl">Grafo</span>
   </button>
       <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
         title="Notas">
@@ -6744,132 +6508,6 @@ mark.fav-hl {
         <button id="theme-toggle" title="Alternar tema"></button>
       </header>
 
-      <!-- ═══ MODE: MAP ═══ -->
-      <main id="mode-map" class="mode active">
-        <!-- Tabs -->
-        <div id="map-tabs">
-          <button class="map-tab active" id="tab-graph"
-            onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
-          <button id="map-open-btn" onclick="pickWorkspace()"
-            title="Abrir pasta">
-        <span data-icon="folder"></span> Pasta
-      </button>
-        </div>
-
-        <div id="map-panes">
-          <!-- Graph pane -->
-          <section id="graph-pane" class="map-pane active">
-            <div id="no-workspace">
-              <div id="no-workspace-mark" data-icon="share"></div>
-              <div id="no-workspace-title">Nenhum território carregado</div>
-              <div
-                id="no-workspace-hint">Selecione uma pasta para mapear seus documentos</div>
-              <button id="no-workspace-btn"
-                onclick="pickWorkspace()"><span data-icon="folder"></span> Abrir pasta</button>
-            </div>
-            <svg id="graph"></svg>
-            <button class="map-tool fit-btn" title="Centralizar"
-              onclick="fitGraph()" data-icon="fit"></button>
-
-            <!-- Node metadata panel -->
-            <div id="node-meta">
-              <div id="node-meta-header">
-                <span id="node-meta-name"></span>
-                <button id="node-meta-close" onclick="clearNodeMeta()"
-                  title="Fechar" data-icon="x"></button>
-              </div>
-              <div id="node-meta-stats">
-                <div class="node-meta-row">
-                  <span class="node-meta-label">Commits</span>
-                  <span class="node-meta-value" id="nm-commits">—</span>
-                </div>
-                <div class="node-meta-row">
-                  <span class="node-meta-label">Atualizado</span>
-                  <span class="node-meta-value" id="nm-date">—</span>
-                </div>
-              </div>
-              <div id="nm-authors-section">
-                <span class="node-meta-label">Autores</span>
-                <div
-                  id="nm-authors-list"><span class="nm-placeholder">—</span></div>
-              </div>
-              <button id="nm-open-markmap" onclick="openMarkmap()">
-            <span data-icon="tree"></span> Mapa Mental
-          </button>
-            </div>
-
-            <div class="legend">
-              <div class="legend-title">Legenda</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-entry)"></i>Entrada</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-arch)"></i>Arquitetura</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-design)"></i>Design</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-security)"></i>Segurança</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-process)"></i>Processo</div>
-            </div>
-          </section>
-
-          <!-- Markmap pane -->
-          <section id="markmap-pane" class="map-pane">
-            <div id="markmap-header">
-              <button id="btn-back-graph"
-                onclick="setMapTab('graph')"><span data-icon="arrow-left"></span> Documentos</button>
-              <div id="markmap-titles">
-                <span id="markmap-filename">Nenhum documento</span>
-                <span id="markmap-filepath"></span>
-              </div>
-              <div id="markmap-actions">
-                <button class="pill-btn" id="btn-annot" style="display:none"
-                  onclick="toggleAnnotations()">
-              <span data-icon="highlighter"></span> Anotações <span class="pill-count" id="annot-count">0</span>
-            </button>
-                <button class="pill-btn" id="btn-copy-path" style="display:none"
-                  onclick="copyFilePath()"><span data-icon="copy"></span> Copiar caminho</button>
-              </div>
-            </div>
-
-            <div id="markmap-container">
-              <div id="map-empty">
-                <div id="map-empty-mark" data-icon="tree"></div>
-                <div
-                  id="map-empty-text">Clique duas vezes num nó do grafo para abrir seu mapa mental</div>
-              </div>
-              <div id="markmap-hint"></div>
-              <button id="markmap-comment-btn" type="button"
-                style="display:none">Comentar</button>
-              <div id="markmap-tools">
-                <button class="map-tool mm-tool" data-icon="zoom-in"
-                  title="Aproximar" onclick="markmapZoom(1.25)"></button>
-                <button class="map-tool mm-tool" data-icon="zoom-out"
-                  title="Afastar" onclick="markmapZoom(0.8)"></button>
-                <button class="map-tool mm-tool" data-icon="fit"
-                  title="Centralizar / ajustar" onclick="markmapFit()"></button>
-              </div>
-            </div>
-
-            <!-- Annotations drawer (contextual to current doc) -->
-            <aside id="annot-panel">
-              <div id="annot-head">
-                <span id="annot-head-title">Anotações do documento</span>
-                <button class="ghost-btn" id="annot-copy-all"
-                  onclick="copyAnnotationsForAI()"
-                  title="Copiar todas para colar numa IA">
-              <span data-icon="sparkles"></span> Copiar p/ IA
-            </button>
-              </div>
-              <div id="annot-list">
-                <div
-                  id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>
-              </div>
-            </aside>
-          </section>
-        </div>
-      </main>
-
       <!-- ═══ MODE: NOTES ═══ -->
       <main id="mode-notes" class="mode">
         <section id="notes-col">
@@ -6918,6 +6556,9 @@ mark.fav-hl {
               <button class="note-head-btn" id="btn-note-markmap"
                 style="display:none" onclick="toggleNoteMarkmap()"
                 title="Ver como mapa mental"><span data-icon="tree"></span></button>
+              <button class="note-head-btn" id="btn-annot"
+                style="display:none;width:auto;padding:0 9px;gap:5px;" onclick="toggleAnnotations()"
+                title="Anotações do mapa mental"><span data-icon="highlighter"></span><span id="annot-count" style="font-size:10px">0</span></button>
             </div>
             <div id="note-toolbar">
               <div id="note-cat-field">
@@ -6944,6 +6585,21 @@ mark.fav-hl {
               <div id="note-preview"></div>
               <div id="note-markmap"></div>
             </div>
+
+            <!-- Annotation panel (contextual ao markmap da nota) -->
+            <aside id="annot-panel">
+              <div id="annot-head">
+                <span id="annot-head-title">Anotações da nota</span>
+                <button class="ghost-btn" id="annot-copy-all"
+                  onclick="copyAnnotationsForAI()"
+                  title="Copiar todas para colar numa IA">
+              <span data-icon="sparkles"></span> Copiar p/ IA
+            </button>
+              </div>
+              <div id="annot-list">
+                <div id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>
+              </div>
+            </aside>
           </div>
         </section>
       </main>
@@ -7467,6 +7123,25 @@ mark.fav-hl {
           </div>
         </section>
       </main>
+
+      <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
+      <main id="mode-graph" class="mode active">
+        <div id="kg-toolbar">
+          <span class="kg-title"><span data-icon="waypoints"></span> Grafo de conhecimento</span>
+          <span id="kg-count"></span>
+          <button class="kg-tool-btn" onclick="loadGraph()">↻ Recarregar</button>
+          <button class="kg-tool-btn" onclick="fitKg()">⤢ Ajustar</button>
+          <button class="kg-tool-btn" onclick="clearKgSelection()">Limpar seleção</button>
+          <div id="kg-legend"></div>
+        </div>
+        <div id="kg-canvas">
+          <svg id="kg-svg"></svg>
+          <div id="kg-empty">
+            <span class="kg-empty-mark" data-icon="waypoints"></span>
+            <div class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, diagramas… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
+          </div>
+        </div>
+      </main>
     </div>
 
     <!-- Quick-Add / Edit Modal -->
@@ -7589,6 +7264,9 @@ mark.fav-hl {
         </div>
       </div>
     </div>
+
+    <!-- Floating comment button (shown on text selection in note markmap) -->
+    <button id="markmap-comment-btn" type="button">Comentar</button>
 
     <!-- Annotation popover -->
     <div id="annot-popover">
@@ -7867,63 +7545,40 @@ document.addEventListener('DOMContentLoaded', () => {
     <script>
 // ════ App shell — alternância de modos e atalhos globais ════
 
-let currentMode = 'map';
+let currentMode = 'graph';
 
-const MODE_LABEL = { map: 'Mapa', notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', graph: 'Grafo' };
 
 const setMode = (mode) => {
   currentMode = mode;
 
   document.querySelectorAll('.mode').forEach((m) => m.classList.remove('active'));
-  $('mode-' + mode).classList.add('active');
+  $('mode-' + mode)?.classList.add('active');
 
   document.querySelectorAll('.rail-btn').forEach((b) => b.classList.remove('active'));
   $('rail-' + mode)?.classList.add('active');
 
   updateTopbarCrumb();
 
-  // Search placeholder muda conforme o modo
   const search = $('search-input');
-  if (mode === 'notes') {
-    search.placeholder = 'Buscar notas…';
-  } else {
-    search.placeholder = 'Buscar nos documentos…';
-  }
+  if (search) search.placeholder = mode === 'graph' ? 'Buscar no grafo…' : 'Buscar notas…';
+  $('search-results')?.classList.remove('visible');
 
-  if (mode === 'macros')        loadMacrosList();
-  else if (mode === 'notes')    loadNotesList();
-  else if (mode === 'skills')   loadSkillsList();
-  else if (mode === 'diagrams') loadDiagramsList();
-  else if (mode === 'tasks')    loadTasks();
+  if (mode === 'macros')         loadMacrosList();
+  else if (mode === 'notes')     loadNotesList();
+  else if (mode === 'skills')    loadSkillsList();
+  else if (mode === 'diagrams')  loadDiagramsList();
+  else if (mode === 'tasks')     loadTasks();
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
-  else if (sim) requestAnimationFrame(fitGraph);
+  else if (mode === 'graph')     loadGraph();
 };
 
 const updateTopbarCrumb = () => {
   const crumb = $('topbar-crumb');
   if (!crumb) return;
   crumb.innerHTML = '';
-};
-
-// ── Tabs dentro do modo Mapa ──
-let currentMapTab = 'graph';
-
-const setMapTab = (tab) => {
-  currentMapTab = tab;
-  document.querySelectorAll('.map-pane').forEach((p) => p.classList.remove('active'));
-  document.querySelectorAll('.map-tab').forEach((t) => t.classList.remove('active'));
-
-  const paneId = tab === 'graph' ? 'graph-pane'
-    : tab === 'markmap' ? 'markmap-pane'
-    : null;
-  const tabId = 'tab-' + tab;
-
-  if (paneId && $(paneId)) $(paneId).classList.add('active');
-  if ($(tabId)) $(tabId).classList.add('active');
-
-  if (tab === 'graph' && sim) requestAnimationFrame(fitGraph);
 };
 
 // ── Global keyboard shortcuts ──
@@ -7936,62 +7591,14 @@ document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key === 'Enter' && $('annot-popover')?.classList.contains('visible')) {
     saveAnnotation();
   }
-  // Alternar modos: Cmd/Ctrl + 1 / 2
-  if ((e.metaKey || e.ctrlKey) && e.key === '1') { e.preventDefault(); setMode('map'); }
-  if ((e.metaKey || e.ctrlKey) && e.key === '2') { e.preventDefault(); setMode('notes'); }
+  if ((e.metaKey || e.ctrlKey) && e.key === '1') { e.preventDefault(); setMode('notes'); }
+  if ((e.metaKey || e.ctrlKey) && e.key === '2') { e.preventDefault(); setMode('macros'); }
 });
 
 </script>
     <script>
-// ════ Workspace — seleção de pasta ════
+// ════ Deep links — abre diagram/podcast/task direto pela URL ════
 
-let currentWorkspace = null;
-
-const setNoWorkspace = (on) => {
-  $('no-workspace').classList.toggle('visible', on);
-  $('graph').style.opacity = on ? '0' : '1';
-  $('topbar-path').textContent = on ? 'nenhuma pasta' : (currentWorkspace?.name + '/');
-  if (typeof updateTopbarCrumb === 'function') updateTopbarCrumb();
-};
-
-const applyWorkspace = (data) => {
-  currentWorkspace = data;
-  setNoWorkspace(false);
-  loadGraph();
-  if (currentMode === 'notes') loadNotesList();
-};
-
-const pickWorkspace = async () => {
-  const before = currentWorkspace?.root ?? null;
-  fetch('/workspace/pick', { method: 'POST' }).catch(() => {});
-
-  for (let i = 0; i < 60; i++) {
-    await new Promise((r) => setTimeout(r, 500));
-    try {
-      const res = await fetch('/workspace');
-      const data = await res.json();
-      if (data.root && data.root !== before) {
-        applyWorkspace(data);
-        toast('Pasta carregada: ' + data.name);
-        return;
-      }
-    } catch { /* servidor ocupado, tenta de novo */ }
-  }
-  // Timeout de 30s: usuário cancelou o diálogo.
-};
-
-const initWorkspace = async () => {
-  try {
-    const res = await fetch('/workspace');
-    const data = await res.json();
-    if (data.root) applyWorkspace(data);
-    else setNoWorkspace(true);
-  } catch {
-    setNoWorkspace(true);
-  }
-};
-
-// ── Deep link: #diagram/:id  |  #podcast/:id ──
 const handleDeepLink = () => {
   const hash = window.location.hash;
   const diag = hash.match(/^#diagram\\/([a-f0-9-]{36})$/);
@@ -8006,387 +7613,23 @@ const handleDeepLink = () => {
     setMode('podcasts');
     openPodcast(pod[1]);
     history.replaceState(null, '', '/');
+    return;
   }
+  const task = hash.match(/^#task\\/([a-f0-9-]{36})$/);
+  if (task) {
+    setMode('tasks');
+    history.replaceState(null, '', '/');
+    return;
+  }
+  // Sem deep link → abre no grafo por padrão.
+  setMode('graph');
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  initWorkspace();
-  handleDeepLink();
-});
+document.addEventListener('DOMContentLoaded', handleDeepLink);
 
 </script>
     <script>
-// ════ Force graph (D3) ════
-
-let sim = null;
-let zoomBehavior = null;
-let graphG = null;
-let graphLinkSel = null;
-let graphNodeSel = null;
-let graphLinks = [];
-let _selectedNodeId = null;
-let _userHasInteracted = false;
-
-const NODE_COLOR = {
-  entry:    getCss('--cat-entry'),
-  arch:     getCss('--cat-arch'),
-  design:   getCss('--cat-design'),
-  security: getCss('--cat-security'),
-  process:  getCss('--cat-process'),
-  default:  getCss('--cat-default'),
-};
-
-function getCss(name) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#999';
-}
-
-const loadGraph = async () => {
-  try {
-    const res  = await fetch('/graph');
-    const data = await res.json();
-    renderGraph(data);
-  } catch (err) {
-    console.error('Erro ao carregar grafo:', err);
-    toast('Erro ao carregar grafo');
-  }
-};
-
-const renderGraph = (data) => {
-  const svg = d3.select('#graph');
-  svg.selectAll('*').remove();
-
-  const panel = $('graph-pane');
-  const W = panel.offsetWidth;
-  const H = panel.offsetHeight;
-
-  graphG = svg.append('g');
-  zoomBehavior = d3.zoom().scaleExtent([0.15, 5]).on('zoom', (e) => graphG.attr('transform', e.transform));
-  svg.call(zoomBehavior);
-  svg.on('dblclick.zoom', null); // libera o duplo-clique para abrir o nó
-
-  // clone links so d3 mutation doesn't corrupt the source data
-  graphLinks = data.links.map((l) => ({ ...l }));
-  _userHasInteracted = false;
-
-  sim = d3.forceSimulation(data.nodes)
-    .force('link',      d3.forceLink(graphLinks).id((d) => d.id).distance(130))
-    .force('charge',    d3.forceManyBody().strength(-400))
-    .force('center',    d3.forceCenter(W / 2, H / 2))
-    .force('collision', d3.forceCollide(46));
-
-  graphLinkSel = graphG.append('g').attr('class', 'links')
-    .selectAll('line')
-    .data(graphLinks)
-    .join('line')
-    .attr('class', 'link');
-
-  graphNodeSel = graphG.append('g').attr('class', 'nodes')
-    .selectAll('g')
-    .data(data.nodes)
-    .join('g')
-    .attr('class', 'node')
-    .call(d3.drag()
-      .on('start', (e, d) => { _userHasInteracted = true; if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
-      .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
-      .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }))
-    .on('click',     (e, d) => selectNode(d.id))
-    .on('dblclick',  (e, d) => { e.stopPropagation(); selectNode(d.id); loadFile(d.id); })
-    .on('mouseover', (e, d) => showNodeTooltip(e, d))
-    .on('mousemove', (e)    => moveTooltip(e))
-    .on('mouseout',  ()     => hideTooltip());
-
-  // halo
-  graphNodeSel.append('circle')
-    .attr('r', (d) => (d.group === 'entry' ? 17 : 11) + 7)
-    .attr('fill', (d) => (NODE_COLOR[d.group] || NODE_COLOR.default) + '22')
-    .attr('stroke', 'none');
-
-  // core
-  graphNodeSel.append('circle')
-    .attr('class', 'node-core')
-    .attr('r', (d) => d.group === 'entry' ? 17 : 11)
-    .attr('fill', (d) => NODE_COLOR[d.group] || NODE_COLOR.default)
-    .attr('stroke', (d) => NODE_COLOR[d.group] || NODE_COLOR.default)
-    .attr('stroke-opacity', .35)
-    .style('transform-origin', 'center')
-    .style('transform-box', 'fill-box');
-
-  graphNodeSel.append('text')
-    .attr('dy', (d) => (d.group === 'entry' ? 17 : 11) + 15)
-    .attr('text-anchor', 'middle')
-    .text((d) => d.label);
-
-  sim.on('tick', () => {
-    graphLinkSel
-      .attr('x1', (d) => d.source.x).attr('y1', (d) => d.source.y)
-      .attr('x2', (d) => d.target.x).attr('y2', (d) => d.target.y);
-    graphNodeSel.attr('transform', (d) => \`translate(\${d.x},\${d.y})\`);
-  });
-
-  // Only auto-fit on initial layout — after user drags a node, respect their viewport
-  sim.on('end', () => { if (!_userHasInteracted) requestAnimationFrame(fitGraph); });
-};
-
-// ── Selection + neighbor highlight ──
-const selectNode = (id) => {
-  const neighbors = new Set([id]);
-  graphLinks.forEach((l) => {
-    const s = l.source.id || l.source;
-    const t = l.target.id || l.target;
-    if (s === id) neighbors.add(t);
-    if (t === id) neighbors.add(s);
-  });
-
-  graphNodeSel?.classed('selected', (d) => d.id === id)
-    .classed('dimmed', (d) => !neighbors.has(d.id));
-
-  graphLinkSel?.classed('highlighted', (l) =>
-    (l.source.id || l.source) === id || (l.target.id || l.target) === id);
-
-  showNodeMeta(id);
-};
-
-const showNodeMeta = async (id) => {
-  _selectedNodeId = id;
-  const label = id.split('/').pop().replace('.md', '');
-  $('node-meta-name').textContent = label;
-  $('nm-commits').textContent = '…';
-  $('nm-date').textContent = '…';
-  $('nm-authors-list').innerHTML = '<span class="nm-placeholder">…</span>';
-  $('node-meta').classList.add('visible');
-
-  try {
-    const res = await fetch('/git/filemeta?file=' + encodeURIComponent(id));
-    const data = await res.json();
-    $('nm-commits').textContent = data.commitCount > 0 ? String(data.commitCount) : '—';
-    $('nm-date').textContent = data.lastDate
-      ? new Date(data.lastDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-      : '—';
-    if (data.authors && data.authors.length > 0) {
-      $('nm-authors-list').innerHTML = data.authors.map((a) =>
-        \`<div class="nm-author-row"><span class="nm-author-name">\${escHtml(a.name)}</span><span class="nm-author-count">\${a.commits}</span></div>\`
-      ).join('');
-    } else {
-      $('nm-authors-list').innerHTML = '<span class="nm-placeholder">—</span>';
-    }
-  } catch {
-    $('nm-commits').textContent = '—';
-    $('nm-date').textContent = '—';
-    $('nm-authors-list').innerHTML = '<span class="nm-placeholder">—</span>';
-  }
-};
-
-const clearNodeMeta = () => {
-  _selectedNodeId = null;
-  $('node-meta').classList.remove('visible');
-  graphNodeSel?.classed('selected', false).classed('dimmed', false);
-  graphLinkSel?.classed('highlighted', false);
-};
-
-const openMarkmap = () => {
-  if (_selectedNodeId) loadFile(_selectedNodeId);
-};
-
-const fitGraph = () => {
-  if (!graphG || !zoomBehavior) return;
-  const panel = $('graph-pane');
-  const bounds = graphG.node().getBBox();
-  if (!bounds.width || !bounds.height) return;
-  const W = panel.offsetWidth, H = panel.offsetHeight;
-  const scale = Math.min(W / bounds.width, H / bounds.height) * 0.82;
-  const tx = (W - bounds.width * scale) / 2 - bounds.x * scale;
-  const ty = (H - bounds.height * scale) / 2 - bounds.y * scale;
-  d3.select('#graph').transition().duration(450)
-    .call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
-};
-
-// ── Tooltip ──
-const showNodeTooltip = (e, d) => {
-  const inc = graphLinks.filter((l) => (l.target.id || l.target) === d.id).length;
-  const out = graphLinks.filter((l) => (l.source.id || l.source) === d.id).length;
-  const el = $('tooltip');
-  el.innerHTML = \`\${escHtml(d.label)} · ←\${inc} →\${out} · <span style="opacity:.6">duplo-clique p/ abrir</span>\`;
-  el.style.opacity = '1';
-  moveTooltip(e);
-};
-const moveTooltip = (e) => {
-  const el = $('tooltip');
-  el.style.left = (e.clientX + 14) + 'px';
-  el.style.top  = (e.clientY - 8)  + 'px';
-};
-const hideTooltip = () => { $('tooltip').style.opacity = '0'; };
-
-</script>
-    <script>
-// ════ Markmap — renderiza o documento selecionado ════
-
-let currentFile = null;
-let currentSelectionQuote = null;
-let selectionBtnTimer = null;
-
-const loadFile = async (fileId) => {
-  currentFile = fileId;
-
-  const label = fileId.split('/').pop().replace('.md', '');
-  $('markmap-filename').textContent = label;
-  $('markmap-filepath').textContent = fileId;
-  $('btn-copy-path').style.display = 'flex';
-  $('btn-annot').style.display = 'flex';
-  $('markmap-tools').classList.add('visible');
-  $('map-empty')?.remove();
-
-  // Abre a aba do mapa mental automaticamente
-  setMapTab('markmap');
-
-  try {
-    const res  = await fetch('/content?file=' + encodeURIComponent(fileId));
-    const data = await res.json();
-    renderMarkmap(data.raw);
-    loadAnnotations(fileId);
-  } catch (err) {
-    console.error('Erro ao carregar arquivo:', err);
-    toast('Erro ao carregar documento');
-  }
-};
-
-const renderMarkmap = (markdown, tries = 0) => {
-  const mk = window.markmap;
-  // Espera markmap-view (Markmap) e markmap-lib (Transformer) carregarem.
-  if (!mk?.Markmap || !mk?.Transformer) {
-    if (tries < 40) return void setTimeout(() => renderMarkmap(markdown, tries + 1), 150);
-    return toast('markmap não carregou (sem internet?)');
-  }
-
-  const container = $('markmap-container');
-  container.querySelectorAll('svg.markmap-svg').forEach((el) => el.remove());
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.classList.add('markmap-svg');
-  svg.style.cssText = 'width:100%;height:100%;display:block;';
-  container.appendChild(svg);
-
-  const { root } = new mk.Transformer().transform(markdown);
-  if (window._markmap) { try { window._markmap.destroy(); } catch { /* noop */ } }
-  // autoFit: false — evita zoom automático ao colapsar/expandir nós
-  window._markmap = mk.Markmap.create(svg, { autoFit: false }, root);
-
-  setTimeout(() => {
-    bindSelectionButton();
-    showMarkmapHint();
-    window._markmap?.fit?.();
-  }, 300);
-};
-
-// Mostra/esconde o botão flutuante "Comentar" logo abaixo da seleção.
-const updateCommentButton = () => {
-  const btn = $('markmap-comment-btn');
-  const sel = window.getSelection();
-  const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
-  if (!range || range.collapsed) {
-    hideCommentButton();
-    return;
-  }
-
-  const container = $('markmap-container');
-  const text = sel.toString().trim();
-  if (!text || !container.contains(range.commonAncestorContainer)) {
-    hideCommentButton();
-    return;
-  }
-
-  currentSelectionQuote = text;
-  const rect = range.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
-
-  // Só mostra se a seleção estiver visível dentro do container.
-  if (rect.bottom < containerRect.top || rect.top > containerRect.bottom) {
-    hideCommentButton();
-    return;
-  }
-
-  const x = rect.left + rect.width / 2;
-  const y = rect.bottom + 8;
-
-  btn.style.left = \`\${x}px\`;
-  btn.style.top = \`\${y}px\`;
-  btn.classList.add('visible');
-  btn.style.display = 'block';
-};
-
-const hideCommentButton = () => {
-  currentSelectionQuote = null;
-  const btn = $('markmap-comment-btn');
-  btn.classList.remove('visible');
-  btn.style.display = 'none';
-};
-
-const onCommentButtonClick = () => {
-  const btn = $('markmap-comment-btn');
-  const quote = currentSelectionQuote;
-  if (!quote) return;
-  const rect = btn.getBoundingClientRect();
-  hideCommentButton();
-  openAnnotPopover(quote, rect.left + rect.width / 2, rect.bottom + 6);
-};
-
-// Bind uma única vez no container; a seleção de texto é lida no momento do clique.
-let selectionBound = false;
-const bindSelectionButton = () => {
-  if (selectionBound) return;
-  selectionBound = true;
-
-  const container = $('markmap-container');
-
-  // selectionchange pode disparar muito durante a seleção; debounce leve.
-  document.addEventListener('selectionchange', () => {
-    clearTimeout(selectionBtnTimer);
-    selectionBtnTimer = setTimeout(updateCommentButton, 80);
-  });
-
-  // Esconde ao clicar fora do botão (cliques no SVG não devem manter o botão antigo).
-  document.addEventListener('mousedown', (e) => {
-    const btn = $('markmap-comment-btn');
-    if (!btn.classList.contains('visible')) return;
-    if (e.target === btn || btn.contains(e.target)) return;
-    hideCommentButton();
-  });
-
-  // Esconde ao interagir com o markmap (zoom/pan/scroll).
-  container.addEventListener('scroll', hideCommentButton);
-
-  $('markmap-comment-btn').addEventListener('click', onCommentButtonClick);
-};
-
-let hintTimer = null;
-const showMarkmapHint = (msg) => {
-  const hint = $('markmap-hint');
-  hint.textContent = msg || 'Selecione um trecho do mapa para comentar';
-  hint.classList.add('visible');
-  clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => hint.classList.remove('visible'), 3000);
-};
-
-// ── Controles de zoom / foco do markmap ──
-// Usa a API do markmap-view; cai no d3-zoom da instância se rescale faltar.
-const markmapZoom = (factor) => {
-  const mm = window._markmap;
-  if (!mm) return;
-  if (typeof mm.rescale === 'function') mm.rescale(factor);
-  else if (mm.svg && mm.zoom) mm.svg.transition().duration(200).call(mm.zoom.scaleBy, factor);
-};
-
-const markmapFit = () => { window._markmap?.fit?.(); };
-
-// Copia o caminho ABSOLUTO no disco (a IA usa isso para abrir o arquivo).
-const copyFilePath = () => {
-  const root = currentWorkspace?.root;
-  const abs = root ? \`\${root}/\${currentFile}\` : currentFile;
-  copyToClipboard(abs, 'Caminho absoluto copiado');
-};
-
-</script>
-    <script>
-// ════ Busca (topbar) — docs no modo Mapa, notas no modo Notas ════
+// ════ Busca (topbar) — notas ════
 
 const searchInput   = $('search-input');
 const searchResults = $('search-results');
@@ -8394,46 +7637,10 @@ let lastQuery = '';
 
 const doSearch = debounce(async (q) => {
   lastQuery = q;
+  if (currentMode === 'graph') { filterGraph(q); return; }
   if (!q) { searchResults.classList.remove('visible'); return; }
-  if (currentMode === 'notes') return searchNotesTopbar(q);
-  return searchDocsTopbar(q);
+  searchNotesTopbar(q);
 }, 260);
-
-const searchDocsTopbar = async (q) => {
-  try {
-    const res = await fetch('/search?q=' + encodeURIComponent(q));
-    renderSearchResults(await res.json(), q);
-  } catch (err) { console.error('Erro na busca:', err); }
-};
-
-const renderSearchResults = (results, q) => {
-  if (!results.length) {
-    searchResults.innerHTML = \`<div class="search-empty">Nenhum resultado para <strong>\${escHtml(q)}</strong></div>\`;
-    searchResults.classList.add('visible');
-    return;
-  }
-  const header = \`<div class="search-count">\${results.length} resultado\${results.length !== 1 ? 's' : ''}</div>\`;
-  const items = results.map((r) => {
-    const snippet = highlightQuery(r.snippet, q);
-    const heading = r.heading ? \` · \${escHtml(r.heading)}\` : '';
-    const fileShort = r.file.split('/').pop().replace('.md', '');
-    const fileAttr = JSON.stringify(r.file).replace(/"/g, '&quot;');
-    return \`<div class="search-result" onclick="openDocFromSearch(\${fileAttr})">
-      <div class="search-result-file">\${escHtml(fileShort)}<span style="font-weight:400;color:var(--ink-3)">\${heading}</span></div>
-      <div class="search-result-heading">\${escHtml(r.file)}:\${r.line}</div>
-      <div class="search-result-snippet">\${snippet}</div>
-    </div>\`;
-  }).join('');
-  searchResults.innerHTML = header + items;
-  searchResults.classList.add('visible');
-};
-
-const openDocFromSearch = (file) => {
-  searchResults.classList.remove('visible');
-  if (currentMode !== 'map') setMode('map');
-  selectNode(file);
-  loadFile(file);
-};
 
 // Busca de notas na topbar → filtra a lista e mostra dropdown simples
 const searchNotesTopbar = (q) => {
@@ -8452,19 +7659,26 @@ const searchNotesTopbar = (q) => {
 };
 
 searchInput.addEventListener('input', (e) => doSearch(e.target.value.trim()));
-searchInput.addEventListener('focus', () => { if (lastQuery) searchResults.classList.add('visible'); });
+searchInput.addEventListener('focus', () => { if (lastQuery && currentMode !== 'graph') searchResults.classList.add('visible'); });
 document.addEventListener('mousedown', (e) => {
   if (!$('search-wrap').contains(e.target)) searchResults.classList.remove('visible');
 });
 
 </script>
     <script>
-// ════ Anotações do markmap (contextuais ao documento) ════
+// ════ Anotações do markmap (contextuais ao documento/nota) ════
 // Persistidas via /comments no backend. Separado da base de Notas.
 
 let annotations = [];
 let popQuote = null;
 let popType  = 'note';
+let currentAnnotationContext = null; // 'note:<id>' ou caminho de arquivo
+let currentAnnotationLabel   = '';   // título legível para o cabeçalho ao copiar
+
+const setAnnotationContext = (ctx, label) => {
+  currentAnnotationContext = ctx;
+  currentAnnotationLabel   = label || '';
+};
 
 const TYPE_LABEL = {
   note:     'Nota',
@@ -8548,14 +7762,14 @@ const openAnnotPopover = (quote, x, y) => {
 const closeAnnotPopover = () => { $('annot-popover').classList.remove('visible'); popQuote = null; };
 
 const saveAnnotation = async () => {
-  if (!popQuote || !currentFile) return;
+  if (!popQuote || !currentAnnotationContext) return;
   const note = $('pop-textarea').value.trim();
   if (!note) return deleteAnnotation();
 
   await fetch('/comments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file: currentFile, quote: popQuote, note, type: popType }),
+    body: JSON.stringify({ file: currentAnnotationContext, quote: popQuote, note, type: popType }),
   });
   const idx = annotations.findIndex((a) => a.quote === popQuote);
   const entry = { quote: popQuote, note, type: popType, updatedAt: new Date().toISOString() };
@@ -8568,7 +7782,7 @@ const saveAnnotation = async () => {
 };
 
 const deleteAnnotation = async () => {
-  if (!popQuote || !currentFile) return;
+  if (!popQuote || !currentAnnotationContext) return;
   await postDeleteAnnotation(popQuote);
   closeAnnotPopover();
 };
@@ -8577,7 +7791,7 @@ const postDeleteAnnotation = async (quote) => {
   await fetch('/comments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file: currentFile, quote, note: '' }),
+    body: JSON.stringify({ file: currentAnnotationContext, quote, note: '' }),
   });
   annotations = annotations.filter((a) => a.quote !== quote);
   renderAnnotations();
@@ -8585,7 +7799,8 @@ const postDeleteAnnotation = async (quote) => {
 };
 
 const editAnnotation = (quote) => {
-  const rect = $('markmap-pane').getBoundingClientRect();
+  const anchor = $('note-markmap') || document.body;
+  const rect = anchor.getBoundingClientRect();
   openAnnotPopover(quote, rect.left + rect.width / 2 - 165, rect.top + 70);
 };
 
@@ -8594,7 +7809,8 @@ const removeAnnotation = (quote) => postDeleteAnnotation(quote);
 // ── Copiar para IA ──
 const copyAnnotationsForAI = () => {
   if (!annotations.length) return toast('Nenhuma anotação para copiar');
-  const lines = [\`# Anotações — \${currentFile}\`, ''];
+  const label = currentAnnotationLabel || currentAnnotationContext || 'nota';
+  const lines = [\`# Anotações — \${label}\`, ''];
   for (const a of annotations) {
     lines.push(\`## \${TYPE_LABEL[a.type] || '◦ Nota'}\`);
     lines.push(\`> Trecho: "\${a.quote}"\`);
@@ -8619,6 +7835,13 @@ let allNotes           = [];
 let currentNote        = null;
 let previewMode        = false;
 let noteMarkmapVisible = false;
+
+// ── Seleção para comentário no markmap da nota ──
+let noteSelectionBound        = false;
+let noteSelectionBtnTimer     = null;
+let noteMarkmapTimer          = null;
+let currentNoteSelectionQuote = null;
+let lastAnnotationCtx         = null;     // evita recarregar ao salvar a mesma nota
 
 // ── Lista ──
 const loadNotesList = async () => {
@@ -8727,11 +7950,14 @@ const newNote = () => {
   updateCatDot();
   $('note-id-badge').style.display = 'none';
   $('btn-note-markmap').style.display = 'none';
+  $('btn-annot').style.display = 'none';
   $('btn-copy-note').style.display = 'none';
   $('btn-delete-note').style.display = 'none';
   showEditor();
   setPreviewMode(false);
   setNoteMarkmapVisible(false);
+  setAnnotationContext(null, '');
+  lastAnnotationCtx = null;
   $('note-title-input').focus();
 };
 
@@ -8826,11 +8052,15 @@ const setNoteMarkmapVisible = (on) => {
     ta.style.display = 'none';
     mm.classList.add('visible');
     btn?.classList.add('active');
+    $('btn-annot').style.display = 'inline-flex';
     renderNoteMarkmap();
   } else {
     ta.style.display = '';
     mm.classList.remove('visible');
     btn?.classList.remove('active');
+    $('btn-annot').style.display = 'none';
+    $('annot-panel').classList.remove('visible');
+    hideCommentButton();
     if (previewMode) pv.classList.add('visible');
   }
 };
@@ -8848,10 +8078,76 @@ const renderNoteMarkmap = () => {
   const { root } = new mk.Transformer().transform(currentNote.content || '# ' + (currentNote.title || 'Nota'));
   if (window._noteMarkmap) { try { window._noteMarkmap.destroy(); } catch { /* noop */ } }
   window._noteMarkmap = mk.Markmap.create(svg, { autoFit: false }, root);
-  setTimeout(() => window._noteMarkmap?.fit?.(), 100);
+  clearTimeout(noteMarkmapTimer);
+  noteMarkmapTimer = setTimeout(() => {
+    window._noteMarkmap?.fit?.();
+    const ctx = 'note:' + currentNote.id;
+    setAnnotationContext(ctx, currentNote.title);
+    if (ctx !== lastAnnotationCtx) {
+      lastAnnotationCtx = ctx;
+      loadAnnotations(ctx);
+    }
+    bindNoteSelectionButton();
+  }, 100);
 };
 
 const toggleNoteMarkmap = () => setNoteMarkmapVisible(!noteMarkmapVisible);
+
+// ── Detecção de seleção de texto no markmap da nota ──
+let _commentBtn;  // cached once; element is static HTML present at script load time
+
+const bindNoteSelectionButton = () => {
+  if (noteSelectionBound) return;
+  noteSelectionBound = true;
+  _commentBtn = $('markmap-comment-btn');
+
+  document.addEventListener('selectionchange', () => {
+    clearTimeout(noteSelectionBtnTimer);
+    noteSelectionBtnTimer = setTimeout(updateNoteCommentButton, 80);
+  });
+
+  document.addEventListener('mousedown', (e) => {
+    if (!_commentBtn.classList.contains('visible')) return;
+    if (e.target === _commentBtn || _commentBtn.contains(e.target)) return;
+    hideCommentButton();
+  });
+
+  _commentBtn.addEventListener('click', onNoteCommentButtonClick);
+};
+
+const updateNoteCommentButton = () => {
+  if (!noteMarkmapVisible) return;
+  const btn = _commentBtn;
+  const sel = window.getSelection();
+  const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
+  if (!range || range.collapsed) { hideCommentButton(); return; }
+
+  const container = $('note-markmap');
+  const text = sel.toString().trim();
+  if (!text || !container.contains(range.commonAncestorContainer)) { hideCommentButton(); return; }
+
+  currentNoteSelectionQuote = text;
+  const rect = range.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  if (rect.bottom < containerRect.top || rect.top > containerRect.bottom) { hideCommentButton(); return; }
+
+  btn.style.left = \`\${rect.left + rect.width / 2}px\`;
+  btn.style.top  = \`\${rect.bottom + 8}px\`;
+  btn.classList.add('visible');
+};
+
+const hideCommentButton = () => {
+  currentNoteSelectionQuote = null;
+  _commentBtn.classList.remove('visible');
+};
+
+const onNoteCommentButtonClick = () => {
+  const quote = currentNoteSelectionQuote;
+  if (!quote) return;
+  const rect = _commentBtn.getBoundingClientRect();
+  hideCommentButton();
+  openAnnotPopover(quote, rect.left + rect.width / 2, rect.bottom + 6);
+};
 
 // ── Atualiza o pontinho de cor ao digitar a categoria ──
 $('note-cat-input').addEventListener('input', updateCatDot);
@@ -8955,15 +8251,9 @@ const renderMacrosList = (macros) => {
   ).join('');
 };
 
-// ── Seed macro padrão: transcribe_all.sh ──
+// ── Seed macro padrão ──
 const seedDefaultMacros = async () => {
   const defaults = [
-    {
-      title: 'Transcrições',
-      name: 'transcricoes',
-      description: 'Transcreve vídeos novos em ~/Movies e salva no docmap',
-      script: \`#!/bin/bash\\n/Users/gustavohenriquesoriano/Movies/transcribe_all.sh\`,
-    },
     {
       title: 'Briefing do workspace',
       name: 'briefing',
@@ -11917,6 +11207,241 @@ document.addEventListener('keydown', (e) => {
 });
 
 connectPodcastEvents();
+
+</script>
+    <script>
+// ════ Grafo de conhecimento (D3 force) ════
+// Nós = entidades. Arestas: 'shared' (compartilham tag) e 'reference' (task→nota).
+// Clique destaca vizinhos; duplo-clique abre a entidade; a legenda filtra por tipo.
+
+let kgSim = null;
+let kgZoom = null;
+let kgG = null;
+let kgLinkSel = null;
+let kgNodeSel = null;
+let kgLinks = [];
+let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
+const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
+
+const KG_KINDS = ['note', 'task', 'diagram', 'macro', 'podcast', 'favorite', 'skill', 'tag'];
+const KG_LABELS = {
+  note: 'Notas', task: 'Tasks', diagram: 'Diagramas', macro: 'Macros',
+  podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', tag: 'Tags',
+};
+const KG_COLOR = {};
+
+const kgCss = (name) => {
+  const host = $('mode-graph');
+  return (host && getComputedStyle(host).getPropertyValue(name).trim()) || '#888';
+};
+
+// Duplo-clique numa entidade → abre no modo dela.
+const OPEN_BY_KIND = {
+  note: (id) => openNote(id),
+  diagram: (id) => openDiagram(id),
+  macro: (id) => openMacro(id),
+  podcast: (id) => openPodcast(id),
+  skill: (id) => openSkill(id),
+  task: (id) => { setMode('tasks'); openTaskModal(id); },
+  // Favorito é um link salvo → abre a URL no browser (registra acesso).
+  favorite: async (id) => {
+    try {
+      const fav = await (await fetch('/favorites/' + id)).json();
+      if (fav && fav.url) { openFavLink(fav.id, fav.url); return; }
+    } catch { /* cai no fallback */ }
+    setMode('favorites');
+  },
+};
+
+const openGraphNode = (nodeId) => {
+  const i = nodeId.indexOf(':');
+  const kind = nodeId.slice(0, i);
+  const uuid = nodeId.slice(i + 1);
+  OPEN_BY_KIND[kind]?.(uuid);
+};
+
+const loadGraph = async () => {
+  try {
+    const res = await fetch('/graph');
+    kgRaw = await res.json();
+    drawKgGraph();
+  } catch (err) {
+    console.error('Erro ao carregar grafo:', err);
+    toast('Erro ao carregar grafo');
+  }
+};
+
+// Aplica o filtro por tipo e (re)desenha. Não refaz o fetch.
+const drawKgGraph = () => {
+  if (!kgRaw) return;
+  const nodes = kgRaw.nodes.filter((n) => !kgHidden.has(n.kind));
+  const keep = new Set(nodes.map((n) => n.id));
+  const links = kgRaw.links.filter((l) =>
+    keep.has(l.source.id || l.source) && keep.has(l.target.id || l.target));
+  renderKnowledgeGraph({ nodes, links });
+};
+
+const toggleKgKind = (kind) => {
+  if (kgHidden.has(kind)) kgHidden.delete(kind);
+  else kgHidden.add(kind);
+  drawKgGraph();
+};
+
+// Legenda = filtro. Cada item liga/desliga o tipo (classe .off quando oculto).
+const buildKgLegend = () => {
+  const el = $('kg-legend');
+  if (!el) return;
+  el.innerHTML = KG_KINDS.map((k) =>
+    \`<span class="kg-leg kg-leg-\${k}\${kgHidden.has(k) ? ' off' : ''}" onclick="toggleKgKind('\${k}')" title="mostrar/ocultar \${KG_LABELS[k]}"><i></i>\${KG_LABELS[k]}</span>\`
+  ).join('');
+};
+
+const renderKnowledgeGraph = (data) => {
+  KG_KINDS.forEach((k) => { KG_COLOR[k] = kgCss('--kg-' + k); });
+  buildKgLegend();
+
+  const countEl = $('kg-count');
+  if (countEl) {
+    countEl.textContent = \`\${data.nodes.length} entidades · \${data.links.length} conexões\`;
+  }
+
+  const svg = d3.select('#kg-svg');
+  svg.selectAll('*').remove();
+
+  const host = $('kg-canvas');
+  const W = host.offsetWidth || 800;
+  const H = host.offsetHeight || 600;
+
+  const empty = $('kg-empty');
+  if (!data.nodes.length) {
+    if (empty) empty.dataset.show = '1';
+    return;
+  }
+  if (empty) empty.dataset.show = '0';
+
+  kgG = svg.append('g');
+  kgZoom = d3.zoom().scaleExtent([0.1, 5]).on('zoom', (e) => kgG.attr('transform', e.transform));
+  svg.call(kgZoom);
+  svg.on('dblclick.zoom', null);
+  svg.on('click', clearKgSelection);
+
+  kgLinks = data.links.map((l) => ({ ...l }));
+
+  kgSim = d3.forceSimulation(data.nodes)
+    .force('link', d3.forceLink(kgLinks).id((d) => d.id)
+      .distance((l) => (l.kind === 'reference' ? 66 : 92)).strength(0.5))
+    .force('charge', d3.forceManyBody()
+      .strength((d) => (d.kind === 'tag' ? -600 : -280)).distanceMax(620))
+    .force('center', d3.forceCenter(W / 2, H / 2))
+    .force('x', d3.forceX(W / 2).strength(0.04))
+    .force('y', d3.forceY(H / 2).strength(0.04))
+    .force('collision', d3.forceCollide((d) => (d.kind === 'tag' ? 30 : 24)));
+
+  kgLinkSel = kgG.append('g').selectAll('line')
+    .data(kgLinks).join('line')
+    .attr('class', (l) => 'kg-link kg-link-' + l.kind);
+
+  kgNodeSel = kgG.append('g').selectAll('g')
+    .data(data.nodes).join('g')
+    .attr('class', (d) => 'kg-node kg-node-' + d.kind)
+    .call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) kgSim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end', (e, d) => { if (!e.active) kgSim.alphaTarget(0); d.fx = null; d.fy = null; }))
+    .on('click', (e, d) => { e.stopPropagation(); selectKgNode(d.id); })
+    .on('dblclick', (e, d) => { e.stopPropagation(); if (d.kind !== 'tag') openGraphNode(d.id); })
+    .on('mouseover', (e, d) => showKgTip(e, d))
+    .on('mousemove', (e) => moveKgTip(e))
+    .on('mouseout', hideKgTip);
+
+  kgNodeSel.append('circle').attr('class', 'kg-halo')
+    .attr('r', (d) => (d.kind === 'tag' ? 9 : 12) + 6)
+    .attr('fill', (d) => (KG_COLOR[d.kind] || '#888') + '22');
+  kgNodeSel.append('circle').attr('class', 'kg-core')
+    .attr('r', (d) => (d.kind === 'tag' ? 9 : 12))
+    .attr('fill', (d) => KG_COLOR[d.kind] || '#888')
+    .style('transform-origin', 'center')
+    .style('transform-box', 'fill-box');
+  kgNodeSel.append('text').attr('class', 'kg-label')
+    .attr('dy', (d) => (d.kind === 'tag' ? 9 : 12) + 15)
+    .attr('text-anchor', 'middle')
+    .text((d) => (d.label.length > 26 ? d.label.slice(0, 25) + '…' : d.label));
+
+  let kgTicks = 0;
+  let kgFitted = false;
+  kgSim.on('tick', () => {
+    kgLinkSel
+      .attr('x1', (d) => d.source.x).attr('y1', (d) => d.source.y)
+      .attr('x2', (d) => d.target.x).attr('y2', (d) => d.target.y);
+    kgNodeSel.attr('transform', (d) => \`translate(\${d.x},\${d.y})\`);
+    if (!kgFitted && ++kgTicks >= 50) { kgFitted = true; fitKg(); }
+  });
+};
+
+// ── Seleção + destaque de vizinhos (grafo-local) ──
+const selectKgNode = (id) => {
+  const neighbors = new Set([id]);
+  kgLinks.forEach((l) => {
+    const s = l.source.id || l.source;
+    const t = l.target.id || l.target;
+    if (s === id) neighbors.add(t);
+    if (t === id) neighbors.add(s);
+  });
+  kgNodeSel?.classed('kg-selected', (d) => d.id === id)
+    .classed('kg-dim', (d) => !neighbors.has(d.id));
+  kgLinkSel?.classed('kg-hi', (l) => (l.source.id || l.source) === id || (l.target.id || l.target) === id)
+    .classed('kg-dim', (l) => (l.source.id || l.source) !== id && (l.target.id || l.target) !== id);
+};
+
+const clearKgSelection = () => {
+  kgNodeSel?.classed('kg-selected', false).classed('kg-dim', false);
+  kgLinkSel?.classed('kg-hi', false).classed('kg-dim', false);
+};
+
+// Busca da topbar no modo grafo → destaca nós cujo label casa com o termo.
+const filterGraph = (q) => {
+  const term = (q || '').trim().toLowerCase();
+  if (!kgNodeSel) return;
+  if (!term) { clearKgSelection(); return; }
+  const match = new Set();
+  kgNodeSel.each((d) => { if (d.label.toLowerCase().includes(term)) match.add(d.id); });
+  kgNodeSel.classed('kg-selected', (d) => match.has(d.id))
+    .classed('kg-dim', (d) => !match.has(d.id));
+  kgLinkSel.classed('kg-hi', false)
+    .classed('kg-dim', (l) =>
+      !(match.has(l.source.id || l.source) && match.has(l.target.id || l.target)));
+};
+
+const fitKg = () => {
+  if (!kgG || !kgZoom) return;
+  const host = $('kg-canvas');
+  const b = kgG.node().getBBox();
+  if (!b.width || !b.height) return;
+  const W = host.offsetWidth, H = host.offsetHeight;
+  const scale = Math.min(W / b.width, H / b.height) * 0.82;
+  const tx = (W - b.width * scale) / 2 - b.x * scale;
+  const ty = (H - b.height * scale) / 2 - b.y * scale;
+  d3.select('#kg-svg').transition().duration(450)
+    .call(kgZoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+};
+
+// ── Tooltip ──
+const showKgTip = (e, d) => {
+  const deg = kgLinks.filter((l) =>
+    (l.source.id || l.source) === d.id || (l.target.id || l.target) === d.id).length;
+  const kindLbl = d.kind === 'tag' ? 'tag' : (KG_LABELS[d.kind]?.replace(/s$/, '') || d.kind);
+  const hint = d.kind === 'tag' ? ' · clique isola o grupo' : ' · duplo-clique abre';
+  const el = $('tooltip');
+  el.innerHTML = \`\${escHtml(d.label)} · <span style="opacity:.6">\${kindLbl} · \${deg} conexões\${hint}</span>\`;
+  el.style.opacity = '1';
+  moveKgTip(e);
+};
+const moveKgTip = (e) => {
+  const el = $('tooltip');
+  el.style.left = (e.clientX + 14) + 'px';
+  el.style.top = (e.clientY - 8) + 'px';
+};
+const hideKgTip = () => { $('tooltip').style.opacity = '0'; };
 
 </script>
     <script>

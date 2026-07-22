@@ -84,15 +84,9 @@ const renderMacrosList = (macros) => {
   ).join('');
 };
 
-// ── Seed macro padrão: transcribe_all.sh ──
+// ── Seed macro padrão ──
 const seedDefaultMacros = async () => {
   const defaults = [
-    {
-      title: 'Transcrições',
-      name: 'transcricoes',
-      description: 'Transcreve vídeos novos em ~/Movies e salva no docmap',
-      script: `#!/bin/bash\n/Users/gustavohenriquesoriano/Movies/transcribe_all.sh`,
-    },
     {
       title: 'Briefing do workspace',
       name: 'briefing',

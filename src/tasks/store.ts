@@ -4,6 +4,7 @@ import type {
   Task,
   UpdateTaskInput,
 } from './types.ts';
+import { normalizeTags } from '../tags/normalize.ts';
 
 const GLOBAL = '_global_';
 const key = (id: string) => ['tasks', GLOBAL, id] as const;
@@ -51,6 +52,7 @@ export const createTask = async (
     order: input.order ?? maxOrd + 1,
     ...(input.dueDate ? { dueDate: input.dueDate } : {}),
     ...(input.noteId ? { noteId: input.noteId } : {}),
+    tags: normalizeTags(input.tags),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -82,6 +84,7 @@ export const updateTask = async (
     if (input.noteId === null) delete base.noteId;
     else base.noteId = input.noteId;
   }
+  if (input.tags !== undefined) base.tags = normalizeTags(input.tags);
 
   const updated = base as unknown as Task;
   await kv.set(key(id), updated);

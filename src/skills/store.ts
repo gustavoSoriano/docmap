@@ -4,6 +4,7 @@ import type {
   SkillPreview,
   UpdateSkillInput,
 } from './types.ts';
+import { normalizeTags } from '../tags/normalize.ts';
 
 const GLOBAL = '_global_';
 const key = (id: string) => ['skills', GLOBAL, id] as const;
@@ -33,7 +34,7 @@ export const createSkill = async (
     title: input.title,
     description: input.description,
     content: input.content,
-    tags: input.tags ?? [],
+    tags: normalizeTags(input.tags),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -80,7 +81,7 @@ export const updateSkill = async (
       ? { description: input.description }
       : {}),
     ...(input.content !== undefined ? { content: input.content } : {}),
-    ...(input.tags !== undefined ? { tags: input.tags } : {}),
+    ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     updatedAt: new Date().toISOString(),
   };
   await kv.set(key(id), updated);

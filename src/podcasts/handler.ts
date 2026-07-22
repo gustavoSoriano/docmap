@@ -28,6 +28,7 @@ import {
   type GeneratePodcastInput,
   type UpdatePodcastInput,
 } from './types.ts';
+import { normalizeTags } from '../tags/normalize.ts';
 
 const MAX_CONTENT = 20000;
 const MAX_TITLE = 120;
@@ -232,6 +233,7 @@ export const podcastsHandler =
       const podcast = await createPodcast(kv, {
         title,
         folder,
+        tags: normalizeTags(input.tags),
         script,
         ...(hasContent ? { sourceContent: input.content!.trim() } : {}),
         voices,

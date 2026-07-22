@@ -42,6 +42,7 @@ export type Podcast = {
   readonly id: string;
   readonly title: string;
   readonly folder: string;
+  readonly tags: readonly string[]; // tema/assunto — eixo do grafo
   // Roteiro com tags <Nome>…</Nome>. Vazio até a LLM gerar (quando o
   // pedido veio com `content` em vez de roteiro pronto).
   //
@@ -75,6 +76,7 @@ export type GeneratePodcastInput = {
   readonly content?: string;
   readonly script?: string;
   readonly folder?: string;
+  readonly tags?: readonly string[];
   // Mínimo 2 personas com vozes distintas. Omitido → escolha aleatória.
   readonly voices?: readonly PodcastVoice[];
   // True → docmap também gera slides (HTML/CSS) sincronizados com o áudio.
@@ -90,6 +92,7 @@ export type GeneratePodcastInput = {
 export type UpdatePodcastInput = {
   readonly title?: string;
   readonly folder?: string;
+  readonly tags?: readonly string[];
 };
 
 // Patch interno usado pelo pipeline durante a geração.

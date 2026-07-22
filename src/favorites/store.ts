@@ -5,6 +5,7 @@ import type {
   FavoriteSortBy,
   UpdateFavoriteInput,
 } from './types.ts';
+import { normalizeTags } from '../tags/normalize.ts';
 
 const PREFIX = ['favorites'] as const;
 const key = (id: string) => [...PREFIX, id] as const;
@@ -28,9 +29,11 @@ const matchesFilters = (fav: Favorite, filters: FavoriteFilters): boolean => {
   }
 
   if (filters.tags?.length) {
-    const lowerTags = fav.tags.map((t) => t.toLowerCase());
-    const required = filters.tags.map((t) => normalize(t));
-    if (!required.every((t) => lowerTags.includes(t))) return false;
+    // Tags salvas já são slugs normalizados — normaliza a query do mesmo jeito
+    // pra casar (ex.: "Machine Learning" no filtro → "machine-learning").
+    const favTags = new Set(fav.tags);
+    const required = normalizeTags(filters.tags as string[]);
+    if (!required.every((t) => favTags.has(t))) return false;
   }
 
   return true;
@@ -100,7 +103,7 @@ export const createFavorite = async (
     title: input.title,
     url: input.url,
     category: input.category,
-    tags: input.tags ?? [],
+    tags: normalizeTags(input.tags),
     note: input.note ?? '',
     accessCount: 0,
     createdAt: new Date().toISOString(),
@@ -126,7 +129,7 @@ export const updateFavorite = async (
   if (input.title !== undefined) base.title = input.title;
   if (input.url !== undefined) base.url = input.url;
   if (input.category !== undefined) base.category = input.category;
-  if (input.tags !== undefined) base.tags = input.tags;
+  if (input.tags !== undefined) base.tags = normalizeTags(input.tags);
   if (input.note !== undefined) base.note = input.note;
 
   const updated = base as unknown as Favorite;

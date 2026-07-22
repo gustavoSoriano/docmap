@@ -7,6 +7,7 @@ export type Macro = {
   readonly description: string;
   readonly script: string;
   readonly interpreter: MacroInterpreter;
+  readonly tags: readonly string[]; // tema/assunto — eixo do grafo
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -18,6 +19,7 @@ export type CreateMacroInput = {
   readonly title: string;
   readonly description?: string;
   readonly script: string;
+  readonly tags?: readonly string[];
 };
 
 export type UpdateMacroInput = Partial<CreateMacroInput>;

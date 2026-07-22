@@ -34,7 +34,6 @@
       src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/graph.css">
     <link rel="stylesheet" href="/styles/markmap.css">
     <link rel="stylesheet" href="/styles/search.css">
     <link rel="stylesheet" href="/styles/annotations.css">
@@ -47,14 +46,15 @@
     <link rel="stylesheet" href="/styles/mocks.css">
     <link rel="stylesheet" href="/styles/favorites.css">
     <link rel="stylesheet" href="/styles/podcasts.css">
+    <link rel="stylesheet" href="/styles/graph.css">
   </head>
   <body>
     <!-- ════ Left rail — mode switcher ════ -->
     <nav id="rail">
       <div id="rail-logo" title="docmap">◆</div>
-      <button class="rail-btn active" id="rail-map" onclick="setMode('map')"
-        title="Mapa">
-    <span class="rail-ico" data-icon="map"></span><span class="rail-lbl">Mapa</span>
+      <button class="rail-btn active" id="rail-graph" onclick="setMode('graph')"
+        title="Grafo de conhecimento">
+    <span class="rail-ico" data-icon="waypoints"></span><span class="rail-lbl">Grafo</span>
   </button>
       <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
         title="Notas">
@@ -131,132 +131,6 @@
         <button id="theme-toggle" title="Alternar tema"></button>
       </header>
 
-      <!-- ═══ MODE: MAP ═══ -->
-      <main id="mode-map" class="mode active">
-        <!-- Tabs -->
-        <div id="map-tabs">
-          <button class="map-tab active" id="tab-graph"
-            onclick="setMapTab('graph')"><span data-icon="share"></span> Documentos</button>
-          <button id="map-open-btn" onclick="pickWorkspace()"
-            title="Abrir pasta">
-        <span data-icon="folder"></span> Pasta
-      </button>
-        </div>
-
-        <div id="map-panes">
-          <!-- Graph pane -->
-          <section id="graph-pane" class="map-pane active">
-            <div id="no-workspace">
-              <div id="no-workspace-mark" data-icon="share"></div>
-              <div id="no-workspace-title">Nenhum território carregado</div>
-              <div
-                id="no-workspace-hint">Selecione uma pasta para mapear seus documentos</div>
-              <button id="no-workspace-btn"
-                onclick="pickWorkspace()"><span data-icon="folder"></span> Abrir pasta</button>
-            </div>
-            <svg id="graph"></svg>
-            <button class="map-tool fit-btn" title="Centralizar"
-              onclick="fitGraph()" data-icon="fit"></button>
-
-            <!-- Node metadata panel -->
-            <div id="node-meta">
-              <div id="node-meta-header">
-                <span id="node-meta-name"></span>
-                <button id="node-meta-close" onclick="clearNodeMeta()"
-                  title="Fechar" data-icon="x"></button>
-              </div>
-              <div id="node-meta-stats">
-                <div class="node-meta-row">
-                  <span class="node-meta-label">Commits</span>
-                  <span class="node-meta-value" id="nm-commits">—</span>
-                </div>
-                <div class="node-meta-row">
-                  <span class="node-meta-label">Atualizado</span>
-                  <span class="node-meta-value" id="nm-date">—</span>
-                </div>
-              </div>
-              <div id="nm-authors-section">
-                <span class="node-meta-label">Autores</span>
-                <div
-                  id="nm-authors-list"><span class="nm-placeholder">—</span></div>
-              </div>
-              <button id="nm-open-markmap" onclick="openMarkmap()">
-            <span data-icon="tree"></span> Mapa Mental
-          </button>
-            </div>
-
-            <div class="legend">
-              <div class="legend-title">Legenda</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-entry)"></i>Entrada</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-arch)"></i>Arquitetura</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-design)"></i>Design</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-security)"></i>Segurança</div>
-              <div
-                class="legend-item"><i class="legend-dot" style="background:var(--cat-process)"></i>Processo</div>
-            </div>
-          </section>
-
-          <!-- Markmap pane -->
-          <section id="markmap-pane" class="map-pane">
-            <div id="markmap-header">
-              <button id="btn-back-graph"
-                onclick="setMapTab('graph')"><span data-icon="arrow-left"></span> Documentos</button>
-              <div id="markmap-titles">
-                <span id="markmap-filename">Nenhum documento</span>
-                <span id="markmap-filepath"></span>
-              </div>
-              <div id="markmap-actions">
-                <button class="pill-btn" id="btn-annot" style="display:none"
-                  onclick="toggleAnnotations()">
-              <span data-icon="highlighter"></span> Anotações <span class="pill-count" id="annot-count">0</span>
-            </button>
-                <button class="pill-btn" id="btn-copy-path" style="display:none"
-                  onclick="copyFilePath()"><span data-icon="copy"></span> Copiar caminho</button>
-              </div>
-            </div>
-
-            <div id="markmap-container">
-              <div id="map-empty">
-                <div id="map-empty-mark" data-icon="tree"></div>
-                <div
-                  id="map-empty-text">Clique duas vezes num nó do grafo para abrir seu mapa mental</div>
-              </div>
-              <div id="markmap-hint"></div>
-              <button id="markmap-comment-btn" type="button"
-                style="display:none">Comentar</button>
-              <div id="markmap-tools">
-                <button class="map-tool mm-tool" data-icon="zoom-in"
-                  title="Aproximar" onclick="markmapZoom(1.25)"></button>
-                <button class="map-tool mm-tool" data-icon="zoom-out"
-                  title="Afastar" onclick="markmapZoom(0.8)"></button>
-                <button class="map-tool mm-tool" data-icon="fit"
-                  title="Centralizar / ajustar" onclick="markmapFit()"></button>
-              </div>
-            </div>
-
-            <!-- Annotations drawer (contextual to current doc) -->
-            <aside id="annot-panel">
-              <div id="annot-head">
-                <span id="annot-head-title">Anotações do documento</span>
-                <button class="ghost-btn" id="annot-copy-all"
-                  onclick="copyAnnotationsForAI()"
-                  title="Copiar todas para colar numa IA">
-              <span data-icon="sparkles"></span> Copiar p/ IA
-            </button>
-              </div>
-              <div id="annot-list">
-                <div
-                  id="annot-empty">Selecione um trecho do mapa e clique com o botão direito para anotar.</div>
-              </div>
-            </aside>
-          </section>
-        </div>
-      </main>
-
       <!-- ═══ MODE: NOTES ═══ -->
       <main id="mode-notes" class="mode">
         <section id="notes-col">
@@ -305,6 +179,9 @@
               <button class="note-head-btn" id="btn-note-markmap"
                 style="display:none" onclick="toggleNoteMarkmap()"
                 title="Ver como mapa mental"><span data-icon="tree"></span></button>
+              <button class="note-head-btn" id="btn-annot"
+                style="display:none;width:auto;padding:0 9px;gap:5px;" onclick="toggleAnnotations()"
+                title="Anotações do mapa mental"><span data-icon="highlighter"></span><span id="annot-count" style="font-size:10px">0</span></button>
             </div>
             <div id="note-toolbar">
               <div id="note-cat-field">
@@ -331,6 +208,21 @@
               <div id="note-preview"></div>
               <div id="note-markmap"></div>
             </div>
+
+            <!-- Annotation panel (contextual ao markmap da nota) -->
+            <aside id="annot-panel">
+              <div id="annot-head">
+                <span id="annot-head-title">Anotações da nota</span>
+                <button class="ghost-btn" id="annot-copy-all"
+                  onclick="copyAnnotationsForAI()"
+                  title="Copiar todas para colar numa IA">
+              <span data-icon="sparkles"></span> Copiar p/ IA
+            </button>
+              </div>
+              <div id="annot-list">
+                <div id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>
+              </div>
+            </aside>
           </div>
         </section>
       </main>
@@ -854,6 +746,25 @@
           </div>
         </section>
       </main>
+
+      <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
+      <main id="mode-graph" class="mode active">
+        <div id="kg-toolbar">
+          <span class="kg-title"><span data-icon="waypoints"></span> Grafo de conhecimento</span>
+          <span id="kg-count"></span>
+          <button class="kg-tool-btn" onclick="loadGraph()">↻ Recarregar</button>
+          <button class="kg-tool-btn" onclick="fitKg()">⤢ Ajustar</button>
+          <button class="kg-tool-btn" onclick="clearKgSelection()">Limpar seleção</button>
+          <div id="kg-legend"></div>
+        </div>
+        <div id="kg-canvas">
+          <svg id="kg-svg"></svg>
+          <div id="kg-empty">
+            <span class="kg-empty-mark" data-icon="waypoints"></span>
+            <div class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, diagramas… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
+          </div>
+        </div>
+      </main>
     </div>
 
     <!-- Quick-Add / Edit Modal -->
@@ -977,6 +888,9 @@
       </div>
     </div>
 
+    <!-- Floating comment button (shown on text selection in note markmap) -->
+    <button id="markmap-comment-btn" type="button">Comentar</button>
+
     <!-- Annotation popover -->
     <div id="annot-popover">
       <div id="pop-head">
@@ -1067,8 +981,6 @@
     <script src="/scripts/theme.js"></script>
     <script src="/scripts/app.js"></script>
     <script src="/scripts/workspace.js"></script>
-    <script src="/scripts/graph.js"></script>
-    <script src="/scripts/markmap.js"></script>
     <script src="/scripts/search.js"></script>
     <script src="/scripts/annotations.js"></script>
     <script src="/scripts/notes.js"></script>
@@ -1079,6 +991,7 @@
     <script src="/scripts/mocks.js"></script>
     <script src="/scripts/favorites.js"></script>
     <script src="/scripts/podcasts.js"></script>
+    <script src="/scripts/graph.js"></script>
     <script src="/scripts/system.js"></script>
     <script src="/scripts/ai-chat.js"></script>
   </body>

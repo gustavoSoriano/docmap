@@ -1,12 +1,14 @@
 ---
 name: docmap
-version: 5.0.0
+version: 6.1.0
 description: >
-  API REST local do docmap desktop — notas, diagramas Mermaid, skills, macros, kanban de tasks, favoritos,
-  podcasts com áudio por IA (2+ vozes) e slides visuais sincronizados (CSS art puro, sem JS),
-  e mocks HTTP.
-  Use quando o usuário mencionar notas, diagramas, skills, macros, tasks, kanban, favoritos, podcasts,
-  slides visuais, mocks, ou compartilhar um ID/link do docmap. O app precisa estar rodando (deno task dev).
+  API REST local do docmap desktop — notas com mapa mental anotável, diagramas
+  Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio por IA
+  (2+ vozes) e slides visuais sincronizados, e mocks HTTP. Toda entidade aceita
+  `tags` (tema/assunto — eixo do grafo de conhecimento). Use quando o usuário
+  mencionar notas, diagramas, skills, macros, tasks, kanban, favoritos,
+  podcasts, slides, mocks, ou compartilhar um ID/link do docmap. O app precisa
+  estar rodando (deno task dev).
 metadata:
   category: productivity
   tags: [notes, diagrams, mermaid, skills, macros, tasks, kanban, favorites, podcasts, slides, mocks, knowledge-base]
@@ -17,6 +19,12 @@ metadata:
 Base URL: `http://127.0.0.1:3334`
 Formato: JSON. App precisa estar rodando.
 
+> **Tags = tema.** Notas, tarefas, diagramas, macros, podcasts e favoritos
+> aceitam `tags?: string[]` (opcional) — o ASSUNTO da entidade, eixo pelo qual
+> o docmap conecta itens do mesmo tema. São normalizadas ao salvar: minúsculas,
+> sem acento, slug ("Machine Learning" → `machine-learning`; "Programação" →
+> `programacao`). Reaproveite tags existentes em vez de criar variações.
+
 > **Instrução especial — podcasts com slides:** quando o usuário pedir para
 > gerar um podcast "com slides", "com apresentação visual", "com slides
 > sincronizados" ou qualquer variação, você DEVE enviar `"withSlides": true`
@@ -24,26 +32,27 @@ Formato: JSON. App precisa estar rodando.
 
 ---
 
-## Workspace (grafos e arquivos `.md`)
+## Grafo de conhecimento
+
+- `GET /graph` — grafo de TODAS as entidades do docmap (notas, tasks, diagramas,
+  macros, podcasts, favoritos, skills) conectadas por TEMA. Read-only; reflete o
+  estado atual do KV.
+  - `nodes`: `{ id, label, kind }` — `id` = `"<tipo>:<uuid>"` (entidade) ou
+    `"tag:<slug>"` (tag). `kind` = `note|task|diagram|macro|podcast|favorite|skill|tag`.
+  - `links`: `{ source, target, kind }` — `kind` = `tagged` (entidade→tag) ou
+    `reference` (task→nota via `noteId`).
+  - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por
+    isso vale usar tags consistentes — são o que conecta o grafo.
+
+## Workspace (arquivos `.md`)
 
 Estes endpoints leem a pasta de trabalho que o usuário abriu no docmap.
 Retornam erro se nenhum workspace estiver selecionado.
 
-- `GET /graph` — grafo de links entre arquivos `.md`
-  - `nodes`: `{ id, label, group }` — `id` = caminho relativo
-  - `links`: `{ source, target }` — conexões baseadas em `[[...]]` e `[texto](arquivo.md)`
-- `GET /graph/relations?file=<caminho/relativo.md>` — relações de um arquivo
-  - Resposta: `{ file, outgoing: [...], incoming: [...] }`
 - `GET /content?file=<caminho/relativo.md>` — conteúdo bruto do arquivo
   - Resposta: `{ path, raw }` com markdown completo
 - `GET /docs/search?q=termo` — busca full-text nos `.md` do workspace
   - Resposta: array de `{ file, line, heading, snippet }`
-
-**Fluxo de exploração:**
-1. `GET /graph` — entenda a estrutura
-2. `GET /graph/relations?file=<caminho>` — veja conexões de um arquivo
-3. `GET /docs/search?q=termo` — localize menções
-4. `GET /content?file=<caminho>` — leia o conteúdo completo
 
 > Se o usuário pedir para alterar um arquivo, você já tem o caminho relativo nos endpoints acima. A edição em si deve ser feita pelo canal de escrita que o usuário indicar (o docmap não expõe escrita de arquivos por esta API).
 
@@ -60,7 +69,7 @@ Retornam erro se nenhum workspace estiver selecionado.
 | DELETE | `/notes/:id` | Remove |
 | GET | `/search?q=termo` | Busca full-text nas notas |
 
-Categoria: texto livre (`general`, `prode`, `ai`, etc.).
+Categoria: texto livre (`general`, `ai`, etc.).
 
 ---
 
@@ -68,9 +77,9 @@ Categoria: texto livre (`general`, `prode`, `ai`, etc.).
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| GET | `/diagrams` | Lista diagramas |
+| GET | `/diagrams` | Lista (id, title, tags, preview) |
 | GET | `/diagrams/:id` | Diagrama completo + `deepLink` |
-| POST | `/diagrams` | Cria `{ title, source }` |
+| POST | `/diagrams` | Cria `{ title, source, tags? }` |
 | PUT | `/diagrams/:id` | Edita |
 | DELETE | `/diagrams/:id` | Remove |
 
@@ -96,9 +105,9 @@ Tipos Mermaid: `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram-v2`
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| GET | `/macros` | Lista macros (id, name, title, description, interpreter) |
+| GET | `/macros` | Lista macros (id, name, title, description, interpreter, tags) |
 | GET | `/macros/:id` | Macro completa com `script` e `interpreter` |
-| POST | `/macros` | Cria `{ name, title, description?, script }` |
+| POST | `/macros` | Cria `{ name, title, description?, script, tags? }` |
 | PUT | `/macros/:id` | Edita (campos parciais) |
 
 O `interpreter` (`bash` ou `deno`) é detectado automaticamente pelo shebang.
@@ -115,7 +124,7 @@ Ordem dentro da coluna = prioridade (menor `order` = mais prioritário).
 |--------|----------|-----------|
 | GET | `/tasks` | Lista todas as tasks |
 | GET | `/tasks/:id` | Task completa + `deepLink` |
-| POST | `/tasks` | Cria `{ title, description?, status?, dueDate?, noteId? }` |
+| POST | `/tasks` | Cria `{ title, description?, status?, dueDate?, noteId?, tags? }` |
 | PUT | `/tasks/:id` | Edita campos (parcial). `dueDate: null` e `noteId: null` removem o campo |
 | DELETE | `/tasks/:id` | Remove |
 | PUT | `/tasks/reorder` | Reordena coluna: `{ status, ids: string[] }` |
@@ -127,6 +136,7 @@ Ordem dentro da coluna = prioridade (menor `order` = mais prioritário).
 - `order` (número, definido automaticamente na criação)
 - `dueDate` (YYYY-MM-DD, opcional)
 - `noteId` (UUID de uma nota vinculada, opcional)
+- `tags` (array de strings, opcional) — tema/assunto da task
 
 **Deep link**: `GET /tasks/:id` retorna `{ deepLink: "http://127.0.0.1:3333/#task/<id>" }`.
 
@@ -173,7 +183,7 @@ Pré-requisitos na máquina: `edge-tts` (pip) e `ffmpeg` (brew install ffmpeg).
 | GET | `/podcasts/voices` | Vozes pt-BR disponíveis (id, gender, style) |
 | GET | `/podcasts/folders` | Pastas derivadas dos podcasts existentes |
 | POST | `/podcasts` | Gera podcast (assíncrono — retorna 202) |
-| PUT | `/podcasts/:id` | Edita `title` e/ou `folder` |
+| PUT | `/podcasts/:id` | Edita `title`, `folder` e/ou `tags` |
 | DELETE | `/podcasts/:id` | Remove metadados + áudio + slides |
 
 ### POST /podcasts — body
@@ -185,6 +195,7 @@ Pré-requisitos na máquina: `edge-tts` (pip) e `ffmpeg` (brew install ffmpeg).
 - `voices` (opcional): array de `{ name, voice }` — mínimo 2, vozes distintas.
   Omitido → o docmap sorteia 2 vozes. Use `GET /podcasts/voices` pra escolher.
 - `folder` (opcional, default "geral")
+- `tags` (opcional): array de temas/assuntos do podcast (eixo do grafo)
 - `withSlides` (opcional, default `false`): se `true`, o docmap gera slides
   visuais sincronizados com o áudio. Aplica-se a qualquer modo:
   - com `content`: o docmap gera diálogo + slides via LLM
@@ -453,3 +464,4 @@ GET /favorites?q=api&type=site&type=dash
 # Cadastrar novo favorito
 POST /favorites { type: "site", title: "DocMap docs", url: "...", category: "docs", tags: ["produto"] }
 ```
+
