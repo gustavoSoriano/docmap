@@ -60,6 +60,7 @@ const renderMarkmap = (markdown, tries = 0) => {
 // Mostra/esconde o botão flutuante "Comentar" logo abaixo da seleção.
 const updateCommentButton = () => {
   const btn = $('markmap-comment-btn');
+  if (!btn) return;
   const sel = window.getSelection();
   const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
   if (!range || range.collapsed) {
@@ -96,12 +97,14 @@ const updateCommentButton = () => {
 const hideCommentButton = () => {
   currentSelectionQuote = null;
   const btn = $('markmap-comment-btn');
+  if (!btn) return;
   btn.classList.remove('visible');
   btn.style.display = 'none';
 };
 
 const onCommentButtonClick = () => {
   const btn = $('markmap-comment-btn');
+  if (!btn) return;
   const quote = currentSelectionQuote;
   if (!quote) return;
   const rect = btn.getBoundingClientRect();
@@ -126,7 +129,7 @@ const bindSelectionButton = () => {
   // Esconde ao clicar fora do botão (cliques no SVG não devem manter o botão antigo).
   document.addEventListener('mousedown', (e) => {
     const btn = $('markmap-comment-btn');
-    if (!btn.classList.contains('visible')) return;
+    if (!btn || !btn.classList.contains('visible')) return;
     if (e.target === btn || btn.contains(e.target)) return;
     hideCommentButton();
   });
@@ -134,7 +137,8 @@ const bindSelectionButton = () => {
   // Esconde ao interagir com o markmap (zoom/pan/scroll).
   container.addEventListener('scroll', hideCommentButton);
 
-  $('markmap-comment-btn').addEventListener('click', onCommentButtonClick);
+  const commentBtn = $('markmap-comment-btn');
+  if (commentBtn) commentBtn.addEventListener('click', onCommentButtonClick);
 };
 
 let hintTimer = null;

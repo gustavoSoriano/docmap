@@ -269,6 +269,7 @@ const bindNoteSelectionButton = () => {
   if (noteSelectionBound) return;
   noteSelectionBound = true;
   _commentBtn = $('markmap-comment-btn');
+  if (!_commentBtn) return;
 
   document.addEventListener('selectionchange', () => {
     clearTimeout(noteSelectionBtnTimer);
@@ -287,6 +288,7 @@ const bindNoteSelectionButton = () => {
 const updateNoteCommentButton = () => {
   if (!noteMarkmapVisible) return;
   const btn = _commentBtn;
+  if (!btn) return;
   const sel = window.getSelection();
   const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
   if (!range || range.collapsed) { hideCommentButton(); return; }
@@ -307,12 +309,13 @@ const updateNoteCommentButton = () => {
 
 const hideCommentButton = () => {
   currentNoteSelectionQuote = null;
-  _commentBtn.classList.remove('visible');
+  _commentBtn?.classList.remove('visible');
 };
 
 const onNoteCommentButtonClick = () => {
   const quote = currentNoteSelectionQuote;
   if (!quote) return;
+  if (!_commentBtn) return;
   const rect = _commentBtn.getBoundingClientRect();
   hideCommentButton();
   openAnnotPopover(quote, rect.left + rect.width / 2, rect.bottom + 6);
