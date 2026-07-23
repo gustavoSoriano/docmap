@@ -80,6 +80,11 @@ ${s.html}
 #slides-root > section[data-state="leaving"] {
   display: block;
 }
+.slide-body {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
 </style>
 </head>
 <body>

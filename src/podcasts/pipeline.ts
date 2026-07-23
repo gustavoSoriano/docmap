@@ -102,10 +102,13 @@ export const runPodcastPipeline = async (
     //    fica vazio e o podcast segue só em áudio (falha graciosa).
     if (wantSlides) {
       emitProgress(id, 'slides', `${slideMap.length} slides`);
-      // Fonte do manifesto: ou o bruto que acabamos de gerar, ou o script
-      // salvo (que já está limpo — não há <Slides> pra extrair e acaba
-      // virando array vazio, preservando a falha graciosa).
-      const manifestSrc = scriptWithManifest ?? script ?? '';
+      // Fonte do manifesto: apenas o bruto gerado pela LLM (scriptWithManifest).
+      // Quando o script veio pronto (not scriptWithManifest), o handler já
+      // extraiu o manifesto e escreveu slides.html antes de disparar o pipeline.
+      // Usar o script limpo (sem <Slides>) como fallback causaria extractSlidesManifest
+      // a encontrar os blocos <Slide> do diálogo (sem <HTML>/<CSS>) e sobrescrever
+      // o slides.html correto com seções vazias.
+      const manifestSrc = scriptWithManifest ?? '';
       const slides = extractSlidesManifest(manifestSrc);
       if (slides.length > 0) {
         await writeSlides(id, slides);
