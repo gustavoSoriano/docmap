@@ -84,7 +84,6 @@ export const UI_HTML = `<!DOCTYPE html>
 
   /* ── Metrics ── */
   --rail-w: 60px;
-  --topbar-h: 54px;
   --r-xs: 5px;
   --r-sm: 7px;
   --r-md: 10px;
@@ -97,8 +96,6 @@ export const UI_HTML = `<!DOCTYPE html>
   --sh-lg: 0 20px 60px rgba(0,0,0,.6);
   --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
 
-  /* ── Topbar ── */
-  --topbar-bg: rgba(16,18,22,.6);
 }
 
 /* ════════ Light theme ════════ */
@@ -129,8 +126,6 @@ export const UI_HTML = `<!DOCTYPE html>
   --sh-md: 0 8px 24px rgba(0,0,0,.10);
   --sh-lg: 0 20px 60px rgba(0,0,0,.14);
   --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
-
-  --topbar-bg: rgba(255,255,255,.72);
 }
 
 </style>
@@ -240,6 +235,12 @@ body::before {
   border-radius: 9px;
   margin-bottom: 16px;
   box-shadow: 0 4px 14px rgba(55,217,154,.3);
+  cursor: pointer;
+  transition: all .2s;
+}
+#rail-logo:hover {
+  box-shadow: 0 4px 20px rgba(55,217,154,.45);
+  transform: scale(1.06);
 }
 .rail-btn {
   width: 48px;
@@ -254,8 +255,11 @@ body::before {
   gap: 4px;
   cursor: pointer;
   color: var(--text-3);
-  transition: color .15s, background .15s;
+  transition: color .15s, background .15s, width .25s, height .25s;
   position: relative;
+}
+.rail-lbl {
+  transition: opacity .2s;
 }
 .rail-btn:hover {
   background: var(--surface-2);
@@ -287,6 +291,29 @@ body::before {
 }
 .rail-spacer {
   flex: 1;
+}
+
+/* ── Sidebar panel collapse (logo toggle) ── */
+#notes-col, #macros-col, #skills-col, #diag-col, #mocks-col, #fav-sidebar, #pod-col {
+  transition: width .25s cubic-bezier(.3,0,.2,1), opacity .2s, padding .25s, border-right-width .25s;
+}
+/* Compound selectors vencem especificidade de ID sem !important */
+.col-collapsed#notes-col,
+.col-collapsed#macros-col,
+.col-collapsed#skills-col,
+.col-collapsed#diag-col,
+.col-collapsed#mocks-col,
+.col-collapsed#fav-sidebar,
+.col-collapsed#pod-col {
+  width: 0;
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  padding-left: 0;
+  padding-right: 0;
+  border-right-width: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ════════ Stage ════════ */
@@ -349,83 +376,6 @@ body::before {
 }
 #update-dismiss:hover {
   color: var(--text);
-}
-
-/* ════════ Topbar ════════ */
-#topbar {
-  height: var(--topbar-h);
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  gap: 18px;
-  background: var(--topbar-bg);
-  backdrop-filter: blur(10px);
-  position: relative;
-  z-index: 60; /* acima do #mode-map para o dropdown de busca não ficar atrás do canvas */
-}
-#topbar-crumb {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  min-width: 0;
-}
-#topbar-mode {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -.01em;
-  color: var(--text);
-}
-#topbar-sep {
-  color: var(--text-4);
-}
-#topbar-path {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--text-3);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  padding: 3px 9px;
-  border-radius: var(--r-sm);
-  max-width: 320px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-#topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-/* ════════ Theme toggle ════════ */
-#theme-toggle {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: var(--surface-2);
-  color: var(--text-2);
-  cursor: pointer;
-  outline: none;
-  transition: all .15s;
-}
-#theme-toggle:hover {
-  background: var(--surface-3);
-  color: var(--text);
-  border-color: var(--border-hi);
-}
-#theme-toggle .ico {
-  width: 17px;
-  height: 17px;
 }
 
 /* ════════ Modes (fill remaining height) ════════ */
@@ -530,7 +480,7 @@ body::before {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 700;
+  z-index: 800;
 }
 #modal-overlay.visible {
   display: flex;
@@ -604,6 +554,102 @@ body::before {
 #toast.visible {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+/* ════════ Settings Modal ════════ */
+#settings-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+  z-index: 750;
+  align-items: center;
+  justify-content: center;
+}
+#settings-overlay.open {
+  display: flex;
+}
+#settings-modal {
+  width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  overflow: hidden;
+  animation: settingsIn .18s ease-out;
+}
+@keyframes settingsIn {
+  from { opacity: 0; transform: scale(.94) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+#settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+#settings-header [data-icon] {
+  margin-right: 8px;
+  color: var(--accent);
+}
+#settings-header [data-icon] .ico {
+  width: 18px;
+  height: 18px;
+}
+#settings-close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .12s;
+}
+#settings-close:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+#settings-close .ico {
+  width: 16px;
+  height: 16px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background .1s;
+  border-bottom: 1px solid var(--border-soft);
+}
+.settings-row:last-child {
+  border-bottom: none;
+}
+.settings-row:hover {
+  background: var(--surface-2);
+}
+.settings-row-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.settings-row-value {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.settings-row-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
 }
 
 /* ════════ Scrollbars ════════ */
@@ -879,121 +925,6 @@ body::before {
   50% {
     transform: translateY(-8px);
   }
-}
-
-</style>
-    <style>
-/* ════════ Search ════════ */
-#search-wrap {
-  position: relative;
-  flex: 1;
-  max-width: 460px;
-  margin-left: auto;
-}
-#search-input {
-  width: 100%;
-  height: 36px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 0 14px 0 38px;
-  font-size: 13px;
-  font-family: var(--font-ui);
-  background: var(--surface-2);
-  color: var(--text);
-  outline: none;
-  transition: all .15s;
-}
-#search-input:focus {
-  border-color: var(--accent-line);
-  background: var(--surface-3);
-  box-shadow: 0 0 0 3px var(--accent-dim);
-}
-#search-input::placeholder {
-  color: var(--text-3);
-}
-#search-icon {
-  position: absolute;
-  left: 13px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 15px;
-  pointer-events: none;
-  color: var(--text-3);
-}
-
-#search-results {
-  display: none;
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: var(--surface-2);
-  border: 1px solid var(--border-mid);
-  border-radius: var(--r-md);
-  box-shadow: var(--sh-lg);
-  max-height: 460px;
-  overflow-y: auto;
-  z-index: 200;
-}
-#search-results.visible {
-  display: block;
-}
-
-.search-count {
-  padding: 9px 15px;
-  font-size: 10px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text-3);
-  font-weight: 700;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-}
-.search-empty {
-  padding: 24px;
-  text-align: center;
-  color: var(--text-3);
-  font-size: 12.5px;
-}
-.search-result {
-  padding: 12px 15px;
-  border-bottom: 1px solid var(--border-soft);
-  cursor: pointer;
-  transition: background .1s;
-}
-.search-result:last-child {
-  border-bottom: none;
-}
-.search-result:hover {
-  background: var(--surface-3);
-}
-.search-result-file {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 3px;
-}
-.search-result-heading {
-  font-size: 10px;
-  color: var(--text-3);
-  margin-bottom: 6px;
-  font-family: var(--font-mono);
-}
-.search-result-snippet {
-  font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--text-2);
-  white-space: pre-wrap;
-  word-break: break-word;
-  line-height: 1.55;
-}
-.search-result-snippet mark {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border-radius: 2px;
-  padding: 0 2px;
 }
 
 </style>
@@ -1471,45 +1402,6 @@ body::before {
   background: var(--surface-3);
   color: var(--text-3);
   border: 1px solid var(--border);
-}
-
-/* ── Footer (AI badge + backup) ── */
-#notes-footer {
-  flex-shrink: 0;
-  border-top: 1px solid var(--border);
-  padding: 12px 18px;
-  background: var(--surface);
-}
-
-#notes-ai-badge {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 10.5px;
-  color: var(--text-3);
-  margin-bottom: 10px;
-}
-#notes-ai-badge code {
-  font-family: var(--font-mono);
-  color: var(--accent);
-  font-size: 10px;
-}
-.ai-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
-  animation: pulse-dot 2.4s ease-in-out infinite;
-}
-@keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .35;
-  }
 }
 
 /* ── Editor column ── */
@@ -6428,7 +6320,7 @@ svg#kg-svg:active { cursor: grabbing; }
   <body>
     <!-- ════ Left rail — mode switcher ════ -->
     <nav id="rail">
-      <div id="rail-logo" title="docmap">◆</div>
+      <div id="rail-logo" title="Recolher sidebar" onclick="toggleSidebar()">◆</div>
       <button class="rail-btn active" id="rail-graph" onclick="setMode('graph')"
         title="Grafo de conhecimento">
     <span class="rail-ico" data-icon="waypoints"></span><span class="rail-lbl">Grafo</span>
@@ -6466,17 +6358,9 @@ svg#kg-svg:active { cursor: grabbing; }
     <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
       <div class="rail-spacer"></div>
-      <button class="rail-btn" id="rail-skill" onclick="copySkill()"
-        title="Copiar skill da API para colar numa IA">
-    <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skill</span>
-  </button>
-      <button class="rail-btn" id="rail-backup" onclick="downloadBackup()"
-        title="Backup completo (notas, skills, diagramas, anotações)">
-    <span class="rail-ico" data-icon="download"></span><span class="rail-lbl">Backup</span>
-  </button>
-      <button class="rail-btn" id="rail-restore" onclick="triggerRestore()"
-        title="Restaurar de um backup">
-    <span class="rail-ico" data-icon="upload"></span><span class="rail-lbl">Restore</span>
+      <button class="rail-btn" id="rail-settings" onclick="openSettings()"
+        title="Configurações">
+    <span class="rail-ico" data-icon="settings"></span><span class="rail-lbl">Ajustes</span>
   </button>
     </nav>
 
@@ -6489,24 +6373,6 @@ svg#kg-svg:active { cursor: grabbing; }
           onclick="applyUpdate()">Atualizar agora</button>
         <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
       </div>
-
-      <!-- Topbar -->
-      <header id="topbar">
-        <div id="topbar-crumb">
-          <span id="topbar-mode">Mapa</span>
-          <span id="topbar-sep">/</span>
-          <span id="topbar-path">nenhuma pasta</span>
-        </div>
-        <div id="topbar-actions"></div>
-        <div id="search-wrap">
-          <span id="search-icon" data-icon="search"></span>
-          <input id="search-input" type="text"
-            placeholder="Buscar nos documentos…" autocomplete="off"
-            spellcheck="false" />
-          <div id="search-results"></div>
-        </div>
-        <button id="theme-toggle" title="Alternar tema"></button>
-      </header>
 
       <!-- ═══ MODE: NOTES ═══ -->
       <main id="mode-notes" class="mode">
@@ -6530,14 +6396,6 @@ svg#kg-svg:active { cursor: grabbing; }
             </select>
           </div>
           <div id="notes-list"></div>
-          <footer id="notes-footer">
-            <div id="notes-ai-badge"
-              title="Qualquer IA pode ler/criar notas neste endereço">
-          <span class="ai-dot"></span> API da IA · <code>127.0.0.1:3334</code>
-        </div>
-          </footer>
-          <input type="file" id="restore-file" accept="application/json"
-            style="display:none" onchange="restoreBackup(event)" />
         </section>
 
         <section id="notes-editor">
@@ -7311,6 +7169,34 @@ svg#kg-svg:active { cursor: grabbing; }
       </div>
     </div>
 
+    <!-- ════ Settings Modal ════ -->
+    <div id="settings-overlay" onclick="closeSettings(event)">
+      <div id="settings-modal">
+        <div id="settings-header">
+          <span><span data-icon="settings"></span> Configurações</span>
+          <button id="settings-close" onclick="closeSettings()" data-icon="x"></button>
+        </div>
+        <div id="settings-body">
+          <div class="settings-row" id="settings-theme-row" onclick="toggleTheme()">
+            <span class="settings-row-label">Tema</span>
+            <span class="settings-row-value" id="settings-theme-label"></span>
+          </div>
+          <div class="settings-row" onclick="copySkill()">
+            <span class="settings-row-label">Copiar skill para IA</span>
+            <span class="settings-row-hint">Markdown com endpoints</span>
+          </div>
+          <div class="settings-row" onclick="downloadBackup()">
+            <span class="settings-row-label">Fazer backup</span>
+            <span class="settings-row-hint">JSON com todos os dados</span>
+          </div>
+          <div class="settings-row" onclick="triggerRestore()">
+            <span class="settings-row-label">Restaurar backup</span>
+            <span class="settings-row-hint">Mescla com dados atuais</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
     <aside id="agent-panel">
       <!-- Estado recolhido: rail fino vertical -->
@@ -7405,6 +7291,7 @@ const ICON_PATHS = {
   'fast-forward': '<polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/>',
   clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   'audio-lines': '<path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -7516,17 +7403,13 @@ const getStoredTheme = () => {
   return THEMES.includes(t) ? t : 'dark';
 };
 
-const iconFor = (theme) => (theme === 'dark' ? 'moon' : 'sun');
-
 const applyTheme = (theme) => {
   const root = document.documentElement;
   if (theme === 'dark') delete root.dataset.theme;
   else root.dataset.theme = theme;
-  const btn = $('theme-toggle');
-  if (btn) {
-    btn.innerHTML = ICON(iconFor(theme));
-    btn.title = theme === 'dark' ? 'Mudar para claro' : 'Mudar para escuro';
-  }
+  // Atualiza label no modal de settings se aberto
+  const label = $('settings-theme-label');
+  if (label) label.textContent = theme === 'dark' ? 'Escuro' : 'Claro';
 };
 
 const toggleTheme = () => {
@@ -7537,8 +7420,6 @@ const toggleTheme = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme(getStoredTheme());
-  const btn = $('theme-toggle');
-  if (btn) btn.addEventListener('click', toggleTheme);
 });
 
 </script>
@@ -7549,6 +7430,26 @@ let currentMode = 'graph';
 
 const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', graph: 'Grafo' };
 
+// ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
+// depends on: dom.js ($)
+const PANEL_BY_MODE = {
+  notes:     'notes-col',
+  macros:    'macros-col',
+  skills:    'skills-col',
+  diagrams:  'diag-col',
+  mocks:     'mocks-col',
+  favorites: 'fav-sidebar',
+  podcasts:  'pod-col',
+};
+
+const toggleSidebar = () => {
+  const panelId = PANEL_BY_MODE[currentMode];
+  if (!panelId) return;
+  const panel = $(panelId);
+  if (!panel) return;
+  panel.classList.toggle('col-collapsed');
+};
+
 const setMode = (mode) => {
   currentMode = mode;
 
@@ -7557,12 +7458,6 @@ const setMode = (mode) => {
 
   document.querySelectorAll('.rail-btn').forEach((b) => b.classList.remove('active'));
   $('rail-' + mode)?.classList.add('active');
-
-  updateTopbarCrumb();
-
-  const search = $('search-input');
-  if (search) search.placeholder = mode === 'graph' ? 'Buscar no grafo…' : 'Buscar notas…';
-  $('search-results')?.classList.remove('visible');
 
   if (mode === 'macros')         loadMacrosList();
   else if (mode === 'notes')     loadNotesList();
@@ -7575,18 +7470,29 @@ const setMode = (mode) => {
   else if (mode === 'graph')     loadGraph();
 };
 
-const updateTopbarCrumb = () => {
-  const crumb = $('topbar-crumb');
-  if (!crumb) return;
-  crumb.innerHTML = '';
+// ── Settings modal ──
+// depends on: theme.js (getStoredTheme, toggleTheme), system.js (copySkill, downloadBackup, triggerRestore)
+const openSettings = () => {
+  const label = $('settings-theme-label');
+  if (label && typeof getStoredTheme === 'function') {
+    label.textContent = getStoredTheme() === 'dark' ? 'Escuro' : 'Claro';
+  }
+  $('settings-overlay')?.classList.add('open');
+};
+
+const closeSettings = (e) => {
+  if (e && e.target !== $('settings-overlay')) return;
+  $('settings-overlay')?.classList.remove('open');
 };
 
 // ── Global keyboard shortcuts ──
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     $('annot-popover')?.classList.remove('visible');
-    $('search-results')?.classList.remove('visible');
-    $('search-input')?.blur();
+    // Só fecha settings se o confirm dialog não estiver visível
+    if (!$('modal-overlay')?.classList.contains('visible')) {
+      $('settings-overlay')?.classList.remove('open');
+    }
   }
   if (e.ctrlKey && e.key === 'Enter' && $('annot-popover')?.classList.contains('visible')) {
     saveAnnotation();
@@ -7626,43 +7532,6 @@ const handleDeepLink = () => {
 };
 
 document.addEventListener('DOMContentLoaded', handleDeepLink);
-
-</script>
-    <script>
-// ════ Busca (topbar) — notas ════
-
-const searchInput   = $('search-input');
-const searchResults = $('search-results');
-let lastQuery = '';
-
-const doSearch = debounce(async (q) => {
-  lastQuery = q;
-  if (currentMode === 'graph') { filterGraph(q); return; }
-  if (!q) { searchResults.classList.remove('visible'); return; }
-  searchNotesTopbar(q);
-}, 260);
-
-// Busca de notas na topbar → filtra a lista e mostra dropdown simples
-const searchNotesTopbar = (q) => {
-  const filtered = filterNotes(q);
-  if (!filtered.length) {
-    searchResults.innerHTML = \`<div class="search-empty">Nenhuma nota para <strong>\${escHtml(q)}</strong></div>\`;
-  } else {
-    const header = \`<div class="search-count">\${filtered.length} nota\${filtered.length !== 1 ? 's' : ''}</div>\`;
-    searchResults.innerHTML = header + filtered.map((n) =>
-      \`<div class="search-result" onclick="openNote('\${n.id}'); searchResults.classList.remove('visible')">
-        <div class="search-result-file">\${escHtml(n.title)}</div>
-        <div class="search-result-snippet">\${escHtml(n.preview || '')}</div>
-      </div>\`).join('');
-  }
-  searchResults.classList.add('visible');
-};
-
-searchInput.addEventListener('input', (e) => doSearch(e.target.value.trim()));
-searchInput.addEventListener('focus', () => { if (lastQuery && currentMode !== 'graph') searchResults.classList.add('visible'); });
-document.addEventListener('mousedown', (e) => {
-  if (!$('search-wrap').contains(e.target)) searchResults.classList.remove('visible');
-});
 
 </script>
     <script>
@@ -11499,11 +11368,17 @@ const downloadBackup = async () => {
       $('modal-cancel').textContent = 'Fechar';
       $('modal-ok').classList.remove('danger');
       $('modal-overlay').classList.add('visible');
+      const onEsc = (e) => { if (e.key === 'Escape') { close(); } };
+      const close = () => {
+        $('modal-overlay').classList.remove('visible');
+        document.removeEventListener('keydown', onEsc, true);
+      };
+      document.addEventListener('keydown', onEsc, true);
       $('modal-ok').onclick = () => {
         copyToClipboard(data.path, 'Caminho copiado');
-        $('modal-overlay').classList.remove('visible');
+        close();
       };
-      $('modal-cancel').onclick = () => $('modal-overlay').classList.remove('visible');
+      $('modal-cancel').onclick = () => close();
     } else {
       toast('Falha no backup');
     }

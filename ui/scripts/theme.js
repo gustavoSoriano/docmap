@@ -8,17 +8,13 @@ const getStoredTheme = () => {
   return THEMES.includes(t) ? t : 'dark';
 };
 
-const iconFor = (theme) => (theme === 'dark' ? 'moon' : 'sun');
-
 const applyTheme = (theme) => {
   const root = document.documentElement;
   if (theme === 'dark') delete root.dataset.theme;
   else root.dataset.theme = theme;
-  const btn = $('theme-toggle');
-  if (btn) {
-    btn.innerHTML = ICON(iconFor(theme));
-    btn.title = theme === 'dark' ? 'Mudar para claro' : 'Mudar para escuro';
-  }
+  // Atualiza label no modal de settings se aberto
+  const label = $('settings-theme-label');
+  if (label) label.textContent = theme === 'dark' ? 'Escuro' : 'Claro';
 };
 
 const toggleTheme = () => {
@@ -29,6 +25,4 @@ const toggleTheme = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme(getStoredTheme());
-  const btn = $('theme-toggle');
-  if (btn) btn.addEventListener('click', toggleTheme);
 });

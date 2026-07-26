@@ -48,7 +48,6 @@
 
   /* ── Metrics ── */
   --rail-w: 60px;
-  --topbar-h: 54px;
   --r-xs: 5px;
   --r-sm: 7px;
   --r-md: 10px;
@@ -61,8 +60,6 @@
   --sh-lg: 0 20px 60px rgba(0,0,0,.6);
   --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
 
-  /* ── Topbar ── */
-  --topbar-bg: rgba(16,18,22,.6);
 }
 
 /* ════════ Light theme ════════ */
@@ -93,6 +90,4 @@
   --sh-md: 0 8px 24px rgba(0,0,0,.10);
   --sh-lg: 0 20px 60px rgba(0,0,0,.14);
   --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
-
-  --topbar-bg: rgba(255,255,255,.72);
 }

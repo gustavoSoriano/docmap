@@ -49,11 +49,17 @@ const downloadBackup = async () => {
       $('modal-cancel').textContent = 'Fechar';
       $('modal-ok').classList.remove('danger');
       $('modal-overlay').classList.add('visible');
+      const onEsc = (e) => { if (e.key === 'Escape') { close(); } };
+      const close = () => {
+        $('modal-overlay').classList.remove('visible');
+        document.removeEventListener('keydown', onEsc, true);
+      };
+      document.addEventListener('keydown', onEsc, true);
       $('modal-ok').onclick = () => {
         copyToClipboard(data.path, 'Caminho copiado');
-        $('modal-overlay').classList.remove('visible');
+        close();
       };
-      $('modal-cancel').onclick = () => $('modal-overlay').classList.remove('visible');
+      $('modal-cancel').onclick = () => close();
     } else {
       toast('Falha no backup');
     }

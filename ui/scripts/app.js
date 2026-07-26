@@ -4,6 +4,26 @@ let currentMode = 'graph';
 
 const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', graph: 'Grafo' };
 
+// ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
+// depends on: dom.js ($)
+const PANEL_BY_MODE = {
+  notes:     'notes-col',
+  macros:    'macros-col',
+  skills:    'skills-col',
+  diagrams:  'diag-col',
+  mocks:     'mocks-col',
+  favorites: 'fav-sidebar',
+  podcasts:  'pod-col',
+};
+
+const toggleSidebar = () => {
+  const panelId = PANEL_BY_MODE[currentMode];
+  if (!panelId) return;
+  const panel = $(panelId);
+  if (!panel) return;
+  panel.classList.toggle('col-collapsed');
+};
+
 const setMode = (mode) => {
   currentMode = mode;
 
@@ -12,12 +32,6 @@ const setMode = (mode) => {
 
   document.querySelectorAll('.rail-btn').forEach((b) => b.classList.remove('active'));
   $('rail-' + mode)?.classList.add('active');
-
-  updateTopbarCrumb();
-
-  const search = $('search-input');
-  if (search) search.placeholder = mode === 'graph' ? 'Buscar no grafo…' : 'Buscar notas…';
-  $('search-results')?.classList.remove('visible');
 
   if (mode === 'macros')         loadMacrosList();
   else if (mode === 'notes')     loadNotesList();
@@ -30,18 +44,29 @@ const setMode = (mode) => {
   else if (mode === 'graph')     loadGraph();
 };
 
-const updateTopbarCrumb = () => {
-  const crumb = $('topbar-crumb');
-  if (!crumb) return;
-  crumb.innerHTML = '';
+// ── Settings modal ──
+// depends on: theme.js (getStoredTheme, toggleTheme), system.js (copySkill, downloadBackup, triggerRestore)
+const openSettings = () => {
+  const label = $('settings-theme-label');
+  if (label && typeof getStoredTheme === 'function') {
+    label.textContent = getStoredTheme() === 'dark' ? 'Escuro' : 'Claro';
+  }
+  $('settings-overlay')?.classList.add('open');
+};
+
+const closeSettings = (e) => {
+  if (e && e.target !== $('settings-overlay')) return;
+  $('settings-overlay')?.classList.remove('open');
 };
 
 // ── Global keyboard shortcuts ──
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     $('annot-popover')?.classList.remove('visible');
-    $('search-results')?.classList.remove('visible');
-    $('search-input')?.blur();
+    // Só fecha settings se o confirm dialog não estiver visível
+    if (!$('modal-overlay')?.classList.contains('visible')) {
+      $('settings-overlay')?.classList.remove('open');
+    }
   }
   if (e.ctrlKey && e.key === 'Enter' && $('annot-popover')?.classList.contains('visible')) {
     saveAnnotation();

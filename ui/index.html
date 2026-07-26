@@ -35,7 +35,6 @@
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/markmap.css">
-    <link rel="stylesheet" href="/styles/search.css">
     <link rel="stylesheet" href="/styles/annotations.css">
     <link rel="stylesheet" href="/styles/notes.css">
     <link rel="stylesheet" href="/styles/ai-chat.css">
@@ -51,7 +50,7 @@
   <body>
     <!-- ════ Left rail — mode switcher ════ -->
     <nav id="rail">
-      <div id="rail-logo" title="docmap">◆</div>
+      <div id="rail-logo" title="Recolher sidebar" onclick="toggleSidebar()">◆</div>
       <button class="rail-btn active" id="rail-graph" onclick="setMode('graph')"
         title="Grafo de conhecimento">
     <span class="rail-ico" data-icon="waypoints"></span><span class="rail-lbl">Grafo</span>
@@ -89,17 +88,9 @@
     <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
       <div class="rail-spacer"></div>
-      <button class="rail-btn" id="rail-skill" onclick="copySkill()"
-        title="Copiar skill da API para colar numa IA">
-    <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skill</span>
-  </button>
-      <button class="rail-btn" id="rail-backup" onclick="downloadBackup()"
-        title="Backup completo (notas, skills, diagramas, anotações)">
-    <span class="rail-ico" data-icon="download"></span><span class="rail-lbl">Backup</span>
-  </button>
-      <button class="rail-btn" id="rail-restore" onclick="triggerRestore()"
-        title="Restaurar de um backup">
-    <span class="rail-ico" data-icon="upload"></span><span class="rail-lbl">Restore</span>
+      <button class="rail-btn" id="rail-settings" onclick="openSettings()"
+        title="Configurações">
+    <span class="rail-ico" data-icon="settings"></span><span class="rail-lbl">Ajustes</span>
   </button>
     </nav>
 
@@ -112,24 +103,6 @@
           onclick="applyUpdate()">Atualizar agora</button>
         <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
       </div>
-
-      <!-- Topbar -->
-      <header id="topbar">
-        <div id="topbar-crumb">
-          <span id="topbar-mode">Mapa</span>
-          <span id="topbar-sep">/</span>
-          <span id="topbar-path">nenhuma pasta</span>
-        </div>
-        <div id="topbar-actions"></div>
-        <div id="search-wrap">
-          <span id="search-icon" data-icon="search"></span>
-          <input id="search-input" type="text"
-            placeholder="Buscar nos documentos…" autocomplete="off"
-            spellcheck="false" />
-          <div id="search-results"></div>
-        </div>
-        <button id="theme-toggle" title="Alternar tema"></button>
-      </header>
 
       <!-- ═══ MODE: NOTES ═══ -->
       <main id="mode-notes" class="mode">
@@ -153,14 +126,6 @@
             </select>
           </div>
           <div id="notes-list"></div>
-          <footer id="notes-footer">
-            <div id="notes-ai-badge"
-              title="Qualquer IA pode ler/criar notas neste endereço">
-          <span class="ai-dot"></span> API da IA · <code>127.0.0.1:3334</code>
-        </div>
-          </footer>
-          <input type="file" id="restore-file" accept="application/json"
-            style="display:none" onchange="restoreBackup(event)" />
         </section>
 
         <section id="notes-editor">
@@ -934,6 +899,34 @@
       </div>
     </div>
 
+    <!-- ════ Settings Modal ════ -->
+    <div id="settings-overlay" onclick="closeSettings(event)">
+      <div id="settings-modal">
+        <div id="settings-header">
+          <span><span data-icon="settings"></span> Configurações</span>
+          <button id="settings-close" onclick="closeSettings()" data-icon="x"></button>
+        </div>
+        <div id="settings-body">
+          <div class="settings-row" id="settings-theme-row" onclick="toggleTheme()">
+            <span class="settings-row-label">Tema</span>
+            <span class="settings-row-value" id="settings-theme-label"></span>
+          </div>
+          <div class="settings-row" onclick="copySkill()">
+            <span class="settings-row-label">Copiar skill para IA</span>
+            <span class="settings-row-hint">Markdown com endpoints</span>
+          </div>
+          <div class="settings-row" onclick="downloadBackup()">
+            <span class="settings-row-label">Fazer backup</span>
+            <span class="settings-row-hint">JSON com todos os dados</span>
+          </div>
+          <div class="settings-row" onclick="triggerRestore()">
+            <span class="settings-row-label">Restaurar backup</span>
+            <span class="settings-row-hint">Mescla com dados atuais</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
     <aside id="agent-panel">
       <!-- Estado recolhido: rail fino vertical -->
@@ -981,7 +974,6 @@
     <script src="/scripts/theme.js"></script>
     <script src="/scripts/app.js"></script>
     <script src="/scripts/workspace.js"></script>
-    <script src="/scripts/search.js"></script>
     <script src="/scripts/annotations.js"></script>
     <script src="/scripts/notes.js"></script>
     <script src="/scripts/macros.js"></script>
