@@ -393,6 +393,20 @@ body::before {
 #mode-map {
   flex-direction: column;
 }
+#mode-canvas {
+  flex-direction: column;
+}
+#canvas-container {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+#canvas-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
 
 /* ════════ Map tabs ════════ */
 #map-tabs {
@@ -6357,6 +6371,10 @@ svg#kg-svg:active { cursor: grabbing; }
         onclick="setMode('podcasts')" title="Podcasts">
     <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
+      <button class="rail-btn" id="rail-canvas" onclick="setMode('canvas')"
+        title="Canvas Realtime">
+    <span class="rail-ico" data-icon="paintbrush"></span><span class="rail-lbl">Canva</span>
+  </button>
       <div class="rail-spacer"></div>
       <button class="rail-btn" id="rail-settings" onclick="openSettings()"
         title="Configurações">
@@ -6982,6 +7000,13 @@ svg#kg-svg:active { cursor: grabbing; }
         </section>
       </main>
 
+      <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
+      <main id="mode-canvas" class="mode">
+        <div id="canvas-container">
+          <iframe id="canvas-iframe" src="/canvas" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+      </main>
+
       <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
       <main id="mode-graph" class="mode active">
         <div id="kg-toolbar">
@@ -7292,6 +7317,7 @@ const ICON_PATHS = {
   clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   'audio-lines': '<path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  paintbrush: '<path d="M2 21C14 21 18 17 20 14c2-3 0-7-2-9-2-2-6-4-9-2C7 5 3 9 3 21h-1z"/><path d="M17 13c-3 1-5 3-6 6"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -7428,7 +7454,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -7467,6 +7493,7 @@ const setMode = (mode) => {
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
+  else if (mode === 'canvas')    loadCanvas();
   else if (mode === 'graph')     loadGraph();
 };
 
@@ -7500,6 +7527,16 @@ document.addEventListener('keydown', (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === '1') { e.preventDefault(); setMode('notes'); }
   if ((e.metaKey || e.ctrlKey) && e.key === '2') { e.preventDefault(); setMode('macros'); }
 });
+
+// ── Canvas mode ──
+// O canvas carrega via iframe apontando para /canvas.
+// loadCanvas apenas garante que o iframe está apontando pra URL correta.
+const loadCanvas = () => {
+  const iframe = document.getElementById('canvas-iframe');
+  if (iframe && iframe.getAttribute('src') !== '/canvas') {
+    iframe.setAttribute('src', '/canvas');
+  }
+};
 
 </script>
     <script>

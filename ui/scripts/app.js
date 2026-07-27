@@ -2,7 +2,7 @@
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -41,6 +41,7 @@ const setMode = (mode) => {
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
+  else if (mode === 'canvas')    loadCanvas();
   else if (mode === 'graph')     loadGraph();
 };
 
@@ -74,3 +75,13 @@ document.addEventListener('keydown', (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === '1') { e.preventDefault(); setMode('notes'); }
   if ((e.metaKey || e.ctrlKey) && e.key === '2') { e.preventDefault(); setMode('macros'); }
 });
+
+// ── Canvas mode ──
+// O canvas carrega via iframe apontando para /canvas.
+// loadCanvas apenas garante que o iframe está apontando pra URL correta.
+const loadCanvas = () => {
+  const iframe = document.getElementById('canvas-iframe');
+  if (iframe && iframe.getAttribute('src') !== '/canvas') {
+    iframe.setAttribute('src', '/canvas');
+  }
+};

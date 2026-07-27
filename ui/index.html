@@ -87,6 +87,10 @@
         onclick="setMode('podcasts')" title="Podcasts">
     <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
+      <button class="rail-btn" id="rail-canvas" onclick="setMode('canvas')"
+        title="Canvas Realtime">
+    <span class="rail-ico" data-icon="paintbrush"></span><span class="rail-lbl">Canva</span>
+  </button>
       <div class="rail-spacer"></div>
       <button class="rail-btn" id="rail-settings" onclick="openSettings()"
         title="Configurações">
@@ -710,6 +714,13 @@
             <div id="pod-script"></div>
           </div>
         </section>
+      </main>
+
+      <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
+      <main id="mode-canvas" class="mode">
+        <div id="canvas-container">
+          <iframe id="canvas-iframe" src="/canvas" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
       </main>
 
       <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->

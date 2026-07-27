@@ -261,6 +261,20 @@ body::before {
 #mode-map {
   flex-direction: column;
 }
+#mode-canvas {
+  flex-direction: column;
+}
+#canvas-container {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+#canvas-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
 
 /* ════════ Map tabs ════════ */
 #map-tabs {
