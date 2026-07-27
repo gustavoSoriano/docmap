@@ -8,6 +8,7 @@ import { graphHandler } from '../graph/handler.ts';
 import { diagramsHandler } from '../diagrams/handler.ts';
 import { skillsApiHandler } from '../skills/handler.ts';
 import { tasksHandler } from '../tasks/handler.ts';
+import { projectsHandler } from '../projects/handler.ts';
 import { mocksHandler } from '../mocks/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
 import { notFound } from '../server/response.ts';
@@ -36,6 +37,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const diagrams = diagramsHandler(deps.kv);
   const skills = skillsApiHandler(deps.kv);
   const tasks = tasksHandler(deps.kv);
+  const projects = projectsHandler(deps.kv);
   const mocks = mocksHandler(deps.kv);
   const podcasts = podcastsHandler(deps.kv);
 
@@ -53,6 +55,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/diagrams')) res = await diagrams(req, url);
     else if (pathname.startsWith('/skills')) res = await skills(req, url);
     else if (pathname.startsWith('/tasks')) res = await tasks(req, url);
+    else if (pathname.startsWith('/projects')) res = await projects(req, url);
     else if (pathname === '/search') res = await search(req, url);
     else if (pathname === '/graph') res = await graph(req, url);
     else if (pathname === '/content') res = await content(req, url);

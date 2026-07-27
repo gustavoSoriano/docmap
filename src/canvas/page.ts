@@ -12,7 +12,7 @@ const PAGE = `<!DOCTYPE html>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0f0f0f;--surface:#1a1a2e;--border:#2a2a3e;--text:#e0e0e0;--text-dim:#888;--accent:#6c5ce7;--hover:rgba(255,255,255,0.08)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-#header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;min-height:40px}
+#header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#0f1217;border-bottom:1px solid var(--border);flex-shrink:0;min-height:40px}
 #header h1{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
 #header h1::before{content:"\\25C6";color:var(--accent)}
 #status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim)}

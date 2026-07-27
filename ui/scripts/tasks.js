@@ -1,6 +1,7 @@
 // ════ Kanban — tasks globais ════
 
 let allTasks      = [];
+let allProjects   = [];
 let taskNotesList = [];  // cache da lista de notas p/ o seletor (nome distinto de allNotes em notes.js)
 let currentTaskId = null;
 
@@ -20,6 +21,39 @@ const loadTasks = async () => {
     renderBoard();
   } catch (err) {
     console.error('Erro ao carregar tasks:', err);
+  }
+};
+
+const loadProjects = async () => {
+  try {
+    const res = await fetch('/projects');
+    allProjects = await res.json();
+    populateProjectSelects();
+  } catch (err) {
+    console.error('Erro ao carregar projetos:', err);
+  }
+};
+
+const populateProjectSelects = () => {
+  const options = allProjects.map((p) =>
+    `<option value="${p.id}">${escHtml(p.name ?? '')}</option>`
+  ).join('');
+
+  // Toolbar select — preserva opção "Todos"
+  const toolbarSelect = $('kanban-project-select');
+  if (toolbarSelect) {
+    const currentVal = toolbarSelect.value;
+    toolbarSelect.innerHTML = '<option value="">Sem projeto</option>' + options;
+    toolbarSelect.value = currentVal;
+    updateProjectDeleteBtn();
+  }
+
+  // Task modal select — preserva opção "Nenhum"
+  const taskSelect = $('task-project-select');
+  if (taskSelect) {
+    const currentVal = taskSelect.value;
+    taskSelect.innerHTML = '<option value="">Nenhum</option>' + options;
+    taskSelect.value = currentVal;
   }
 };
 
@@ -122,8 +156,15 @@ const COLUMNS = [
 ];
 
 const renderBoard = () => {
+  updateProjectDeleteBtn();
+  const selectedProjectId = $('kanban-project-select')?.value ?? '';
+  // "" = "Sem projeto" — filtra tasks sem vínculo
+  const filteredTasks = selectedProjectId
+    ? allTasks.filter((t) => t.projectId === selectedProjectId)
+    : allTasks.filter((t) => !t.projectId);
+
   for (const col of COLUMNS) {
-    const colTasks = allTasks
+    const colTasks = filteredTasks
       .filter((t) => t.status === col.status)
       .sort((a, b) => a.order - b.order);
 
@@ -307,6 +348,7 @@ const openNewTask = async (status) => {
   $('task-status-select').value = status;
   $('task-desc-textarea').value = '';
   $('task-due-input').value     = '';
+  $('task-project-select').value = '';
   $('task-delete-btn').style.display = 'none';
 
   showTaskModal();
@@ -325,6 +367,7 @@ const openTaskModal = async (id) => {
   $('task-status-select').value = task.status;
   $('task-desc-textarea').value = task.description ?? '';
   $('task-due-input').value     = task.dueDate ?? '';
+  $('task-project-select').value = task.projectId ?? '';
   $('task-delete-btn').style.display = 'inline-flex';
 
   showTaskModal();
@@ -366,6 +409,7 @@ const saveCurrentTask = async () => {
     status:      $('task-status-select').value,
     dueDate:     $('task-due-input').value || null,
     noteId:      $('task-note-id').value   || null,
+    projectId:   $('task-project-select').value || null,
   };
 
   if (currentTaskId) {
@@ -391,6 +435,92 @@ const deleteCurrentTask = async () => {
   await fetch(`/tasks/${currentTaskId}`, { method: 'DELETE' });
   closeTaskModal();
   await loadTasks();
+};
+
+// ══════════════════════════════════════════
+// Toolbar — deletar projeto selecionado
+// ══════════════════════════════════════════
+
+const updateProjectDeleteBtn = () => {
+  const select = $('kanban-project-select');
+  const delBtn = $('kanban-project-del-btn');
+  if (!select || !delBtn) return;
+  delBtn.disabled = !select.value;
+};
+
+const deleteSelectedProject = async () => {
+  const select = $('kanban-project-select');
+  if (!select || !select.value) return;
+  const projectId = select.value;
+  const project = allProjects.find((p) => p.id === projectId);
+  if (!project) return;
+
+  const ok = await confirmDialog(
+    `Excluir o projeto "${project.name}"?\nAs tasks vinculadas ficarão sem projeto.`,
+    { danger: true, okLabel: 'Excluir' },
+  );
+  if (!ok) return;
+
+  try {
+    const res = await fetch(`/projects/${projectId}`, { method: 'DELETE' });
+    if (!res.ok) return;
+    select.value = '';
+    updateProjectDeleteBtn();
+    await loadProjects();
+    renderBoard();
+  } catch (err) {
+    console.error('Erro ao remover projeto:', err);
+  }
+};
+
+// ══════════════════════════════════════════
+// Modal — criar projeto
+// ══════════════════════════════════════════
+
+const openNewProject = () => {
+  const input = $('project-name-input');
+  if (!input) return;
+  input.value = '';
+  $('project-modal-overlay')?.classList.add('visible');
+  input.focus();
+};
+
+const closeProjectModal = () => {
+  $('project-modal-overlay')?.classList.remove('visible');
+};
+
+const closeProjectModalOnOverlay = (e) => {
+  if (e.target === $('project-modal-overlay')) closeProjectModal();
+};
+
+const saveProject = async () => {
+  const nameInput = $('project-name-input');
+  if (!nameInput) return;
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.focus(); return; }
+
+  try {
+    const res = await fetch('/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Erro ao criar projeto:', err);
+      return;
+    }
+    const created = await res.json();
+    closeProjectModal();
+    await loadProjects();
+    if (created?.id) {
+      const select = $('kanban-project-select');
+      if (select) select.value = created.id;
+    }
+    renderBoard();
+  } catch (err) {
+    console.error('Erro ao criar projeto:', err);
+  }
 };
 
 // ══════════════════════════════════════════

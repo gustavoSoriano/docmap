@@ -21,7 +21,8 @@ export const tasksHandler =
     const id = segments[0];
 
     if (req.method === 'GET' && !id) {
-      return json(await listTasks(kv));
+      const projectId = url.searchParams.get('projectId') ?? undefined;
+      return json(await listTasks(kv, projectId));
     }
 
     if (req.method === 'GET' && id) {

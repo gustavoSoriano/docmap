@@ -16,10 +16,17 @@ const STATUS_ORDER: Record<string, number> = {
   'done': 2,
 };
 
-export const listTasks = async (kv: Deno.Kv): Promise<Task[]> => {
+export const listTasks = async (
+  kv: Deno.Kv,
+  projectId?: string,
+): Promise<Task[]> => {
   const tasks: Task[] = [];
   for await (const entry of kv.list<Task>({ prefix: PREFIX })) {
-    if (entry.value) tasks.push(entry.value);
+    if (!entry.value) continue;
+    if (projectId !== undefined && entry.value.projectId !== projectId) {
+      continue;
+    }
+    tasks.push(entry.value);
   }
   return tasks.sort((a, b) => {
     const sc = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9);
@@ -52,6 +59,7 @@ export const createTask = async (
     order: input.order ?? maxOrd + 1,
     ...(input.dueDate ? { dueDate: input.dueDate } : {}),
     ...(input.noteId ? { noteId: input.noteId } : {}),
+    ...(input.projectId ? { projectId: input.projectId } : {}),
     tags: normalizeTags(input.tags),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -83,6 +91,10 @@ export const updateTask = async (
   if (input.noteId !== undefined) {
     if (input.noteId === null) delete base.noteId;
     else base.noteId = input.noteId;
+  }
+  if (input.projectId !== undefined) {
+    if (input.projectId === null) delete base.projectId;
+    else base.projectId = input.projectId;
   }
   if (input.tags !== undefined) base.tags = normalizeTags(input.tags);
 
@@ -117,4 +129,24 @@ export const reorderColumn = async (
       return kv.set(key(taskId), updated);
     }),
   );
+};
+
+export const unlinkProjectFromTasks = async (
+  kv: Deno.Kv,
+  projectId: string,
+): Promise<number> => {
+  let count = 0;
+  for await (const entry of kv.list<Task>({ prefix: PREFIX })) {
+    const task = entry.value;
+    if (!task || task.projectId !== projectId) continue;
+    const base = { ...task } as Record<string, unknown>;
+    delete base.projectId;
+    const updated = {
+      ...base,
+      updatedAt: new Date().toISOString(),
+    } as Task;
+    await kv.set(key(task.id), updated);
+    count++;
+  }
+  return count;
 };

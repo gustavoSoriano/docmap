@@ -37,7 +37,7 @@ const setMode = (mode) => {
   else if (mode === 'notes')     loadNotesList();
   else if (mode === 'skills')    loadSkillsList();
   else if (mode === 'diagrams')  loadDiagramsList();
-  else if (mode === 'tasks')     loadTasks();
+  else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();

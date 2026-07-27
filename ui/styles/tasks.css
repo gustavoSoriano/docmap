@@ -4,6 +4,81 @@
   flex-direction: column;
 }
 
+/* ── Project toolbar ── */
+
+#kanban-project-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+#kanban-project-select {
+  font-size: 0.8125rem;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: var(--r-sm);
+  padding: 5px 10px;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font-ui);
+  min-width: 180px;
+  transition: border-color 0.12s;
+}
+
+#kanban-project-select:focus {
+  border-color: var(--accent-line);
+}
+
+#kanban-project-add-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--surface-3);
+  color: var(--text-2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+
+#kanban-project-add-btn:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+#kanban-project-del-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--surface-3);
+  color: var(--text-3);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+
+#kanban-project-del-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+#kanban-project-del-btn:not(:disabled):hover {
+  background: var(--type-warning);
+  color: #fff;
+}
+
 #kanban-board {
   display: flex;
   gap: 14px;
@@ -286,6 +361,24 @@
   font-family: var(--font-ui);
 }
 
+#task-project-select {
+  font-size: 0.78rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--r-sm);
+  padding: 5px 8px;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font-ui);
+  width: 100%;
+  transition: border-color 0.12s;
+}
+
+#task-project-select:focus {
+  border-color: var(--accent-line);
+}
+
 #task-modal-close {
   padding: 4px;
   color: var(--text-3);
@@ -464,6 +557,67 @@
 
 .task-footer-spacer {
   flex: 1;
+}
+
+/* ── Project Modal ── */
+
+#project-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+#project-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#project-modal {
+  background: var(--surface-2);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-xl);
+  width: min(380px, 90vw);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--sh-lg);
+}
+
+#project-modal-head {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+
+#project-name-input {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+#project-name-input::placeholder {
+  color: var(--text-4);
+}
+
+#project-modal-footer {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 8px;
 }
 
 /* ── Empty state coluna ── */

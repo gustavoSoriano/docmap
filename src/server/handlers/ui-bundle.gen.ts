@@ -3214,6 +3214,81 @@ body::before {
   flex-direction: column;
 }
 
+/* ── Project toolbar ── */
+
+#kanban-project-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+#kanban-project-select {
+  font-size: 0.8125rem;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: var(--r-sm);
+  padding: 5px 10px;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font-ui);
+  min-width: 180px;
+  transition: border-color 0.12s;
+}
+
+#kanban-project-select:focus {
+  border-color: var(--accent-line);
+}
+
+#kanban-project-add-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--surface-3);
+  color: var(--text-2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+
+#kanban-project-add-btn:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+#kanban-project-del-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--surface-3);
+  color: var(--text-3);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+
+#kanban-project-del-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+#kanban-project-del-btn:not(:disabled):hover {
+  background: var(--type-warning);
+  color: #fff;
+}
+
 #kanban-board {
   display: flex;
   gap: 14px;
@@ -3496,6 +3571,24 @@ body::before {
   font-family: var(--font-ui);
 }
 
+#task-project-select {
+  font-size: 0.78rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--r-sm);
+  padding: 5px 8px;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font-ui);
+  width: 100%;
+  transition: border-color 0.12s;
+}
+
+#task-project-select:focus {
+  border-color: var(--accent-line);
+}
+
 #task-modal-close {
   padding: 4px;
   color: var(--text-3);
@@ -3674,6 +3767,67 @@ body::before {
 
 .task-footer-spacer {
   flex: 1;
+}
+
+/* ── Project Modal ── */
+
+#project-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+#project-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#project-modal {
+  background: var(--surface-2);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-xl);
+  width: min(380px, 90vw);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--sh-lg);
+}
+
+#project-modal-head {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+
+#project-name-input {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+#project-name-input::placeholder {
+  color: var(--text-4);
+}
+
+#project-modal-footer {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 8px;
 }
 
 /* ── Empty state coluna ── */
@@ -6804,6 +6958,19 @@ svg#kg-svg:active { cursor: grabbing; }
 
       <!-- ═══ MODE: TASKS / KANBAN ═══ -->
       <main id="mode-tasks" class="mode">
+        <div id="kanban-project-bar">
+          <select id="kanban-project-select" onchange="renderBoard()">
+            <option value="">Sem projeto</option>
+          </select>
+          <button id="kanban-project-add-btn" onclick="openNewProject()"
+            title="Novo projeto">
+            <span data-icon="plus"></span>
+          </button>
+          <button id="kanban-project-del-btn" onclick="deleteSelectedProject()"
+            title="Remover projeto" disabled>
+            <span data-icon="trash"></span>
+          </button>
+        </div>
         <div id="kanban-board">
           <div class="kanban-col" id="kanban-col-todo" data-status="todo">
             <div class="kanban-col-head">
@@ -7116,6 +7283,12 @@ svg#kg-svg:active { cursor: grabbing; }
           </div>
           <div class="task-meta-row">
             <div class="task-field">
+              <label class="task-label">Projeto</label>
+              <select id="task-project-select">
+                <option value="">Nenhum</option>
+              </select>
+            </div>
+            <div class="task-field">
               <label class="task-label">Data limite</label>
               <input id="task-due-input" type="date" />
             </div>
@@ -7144,6 +7317,26 @@ svg#kg-svg:active { cursor: grabbing; }
           <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
           <button class="tool-btn primary"
             onclick="saveCurrentTask()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Project Modal ════ -->
+    <div id="project-modal-overlay" onclick="closeProjectModalOnOverlay(event)">
+      <div id="project-modal">
+        <div id="project-modal-head">
+          <input id="project-name-input" type="text"
+            placeholder="Nome do projeto…" autocomplete="off" />
+          <button class="kanban-modal-close" onclick="closeProjectModal()"
+            title="Fechar">
+            <span data-icon="x"></span>
+          </button>
+        </div>
+        <div id="project-modal-footer">
+          <div class="task-footer-spacer"></div>
+          <button class="tool-btn" onclick="closeProjectModal()">Cancelar</button>
+          <button class="tool-btn primary"
+            onclick="saveProject()">Criar Projeto</button>
         </div>
       </div>
     </div>
@@ -7489,7 +7682,7 @@ const setMode = (mode) => {
   else if (mode === 'notes')     loadNotesList();
   else if (mode === 'skills')    loadSkillsList();
   else if (mode === 'diagrams')  loadDiagramsList();
-  else if (mode === 'tasks')     loadTasks();
+  else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
@@ -8802,6 +8995,7 @@ connectDiagramEvents();
 // ════ Kanban — tasks globais ════
 
 let allTasks      = [];
+let allProjects   = [];
 let taskNotesList = [];  // cache da lista de notas p/ o seletor (nome distinto de allNotes em notes.js)
 let currentTaskId = null;
 
@@ -8821,6 +9015,39 @@ const loadTasks = async () => {
     renderBoard();
   } catch (err) {
     console.error('Erro ao carregar tasks:', err);
+  }
+};
+
+const loadProjects = async () => {
+  try {
+    const res = await fetch('/projects');
+    allProjects = await res.json();
+    populateProjectSelects();
+  } catch (err) {
+    console.error('Erro ao carregar projetos:', err);
+  }
+};
+
+const populateProjectSelects = () => {
+  const options = allProjects.map((p) =>
+    \`<option value="\${p.id}">\${escHtml(p.name ?? '')}</option>\`
+  ).join('');
+
+  // Toolbar select — preserva opção "Todos"
+  const toolbarSelect = $('kanban-project-select');
+  if (toolbarSelect) {
+    const currentVal = toolbarSelect.value;
+    toolbarSelect.innerHTML = '<option value="">Sem projeto</option>' + options;
+    toolbarSelect.value = currentVal;
+    updateProjectDeleteBtn();
+  }
+
+  // Task modal select — preserva opção "Nenhum"
+  const taskSelect = $('task-project-select');
+  if (taskSelect) {
+    const currentVal = taskSelect.value;
+    taskSelect.innerHTML = '<option value="">Nenhum</option>' + options;
+    taskSelect.value = currentVal;
   }
 };
 
@@ -8923,8 +9150,15 @@ const COLUMNS = [
 ];
 
 const renderBoard = () => {
+  updateProjectDeleteBtn();
+  const selectedProjectId = $('kanban-project-select')?.value ?? '';
+  // "" = "Sem projeto" — filtra tasks sem vínculo
+  const filteredTasks = selectedProjectId
+    ? allTasks.filter((t) => t.projectId === selectedProjectId)
+    : allTasks.filter((t) => !t.projectId);
+
   for (const col of COLUMNS) {
-    const colTasks = allTasks
+    const colTasks = filteredTasks
       .filter((t) => t.status === col.status)
       .sort((a, b) => a.order - b.order);
 
@@ -9108,6 +9342,7 @@ const openNewTask = async (status) => {
   $('task-status-select').value = status;
   $('task-desc-textarea').value = '';
   $('task-due-input').value     = '';
+  $('task-project-select').value = '';
   $('task-delete-btn').style.display = 'none';
 
   showTaskModal();
@@ -9126,6 +9361,7 @@ const openTaskModal = async (id) => {
   $('task-status-select').value = task.status;
   $('task-desc-textarea').value = task.description ?? '';
   $('task-due-input').value     = task.dueDate ?? '';
+  $('task-project-select').value = task.projectId ?? '';
   $('task-delete-btn').style.display = 'inline-flex';
 
   showTaskModal();
@@ -9167,6 +9403,7 @@ const saveCurrentTask = async () => {
     status:      $('task-status-select').value,
     dueDate:     $('task-due-input').value || null,
     noteId:      $('task-note-id').value   || null,
+    projectId:   $('task-project-select').value || null,
   };
 
   if (currentTaskId) {
@@ -9192,6 +9429,92 @@ const deleteCurrentTask = async () => {
   await fetch(\`/tasks/\${currentTaskId}\`, { method: 'DELETE' });
   closeTaskModal();
   await loadTasks();
+};
+
+// ══════════════════════════════════════════
+// Toolbar — deletar projeto selecionado
+// ══════════════════════════════════════════
+
+const updateProjectDeleteBtn = () => {
+  const select = $('kanban-project-select');
+  const delBtn = $('kanban-project-del-btn');
+  if (!select || !delBtn) return;
+  delBtn.disabled = !select.value;
+};
+
+const deleteSelectedProject = async () => {
+  const select = $('kanban-project-select');
+  if (!select || !select.value) return;
+  const projectId = select.value;
+  const project = allProjects.find((p) => p.id === projectId);
+  if (!project) return;
+
+  const ok = await confirmDialog(
+    \`Excluir o projeto "\${project.name}"?\\nAs tasks vinculadas ficarão sem projeto.\`,
+    { danger: true, okLabel: 'Excluir' },
+  );
+  if (!ok) return;
+
+  try {
+    const res = await fetch(\`/projects/\${projectId}\`, { method: 'DELETE' });
+    if (!res.ok) return;
+    select.value = '';
+    updateProjectDeleteBtn();
+    await loadProjects();
+    renderBoard();
+  } catch (err) {
+    console.error('Erro ao remover projeto:', err);
+  }
+};
+
+// ══════════════════════════════════════════
+// Modal — criar projeto
+// ══════════════════════════════════════════
+
+const openNewProject = () => {
+  const input = $('project-name-input');
+  if (!input) return;
+  input.value = '';
+  $('project-modal-overlay')?.classList.add('visible');
+  input.focus();
+};
+
+const closeProjectModal = () => {
+  $('project-modal-overlay')?.classList.remove('visible');
+};
+
+const closeProjectModalOnOverlay = (e) => {
+  if (e.target === $('project-modal-overlay')) closeProjectModal();
+};
+
+const saveProject = async () => {
+  const nameInput = $('project-name-input');
+  if (!nameInput) return;
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.focus(); return; }
+
+  try {
+    const res = await fetch('/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Erro ao criar projeto:', err);
+      return;
+    }
+    const created = await res.json();
+    closeProjectModal();
+    await loadProjects();
+    if (created?.id) {
+      const select = $('kanban-project-select');
+      if (select) select.value = created.id;
+    }
+    renderBoard();
+  } catch (err) {
+    console.error('Erro ao criar projeto:', err);
+  }
 };
 
 // ══════════════════════════════════════════

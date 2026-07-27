@@ -65,6 +65,7 @@ Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100
 ["workspace",      "recent"]                     → string[]
 ["notes",          "_global_", noteId]           → Note
 ["tasks",          "_global_", taskId]           → Task
+["projects",       "_global_", projectId]        → Project
 ["favorites",      id]                           → Favorite
 ["diagrams",       "_global_", diagramId]        → Diagram
 ["macros",         "_global_", macroId]          → Macro

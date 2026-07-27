@@ -520,6 +520,19 @@
 
       <!-- ═══ MODE: TASKS / KANBAN ═══ -->
       <main id="mode-tasks" class="mode">
+        <div id="kanban-project-bar">
+          <select id="kanban-project-select" onchange="renderBoard()">
+            <option value="">Sem projeto</option>
+          </select>
+          <button id="kanban-project-add-btn" onclick="openNewProject()"
+            title="Novo projeto">
+            <span data-icon="plus"></span>
+          </button>
+          <button id="kanban-project-del-btn" onclick="deleteSelectedProject()"
+            title="Remover projeto" disabled>
+            <span data-icon="trash"></span>
+          </button>
+        </div>
         <div id="kanban-board">
           <div class="kanban-col" id="kanban-col-todo" data-status="todo">
             <div class="kanban-col-head">
@@ -832,6 +845,12 @@
           </div>
           <div class="task-meta-row">
             <div class="task-field">
+              <label class="task-label">Projeto</label>
+              <select id="task-project-select">
+                <option value="">Nenhum</option>
+              </select>
+            </div>
+            <div class="task-field">
               <label class="task-label">Data limite</label>
               <input id="task-due-input" type="date" />
             </div>
@@ -860,6 +879,26 @@
           <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
           <button class="tool-btn primary"
             onclick="saveCurrentTask()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Project Modal ════ -->
+    <div id="project-modal-overlay" onclick="closeProjectModalOnOverlay(event)">
+      <div id="project-modal">
+        <div id="project-modal-head">
+          <input id="project-name-input" type="text"
+            placeholder="Nome do projeto…" autocomplete="off" />
+          <button class="kanban-modal-close" onclick="closeProjectModal()"
+            title="Fechar">
+            <span data-icon="x"></span>
+          </button>
+        </div>
+        <div id="project-modal-footer">
+          <div class="task-footer-spacer"></div>
+          <button class="tool-btn" onclick="closeProjectModal()">Cancelar</button>
+          <button class="tool-btn primary"
+            onclick="saveProject()">Criar Projeto</button>
         </div>
       </div>
     </div>
