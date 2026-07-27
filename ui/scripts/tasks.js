@@ -208,6 +208,9 @@ const renderCard = (task) => {
   const desc = task.description
     ? `<div class="kanban-card-desc">${escHtml(task.description.slice(0, 120))}</div>`
     : '';
+  const tags = (task.tags || []).length
+    ? `<div class="kanban-card-tags">${task.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>`
+    : '';
   const meta = (due || note)
     ? `<div class="kanban-card-meta">${due}${note}</div>`
     : '';
@@ -218,6 +221,7 @@ const renderCard = (task) => {
     <div class="kanban-card-title">${escHtml(task.title)}</div>
     ${desc}
     ${meta}
+    ${tags}
   </div>`;
 };
 
@@ -348,6 +352,7 @@ const openNewTask = async (status) => {
   $('task-status-select').value = status;
   $('task-desc-textarea').value = '';
   $('task-due-input').value     = '';
+  $('task-tags-input').value    = '';
   $('task-project-select').value = '';
   $('task-delete-btn').style.display = 'none';
 
@@ -367,6 +372,7 @@ const openTaskModal = async (id) => {
   $('task-status-select').value = task.status;
   $('task-desc-textarea').value = task.description ?? '';
   $('task-due-input').value     = task.dueDate ?? '';
+  $('task-tags-input').value    = (task.tags || []).join(', ');
   $('task-project-select').value = task.projectId ?? '';
   $('task-delete-btn').style.display = 'inline-flex';
 
@@ -410,24 +416,27 @@ const saveCurrentTask = async () => {
     dueDate:     $('task-due-input').value || null,
     noteId:      $('task-note-id').value   || null,
     projectId:   $('task-project-select').value || null,
+    tags:        $('task-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean),
   };
 
-  if (currentTaskId) {
-    await fetch(`/tasks/${currentTaskId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  } else {
-    await fetch('/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  }
+  try {
+    if (currentTaskId) {
+      await fetch(`/tasks/${currentTaskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    } else {
+      await fetch('/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    }
 
-  closeTaskModal();
-  await loadTasks();
+    closeTaskModal();
+    await loadTasks();
+  } catch { toast('Erro ao salvar task'); }
 };
 
 const deleteCurrentTask = async () => {

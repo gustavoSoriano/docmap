@@ -44,6 +44,7 @@ const renderDiagramsList = () => {
     `<div class="diag-item${currentDiagram?.id === d.id ? ' active' : ''}" onclick="openDiagram('${d.id}')">
       <div class="diag-item-title">${escHtml(d.title)}</div>
       <div class="diag-item-preview">${escHtml(d.preview || '')}</div>
+      ${(d.tags||[]).length ? `<div class="diag-item-tags">${d.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
     </div>`
   ).join('');
 };
@@ -63,6 +64,7 @@ const newDiagram = () => {
   currentDiagram = null;
   diagZoomLevel = 1;
   $('diag-title-input').value = '';
+  $('diag-tags-input').value = '';
   $('diag-source').value = '';
   $('diag-id-badge').style.display = 'none';
   $('btn-diag-copy-link').style.display = 'none';
@@ -75,6 +77,7 @@ const newDiagram = () => {
 
 const fillDiagramEditor = (d) => {
   $('diag-title-input').value = d.title;
+  $('diag-tags-input').value = (d.tags || []).join(', ');
   $('diag-source').value      = d.source;
   const badge = $('diag-id-badge');
   badge.textContent            = d.id.slice(0, 8);
@@ -100,10 +103,11 @@ const saveCurrentDiagram = async () => {
   const url    = currentDiagram ? '/diagrams/' + currentDiagram.id : '/diagrams';
   const method = currentDiagram ? 'PUT' : 'POST';
   try {
+    const tags = $('diag-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, source }),
+      body: JSON.stringify({ title, source, tags }),
     });
     currentDiagram = await res.json();
     fillDiagramEditor(currentDiagram);
@@ -196,7 +200,7 @@ const connectDiagramEvents = () => {
   es.addEventListener('updated', (e) => {
     const { diagram } = JSON.parse(e.data);
     allDiagrams = allDiagrams.map((d) => d.id === diagram.id
-      ? { ...d, title: diagram.title, preview: (diagram.source ?? '').slice(0, 120) }
+      ? { ...d, ...diagram, preview: (diagram.source ?? '').slice(0, 120) }
       : d);
     renderDiagramsList();
     if (currentDiagram?.id === diagram.id) {
@@ -205,6 +209,9 @@ const connectDiagramEvents = () => {
       if (document.activeElement !== $('diag-source')) {
         $('diag-title-input').value = diagram.title;
         $('diag-source').value      = diagram.source;
+      }
+      if (document.activeElement !== $('diag-tags-input')) {
+        $('diag-tags-input').value = (diagram.tags || []).join(', ');
       }
       renderPreview(diagram.source);
     }

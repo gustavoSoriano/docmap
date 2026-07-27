@@ -2308,12 +2308,15 @@ body::before {
 }
 
 #macro-desc-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   padding: 0 20px 12px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 #macro-desc-input {
-  width: 100%;
+  flex: 1;
   height: 30px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
@@ -2496,6 +2499,33 @@ body::before {
 .ghost-btn.danger:hover {
   color: var(--cat-security);
   border-color: var(--cat-security);
+}
+
+/* ── Tags ── */
+.macro-item-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+#macro-tags-input {
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  flex: 1;
+}
+#macro-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#macro-tags-input::placeholder {
+  color: var(--text-3);
 }
 
 </style>
@@ -3206,6 +3236,34 @@ body::before {
   color: var(--text);
 }
 
+/* ── Tags ── */
+.diag-item-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+#diag-tags-input {
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  flex: 1;
+  max-width: 260px;
+}
+#diag-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#diag-tags-input::placeholder {
+  color: var(--text-3);
+}
+
 </style>
     <style>
 /* ════ Kanban ════ */
@@ -3837,6 +3895,34 @@ body::before {
   text-align: center;
   padding: 20px 12px;
   line-height: 1.5;
+}
+
+/* ── Tags nos cards ── */
+.kanban-card-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+#task-tags-input {
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+#task-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#task-tags-input::placeholder {
+  color: var(--text-3);
 }
 
 </style>
@@ -4777,6 +4863,34 @@ body::before {
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   padding: 8px 10px;
+}
+
+/* ── Tags ── */
+.mock-item-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+#mock-tags-input {
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+#mock-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#mock-tags-input::placeholder {
+  color: var(--text-3);
 }
 
 </style>
@@ -6335,6 +6449,34 @@ mark.fav-hl {
   color: #fff;
 }
 
+/* ── Tags ── */
+.pod-item-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+#pod-tags-input {
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  flex: 1;
+  max-width: 220px;
+}
+#pod-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#pod-tags-input::placeholder {
+  color: var(--text-3);
+}
+
 </style>
     <style>
 /* ════ Grafo de conhecimento ════ */
@@ -6678,6 +6820,8 @@ svg#kg-svg:active { cursor: grabbing; }
             <div id="macro-desc-row">
               <input id="macro-desc-input" type="text"
                 placeholder="Descrição curta…" />
+              <input id="macro-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
             </div>
 
             <div id="macro-body">
@@ -6782,6 +6926,8 @@ svg#kg-svg:active { cursor: grabbing; }
             <div id="diag-head">
               <input id="diag-title-input" type="text"
                 placeholder="Título do diagrama…" />
+              <input id="diag-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
               <span id="diag-id-badge" style="display:none"
                 title="Clique para copiar o deep link"></span>
               <div id="diag-head-actions">
@@ -6923,6 +7069,11 @@ svg#kg-svg:active { cursor: grabbing; }
                   placeholder="Authentication" autocomplete="off"
                   list="mock-groups-list" />
                 <datalist id="mock-groups-list"></datalist>
+              </div>
+              <div class="mock-field">
+                <label class="mock-label">Tags</label>
+                <input id="mock-tags-input" type="text" class="mock-input"
+                  placeholder="tags, separadas, por vírgula" autocomplete="off" />
               </div>
             </div>
 
@@ -7136,6 +7287,8 @@ svg#kg-svg:active { cursor: grabbing; }
             <div id="pod-head">
               <input id="pod-title-input" type="text" placeholder="Título do podcast…" />
               <input id="pod-folder-input" type="text" placeholder="pasta" list="pod-folder-list" />
+              <input id="pod-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
               <datalist id="pod-folder-list"></datalist>
               <span id="pod-id-badge" title="ID do podcast"></span>
               <div id="pod-head-actions">
@@ -7291,6 +7444,11 @@ svg#kg-svg:active { cursor: grabbing; }
             <div class="task-field">
               <label class="task-label">Data limite</label>
               <input id="task-due-input" type="date" />
+            </div>
+            <div class="task-field">
+              <label class="task-label">Tags</label>
+              <input id="task-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
             </div>
             <div class="task-field" style="position:relative">
               <label class="task-label">Nota vinculada</label>
@@ -8349,6 +8507,7 @@ const renderMacrosList = (macros) => {
         <span class="macro-item-title">\${escHtml(m.title)}</span>
       </div>
       <div class="macro-item-desc">\${escHtml(m.description || '')}</div>
+      \${(m.tags||[]).length ? \`<div class="macro-item-tags">\${m.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\` : ''}
     </div>\`
   ).join('');
 };
@@ -8391,6 +8550,7 @@ const newMacro = () => {
   currentMacro = null;
   $('macro-title-input').value = '';
   $('macro-desc-input').value  = '';
+  $('macro-tags-input').value  = '';
   macroSet('#!/bin/bash\\n# Seu script aqui\\n# $DOCMAP_API       → http://127.0.0.1:3334\\n# $DOCMAP_WORKSPACE → pasta aberta\\n\\necho "Olá do docmap!"');
   $('macro-interp-badge').textContent = 'bash';
   $('macro-interp-badge').className   = 'macro-badge bash';
@@ -8404,6 +8564,7 @@ const newMacro = () => {
 const fillMacroEditor = (m) => {
   $('macro-title-input').value       = m.title;
   $('macro-desc-input').value        = m.description || '';
+  $('macro-tags-input').value        = (m.tags || []).join(', ');
   macroSet(m.script);
   $('macro-interp-badge').textContent = m.interpreter;
   $('macro-interp-badge').className   = \`macro-badge \${m.interpreter}\`;
@@ -8429,13 +8590,14 @@ const saveCurrentMacro = async () => {
   if (!title)  { $('macro-title-input').focus(); return toast('Dê um nome à macro'); }
   if (!script) { macroFocus();                   return toast('Script vazio'); }
 
+  const tags   = $('macro-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
   const url    = currentMacro ? '/macros/' + currentMacro.id : '/macros';
   const method = currentMacro ? 'PUT' : 'POST';
   try {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, name: title, description: desc, script }),
+      body: JSON.stringify({ title, name: title, description: desc, script, tags }),
     });
     currentMacro = await res.json();
     fillMacroEditor(currentMacro);
@@ -8801,6 +8963,7 @@ const renderDiagramsList = () => {
     \`<div class="diag-item\${currentDiagram?.id === d.id ? ' active' : ''}" onclick="openDiagram('\${d.id}')">
       <div class="diag-item-title">\${escHtml(d.title)}</div>
       <div class="diag-item-preview">\${escHtml(d.preview || '')}</div>
+      \${(d.tags||[]).length ? \`<div class="diag-item-tags">\${d.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\` : ''}
     </div>\`
   ).join('');
 };
@@ -8820,6 +8983,7 @@ const newDiagram = () => {
   currentDiagram = null;
   diagZoomLevel = 1;
   $('diag-title-input').value = '';
+  $('diag-tags-input').value = '';
   $('diag-source').value = '';
   $('diag-id-badge').style.display = 'none';
   $('btn-diag-copy-link').style.display = 'none';
@@ -8832,6 +8996,7 @@ const newDiagram = () => {
 
 const fillDiagramEditor = (d) => {
   $('diag-title-input').value = d.title;
+  $('diag-tags-input').value = (d.tags || []).join(', ');
   $('diag-source').value      = d.source;
   const badge = $('diag-id-badge');
   badge.textContent            = d.id.slice(0, 8);
@@ -8857,10 +9022,11 @@ const saveCurrentDiagram = async () => {
   const url    = currentDiagram ? '/diagrams/' + currentDiagram.id : '/diagrams';
   const method = currentDiagram ? 'PUT' : 'POST';
   try {
+    const tags = $('diag-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, source }),
+      body: JSON.stringify({ title, source, tags }),
     });
     currentDiagram = await res.json();
     fillDiagramEditor(currentDiagram);
@@ -8953,7 +9119,7 @@ const connectDiagramEvents = () => {
   es.addEventListener('updated', (e) => {
     const { diagram } = JSON.parse(e.data);
     allDiagrams = allDiagrams.map((d) => d.id === diagram.id
-      ? { ...d, title: diagram.title, preview: (diagram.source ?? '').slice(0, 120) }
+      ? { ...d, ...diagram, preview: (diagram.source ?? '').slice(0, 120) }
       : d);
     renderDiagramsList();
     if (currentDiagram?.id === diagram.id) {
@@ -8962,6 +9128,9 @@ const connectDiagramEvents = () => {
       if (document.activeElement !== $('diag-source')) {
         $('diag-title-input').value = diagram.title;
         $('diag-source').value      = diagram.source;
+      }
+      if (document.activeElement !== $('diag-tags-input')) {
+        $('diag-tags-input').value = (diagram.tags || []).join(', ');
       }
       renderPreview(diagram.source);
     }
@@ -9202,6 +9371,9 @@ const renderCard = (task) => {
   const desc = task.description
     ? \`<div class="kanban-card-desc">\${escHtml(task.description.slice(0, 120))}</div>\`
     : '';
+  const tags = (task.tags || []).length
+    ? \`<div class="kanban-card-tags">\${task.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\`
+    : '';
   const meta = (due || note)
     ? \`<div class="kanban-card-meta">\${due}\${note}</div>\`
     : '';
@@ -9212,6 +9384,7 @@ const renderCard = (task) => {
     <div class="kanban-card-title">\${escHtml(task.title)}</div>
     \${desc}
     \${meta}
+    \${tags}
   </div>\`;
 };
 
@@ -9342,6 +9515,7 @@ const openNewTask = async (status) => {
   $('task-status-select').value = status;
   $('task-desc-textarea').value = '';
   $('task-due-input').value     = '';
+  $('task-tags-input').value    = '';
   $('task-project-select').value = '';
   $('task-delete-btn').style.display = 'none';
 
@@ -9361,6 +9535,7 @@ const openTaskModal = async (id) => {
   $('task-status-select').value = task.status;
   $('task-desc-textarea').value = task.description ?? '';
   $('task-due-input').value     = task.dueDate ?? '';
+  $('task-tags-input').value    = (task.tags || []).join(', ');
   $('task-project-select').value = task.projectId ?? '';
   $('task-delete-btn').style.display = 'inline-flex';
 
@@ -9404,24 +9579,27 @@ const saveCurrentTask = async () => {
     dueDate:     $('task-due-input').value || null,
     noteId:      $('task-note-id').value   || null,
     projectId:   $('task-project-select').value || null,
+    tags:        $('task-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean),
   };
 
-  if (currentTaskId) {
-    await fetch(\`/tasks/\${currentTaskId}\`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  } else {
-    await fetch('/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  }
+  try {
+    if (currentTaskId) {
+      await fetch(\`/tasks/\${currentTaskId}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    } else {
+      await fetch('/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    }
 
-  closeTaskModal();
-  await loadTasks();
+    closeTaskModal();
+    await loadTasks();
+  } catch { toast('Erro ao salvar task'); }
 };
 
 const deleteCurrentTask = async () => {
@@ -9805,6 +9983,7 @@ const renderMocksList = () => {
         <div class="mock-item-info">
           <span class="mock-item-path">\${escHtml(m.path)}</span>
           \${m.name ? \`<span class="mock-item-name">\${escHtml(m.name)}</span>\` : ''}
+          \${(m.tags||[]).length ? \`<div class="mock-item-tags">\${m.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\` : ''}
         </div>
         \${colName ? \`<span class="mock-item-col">\${escHtml(colName)}</span>\` : ''}
       </div>\`;
@@ -9869,6 +10048,7 @@ const showEditorForm = (mock) => {
   $('mock-path-input').value    = mock.path   ?? '';
   $('mock-name-input').value    = mock.name   ?? '';
   $('mock-group-input').value   = mock.group  ?? '';
+  $('mock-tags-input').value    = (mock.tags || []).join(', ');
 
   initScriptEditor();
   editorSet(mock.script ?? DEFAULT_SCRIPT);
@@ -9921,34 +10101,37 @@ const saveMock = async () => {
   if (!path)          { $('mock-path-input').focus();      return; }
   if (!script.trim()) { editorFocus();                     return; }
 
-  const body = { collectionId: colId, method, path, name, group, script };
+  const tags = $('mock-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
+  const body = { collectionId: colId, method, path, name, group, script, tags };
 
-  if (currentMockId) {
-    await fetch(\`/mocks/\${currentMockId}\`, {
-      method:  'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(body),
-    });
-  } else {
-    const res     = await fetch('/mocks', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(body),
-    });
-    const created = await res.json();
-    currentMockId = created.id;
-  }
+  try {
+    if (currentMockId) {
+      await fetch(\`/mocks/\${currentMockId}\`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+    } else {
+      const res     = await fetch('/mocks', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+      const created = await res.json();
+      currentMockId = created.id;
+    }
 
-  await loadMocksData();
-  toast('Mock salvo');
+    await loadMocksData();
+    toast('Mock salvo');
 
-  // Atualiza badge
-  const badge = $('mock-id-badge');
-  if (badge) {
-    badge.textContent    = \`\${method}  \${path}\`;
-    badge.dataset.method = method;
-  }
-  $('btn-mock-delete') && ($('btn-mock-delete').style.display = 'inline-flex');
+    // Atualiza badge
+    const badge = $('mock-id-badge');
+    if (badge) {
+      badge.textContent    = \`\${method}  \${path}\`;
+      badge.dataset.method = method;
+    }
+    $('btn-mock-delete') && ($('btn-mock-delete').style.display = 'inline-flex');
+  } catch { toast('Erro ao salvar mock'); }
 };
 
 const deleteCurrentMock = async () => {
@@ -11033,6 +11216,9 @@ const renderPodcastsList = () => {
       ? '<span class="pod-status err">erro</span>'
       : '';
     const dur = p.durationMs ? formatDuration(p.durationMs) : '';
+    const tags = (p.tags || []).length
+      ? \`<div class="pod-item-tags">\${p.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\`
+      : '';
     return \`<div class="pod-item\${currentPodcast?.id === p.id ? ' active' : ''}" onclick="openPodcast('\${p.id}')">
       <div class="pod-item-top">
         <span class="pod-item-title">\${ICON('mic')} \${escHtml(p.title)}</span>
@@ -11044,6 +11230,7 @@ const renderPodcastsList = () => {
         <span>\${p.voices?.length || 0} vozes</span>
         \${dur ? \`<span class="pod-dot">·</span><span>\${dur}</span>\` : ''}
       </div>
+      \${tags}
     </div>\`;
   }).join('');
 };
@@ -11065,7 +11252,9 @@ const fillPodcastPlayer = (p) => {
 
   const titleInput = $('pod-title-input');
   const folderInput = $('pod-folder-input');
+  const tagsInput  = $('pod-tags-input');
   if (document.activeElement !== titleInput) titleInput.value = p.title;
+  if (document.activeElement !== tagsInput) tagsInput.value = (p.tags || []).join(', ');
   if (document.activeElement !== folderInput) folderInput.value = p.folder;
 
   $('pod-id-badge').textContent = p.id.slice(0, 8);
@@ -11132,22 +11321,30 @@ const renderPodScript = (p) => {
   box.innerHTML = html || \`<div class="pod-script-pending">Roteiro sem falas parseáveis.</div>\`;
 };
 
-// ── Editar metadados (title/folder) ──
+// ── Editar metadados (title/folder/tags) ──
 const savePodcastMeta = async () => {
   if (!currentPodcast) return;
   const title = $('pod-title-input').value.trim();
   const folder = $('pod-folder-input').value.trim() || 'geral';
+  const tags  = $('pod-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
   if (!title) { $('pod-title-input').focus(); return toast('Título obrigatório'); }
   try {
     const res = await fetch('/podcasts/' + currentPodcast.id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, folder }),
+      body: JSON.stringify({ title, folder, tags }),
     });
-    currentPodcast = { ...currentPodcast, title, folder };
-    renderPodcastsList();
-    toast('Podcast atualizado');
-    void res;
+    if (res.ok) {
+      currentPodcast = { ...currentPodcast, title, folder, tags };
+      renderPodcastsList();
+      toast('Podcast atualizado');
+    } else {
+      // Restaura valores anteriores no DOM
+      $('pod-title-input').value = currentPodcast.title;
+      $('pod-folder-input').value = currentPodcast.folder;
+      $('pod-tags-input').value = (currentPodcast.tags || []).join(', ');
+      toast('Erro ao atualizar');
+    }
   } catch { toast('Erro ao atualizar'); }
 };
 
@@ -11188,6 +11385,7 @@ $('pod-folder-filter')?.addEventListener('change', renderPodcastsList);
 // Salvar título/pasta ao perder foco
 $('pod-title-input')?.addEventListener('blur', savePodcastMeta);
 $('pod-folder-input')?.addEventListener('blur', savePodcastMeta);
+$('pod-tags-input')?.addEventListener('blur', savePodcastMeta);
 
 // ── SSE: atualiza status de geração em tempo real ──
 const connectPodcastEvents = () => {
@@ -11455,10 +11653,10 @@ let kgLinks = [];
 let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'diagram', 'macro', 'podcast', 'favorite', 'skill', 'tag'];
+const KG_KINDS = ['note', 'task', 'diagram', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'tag'];
 const KG_LABELS = {
   note: 'Notas', task: 'Tasks', diagram: 'Diagramas', macro: 'Macros',
-  podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', tag: 'Tags',
+  podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks', tag: 'Tags',
 };
 const KG_COLOR = {};
 
@@ -11475,6 +11673,7 @@ const OPEN_BY_KIND = {
   podcast: (id) => openPodcast(id),
   skill: (id) => openSkill(id),
   task: (id) => { setMode('tasks'); openTaskModal(id); },
+  mock: (id) => { setMode('mocks'); if (typeof openMockEditor === 'function') openMockEditor(id); },
   // Favorito é um link salvo → abre a URL no browser (registra acesso).
   favorite: async (id) => {
     try {

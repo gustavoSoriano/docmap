@@ -327,3 +327,31 @@
   background: var(--surface-2);
   color: var(--text);
 }
+
+/* ── Tags ── */
+.diag-item-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+#diag-tags-input {
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  flex: 1;
+  max-width: 260px;
+}
+#diag-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#diag-tags-input::placeholder {
+  color: var(--text-3);
+}

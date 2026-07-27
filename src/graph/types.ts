@@ -14,7 +14,8 @@ export type EntityKind =
   | 'macro'
   | 'podcast'
   | 'favorite'
-  | 'skill';
+  | 'skill'
+  | 'mock';
 
 export type NodeKind = EntityKind | 'tag';
 

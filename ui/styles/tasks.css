@@ -628,3 +628,31 @@
   padding: 20px 12px;
   line-height: 1.5;
 }
+
+/* ── Tags nos cards ── */
+.kanban-card-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+#task-tags-input {
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+#task-tags-input:focus {
+  border-color: var(--accent-line);
+}
+#task-tags-input::placeholder {
+  color: var(--text-3);
+}

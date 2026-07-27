@@ -20,6 +20,7 @@ export const HTTP_METHODS: readonly HttpMethod[] = [
 export type MockCollection = {
   readonly id: string;
   readonly name: string;
+  readonly tags: readonly string[];
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -32,6 +33,7 @@ export type Mock = {
   readonly name: string;
   readonly group: string; // visual grouper within a collection (empty = ungrouped)
   readonly script: string;
+  readonly tags: readonly string[];
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -53,6 +55,7 @@ export type MockResult = {
 
 export type CreateCollectionInput = {
   readonly name: string;
+  readonly tags?: readonly string[];
 };
 
 export type CreateMockInput = {
@@ -62,6 +65,7 @@ export type CreateMockInput = {
   readonly name?: string;
   readonly group?: string;
   readonly script: string;
+  readonly tags?: readonly string[];
 };
 
 export type UpdateMockInput = {
@@ -71,4 +75,5 @@ export type UpdateMockInput = {
   readonly name?: string;
   readonly group?: string;
   readonly script?: string;
+  readonly tags?: readonly string[];
 };

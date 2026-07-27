@@ -114,6 +114,9 @@ const renderPodcastsList = () => {
       ? '<span class="pod-status err">erro</span>'
       : '';
     const dur = p.durationMs ? formatDuration(p.durationMs) : '';
+    const tags = (p.tags || []).length
+      ? `<div class="pod-item-tags">${p.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>`
+      : '';
     return `<div class="pod-item${currentPodcast?.id === p.id ? ' active' : ''}" onclick="openPodcast('${p.id}')">
       <div class="pod-item-top">
         <span class="pod-item-title">${ICON('mic')} ${escHtml(p.title)}</span>
@@ -125,6 +128,7 @@ const renderPodcastsList = () => {
         <span>${p.voices?.length || 0} vozes</span>
         ${dur ? `<span class="pod-dot">·</span><span>${dur}</span>` : ''}
       </div>
+      ${tags}
     </div>`;
   }).join('');
 };
@@ -146,7 +150,9 @@ const fillPodcastPlayer = (p) => {
 
   const titleInput = $('pod-title-input');
   const folderInput = $('pod-folder-input');
+  const tagsInput  = $('pod-tags-input');
   if (document.activeElement !== titleInput) titleInput.value = p.title;
+  if (document.activeElement !== tagsInput) tagsInput.value = (p.tags || []).join(', ');
   if (document.activeElement !== folderInput) folderInput.value = p.folder;
 
   $('pod-id-badge').textContent = p.id.slice(0, 8);
@@ -213,22 +219,30 @@ const renderPodScript = (p) => {
   box.innerHTML = html || `<div class="pod-script-pending">Roteiro sem falas parseáveis.</div>`;
 };
 
-// ── Editar metadados (title/folder) ──
+// ── Editar metadados (title/folder/tags) ──
 const savePodcastMeta = async () => {
   if (!currentPodcast) return;
   const title = $('pod-title-input').value.trim();
   const folder = $('pod-folder-input').value.trim() || 'geral';
+  const tags  = $('pod-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
   if (!title) { $('pod-title-input').focus(); return toast('Título obrigatório'); }
   try {
     const res = await fetch('/podcasts/' + currentPodcast.id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, folder }),
+      body: JSON.stringify({ title, folder, tags }),
     });
-    currentPodcast = { ...currentPodcast, title, folder };
-    renderPodcastsList();
-    toast('Podcast atualizado');
-    void res;
+    if (res.ok) {
+      currentPodcast = { ...currentPodcast, title, folder, tags };
+      renderPodcastsList();
+      toast('Podcast atualizado');
+    } else {
+      // Restaura valores anteriores no DOM
+      $('pod-title-input').value = currentPodcast.title;
+      $('pod-folder-input').value = currentPodcast.folder;
+      $('pod-tags-input').value = (currentPodcast.tags || []).join(', ');
+      toast('Erro ao atualizar');
+    }
   } catch { toast('Erro ao atualizar'); }
 };
 
@@ -269,6 +283,7 @@ $('pod-folder-filter')?.addEventListener('change', renderPodcastsList);
 // Salvar título/pasta ao perder foco
 $('pod-title-input')?.addEventListener('blur', savePodcastMeta);
 $('pod-folder-input')?.addEventListener('blur', savePodcastMeta);
+$('pod-tags-input')?.addEventListener('blur', savePodcastMeta);
 
 // ── SSE: atualiza status de geração em tempo real ──
 const connectPodcastEvents = () => {

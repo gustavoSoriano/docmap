@@ -80,6 +80,7 @@ const renderMacrosList = (macros) => {
         <span class="macro-item-title">${escHtml(m.title)}</span>
       </div>
       <div class="macro-item-desc">${escHtml(m.description || '')}</div>
+      ${(m.tags||[]).length ? `<div class="macro-item-tags">${m.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
     </div>`
   ).join('');
 };
@@ -122,6 +123,7 @@ const newMacro = () => {
   currentMacro = null;
   $('macro-title-input').value = '';
   $('macro-desc-input').value  = '';
+  $('macro-tags-input').value  = '';
   macroSet('#!/bin/bash\n# Seu script aqui\n# $DOCMAP_API       → http://127.0.0.1:3334\n# $DOCMAP_WORKSPACE → pasta aberta\n\necho "Olá do docmap!"');
   $('macro-interp-badge').textContent = 'bash';
   $('macro-interp-badge').className   = 'macro-badge bash';
@@ -135,6 +137,7 @@ const newMacro = () => {
 const fillMacroEditor = (m) => {
   $('macro-title-input').value       = m.title;
   $('macro-desc-input').value        = m.description || '';
+  $('macro-tags-input').value        = (m.tags || []).join(', ');
   macroSet(m.script);
   $('macro-interp-badge').textContent = m.interpreter;
   $('macro-interp-badge').className   = `macro-badge ${m.interpreter}`;
@@ -160,13 +163,14 @@ const saveCurrentMacro = async () => {
   if (!title)  { $('macro-title-input').focus(); return toast('Dê um nome à macro'); }
   if (!script) { macroFocus();                   return toast('Script vazio'); }
 
+  const tags   = $('macro-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
   const url    = currentMacro ? '/macros/' + currentMacro.id : '/macros';
   const method = currentMacro ? 'PUT' : 'POST';
   try {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, name: title, description: desc, script }),
+      body: JSON.stringify({ title, name: title, description: desc, script, tags }),
     });
     currentMacro = await res.json();
     fillMacroEditor(currentMacro);

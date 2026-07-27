@@ -1,3 +1,4 @@
+import { normalizeTags } from '../tags/normalize.ts';
 import type {
   CreateCollectionInput,
   CreateMockInput,
@@ -41,6 +42,7 @@ export const createCollection = async (
   const col: MockCollection = {
     id: crypto.randomUUID(),
     name: input.name,
+    tags: normalizeTags(input.tags),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -51,13 +53,14 @@ export const createCollection = async (
 export const updateCollection = async (
   kv: Deno.Kv,
   id: string,
-  name: string,
+  input: { name: string; tags?: readonly string[] },
 ): Promise<MockCollection | null> => {
   const existing = await getCollection(kv, id);
   if (!existing) return null;
   const updated: MockCollection = {
     ...existing,
-    name,
+    name: input.name,
+    ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     updatedAt: new Date().toISOString(),
   };
   await kv.set(colKey(id), updated);
@@ -131,6 +134,7 @@ export const createMock = async (
     name: input.name ?? '',
     group: input.group ?? '',
     script: input.script,
+    tags: normalizeTags(input.tags),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -153,6 +157,7 @@ export const updateMock = async (
     ...(input.name !== undefined ? { name: input.name } : {}),
     ...(input.group !== undefined ? { group: input.group } : {}),
     ...(input.script !== undefined ? { script: input.script } : {}),
+    ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     updatedAt: new Date().toISOString(),
   };
 

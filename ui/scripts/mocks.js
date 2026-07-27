@@ -275,6 +275,7 @@ const renderMocksList = () => {
         <div class="mock-item-info">
           <span class="mock-item-path">${escHtml(m.path)}</span>
           ${m.name ? `<span class="mock-item-name">${escHtml(m.name)}</span>` : ''}
+          ${(m.tags||[]).length ? `<div class="mock-item-tags">${m.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
         </div>
         ${colName ? `<span class="mock-item-col">${escHtml(colName)}</span>` : ''}
       </div>`;
@@ -339,6 +340,7 @@ const showEditorForm = (mock) => {
   $('mock-path-input').value    = mock.path   ?? '';
   $('mock-name-input').value    = mock.name   ?? '';
   $('mock-group-input').value   = mock.group  ?? '';
+  $('mock-tags-input').value    = (mock.tags || []).join(', ');
 
   initScriptEditor();
   editorSet(mock.script ?? DEFAULT_SCRIPT);
@@ -391,34 +393,37 @@ const saveMock = async () => {
   if (!path)          { $('mock-path-input').focus();      return; }
   if (!script.trim()) { editorFocus();                     return; }
 
-  const body = { collectionId: colId, method, path, name, group, script };
+  const tags = $('mock-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
+  const body = { collectionId: colId, method, path, name, group, script, tags };
 
-  if (currentMockId) {
-    await fetch(`/mocks/${currentMockId}`, {
-      method:  'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(body),
-    });
-  } else {
-    const res     = await fetch('/mocks', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(body),
-    });
-    const created = await res.json();
-    currentMockId = created.id;
-  }
+  try {
+    if (currentMockId) {
+      await fetch(`/mocks/${currentMockId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+    } else {
+      const res     = await fetch('/mocks', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+      const created = await res.json();
+      currentMockId = created.id;
+    }
 
-  await loadMocksData();
-  toast('Mock salvo');
+    await loadMocksData();
+    toast('Mock salvo');
 
-  // Atualiza badge
-  const badge = $('mock-id-badge');
-  if (badge) {
-    badge.textContent    = `${method}  ${path}`;
-    badge.dataset.method = method;
-  }
-  $('btn-mock-delete') && ($('btn-mock-delete').style.display = 'inline-flex');
+    // Atualiza badge
+    const badge = $('mock-id-badge');
+    if (badge) {
+      badge.textContent    = `${method}  ${path}`;
+      badge.dataset.method = method;
+    }
+    $('btn-mock-delete') && ($('btn-mock-delete').style.display = 'inline-flex');
+  } catch { toast('Erro ao salvar mock'); }
 };
 
 const deleteCurrentMock = async () => {

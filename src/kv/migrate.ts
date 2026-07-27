@@ -62,6 +62,21 @@ const migrations: Migration[] = [
       }
     }
   },
+
+  // v6 — mocks ganham tags. Adiciona `tags: []` em mock_collections e mocks_data.
+  async (kv) => {
+    const prefixes: Deno.KvKey[] = [
+      ['mock_collections'],
+      ['mocks_data'],
+    ];
+    for (const prefix of prefixes) {
+      for await (const e of kv.list<{ tags?: readonly string[] }>({ prefix })) {
+        const v = e.value;
+        if (!v || Array.isArray(v.tags)) continue;
+        await kv.set(e.key, { ...v, tags: [] });
+      }
+    }
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

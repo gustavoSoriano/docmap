@@ -240,6 +240,8 @@
             <div id="macro-desc-row">
               <input id="macro-desc-input" type="text"
                 placeholder="Descrição curta…" />
+              <input id="macro-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
             </div>
 
             <div id="macro-body">
@@ -344,6 +346,8 @@
             <div id="diag-head">
               <input id="diag-title-input" type="text"
                 placeholder="Título do diagrama…" />
+              <input id="diag-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
               <span id="diag-id-badge" style="display:none"
                 title="Clique para copiar o deep link"></span>
               <div id="diag-head-actions">
@@ -485,6 +489,11 @@
                   placeholder="Authentication" autocomplete="off"
                   list="mock-groups-list" />
                 <datalist id="mock-groups-list"></datalist>
+              </div>
+              <div class="mock-field">
+                <label class="mock-label">Tags</label>
+                <input id="mock-tags-input" type="text" class="mock-input"
+                  placeholder="tags, separadas, por vírgula" autocomplete="off" />
               </div>
             </div>
 
@@ -698,6 +707,8 @@
             <div id="pod-head">
               <input id="pod-title-input" type="text" placeholder="Título do podcast…" />
               <input id="pod-folder-input" type="text" placeholder="pasta" list="pod-folder-list" />
+              <input id="pod-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
               <datalist id="pod-folder-list"></datalist>
               <span id="pod-id-badge" title="ID do podcast"></span>
               <div id="pod-head-actions">
@@ -853,6 +864,11 @@
             <div class="task-field">
               <label class="task-label">Data limite</label>
               <input id="task-due-input" type="date" />
+            </div>
+            <div class="task-field">
+              <label class="task-label">Tags</label>
+              <input id="task-tags-input" type="text"
+                placeholder="tags, separadas, por vírgula" />
             </div>
             <div class="task-field" style="position:relative">
               <label class="task-label">Nota vinculada</label>

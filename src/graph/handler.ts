@@ -9,13 +9,14 @@ import { listMacros } from '../macros/store.ts';
 import { listPodcasts } from '../podcasts/store.ts';
 import { listFavorites } from '../favorites/store.ts';
 import { listSkills } from '../skills/store.ts';
+import { listMocks } from '../mocks/store.ts';
 import { buildKnowledgeGraph } from './build.ts';
 import { json } from '../server/response.ts';
 import type { GraphEntity } from './types.ts';
 
 export const graphHandler =
   (kv: Deno.Kv) => async (_req: Request, _url: URL): Promise<Response> => {
-    const [notes, tasks, diagrams, macros, podcasts, favorites, skills] =
+    const [notes, tasks, diagrams, macros, podcasts, favorites, skills, mocks] =
       await Promise.all([
         listNotes(kv),
         listTasks(kv),
@@ -24,6 +25,7 @@ export const graphHandler =
         listPodcasts(kv),
         listFavorites(kv),
         listSkills(kv),
+        listMocks(kv),
       ]);
 
     const entities: GraphEntity[] = [
@@ -69,6 +71,12 @@ export const graphHandler =
         kind: 'skill' as const,
         label: s.title,
         tags: s.tags,
+      })),
+      ...mocks.map((m) => ({
+        id: m.id,
+        kind: 'mock' as const,
+        label: `${m.method} ${m.path}`,
+        tags: m.tags,
       })),
     ];
 

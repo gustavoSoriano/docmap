@@ -33,7 +33,7 @@ export const buildKnowledgeGraph = (
   const byTag = new Map<string, string[]>();
   for (const e of entities) {
     const eid = entityId(e);
-    for (const tag of e.tags) {
+    for (const tag of e.tags ?? []) {
       const arr = byTag.get(tag);
       if (arr) arr.push(eid);
       else byTag.set(tag, [eid]);
