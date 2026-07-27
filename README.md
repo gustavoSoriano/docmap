@@ -51,16 +51,22 @@ Ideal para:
 
 ## Capturas de tela
 
-> 💡 Os placeholders abaixo são wireframes SVG. Substitua por screenshots reais em `docs/assets/` antes de divulgar.
-
 <div align="center">
-  <img src="docs/assets/screenshot-graph.svg" alt="Grafo de arquivos" width="100%">
+  <img src="docs/assets/screenshot-graph.png" alt="Grafo de conhecimento com 120 entidades e 154 conexões" width="100%">
   <br><br>
-  <img src="docs/assets/screenshot-podcast.svg" alt="Podcast com slides" width="100%">
-  <br><br>
-  <img src="docs/assets/screenshot-markmap.svg" alt="Mapa mental" width="48%">
+  <img src="docs/assets/screenshot-mermaid.png" alt="Diagramas Mermaid" width="49%">
   &nbsp;
-  <img src="docs/assets/screenshot-kanban.svg" alt="Kanban de tarefas" width="48%">
+  <img src="docs/assets/screenshot-markmap.png" alt="Mapa mental navegável" width="49%">
+  <br><br>
+  <img src="docs/assets/screenshot-podcast.png" alt="Podcast com slides sincronizados" width="100%">
+  <br><br>
+  <img src="docs/assets/screenshot-kanban.png" alt="Kanban de tarefas" width="49%">
+  &nbsp;
+  <img src="docs/assets/screenshot-mocks.png" alt="Mocks HTTP" width="49%">
+  <br><br>
+  <img src="docs/assets/screenshot-favorites.png" alt="Gerenciador de favoritos" width="49%">
+  &nbsp;
+  <img src="docs/assets/screenshot-assistant.png" alt="Assistente IA integrado ao grafo" width="49%">
 </div>
 
 ---
