@@ -549,3 +549,88 @@ body::before {
   background: var(--text-4);
   background-clip: padding-box;
 }
+
+/* ════════ Responsivo: ≤ 900px (tablet / janela pequena) ════════ */
+@media (max-width: 900px) {
+  /* Sidebars: larguras reduzidas definidas nos arquivos de cada modo.
+     Apenas regras globais (modais) ficam aqui. */
+
+  /* Modais não estouram a tela */
+  #settings-modal {
+    max-width: calc(100vw - 32px);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+/* ════════ Responsivo: ≤ 600px (mobile / janela muito pequena) ════════ */
+@media (max-width: 600px) {
+  /* Body: empilhar verticalmente (cada painel interno tem seu proprio scroll) */
+  body {
+    flex-direction: column;
+  }
+
+  /* Rail lateral vira barra horizontal inferior */
+  #rail {
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+    padding: 6px 8px;
+    gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  #rail-logo {
+    margin-bottom: 0;
+    margin-right: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    border-radius: 7px;
+    flex-shrink: 0;
+  }
+  .rail-btn {
+    width: 40px;
+    height: 42px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .rail-btn.active::before {
+    display: none; /* accent bar lateral não faz sentido em row */
+  }
+  .rail-lbl {
+    font-size: 8px;
+  }
+  .rail-spacer {
+    display: none;
+  }
+
+  /* Stage ocupa altura restante */
+  #stage {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Modais ocupam quase toda a tela */
+  #settings-modal {
+    width: calc(100vw - 24px);
+    max-width: none;
+    margin: 12px;
+    border-radius: var(--r-md);
+  }
+
+  /* Toast não estoura a tela */
+  #toast {
+    max-width: calc(100vw - 32px);
+    left: 50%;
+    transform: translate(-50%, 14px);
+    white-space: normal;
+    text-align: center;
+  }
+  #toast.visible {
+    transform: translate(-50%, 0);
+  }
+}

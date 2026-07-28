@@ -504,3 +504,101 @@
   border-top: 1px solid var(--border);
   margin: 20px 0;
 }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #notes-col {
+    width: 240px;
+  }
+  #note-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #note-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 16px 10px;
+  }
+  #note-title-input {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-notes {
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Sidebar escondida por padrão no mobile — clique no ◆ para abrir */
+  #notes-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  /* toggleSidebar() adiciona .col-collapsed → revela a lista */
+  #notes-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+
+  #notes-col-head {
+    padding: 8px 12px 6px;
+  }
+  #notes-col-title {
+    font-size: 14px;
+  }
+  #notes-search-box {
+    padding: 0 10px 6px;
+  }
+  #notes-filters {
+    padding: 0 10px 8px;
+    gap: 5px;
+  }
+  .note-item {
+    padding: 8px 12px;
+  }
+  .note-item-title {
+    font-size: 12px;
+  }
+  .note-item-preview {
+    font-size: 10.5px;
+  }
+  /* Editor ocupa o resto */
+  #notes-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #note-head {
+    padding: 12px 14px 8px;
+  }
+  #note-title-input {
+    font-size: 18px;
+    min-width: 0;
+  }
+  #note-toolbar {
+    padding: 0 14px 10px;
+    gap: 5px;
+  }
+  #note-cat-input {
+    width: 80px;
+  }
+  #note-content-textarea {
+    padding: 16px;
+    font-size: 12px;
+  }
+  #note-preview {
+    padding: 16px 18px;
+  }
+}
+

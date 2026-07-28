@@ -656,3 +656,76 @@
 #task-tags-input::placeholder {
   color: var(--text-3);
 }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  .kanban-col {
+    min-width: 230px;
+  }
+  #task-modal-body {
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+  .task-meta-row {
+    flex-basis: auto;
+    flex-shrink: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    overflow-y: visible;
+  }
+  .task-meta-row .task-field {
+    flex: 1;
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 600px) {
+  #kanban-project-bar {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  #kanban-project-select {
+    min-width: 0;
+    flex: 1;
+  }
+  #kanban-board {
+    padding: 10px;
+    gap: 10px;
+  }
+  .kanban-col {
+    min-width: 220px;
+    max-width: none;
+    flex-shrink: 0;
+  }
+  #task-modal {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 32px);
+    border-radius: var(--r-md);
+  }
+  #task-modal-body {
+    padding: 12px;
+  }
+  #task-modal-head {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+  #task-modal-footer {
+    padding: 10px 12px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .task-meta-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .task-meta-row .task-field {
+    min-width: 0;
+  }
+  #project-modal {
+    width: calc(100vw - 32px);
+    max-width: none;
+  }
+}

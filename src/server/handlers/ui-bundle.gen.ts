@@ -83,6 +83,7 @@ export const UI_HTML = `<!DOCTYPE html>
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
 
   /* ── Metrics ── */
+  /* Breakpoints usados nas @media queries: 600px (mobile), 900px (tablet) */
   --rail-w: 60px;
   --r-xs: 5px;
   --r-sm: 7px;
@@ -682,6 +683,91 @@ body::before {
   background-clip: padding-box;
 }
 
+/* ════════ Responsivo: ≤ 900px (tablet / janela pequena) ════════ */
+@media (max-width: 900px) {
+  /* Sidebars: larguras reduzidas definidas nos arquivos de cada modo.
+     Apenas regras globais (modais) ficam aqui. */
+
+  /* Modais não estouram a tela */
+  #settings-modal {
+    max-width: calc(100vw - 32px);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+/* ════════ Responsivo: ≤ 600px (mobile / janela muito pequena) ════════ */
+@media (max-width: 600px) {
+  /* Body: empilhar verticalmente (cada painel interno tem seu proprio scroll) */
+  body {
+    flex-direction: column;
+  }
+
+  /* Rail lateral vira barra horizontal inferior */
+  #rail {
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+    padding: 6px 8px;
+    gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  #rail-logo {
+    margin-bottom: 0;
+    margin-right: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    border-radius: 7px;
+    flex-shrink: 0;
+  }
+  .rail-btn {
+    width: 40px;
+    height: 42px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .rail-btn.active::before {
+    display: none; /* accent bar lateral não faz sentido em row */
+  }
+  .rail-lbl {
+    font-size: 8px;
+  }
+  .rail-spacer {
+    display: none;
+  }
+
+  /* Stage ocupa altura restante */
+  #stage {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Modais ocupam quase toda a tela */
+  #settings-modal {
+    width: calc(100vw - 24px);
+    max-width: none;
+    margin: 12px;
+    border-radius: var(--r-md);
+  }
+
+  /* Toast não estoura a tela */
+  #toast {
+    max-width: calc(100vw - 32px);
+    left: 50%;
+    transform: translate(-50%, 14px);
+    white-space: normal;
+    text-align: center;
+  }
+  #toast.visible {
+    transform: translate(-50%, 0);
+  }
+}
+
 </style>
     <style>
 /* ════════ Markmap pane ════════ */
@@ -1226,6 +1312,54 @@ body::before {
   border-color: var(--cat-security);
 }
 
+/* ════════ Responsivo ════════ */
+@media (max-width: 600px) {
+  #annot-popover {
+    width: calc(100vw - 24px);
+    max-width: none;
+    left: 12px !important;
+    right: 12px;
+    border-radius: var(--r-md);
+    z-index: 550; /* acima do agent panel overlay (z-index:500) */
+  }
+  #annot-panel {
+    height: 180px;
+  }
+  #annot-head {
+    padding: 8px 12px;
+  }
+  #annot-list {
+    padding: 4px 0;
+  }
+  .annot-item {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  #pop-types {
+    padding: 10px 12px 0;
+    gap: 4px;
+  }
+  .type-btn {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  #pop-body {
+    padding: 10px 12px 0;
+  }
+  #pop-textarea {
+    height: 70px;
+    font-size: 12px;
+  }
+  #pop-foot {
+    padding: 10px 12px 12px;
+    gap: 6px;
+  }
+  .pop-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
 </style>
     <style>
 /* ════════ Notes mode ════════ */
@@ -1735,6 +1869,104 @@ body::before {
   margin: 20px 0;
 }
 
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #notes-col {
+    width: 240px;
+  }
+  #note-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #note-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 16px 10px;
+  }
+  #note-title-input {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-notes {
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Sidebar escondida por padrão no mobile — clique no ◆ para abrir */
+  #notes-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  /* toggleSidebar() adiciona .col-collapsed → revela a lista */
+  #notes-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+
+  #notes-col-head {
+    padding: 8px 12px 6px;
+  }
+  #notes-col-title {
+    font-size: 14px;
+  }
+  #notes-search-box {
+    padding: 0 10px 6px;
+  }
+  #notes-filters {
+    padding: 0 10px 8px;
+    gap: 5px;
+  }
+  .note-item {
+    padding: 8px 12px;
+  }
+  .note-item-title {
+    font-size: 12px;
+  }
+  .note-item-preview {
+    font-size: 10.5px;
+  }
+  /* Editor ocupa o resto */
+  #notes-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #note-head {
+    padding: 12px 14px 8px;
+  }
+  #note-title-input {
+    font-size: 18px;
+    min-width: 0;
+  }
+  #note-toolbar {
+    padding: 0 14px 10px;
+    gap: 5px;
+  }
+  #note-cat-input {
+    width: 80px;
+  }
+  #note-content-textarea {
+    padding: 16px;
+    font-size: 12px;
+  }
+  #note-preview {
+    padding: 16px 18px;
+  }
+}
+
+
 </style>
     <style>
 /* ════ AI Sidebar — dockada à direita, colapsável, persistente ════ */
@@ -2094,6 +2326,110 @@ body::before {
 #chat-send:disabled {
   opacity: .5;
   cursor: not-allowed;
+}
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  :root {
+    --agent-w: 340px;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --agent-w: 100vw;
+    --agent-rail-w: auto;
+  }
+
+  /* Estado colapsado: floating action button no canto inferior direito */
+  #agent-panel:not(.open) {
+    position: fixed;
+    bottom: 20px;
+    right: 16px;
+    width: auto;
+    height: auto;
+    border-left: none;
+    background: transparent;
+    z-index: 450;
+  }
+  #agent-panel:not(.open) #agent-collapsed {
+    position: static;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 4px 20px rgba(55,217,154,.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+  #agent-panel:not(.open) .agent-orb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+    display: grid;
+    place-items: center;
+    color: var(--on-accent);
+  }
+  #agent-panel:not(.open) .agent-orb .ico {
+    width: 18px;
+    height: 18px;
+  }
+  #agent-panel:not(.open) .agent-collapsed-label {
+    display: none; /* só o ícone no floating button */
+  }
+  #agent-panel:not(.open) .agent-body {
+    display: none;
+  }
+
+  /* Estado expandido: overlay full-screen */
+  #agent-panel.open {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    width: 100vw;
+    border-left: none;
+    border-radius: 0;
+  }
+  #agent-panel.open .agent-body {
+    width: 100vw;
+  }
+
+  /* Header compacto */
+  #chat-header {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+  #chat-provider {
+    max-width: 100px;
+    font-size: 12px;
+  }
+  /* Feed e composer */
+  #chat-feed {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  #chat-composer {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  #chat-input {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  #chat-send {
+    width: 32px;
+    height: 32px;
+  }
+  .chat-bubble {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
 }
 
 </style>
@@ -2528,6 +2864,101 @@ body::before {
   color: var(--text-3);
 }
 
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #macros-col {
+    width: 200px;
+  }
+  #macro-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px 8px;
+  }
+  #macro-title-input {
+    font-size: 18px;
+  }
+  #macro-desc-row {
+    flex-wrap: wrap;
+    padding: 0 14px 10px;
+  }
+  #macro-path-hint {
+    margin: 10px 14px 0;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-macros {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #macros-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #macros-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #macros-col-head {
+    padding: 8px 12px 6px;
+  }
+  #macros-col-title {
+    font-size: 14px;
+  }
+  .macro-item {
+    padding: 7px 12px;
+  }
+  .macro-item-title {
+    font-size: 11.5px;
+  }
+  .macro-item-desc {
+    font-size: 10.5px;
+  }
+  #macros-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #macro-head {
+    padding: 10px 12px 6px;
+  }
+  #macro-title-input {
+    font-size: 16px;
+  }
+  #macro-desc-row {
+    padding: 0 12px 8px;
+  }
+  #macro-head-actions {
+    gap: 4px;
+  }
+  #macro-head-actions .tool-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+  #macro-script {
+    padding: 12px 14px;
+    font-size: 11.5px;
+  }
+  #macro-output-panel {
+    max-height: 35%;
+  }
+  #macro-output {
+    padding: 10px 14px;
+    font-size: 11px;
+  }
+}
+
 </style>
     <style>
 /* ════ Skills mode ════ */
@@ -2904,6 +3335,96 @@ body::before {
   margin: 8px 0;
 }
 
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #skills-col {
+    width: 220px;
+  }
+  #skill-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #skill-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px 8px;
+  }
+  #skill-title-input {
+    font-size: 18px;
+  }
+  #skill-name-input {
+    width: 110px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-skills {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #skills-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #skills-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #skills-col-head {
+    padding: 8px 12px 6px;
+  }
+  #skills-col-title {
+    font-size: 14px;
+  }
+  .skill-item {
+    padding: 7px 12px;
+  }
+  .skill-item-title {
+    font-size: 11.5px;
+  }
+  .skill-item-desc {
+    font-size: 10.5px;
+  }
+  #skills-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #skill-head {
+    padding: 10px 12px 6px;
+  }
+  #skill-title-input {
+    font-size: 16px;
+  }
+  #skill-toolbar {
+    padding: 0 12px 8px;
+    gap: 4px;
+  }
+  #skill-name-input {
+    width: 90px;
+  }
+  #skill-desc-row {
+    padding: 0 12px 8px;
+  }
+  #skill-content-textarea {
+    padding: 14px;
+    font-size: 12px;
+  }
+  #skill-preview {
+    padding: 14px 16px;
+  }
+}
+
 </style>
     <style>
 /* ════ Diagrams mode ════ */
@@ -3262,6 +3783,95 @@ body::before {
 }
 #diag-tags-input::placeholder {
   color: var(--text-3);
+}
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #diag-col {
+    width: 200px;
+  }
+  #diag-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px 10px;
+  }
+  #diag-title-input {
+    font-size: 18px;
+  }
+  #diag-tags-input {
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-diagrams {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #diag-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #diag-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #diag-col-head {
+    padding: 8px 12px 6px;
+  }
+  #diag-col-title {
+    font-size: 14px;
+  }
+  .diag-item {
+    padding: 7px 12px;
+  }
+  .diag-item-title {
+    font-size: 11.5px;
+  }
+  .diag-item-preview {
+    font-size: 10px;
+  }
+  #diag-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #diag-head {
+    padding: 10px 12px 8px;
+    gap: 6px;
+  }
+  #diag-title-input {
+    font-size: 16px;
+    min-width: 0;
+  }
+  #diag-tags-input {
+    max-width: 140px;
+  }
+  #diag-head-actions {
+    gap: 4px;
+  }
+  #diag-head-actions .tool-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+  #diag-preview-col {
+    padding: 16px;
+  }
+  #diag-zoom-bar {
+    top: 6px;
+    right: 6px;
+  }
 }
 
 </style>
@@ -3923,6 +4533,79 @@ body::before {
 }
 #task-tags-input::placeholder {
   color: var(--text-3);
+}
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  .kanban-col {
+    min-width: 230px;
+  }
+  #task-modal-body {
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+  .task-meta-row {
+    flex-basis: auto;
+    flex-shrink: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    overflow-y: visible;
+  }
+  .task-meta-row .task-field {
+    flex: 1;
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 600px) {
+  #kanban-project-bar {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  #kanban-project-select {
+    min-width: 0;
+    flex: 1;
+  }
+  #kanban-board {
+    padding: 10px;
+    gap: 10px;
+  }
+  .kanban-col {
+    min-width: 220px;
+    max-width: none;
+    flex-shrink: 0;
+  }
+  #task-modal {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 32px);
+    border-radius: var(--r-md);
+  }
+  #task-modal-body {
+    padding: 12px;
+  }
+  #task-modal-head {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+  #task-modal-footer {
+    padding: 10px 12px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .task-meta-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .task-meta-row .task-field {
+    min-width: 0;
+  }
+  #project-modal {
+    width: calc(100vw - 32px);
+    max-width: none;
+  }
 }
 
 </style>
@@ -4891,6 +5574,104 @@ body::before {
 }
 #mock-tags-input::placeholder {
   color: var(--text-3);
+}
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #mocks-col {
+    width: 200px;
+    min-width: 180px;
+  }
+  #mock-meta-row-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-mocks {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #mocks-col {
+    width: 100%;
+    min-width: 0;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #mocks-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #mocks-col-list {
+    max-height: 120px;
+  }
+  #mocks-col-head, #mocks-list-head {
+    padding: 6px 8px;
+  }
+  .mocks-section-label {
+    font-size: 0.6rem;
+  }
+  .mocks-col-item-inner {
+    padding: 5px 6px;
+  }
+  .mocks-col-name {
+    font-size: 0.75rem;
+  }
+  #mocks-list {
+    padding: 2px 4px;
+  }
+  .mocks-item {
+    padding: 4px 6px;
+  }
+  #mocks-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #mocks-editor-form {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  #mock-meta-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  #mock-meta-row-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  #mock-head {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #mock-head-actions {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  #mock-head-actions .tool-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+  .mock-field-script .CodeMirror {
+    min-height: 120px;
+  }
+  .mock-field-script .CodeMirror-scroll {
+    min-height: 120px;
+  }
+  #mock-script-textarea {
+    min-height: 120px;
+  }
 }
 
 </style>
@@ -6014,6 +6795,139 @@ mark.fav-hl {
   transform: translateY(-1px);
 }
 
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #fav-sidebar {
+    width: 170px;
+  }
+  #fav-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  .fav-featured-row {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+  #fav-type-tabs {
+    flex-wrap: wrap;
+    gap: 3px;
+    padding: 7px 12px;
+  }
+  .fav-type-tab {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  #fav-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 9px 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-favorites {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #fav-sidebar {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0 8px;
+    gap: 4px;
+    align-items: flex-start;
+    transition: max-height 0.25s ease;
+  }
+  #fav-sidebar.col-collapsed {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  .fav-sidebar-section {
+    padding: 0;
+    flex: 1;
+    min-width: 100px;
+  }
+  .fav-sidebar-label {
+    font-size: 8px;
+  }
+  .fav-cat-item {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+  .fav-sidebar-divider {
+    display: none;
+  }
+  #fav-main {
+    flex: 1;
+    min-height: 0;
+  }
+  #fav-toolbar {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  #fav-add-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  #fav-type-tabs {
+    padding: 6px 10px;
+    gap: 2px;
+  }
+  .fav-type-tab {
+    padding: 3px 7px;
+    font-size: 10px;
+    gap: 4px;
+  }
+  #fav-scroll {
+    padding: 12px 10px 24px;
+  }
+  #fav-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .fav-featured-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  /* Cards compactos em mobile */
+  .fav-card {
+    padding: 10px 12px;
+  }
+  #fav-modal {
+    width: calc(100vw - 24px);
+    max-width: none;
+    margin: 8px;
+  }
+  #fav-modal-overlay {
+    padding-top: 24px;
+  }
+  .fav-modal-body {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .fav-type-selector {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .fav-type-btn {
+    padding: 5px 4px;
+    font-size: 10px;
+  }
+  .fav-kbd-hint {
+    display: none;
+  }
+}
+
 </style>
     <style>
 /* ════ Podcasts mode ════ */
@@ -6477,6 +7391,111 @@ mark.fav-hl {
   color: var(--text-3);
 }
 
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #pod-col {
+    width: 220px;
+  }
+  #pod-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 16px 10px;
+  }
+  #pod-folder-input {
+    width: 120px;
+  }
+  #pod-tags-input {
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-podcasts {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #pod-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #pod-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #pod-col-head {
+    padding: 8px 12px 6px;
+  }
+  #pod-col-title {
+    font-size: 14px;
+  }
+  .pod-item {
+    padding: 7px 12px;
+  }
+  .pod-item-title {
+    font-size: 11.5px;
+  }
+  .pod-item-meta {
+    font-size: 10px;
+  }
+  #pod-player {
+    flex: 1;
+    min-height: 0;
+  }
+  #pod-head {
+    padding: 10px 12px 8px;
+    gap: 6px;
+  }
+  #pod-title-input {
+    font-size: 15px;
+    min-width: 0;
+  }
+  #pod-folder-input {
+    width: 100px;
+    flex: 1;
+  }
+  #pod-tags-input {
+    max-width: none;
+    flex: 1;
+  }
+  #pod-head-actions {
+    gap: 4px;
+  }
+  #pod-head-actions .tool-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+  #pod-audio-wrap {
+    padding: 10px 14px;
+  }
+  #pod-meta {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+  #pod-script {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .pod-line-name {
+    width: 60px;
+    font-size: 11px;
+  }
+  .pod-line-text {
+    font-size: 12px;
+  }
+}
+
 </style>
     <style>
 /* ════ Grafo de conhecimento ════ */
@@ -6624,6 +7643,33 @@ svg#kg-svg:active { cursor: grabbing; }
 #kg-empty[data-show="1"] { display: flex; }
 .kg-empty-mark { width: 44px; height: 44px; opacity: .4; }
 .kg-empty-hint { font-size: 13px; max-width: 340px; line-height: 1.55; }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 600px) {
+  #kg-toolbar {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .kg-title {
+    font-size: 14px;
+  }
+  .kg-tool-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  #kg-legend {
+    gap: 8px;
+    margin-left: 0;
+  }
+  .kg-leg {
+    font-size: 10px;
+    gap: 3px;
+  }
+  .kg-empty-hint {
+    font-size: 12px;
+    max-width: 260px;
+  }
+}
 
 </style>
   </head>

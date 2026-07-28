@@ -963,3 +963,101 @@
 #mock-tags-input::placeholder {
   color: var(--text-3);
 }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #mocks-col {
+    width: 200px;
+    min-width: 180px;
+  }
+  #mock-meta-row-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-mocks {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #mocks-col {
+    width: 100%;
+    min-width: 0;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #mocks-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #mocks-col-list {
+    max-height: 120px;
+  }
+  #mocks-col-head, #mocks-list-head {
+    padding: 6px 8px;
+  }
+  .mocks-section-label {
+    font-size: 0.6rem;
+  }
+  .mocks-col-item-inner {
+    padding: 5px 6px;
+  }
+  .mocks-col-name {
+    font-size: 0.75rem;
+  }
+  #mocks-list {
+    padding: 2px 4px;
+  }
+  .mocks-item {
+    padding: 4px 6px;
+  }
+  #mocks-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #mocks-editor-form {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  #mock-meta-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  #mock-meta-row-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  #mock-head {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #mock-head-actions {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  #mock-head-actions .tool-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+  .mock-field-script .CodeMirror {
+    min-height: 120px;
+  }
+  .mock-field-script .CodeMirror-scroll {
+    min-height: 120px;
+  }
+  #mock-script-textarea {
+    min-height: 120px;
+  }
+}

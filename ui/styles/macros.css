@@ -427,3 +427,98 @@
 #macro-tags-input::placeholder {
   color: var(--text-3);
 }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #macros-col {
+    width: 200px;
+  }
+  #macro-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px 8px;
+  }
+  #macro-title-input {
+    font-size: 18px;
+  }
+  #macro-desc-row {
+    flex-wrap: wrap;
+    padding: 0 14px 10px;
+  }
+  #macro-path-hint {
+    margin: 10px 14px 0;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-macros {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #macros-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #macros-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #macros-col-head {
+    padding: 8px 12px 6px;
+  }
+  #macros-col-title {
+    font-size: 14px;
+  }
+  .macro-item {
+    padding: 7px 12px;
+  }
+  .macro-item-title {
+    font-size: 11.5px;
+  }
+  .macro-item-desc {
+    font-size: 10.5px;
+  }
+  #macros-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #macro-head {
+    padding: 10px 12px 6px;
+  }
+  #macro-title-input {
+    font-size: 16px;
+  }
+  #macro-desc-row {
+    padding: 0 12px 8px;
+  }
+  #macro-head-actions {
+    gap: 4px;
+  }
+  #macro-head-actions .tool-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+  #macro-script {
+    padding: 12px 14px;
+    font-size: 11.5px;
+  }
+  #macro-output-panel {
+    max-height: 35%;
+  }
+  #macro-output {
+    padding: 10px 14px;
+    font-size: 11px;
+  }
+}

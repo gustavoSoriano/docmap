@@ -355,3 +355,92 @@
 #diag-tags-input::placeholder {
   color: var(--text-3);
 }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #diag-col {
+    width: 200px;
+  }
+  #diag-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px 10px;
+  }
+  #diag-title-input {
+    font-size: 18px;
+  }
+  #diag-tags-input {
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-diagrams {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #diag-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #diag-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #diag-col-head {
+    padding: 8px 12px 6px;
+  }
+  #diag-col-title {
+    font-size: 14px;
+  }
+  .diag-item {
+    padding: 7px 12px;
+  }
+  .diag-item-title {
+    font-size: 11.5px;
+  }
+  .diag-item-preview {
+    font-size: 10px;
+  }
+  #diag-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #diag-head {
+    padding: 10px 12px 8px;
+    gap: 6px;
+  }
+  #diag-title-input {
+    font-size: 16px;
+    min-width: 0;
+  }
+  #diag-tags-input {
+    max-width: 140px;
+  }
+  #diag-head-actions {
+    gap: 4px;
+  }
+  #diag-head-actions .tool-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+  #diag-preview-col {
+    padding: 16px;
+  }
+  #diag-zoom-bar {
+    top: 6px;
+    right: 6px;
+  }
+}

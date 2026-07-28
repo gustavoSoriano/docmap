@@ -280,3 +280,51 @@
 #pop-delete:hover {
   border-color: var(--cat-security);
 }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 600px) {
+  #annot-popover {
+    width: calc(100vw - 24px);
+    max-width: none;
+    left: 12px !important;
+    right: 12px;
+    border-radius: var(--r-md);
+    z-index: 550; /* acima do agent panel overlay (z-index:500) */
+  }
+  #annot-panel {
+    height: 180px;
+  }
+  #annot-head {
+    padding: 8px 12px;
+  }
+  #annot-list {
+    padding: 4px 0;
+  }
+  .annot-item {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  #pop-types {
+    padding: 10px 12px 0;
+    gap: 4px;
+  }
+  .type-btn {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  #pop-body {
+    padding: 10px 12px 0;
+  }
+  #pop-textarea {
+    height: 70px;
+    font-size: 12px;
+  }
+  #pop-foot {
+    padding: 10px 12px 12px;
+    gap: 6px;
+  }
+  .pop-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}

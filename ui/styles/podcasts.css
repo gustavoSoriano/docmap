@@ -458,3 +458,108 @@
 #pod-tags-input::placeholder {
   color: var(--text-3);
 }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #pod-col {
+    width: 220px;
+  }
+  #pod-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 16px 10px;
+  }
+  #pod-folder-input {
+    width: 120px;
+  }
+  #pod-tags-input {
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-podcasts {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #pod-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #pod-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #pod-col-head {
+    padding: 8px 12px 6px;
+  }
+  #pod-col-title {
+    font-size: 14px;
+  }
+  .pod-item {
+    padding: 7px 12px;
+  }
+  .pod-item-title {
+    font-size: 11.5px;
+  }
+  .pod-item-meta {
+    font-size: 10px;
+  }
+  #pod-player {
+    flex: 1;
+    min-height: 0;
+  }
+  #pod-head {
+    padding: 10px 12px 8px;
+    gap: 6px;
+  }
+  #pod-title-input {
+    font-size: 15px;
+    min-width: 0;
+  }
+  #pod-folder-input {
+    width: 100px;
+    flex: 1;
+  }
+  #pod-tags-input {
+    max-width: none;
+    flex: 1;
+  }
+  #pod-head-actions {
+    gap: 4px;
+  }
+  #pod-head-actions .tool-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+  #pod-audio-wrap {
+    padding: 10px 14px;
+  }
+  #pod-meta {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+  #pod-script {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .pod-line-name {
+    width: 60px;
+    font-size: 11px;
+  }
+  .pod-line-text {
+    font-size: 12px;
+  }
+}

@@ -143,3 +143,30 @@ svg#kg-svg:active { cursor: grabbing; }
 #kg-empty[data-show="1"] { display: flex; }
 .kg-empty-mark { width: 44px; height: 44px; opacity: .4; }
 .kg-empty-hint { font-size: 13px; max-width: 340px; line-height: 1.55; }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 600px) {
+  #kg-toolbar {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .kg-title {
+    font-size: 14px;
+  }
+  .kg-tool-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  #kg-legend {
+    gap: 8px;
+    margin-left: 0;
+  }
+  .kg-leg {
+    font-size: 10px;
+    gap: 3px;
+  }
+  .kg-empty-hint {
+    font-size: 12px;
+    max-width: 260px;
+  }
+}

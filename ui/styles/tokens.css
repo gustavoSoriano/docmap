@@ -47,6 +47,7 @@
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
 
   /* ── Metrics ── */
+  /* Breakpoints usados nas @media queries: 600px (mobile), 900px (tablet) */
   --rail-w: 60px;
   --r-xs: 5px;
   --r-sm: 7px;

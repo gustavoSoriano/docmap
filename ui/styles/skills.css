@@ -371,3 +371,93 @@
   padding-left: 22px;
   margin: 8px 0;
 }
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 900px) {
+  #skills-col {
+    width: 220px;
+  }
+  #skill-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #skill-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px 8px;
+  }
+  #skill-title-input {
+    font-size: 18px;
+  }
+  #skill-name-input {
+    width: 110px;
+  }
+}
+
+@media (max-width: 600px) {
+  #mode-skills {
+    flex-direction: column;
+  }
+  /* Sidebar escondida por padrão — clique no ◆ para abrir */
+  #skills-col {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: none;
+    transition: max-height 0.25s ease;
+  }
+  #skills-col.col-collapsed {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  #skills-col-head {
+    padding: 8px 12px 6px;
+  }
+  #skills-col-title {
+    font-size: 14px;
+  }
+  .skill-item {
+    padding: 7px 12px;
+  }
+  .skill-item-title {
+    font-size: 11.5px;
+  }
+  .skill-item-desc {
+    font-size: 10.5px;
+  }
+  #skills-editor {
+    flex: 1;
+    min-height: 0;
+  }
+  #skill-head {
+    padding: 10px 12px 6px;
+  }
+  #skill-title-input {
+    font-size: 16px;
+  }
+  #skill-toolbar {
+    padding: 0 12px 8px;
+    gap: 4px;
+  }
+  #skill-name-input {
+    width: 90px;
+  }
+  #skill-desc-row {
+    padding: 0 12px 8px;
+  }
+  #skill-content-textarea {
+    padding: 14px;
+    font-size: 12px;
+  }
+  #skill-preview {
+    padding: 14px 16px;
+  }
+}
