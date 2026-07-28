@@ -92,3 +92,30 @@ const triggerRestore = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', initSystem);
+
+// ── IP de rede ──
+let networkIps = [];
+
+const loadNetworkIp = async () => {
+  const el = $('settings-ip-value');
+  if (!el) return;
+  el.textContent = '…';
+  try {
+    const res = await fetch('/system/network');
+    const data = await res.json();
+    networkIps = data.ips ?? [];
+    if (networkIps.length === 0) {
+      el.textContent = 'Sem rede';
+    } else {
+      el.textContent = networkIps[0].address;
+    }
+  } catch {
+    el.textContent = 'erro';
+  }
+};
+
+const copyNetworkIp = () => {
+  if (networkIps.length === 0) return;
+  const ips = networkIps.map((i) => `${i.address}`).join(', ');
+  copyToClipboard(ips, 'IP copiado');
+};

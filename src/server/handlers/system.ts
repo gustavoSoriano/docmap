@@ -114,6 +114,22 @@ async (
     }
   }
 
+  // GET /system/network — IPs de rede da máquina
+  if (req.method === 'GET' && url.pathname === '/system/network') {
+    try {
+      const interfaces = Deno.networkInterfaces();
+      const ips = interfaces
+        .filter((iface) => iface.family === 'IPv4' && !iface.address.startsWith('127.'))
+        .map((iface) => ({
+          name: iface.name,
+          address: iface.address,
+        }));
+      return json({ ips });
+    } catch {
+      return json({ ips: [] });
+    }
+  }
+
   // POST /system/open-url — abre URL no browser padrão do sistema
   // (webview não suporta window.open para URLs externas)
   if (req.method === 'POST' && url.pathname === '/system/open-url') {

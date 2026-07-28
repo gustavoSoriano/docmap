@@ -973,6 +973,10 @@
           <button id="settings-close" onclick="closeSettings()" data-icon="x"></button>
         </div>
         <div id="settings-body">
+          <div class="settings-row" id="settings-ip-row" onclick="copyNetworkIp()" title="Clique para copiar">
+            <span class="settings-row-label">IP da rede</span>
+            <span class="settings-row-value" id="settings-ip-value"></span>
+          </div>
           <div class="settings-row" id="settings-theme-row" onclick="toggleTheme()">
             <span class="settings-row-label">Tema</span>
             <span class="settings-row-value" id="settings-theme-label"></span>

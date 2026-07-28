@@ -8599,6 +8599,10 @@ svg#kg-svg:active { cursor: grabbing; }
           <button id="settings-close" onclick="closeSettings()" data-icon="x"></button>
         </div>
         <div id="settings-body">
+          <div class="settings-row" id="settings-ip-row" onclick="copyNetworkIp()" title="Clique para copiar">
+            <span class="settings-row-label">IP da rede</span>
+            <span class="settings-row-value" id="settings-ip-value"></span>
+          </div>
           <div class="settings-row" id="settings-theme-row" onclick="toggleTheme()">
             <span class="settings-row-label">Tema</span>
             <span class="settings-row-value" id="settings-theme-label"></span>
@@ -8901,6 +8905,7 @@ const openSettings = () => {
   if (label && typeof getStoredTheme === 'function') {
     label.textContent = getStoredTheme() === 'dark' ? 'Escuro' : 'Claro';
   }
+  loadNetworkIp();
   $('settings-overlay')?.classList.add('open');
 };
 
@@ -13016,6 +13021,33 @@ const triggerRestore = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', initSystem);
+
+// ── IP de rede ──
+let networkIps = [];
+
+const loadNetworkIp = async () => {
+  const el = $('settings-ip-value');
+  if (!el) return;
+  el.textContent = '…';
+  try {
+    const res = await fetch('/system/network');
+    const data = await res.json();
+    networkIps = data.ips ?? [];
+    if (networkIps.length === 0) {
+      el.textContent = 'Sem rede';
+    } else {
+      el.textContent = networkIps[0].address;
+    }
+  } catch {
+    el.textContent = 'erro';
+  }
+};
+
+const copyNetworkIp = () => {
+  if (networkIps.length === 0) return;
+  const ips = networkIps.map((i) => \`\${i.address}\`).join(', ');
+  copyToClipboard(ips, 'IP copiado');
+};
 
 </script>
     <script>
