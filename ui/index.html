@@ -32,6 +32,10 @@
       src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+    <link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/xterm@4.19.0/css/xterm.css" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.js"></script>
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/markmap.css">
@@ -46,8 +50,10 @@
     <link rel="stylesheet" href="/styles/favorites.css">
     <link rel="stylesheet" href="/styles/podcasts.css">
     <link rel="stylesheet" href="/styles/graph.css">
+    <link rel="stylesheet" href="/styles/terminal.css">
   </head>
   <body>
+    <div id="body-main">
     <!-- ════ Left rail — mode switcher ════ -->
     <nav id="rail">
       <div id="rail-logo" title="Recolher sidebar" onclick="toggleSidebar()">◆</div>
@@ -91,6 +97,11 @@
         title="Canvas Realtime">
     <span class="rail-ico" data-icon="paintbrush"></span><span class="rail-lbl">Canva</span>
   </button>
+      <button class="rail-btn" id="rail-terminal"
+        onclick="toggleTerminal()" title="Terminal (Ctrl+`)">
+        <span class="rail-ico" data-icon="terminal"></span>
+        <span class="rail-lbl">Term</span>
+      </button>
       <div class="rail-spacer"></div>
       <button class="rail-btn" id="rail-settings" onclick="openSettings()"
         title="Configurações">
@@ -1036,6 +1047,22 @@
       </div>
     </aside>
 
+    </div><!-- /#body-main -->
+
+    <!-- ════ Terminal Panel ════ -->
+    <aside id="terminal-panel">
+      <div id="terminal-handle" title="Redimensionar terminal"></div>
+      <div id="terminal-header">
+        <button class="term-back" onclick="toggleTerminal()" title="Voltar">← Terminal</button>
+        <span class="term-title">⌨ Terminal</span>
+        <span class="term-status" id="term-status" title="Desconectado"></span>
+        <button class="term-close" onclick="toggleTerminal()" title="Fechar terminal">
+          <span data-icon="x"></span>
+        </button>
+      </div>
+      <div id="terminal-container"></div>
+    </aside>
+
     <div id="tooltip"></div>
     <div id="toast"></div>
 
@@ -1056,5 +1083,6 @@
     <script src="/scripts/graph.js"></script>
     <script src="/scripts/system.js"></script>
     <script src="/scripts/ai-chat.js"></script>
+    <script src="/scripts/terminal.js"></script>
   </body>
 </html>

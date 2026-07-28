@@ -75,6 +75,11 @@ document.addEventListener('keydown', (e) => {
   }
   if ((e.metaKey || e.ctrlKey) && e.key === '1') { e.preventDefault(); setMode('notes'); }
   if ((e.metaKey || e.ctrlKey) && e.key === '2') { e.preventDefault(); setMode('macros'); }
+  // Toggle terminal: Ctrl+` (backtick)
+  if ((e.metaKey || e.ctrlKey) && e.key === '`') {
+    e.preventDefault();
+    if (typeof toggleTerminal === 'function') toggleTerminal();
+  }
 });
 
 // ── Canvas mode ──

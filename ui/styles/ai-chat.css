@@ -370,7 +370,9 @@
     --agent-rail-w: auto;
   }
 
-  /* Estado colapsado: floating action button no canto inferior direito */
+  /* FAB (floating action button) no canto inferior direito do mobile.
+     ALT-6: restaurado — o rail inferior não tem botão de IA, então o FAB
+     é o único ponto de acesso ao assistente no mobile. */
   #agent-panel:not(.open) {
     position: fixed;
     bottom: 20px;

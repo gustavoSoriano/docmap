@@ -1,0 +1,203 @@
+/* ════════ Terminal Panel ════════ */
+
+/* ── Desktop: dock inferior ── */
+#terminal-panel {
+  height: var(--term-default-h, 35vh);
+  min-height: 15vh;
+  max-height: 60vh;
+  background: var(--surface-3);
+  border-top: 2px solid var(--border);
+  display: none;
+  flex-direction: column;
+  position: relative;
+  z-index: 35;             /* acima do rail (30) mas abaixo de modais (750+) */
+  flex-shrink: 0;
+}
+
+#terminal-panel.visible {
+  display: flex;
+}
+
+/* ── Drag handle ── */
+#terminal-handle {
+  height: 6px;
+  flex-shrink: 0;
+  cursor: row-resize;
+  background: var(--border);
+  transition: background .13s;
+  position: relative;
+  z-index: 12;
+}
+#terminal-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--text-4);
+  transition: background .13s, width .13s;
+}
+#terminal-handle:hover {
+  background: var(--border-hi);
+}
+#terminal-handle:hover::after {
+  background: var(--text-2);
+  width: 48px;
+}
+
+/* ── Header ── */
+#terminal-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+  gap: 10px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+#terminal-header .term-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  flex: 1;
+}
+
+/* Indicador de conexão (bolinha) */
+#terminal-header .term-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-4);
+  flex-shrink: 0;
+}
+#terminal-header .term-status.connected {
+  background: var(--accent);
+}
+
+/* Botão fechar (X) */
+#terminal-header .term-close {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .12s;
+}
+#terminal-header .term-close:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* Botão voltar (←) — escondido no desktop, visível no mobile */
+#terminal-header .term-back {
+  display: none;
+}
+
+/* ── Container do xterm ── */
+#terminal-container {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;        /* contém o xterm e evita que ele empurre o layout */
+  position: relative;       /* containing block para os absolutes do xterm */
+  /* fundo espelha o tema do terminal.
+     Dark:  var(--bg)     = #0b0c0e  (sync com DARK_THEME.background  em terminal.js)
+     Light: var(--surface) = #ffffff  (sync com LIGHT_THEME.background em terminal.js) */
+  background: var(--bg);
+}
+:root[data-theme='light'] #terminal-container {
+  background: var(--surface);
+}
+
+/* xterm.js define width/height inline via JS (cols × cellW / rows × cellH).
+   O width inline é sempre <= container devido ao Math.floor no manualFit.
+   A folga à direita é preenchida pelo fundo do container (acima). */
+#terminal-container .xterm {
+  padding: 0;
+}
+
+/* Viewport: sobrescreve background-color: #000 do xterm.css do CDN.
+   Transparente deixa o fundo do container (#terminal-container) aparecer
+   na folga à direita e em qualquer área não coberta pelo canvas. */
+#terminal-container .xterm-viewport {
+  background-color: transparent !important;
+}
+
+/* ═══ Scrollbar do xterm ═══ */
+#terminal-container .xterm-viewport::-webkit-scrollbar {
+  width: 8px;
+}
+#terminal-container .xterm-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+#terminal-container .xterm-viewport::-webkit-scrollbar-thumb {
+  background: var(--text-4);       /* #454b56 — visível sobre fundo escuro */
+  border-radius: 4px;
+}
+#terminal-container .xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);       /* #626976 no hover */
+}
+#terminal-container .xterm-viewport::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ════════ Mobile (≤600px): overlay fullscreen ════════ */
+@media (max-width: 600px) {
+  #terminal-panel {
+    position: fixed;
+    inset: 0;
+    height: 100vh;
+    max-height: 100vh;
+    z-index: 100;
+    border-top: none;
+  }
+
+  #terminal-handle {
+    display: none;
+  }
+
+  #terminal-header {
+    height: 44px;
+    padding: 8px 14px;
+  }
+
+  #terminal-header .term-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Botão voltar visível só no mobile */
+  #terminal-header .term-back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 13px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--r-sm);
+    margin-right: 6px;
+  }
+  #terminal-header .term-back:hover {
+    background: var(--surface-3);
+  }
+
+  #terminal-container {
+    padding: 0 4px 4px 4px;
+  }
+}

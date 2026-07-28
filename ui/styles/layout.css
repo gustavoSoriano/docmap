@@ -16,10 +16,18 @@ body {
   font-family: var(--font-ui);
   color: var(--text);
   display: flex;
+  flex-direction: column; /* permite terminal dock inferior */
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Wrapper: rail + stage + agent-panel na horizontal */
+#body-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
 /* ambient depth: subtle radial glow top-left + faint grid */
@@ -570,8 +578,16 @@ body::before {
     flex-direction: column;
   }
 
+  /* Wrapper: idem, empilha stage + rail */
+  #body-main {
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+  }
+
   /* Rail lateral vira barra horizontal inferior */
   #rail {
+    order: 2;             /* rail vai DEPOIS do stage */
     flex-direction: row;
     width: 100%;
     height: auto;
@@ -581,7 +597,8 @@ body::before {
     overflow-y: hidden;
     flex-shrink: 0;
     border-right: none;
-    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: none;
   }
   #rail-logo {
     margin-bottom: 0;
@@ -608,10 +625,11 @@ body::before {
     display: none;
   }
 
-  /* Stage ocupa altura restante */
+  /* Stage ocupa altura restante (acima do rail) */
   #stage {
     flex: 1;
     min-height: 0;
+    order: 1;
   }
 
   /* Modais ocupam quase toda a tela */

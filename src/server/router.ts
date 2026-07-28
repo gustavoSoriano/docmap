@@ -22,6 +22,7 @@ import { mocksHandler } from '../mocks/handler.ts';
 import { favoritesHandler } from '../favorites/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
 import { createCanvasHandler } from '../canvas/handler.ts';
+import { createTerminalHandler } from '../terminal/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
 import { notFound } from './response.ts';
 import type { HandlerDeps } from './types.ts';
@@ -49,6 +50,7 @@ export const createRouter = (deps: HandlerDeps) => {
   const favorites = favoritesHandler(deps.kv);
   const podcasts = podcastsHandler(deps.kv);
   const canvas = createCanvasHandler(deps);
+  const terminal = createTerminalHandler(deps);
   return (req: Request): Response | Promise<Response> => {
     const url = new URL(req.url);
     const { pathname } = url;
@@ -76,6 +78,7 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/favorites')) return favorites(req, url);
     if (pathname.startsWith('/podcasts')) return podcasts(req, url);
     if (pathname.startsWith('/canvas')) return canvas(req, url);
+    if (pathname.startsWith('/terminal')) return terminal(req, url);
 
     return notFound();
   };
