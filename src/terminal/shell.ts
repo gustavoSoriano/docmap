@@ -137,7 +137,7 @@ export const spawnShell = (
     }
   })();
 
-  return {
+  const shellObj: ShellProcess = {
     process,
     stdinWriter,
     write: (data: Uint8Array): void => {
@@ -175,6 +175,12 @@ export const spawnShell = (
       }, 1000);
     },
   };
+
+  // Ajusta PTY com o tamanho inicial (env COLUMNS/LINES + stty).
+  // Executa uma vez na abertura — resize em tempo real não é necessário.
+  resizeShell(shellObj, opts?.cols ?? 80, opts?.rows ?? 24);
+
+  return shellObj;
 };
 
 /**

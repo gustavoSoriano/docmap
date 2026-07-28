@@ -1,6 +1,6 @@
 // ════ Terminal — handler HTTP (WebSocket upgrade + lifecycle) ════
 
-import { spawnShell, writeStdin, resizeShell } from './shell.ts';
+import { spawnShell, writeStdin } from './shell.ts';
 import type { ShellProcess, TerminalClientMessage } from './types.ts';
 import type { HandlerDeps } from '../server/types.ts';
 
@@ -169,10 +169,9 @@ const handleWebSocket = (req: Request): Response => {
     if (msg.type === 'input' && typeof msg.data === 'string') {
       writeStdin(shell, msg.data);
     } else if (msg.type === 'resize') {
-      // ALT-1: valida cols/rows antes de aplicar
-      if (isValidResize(msg.cols, msg.rows)) {
-        resizeShell(shell, msg.cols, msg.rows);
-      } else {
+      // Resize é feito apenas na abertura (spawnShell → env + stty inicial).
+      // COLUMNS/LINES já cobrem o necessário em tempo real.
+      if (!isValidResize(msg.cols, msg.rows)) {
         console.warn('[terminal] invalid resize:', msg.cols, msg.rows);
       }
     } else {
