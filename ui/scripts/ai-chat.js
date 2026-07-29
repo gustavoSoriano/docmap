@@ -12,13 +12,13 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'http_request',
-      description: 'Faz uma requisição HTTP para a API do docmap. Use para ler e criar notas, diagramas, skills, macros, podcasts (POST /podcasts), e desenhar no canvas (POST /canvas/push).',
+      description: 'Faz uma requisição HTTP para a API do docmap. Use para notas, diagramas, skills, macros, podcasts, workflows de agentes (/workflows, /agents, /orchestrator) e canvas realtime.',
       parameters: {
         type: 'object',
         required: ['method', 'path'],
         properties: {
           method: { type: 'string', enum: ['GET', 'POST', 'PUT'], description: 'Método HTTP. DELETE não é permitido.' },
-          path:   { type: 'string', description: 'Caminho da API. Ex: /notes, /diagrams, /skills/nome' },
+          path:   { type: 'string', description: 'Caminho da API. Ex: /notes, /skills/nome, /workflows, /orchestrator/inbox' },
           body:   { type: 'object', description: 'Body JSON para POST e PUT (opcional)', properties: {}, additionalProperties: true },
         },
       },

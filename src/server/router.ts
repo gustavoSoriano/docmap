@@ -23,6 +23,7 @@ import { favoritesHandler } from '../favorites/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
 import { createCanvasHandler } from '../canvas/handler.ts';
 import { createTerminalHandler } from '../terminal/handler.ts';
+import { workflowsHandler } from '../workflows/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
 import { notFound } from './response.ts';
 import type { HandlerDeps } from './types.ts';
@@ -51,6 +52,7 @@ export const createRouter = (deps: HandlerDeps) => {
   const podcasts = podcastsHandler(deps.kv);
   const canvas = createCanvasHandler(deps);
   const terminal = createTerminalHandler(deps);
+  const workflows = workflowsHandler(deps.kv);
   return (req: Request): Response | Promise<Response> => {
     const url = new URL(req.url);
     const { pathname } = url;
@@ -79,6 +81,11 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/podcasts')) return podcasts(req, url);
     if (pathname.startsWith('/canvas')) return canvas(req, url);
     if (pathname.startsWith('/terminal')) return terminal(req, url);
+    if (
+      pathname.startsWith('/workflows') ||
+      pathname.startsWith('/agents') ||
+      pathname.startsWith('/orchestrator')
+    ) return workflows(req, url);
 
     return notFound();
   };

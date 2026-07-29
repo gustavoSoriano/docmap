@@ -39,7 +39,11 @@ export const UI_HTML = `<!DOCTYPE html>
       src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
-    <script>if(window.FitAddon&&window.FitAddon.FitAddon)window.FitAddon=window.FitAddon.FitAddon</script>
+    <script>
+    if (window.FitAddon && window.FitAddon.FitAddon) {
+      window.FitAddon = window.FitAddon.FitAddon;
+    }
+    </script>
     <style>
 :root {
   /* ── Surfaces (near-black, layered) ── */
@@ -4638,6 +4642,1296 @@ body::before {
 
 </style>
     <style>
+#mode-workflows {
+  --wf-draft: #8b95a5;
+  --wf-planning: #c084fc;
+  --wf-ready: #38bdf8;
+  --wf-running: #fbbf24;
+  --wf-review: #f472b6;
+  --wf-done: #34d399;
+  --wf-blocked: #fb7185;
+  flex-direction: row;
+  background: var(--bg);
+}
+
+#wf-sidebar {
+  width: 238px;
+  min-width: 238px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: width .25s cubic-bezier(.3,0,.2,1), min-width .25s, opacity .2s;
+}
+
+.col-collapsed#wf-sidebar {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#wf-sidebar-head {
+  height: 66px;
+  padding: 13px 13px 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#wf-sidebar-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#wf-sidebar-count {
+  margin-top: 3px;
+  color: var(--text-3);
+  font-size: 10px;
+}
+
+#wf-new-btn,
+.wf-icon-btn,
+.wf-modal-head button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .14s, border-color .14s, color .14s;
+}
+
+#wf-new-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+#wf-new-btn:hover,
+.wf-primary-btn:hover {
+  background: var(--accent-2);
+}
+
+.wf-icon-btn:hover,
+.wf-modal-head button:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+}
+
+.wf-icon-btn.danger:hover {
+  color: var(--wf-blocked);
+  border-color: color-mix(in srgb, var(--wf-blocked) 45%, transparent);
+  background: color-mix(in srgb, var(--wf-blocked) 10%, transparent);
+}
+
+.wf-icon-btn:disabled {
+  opacity: .32;
+  cursor: default;
+  pointer-events: none;
+}
+
+#wf-search-wrap {
+  height: 34px;
+  margin: 0 12px 9px;
+  padding: 0 9px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+#wf-search-wrap input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: 12px var(--font-ui);
+}
+
+#wf-search-wrap:focus-within {
+  border-color: var(--accent-line);
+}
+
+#wf-search-wrap .ico {
+  width: 13px;
+  height: 13px;
+}
+
+#wf-filter-row {
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+#wf-filter-row select {
+  width: 100%;
+  height: 30px;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font: 11px var(--font-ui);
+  outline: 0;
+}
+
+#wf-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 7px;
+}
+
+.wf-list-item {
+  width: 100%;
+  min-height: 78px;
+  padding: 10px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.wf-list-item:hover {
+  background: var(--surface-2);
+}
+
+.wf-list-item.active {
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+}
+
+.wf-list-title {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.wf-list-objective {
+  height: 28px;
+  margin: 5px 0 7px;
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.wf-list-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-3);
+  font-size: 9px;
+}
+
+.wf-status-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--wf-draft);
+}
+
+.wf-status-dot.planning {
+  background: var(--wf-planning);
+}
+.wf-status-dot.pending {
+  background: var(--wf-draft);
+}
+.wf-status-dot.ready {
+  background: var(--wf-ready);
+}
+.wf-status-dot.claimed,
+.wf-status-dot.in_progress {
+  background: var(--wf-running);
+}
+.wf-status-dot.waiting_input {
+  background: var(--wf-planning);
+}
+.wf-status-dot.returned {
+  background: var(--wf-review);
+}
+.wf-status-dot.needs_rework,
+.wf-status-dot.human_intervention {
+  background: var(--wf-blocked);
+}
+.wf-status-dot.running {
+  background: var(--wf-running);
+}
+.wf-status-dot.reviewing {
+  background: var(--wf-review);
+}
+.wf-status-dot.blocked {
+  background: var(--wf-blocked);
+}
+.wf-status-dot.done {
+  background: var(--wf-done);
+}
+.wf-status-dot.cancelled {
+  background: var(--text-4);
+}
+
+.wf-list-progress {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--surface-4);
+}
+
+.wf-list-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--wf-done);
+}
+
+.wf-sidebar-empty {
+  padding: 24px 14px;
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 17px;
+  text-align: center;
+}
+
+#wf-workspace {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+}
+
+#wf-empty,
+#wf-inspector-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+#wf-empty-icon .ico {
+  width: 32px;
+  height: 32px;
+  color: var(--text-4);
+}
+
+#wf-empty-title {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+#wf-active {
+  display: none;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+#wf-active.visible {
+  display: flex;
+}
+
+#wf-toolbar {
+  min-height: 58px;
+  padding: 8px 10px 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+#wf-toolbar-title-wrap {
+  flex: 1;
+  min-width: 120px;
+}
+
+#wf-toolbar-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#wf-toolbar-meta {
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-3);
+  font-size: 10px;
+}
+
+#wf-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wf-toolbar-sep {
+  width: 1px;
+  height: 22px;
+  margin: 0 3px;
+  background: var(--border);
+}
+
+#wf-agent-strip {
+  min-height: 49px;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+#wf-agent-strip:empty {
+  display: none;
+}
+
+.wf-agent {
+  height: 34px;
+  min-width: 150px;
+  max-width: 230px;
+  padding: 5px 8px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.wf-agent-avatar {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--wf-ready);
+  background: color-mix(in srgb, var(--wf-ready) 12%, transparent);
+}
+
+.wf-agent-avatar .ico {
+  width: 12px;
+  height: 12px;
+}
+
+.wf-agent-info {
+  min-width: 0;
+}
+
+.wf-agent-name,
+.wf-agent-model {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wf-agent-name {
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.wf-agent-model {
+  color: var(--text-3);
+  font-size: 8px;
+}
+
+.wf-agent-presence {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--wf-done);
+}
+
+.wf-agent-presence.busy {
+  background: var(--wf-running);
+}
+.wf-agent-presence.stale {
+  background: var(--wf-blocked);
+}
+.wf-agent-presence.offline {
+  background: var(--text-4);
+}
+
+#wf-main-row {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  position: relative;
+}
+
+#wf-timeline {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: auto;
+  padding: 18px 20px 28px;
+  background: var(--bg);
+  cursor: grab;
+  overscroll-behavior: contain;
+}
+
+#wf-timeline.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+#wf-timeline.dragging .wf-node,
+#wf-timeline.dragging .wf-board-column {
+  cursor: grabbing;
+}
+
+#wf-timeline-list {
+  min-width: min-content;
+  height: 100%;
+}
+
+.wf-board {
+  min-width: min-content;
+  height: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 300px);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.wf-board-column {
+  min-height: 260px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.wf-board-column-head {
+  min-height: 38px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wf-board-column-head span:last-child {
+  min-width: 24px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font: 700 10px var(--font-mono);
+}
+
+.wf-board-column-body {
+  flex: 1;
+  min-height: 0;
+  padding: 9px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.wf-board-empty {
+  min-height: 64px;
+  padding: 12px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border-mid);
+  border-radius: var(--r-sm);
+  color: var(--text-4);
+  font-size: 11px;
+  text-align: center;
+}
+
+.wf-node {
+  min-height: 188px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-mid);
+  border-left: 3px solid var(--wf-draft);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: var(--sh-sm);
+  cursor: pointer;
+}
+
+.wf-node:hover {
+  border-top-color: var(--border-hi);
+  border-right-color: var(--border-hi);
+  border-bottom-color: var(--border-hi);
+}
+
+.wf-node.selected {
+  box-shadow: 0 0 0 1px var(--accent), var(--sh-sm);
+}
+
+.wf-node[data-status='ready'] {
+  border-left-color: var(--wf-ready);
+}
+.wf-node[data-status='claimed'],
+.wf-node[data-status='in_progress'] {
+  border-left-color: var(--wf-running);
+}
+.wf-node[data-status='waiting_input'] {
+  border-left-color: var(--wf-planning);
+}
+.wf-node[data-status='returned'] {
+  border-left-color: var(--wf-review);
+}
+.wf-node[data-status='needs_rework'],
+.wf-node[data-status='human_intervention'] {
+  border-left-color: var(--wf-blocked);
+}
+.wf-node[data-status='done'] {
+  border-left-color: var(--wf-done);
+}
+.wf-node[data-status='cancelled'] {
+  border-left-color: var(--text-4);
+  opacity: .7;
+}
+
+.wf-node-head {
+  min-height: 40px;
+  padding: 8px 10px 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wf-node-state {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.wf-node-state span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wf-node-complexity {
+  height: 22px;
+  min-width: 28px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-xs);
+  color: var(--text-2);
+  background: var(--surface-3);
+  font: 700 10px var(--font-mono);
+}
+
+.wf-node-copy {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--r-xs);
+  background: transparent;
+  color: var(--text-3);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.wf-node-copy:hover {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.wf-node-human:hover {
+  color: var(--wf-done);
+  background: color-mix(in srgb, var(--wf-done) 12%, transparent);
+}
+
+.wf-node-copy .ico {
+  width: 14px;
+  height: 14px;
+}
+
+.wf-node-title {
+  min-height: 42px;
+  padding: 3px 13px 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 19px;
+}
+
+.wf-node-description {
+  min-height: 40px;
+  padding: 7px 13px 2px;
+  overflow: hidden;
+  color: var(--text-3);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.wf-node-meta {
+  min-height: 28px;
+  padding: 5px 13px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: var(--text-3);
+  font-size: 10px;
+}
+
+.wf-node-kind {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wf-ready);
+}
+
+.wf-node-dependencies {
+  margin: 2px 13px 9px;
+  padding: 7px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 10px;
+}
+
+.wf-node-agent {
+  min-height: 43px;
+  margin-top: auto;
+  padding: 8px 11px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.wf-node-agent-avatar {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--wf-running);
+  background: color-mix(in srgb, var(--wf-running) 11%, transparent);
+}
+
+.wf-node-agent-avatar .ico {
+  width: 12px;
+  height: 12px;
+}
+
+.wf-node-agent-text {
+  min-width: 0;
+}
+
+.wf-node-agent-name,
+.wf-node-agent-model {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wf-node-agent-name {
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.wf-node-agent-model {
+  color: var(--text-3);
+  font-size: 9px;
+}
+
+.wf-node-unassigned {
+  color: var(--text-4);
+  font-size: 10px;
+}
+
+#wf-timeline-empty {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-3);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+#wf-timeline-empty.visible {
+  display: flex;
+}
+
+#wf-timeline-empty .ico {
+  width: 28px;
+  height: 28px;
+  color: var(--text-4);
+}
+
+#wf-inspector {
+  position: fixed;
+  inset: 0;
+  z-index: 260;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  border: 0;
+  background: rgba(0, 0, 0, .62);
+  backdrop-filter: blur(4px);
+  overflow: auto;
+}
+
+#wf-inspector.visible {
+  display: flex;
+}
+
+#wf-inspector-empty {
+  display: none;
+}
+
+#wf-inspector-empty .ico {
+  width: 24px;
+  height: 24px;
+  color: var(--text-4);
+}
+
+#wf-inspector-content {
+  display: none;
+  width: min(760px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--sh-lg);
+}
+
+#wf-inspector-content.visible {
+  display: block;
+}
+
+.wf-inspector-head {
+  position: relative;
+  padding: 15px 15px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.wf-inspector-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.wf-inspector-close:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+}
+
+.wf-inspector-close .ico {
+  width: 15px;
+  height: 15px;
+}
+
+.wf-inspector-kicker {
+  padding-right: 36px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.wf-inspector-title {
+  margin: 8px 0 4px;
+  overflow-wrap: anywhere;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.wf-inspector-sub {
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.wf-inspector-actions {
+  padding: 10px 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.wf-action-btn,
+.wf-primary-btn,
+.wf-secondary-btn {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  font: 600 10px var(--font-ui);
+}
+
+.wf-action-btn:hover,
+.wf-secondary-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+}
+
+.wf-action-btn.approve {
+  color: var(--wf-done);
+  border-color: color-mix(in srgb, var(--wf-done) 35%, transparent);
+}
+
+.wf-action-btn.rework {
+  color: var(--wf-running);
+  border-color: color-mix(in srgb, var(--wf-running) 35%, transparent);
+}
+
+.wf-action-btn.danger {
+  color: var(--wf-blocked);
+}
+
+.wf-primary-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.wf-inspector-section {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.wf-inspector-label {
+  margin-bottom: 7px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wf-inspector-text {
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 19px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.wf-inspector-textarea,
+.wf-inspector-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  outline: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  font: 11px/17px var(--font-ui);
+}
+
+.wf-inspector-textarea {
+  min-height: 84px;
+  padding: 8px;
+  resize: vertical;
+}
+
+.wf-inspector-input {
+  height: 32px;
+  margin-top: 7px;
+  padding: 0 8px;
+}
+
+.wf-inspector-textarea:focus,
+.wf-inspector-input:focus {
+  border-color: var(--accent-line);
+}
+
+.wf-human-return-panel .wf-action-btn {
+  margin-top: 8px;
+}
+
+.wf-criteria {
+  padding-left: 17px;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.wf-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.wf-chip {
+  min-height: 21px;
+  max-width: 100%;
+  padding: 3px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font: 9px var(--font-mono);
+}
+
+.wf-conflict {
+  padding: 8px;
+  border-left: 2px solid var(--wf-blocked);
+  background: color-mix(in srgb, var(--wf-blocked) 8%, transparent);
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.wf-run {
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.wf-run:first-of-type {
+  border-top: 0;
+}
+
+.wf-run-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.wf-run-summary {
+  margin-top: 5px;
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.wf-run details {
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: 10px;
+}
+
+.wf-run pre {
+  max-height: 180px;
+  margin-top: 6px;
+  padding: 7px;
+  overflow: auto;
+  border-radius: var(--r-xs);
+  background: var(--bg);
+  color: var(--text-2);
+  font: 10px/16px var(--font-mono);
+  white-space: pre-wrap;
+}
+
+.wf-question {
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.wf-question:first-of-type {
+  border-top: 0;
+}
+
+.wf-question textarea {
+  width: 100%;
+  min-height: 62px;
+  margin-top: 7px;
+  padding: 7px;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  outline: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  font: 10px/15px var(--font-ui);
+}
+
+.wf-question textarea:focus {
+  border-color: var(--accent-line);
+}
+
+.wf-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .68);
+  backdrop-filter: blur(4px);
+}
+
+.wf-modal-overlay.visible {
+  display: flex;
+}
+
+.wf-modal {
+  width: min(540px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--sh-lg);
+}
+
+.wf-node-modal {
+  width: min(720px, 100%);
+}
+
+.wf-modal-head {
+  min-height: 52px;
+  padding: 0 14px 0 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.wf-modal-head button {
+  width: 29px;
+  height: 29px;
+}
+
+.wf-modal-body {
+  padding: 15px 17px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wf-modal label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.wf-modal label > span {
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wf-modal input,
+.wf-modal textarea,
+.wf-modal select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  outline: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  font: 11px/17px var(--font-ui);
+}
+
+.wf-modal input,
+.wf-modal select {
+  height: 34px;
+  padding: 0 9px;
+}
+
+.wf-modal textarea {
+  padding: 8px 9px;
+  resize: vertical;
+}
+
+.wf-modal select[multiple] {
+  height: 84px;
+  padding: 5px;
+}
+
+.wf-modal input:focus,
+.wf-modal textarea:focus,
+.wf-modal select:focus {
+  border-color: var(--accent-line);
+}
+
+.wf-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wf-form-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wf-modal-actions {
+  min-height: 58px;
+  padding: 10px 17px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  border-top: 1px solid var(--border);
+}
+
+.wf-secondary-btn,
+.wf-primary-btn {
+  min-height: 34px;
+  padding: 0 13px;
+}
+
+@media (max-width: 1050px) {
+  #wf-timeline {
+    padding: 14px 14px 28px;
+  }
+
+  #wf-timeline-list {
+    height: 100%;
+  }
+
+  .wf-board {
+    grid-auto-columns: minmax(250px, 290px);
+  }
+
+  #wf-toolbar-title-wrap {
+    min-width: 80px;
+  }
+
+  .wf-icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (max-width: 780px) {
+  #wf-sidebar {
+    width: 200px;
+    min-width: 200px;
+  }
+
+  #wf-timeline {
+    padding: 12px 10px 28px;
+  }
+
+  .wf-board {
+    grid-auto-columns: minmax(240px, 280px);
+  }
+
+  #wf-inspector {
+    padding: 12px;
+  }
+
+  #wf-inspector-content {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+  }
+
+  #wf-toolbar {
+    align-items: flex-start;
+  }
+
+  #wf-toolbar-actions {
+    max-width: 225px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .wf-form-grid,
+  .wf-form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+</style>
+    <style>
 /* ════ Mocks ════ */
 
 #mode-mocks {
@@ -7913,1015 +9207,1305 @@ svg#kg-svg:active { cursor: grabbing; }
   </head>
   <body>
     <div id="body-main">
-    <!-- ════ Left rail — mode switcher ════ -->
-    <nav id="rail">
-      <div id="rail-logo" title="Recolher sidebar" onclick="toggleSidebar()">◆</div>
-      <button class="rail-btn active" id="rail-graph" onclick="setMode('graph')"
-        title="Grafo de conhecimento">
+      <!-- ════ Left rail — mode switcher ════ -->
+      <nav id="rail">
+        <div id="rail-logo" title="Recolher sidebar"
+          onclick="toggleSidebar()">◆</div>
+        <button class="rail-btn active" id="rail-graph"
+          onclick="setMode('graph')"
+          title="Grafo de conhecimento">
     <span class="rail-ico" data-icon="waypoints"></span><span class="rail-lbl">Grafo</span>
   </button>
-      <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
-        title="Notas">
+        <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
+          title="Notas">
     <span class="rail-ico" data-icon="notebook"></span><span class="rail-lbl">Notas</span>
   </button>
-      <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')"
-        title="Kanban">
+        <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')"
+          title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
   </button>
-      <button class="rail-btn" id="rail-favorites"
-        onclick="setMode('favorites')" title="Favoritos">
+        <button class="rail-btn" id="rail-workflows"
+          onclick="setMode('workflows')" title="Workflows de agentes">
+    <span class="rail-ico" data-icon="workflow"></span><span class="rail-lbl">Flows</span>
+  </button>
+        <button class="rail-btn" id="rail-favorites"
+          onclick="setMode('favorites')" title="Favoritos">
     <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
   </button>
-      <button class="rail-btn" id="rail-podcasts"
-        onclick="setMode('podcasts')" title="Podcasts">
+        <button class="rail-btn" id="rail-podcasts"
+          onclick="setMode('podcasts')" title="Podcasts">
     <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
-      <button class="rail-btn" id="rail-skills" onclick="setMode('skills')"
-        title="Skills">
+        <button class="rail-btn" id="rail-skills" onclick="setMode('skills')"
+          title="Skills">
     <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skills</span>
   </button>
-  <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
-        title="Macros">
+        <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
+          title="Macros">
     <span class="rail-ico" data-icon="bot"></span><span class="rail-lbl">Macros</span>
   </button>
-      <button class="rail-btn" id="rail-diagrams" onclick="setMode('diagrams')"
-        title="Diagramas">
+        <button class="rail-btn" id="rail-diagrams"
+          onclick="setMode('diagrams')"
+          title="Diagramas">
     <span class="rail-ico" data-icon="git-branch"></span><span class="rail-lbl">Diag</span>
   </button>
-      <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
-        title="Mocks HTTP">
+        <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
+          title="Mocks HTTP">
     <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
   </button>
-      <button class="rail-btn" id="rail-canvas" onclick="setMode('canvas')"
-        title="Canvas Realtime">
+        <button class="rail-btn" id="rail-canvas" onclick="setMode('canvas')"
+          title="Canvas Realtime">
     <span class="rail-ico" data-icon="paintbrush"></span><span class="rail-lbl">Canva</span>
   </button>
-      
-      <div class="rail-spacer"></div>
-      <button class="rail-btn" id="rail-terminal"
-        onclick="toggleTerminal()" title="Terminal (Ctrl+\`)">
-        <span class="rail-ico" data-icon="terminal"></span>
-        <span class="rail-lbl">Term</span>
-      </button>
-      <button class="rail-btn" id="rail-settings" onclick="openSettings()"
-        title="Configurações">
+
+        <div class="rail-spacer"></div>
+        <button class="rail-btn" id="rail-terminal"
+          onclick="toggleTerminal()" title="Terminal (Ctrl+\`)">
+          <span class="rail-ico" data-icon="terminal"></span>
+          <span class="rail-lbl">Term</span>
+        </button>
+        <button class="rail-btn" id="rail-settings" onclick="openSettings()"
+          title="Configurações">
     <span class="rail-ico" data-icon="settings"></span><span class="rail-lbl">Ajustes</span>
   </button>
-    </nav>
+      </nav>
 
-    <!-- ════ Content ════ -->
-    <div id="stage">
-      <!-- Update banner -->
-      <div id="update-banner">
-        <span id="update-text"></span>
-        <button id="update-apply"
-          onclick="applyUpdate()">Atualizar agora</button>
-        <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
-      </div>
+      <!-- ════ Content ════ -->
+      <div id="stage">
+        <!-- Update banner -->
+        <div id="update-banner">
+          <span id="update-text"></span>
+          <button id="update-apply"
+            onclick="applyUpdate()">Atualizar agora</button>
+          <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
+        </div>
 
-      <!-- ═══ MODE: NOTES ═══ -->
-      <main id="mode-notes" class="mode">
-        <section id="notes-col">
-          <div id="notes-col-head">
-            <div id="notes-col-title">Notas</div>
-            <button id="notes-new-btn" title="Nova nota" onclick="newNote()"
-              data-icon="plus"></button>
-          </div>
-          <div id="notes-search-box">
-            <input id="notes-search-input" type="text"
-              placeholder="Buscar notas…" autocomplete="off"
-              spellcheck="false" />
-          </div>
-          <div id="notes-filters">
-            <select id="notes-filter-cat" onchange="applyFilters()">
-              <option value="">Todas as categorias</option>
-            </select>
-            <select id="notes-filter-tag" onchange="applyFilters()">
-              <option value="">Todas as tags</option>
-            </select>
-          </div>
-          <div id="notes-list"></div>
-        </section>
-
-        <section id="notes-editor">
-          <div id="notes-editor-empty">
-            <div id="notes-editor-empty-mark" data-icon="pencil"></div>
-            <div id="notes-editor-empty-text">Selecione ou crie uma nota</div>
-          </div>
-
-          <div id="notes-editor-form">
-            <div id="note-head">
-              <input id="note-title-input" type="text"
-                placeholder="Título da nota…" />
-              <span id="note-id-badge" style="display:none"
-                onclick="copyNoteId()"
-                title="Clique para copiar o ID (use numa IA)"></span>
-              <button class="note-head-btn" id="btn-note-markmap"
-                style="display:none" onclick="toggleNoteMarkmap()"
-                title="Ver como mapa mental"><span data-icon="tree"></span></button>
-              <button class="note-head-btn" id="btn-annot"
-                style="display:none;width:auto;padding:0 9px;gap:5px;" onclick="toggleAnnotations()"
-                title="Anotações do mapa mental"><span data-icon="highlighter"></span><span id="annot-count" style="font-size:10px">0</span></button>
+        <!-- ═══ MODE: NOTES ═══ -->
+        <main id="mode-notes" class="mode">
+          <section id="notes-col">
+            <div id="notes-col-head">
+              <div id="notes-col-title">Notas</div>
+              <button id="notes-new-btn" title="Nova nota" onclick="newNote()"
+                data-icon="plus"></button>
             </div>
-            <div id="note-toolbar">
-              <div id="note-cat-field">
-                <span id="note-cat-dot" class="note-cat-dot"></span>
-                <input id="note-cat-input" list="note-cat-list"
-                  placeholder="categoria" autocomplete="off" />
-                <datalist id="note-cat-list"></datalist>
+            <div id="notes-search-box">
+              <input id="notes-search-input" type="text"
+                placeholder="Buscar notas…" autocomplete="off"
+                spellcheck="false" />
+            </div>
+            <div id="notes-filters">
+              <select id="notes-filter-cat" onchange="applyFilters()">
+                <option value="">Todas as categorias</option>
+              </select>
+              <select id="notes-filter-tag" onchange="applyFilters()">
+                <option value="">Todas as tags</option>
+              </select>
+            </div>
+            <div id="notes-list"></div>
+          </section>
+
+          <section id="notes-editor">
+            <div id="notes-editor-empty">
+              <div id="notes-editor-empty-mark" data-icon="pencil"></div>
+              <div id="notes-editor-empty-text">Selecione ou crie uma nota</div>
+            </div>
+
+            <div id="notes-editor-form">
+              <div id="note-head">
+                <input id="note-title-input" type="text"
+                  placeholder="Título da nota…" />
+                <span id="note-id-badge" style="display:none"
+                  onclick="copyNoteId()"
+                  title="Clique para copiar o ID (use numa IA)"></span>
+                <button class="note-head-btn" id="btn-note-markmap"
+                  style="display:none" onclick="toggleNoteMarkmap()"
+                  title="Ver como mapa mental"><span data-icon="tree"></span></button>
+                <button class="note-head-btn" id="btn-annot"
+                  style="display:none;width:auto;padding:0 9px;gap:5px;"
+                  onclick="toggleAnnotations()"
+                  title="Anotações do mapa mental"><span data-icon="highlighter"></span><span id="annot-count" style="font-size:10px">0</span></button>
               </div>
-              <input id="note-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-              <button class="tool-btn" id="btn-preview"
-                onclick="toggleNotePreview()"><span data-icon="eye"></span> Preview</button>
-              <button class="tool-btn" id="btn-copy-note" style="display:none"
-                onclick="copyNoteId()"><span data-icon="hash"></span> ID</button>
-              <button class="tool-btn danger" id="btn-delete-note"
-                style="display:none"
-                onclick="deleteCurrentNote()"><span data-icon="trash"></span></button>
-              <button class="tool-btn primary"
-                onclick="saveCurrentNote()">Salvar</button>
-            </div>
-            <div id="note-body">
-              <textarea id="note-content-textarea"
-                placeholder="Escreva em markdown…"></textarea>
-              <div id="note-preview"></div>
-              <div id="note-markmap"></div>
-            </div>
+              <div id="note-toolbar">
+                <div id="note-cat-field">
+                  <span id="note-cat-dot" class="note-cat-dot"></span>
+                  <input id="note-cat-input" list="note-cat-list"
+                    placeholder="categoria" autocomplete="off" />
+                  <datalist id="note-cat-list"></datalist>
+                </div>
+                <input id="note-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+                <button class="tool-btn" id="btn-preview"
+                  onclick="toggleNotePreview()"><span data-icon="eye"></span> Preview</button>
+                <button class="tool-btn" id="btn-copy-note" style="display:none"
+                  onclick="copyNoteId()"><span data-icon="hash"></span> ID</button>
+                <button class="tool-btn danger" id="btn-delete-note"
+                  style="display:none"
+                  onclick="deleteCurrentNote()"><span data-icon="trash"></span></button>
+                <button class="tool-btn primary"
+                  onclick="saveCurrentNote()">Salvar</button>
+              </div>
+              <div id="note-body">
+                <textarea id="note-content-textarea"
+                  placeholder="Escreva em markdown…"></textarea>
+                <div id="note-preview"></div>
+                <div id="note-markmap"></div>
+              </div>
 
-            <!-- Annotation panel (contextual ao markmap da nota) -->
-            <aside id="annot-panel">
-              <div id="annot-head">
-                <span id="annot-head-title">Anotações da nota</span>
-                <button class="ghost-btn" id="annot-copy-all"
-                  onclick="copyAnnotationsForAI()"
-                  title="Copiar todas para colar numa IA">
+              <!-- Annotation panel (contextual ao markmap da nota) -->
+              <aside id="annot-panel">
+                <div id="annot-head">
+                  <span id="annot-head-title">Anotações da nota</span>
+                  <button class="ghost-btn" id="annot-copy-all"
+                    onclick="copyAnnotationsForAI()"
+                    title="Copiar todas para colar numa IA">
               <span data-icon="sparkles"></span> Copiar p/ IA
             </button>
-              </div>
-              <div id="annot-list">
-                <div id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>
-              </div>
-            </aside>
-          </div>
-        </section>
-      </main>
+                </div>
+                <div id="annot-list">
+                  <div
+                    id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
 
-      <!-- ═══ MODE: MACROS ═══ -->
-      <main id="mode-macros" class="mode">
-        <section id="macros-col">
-          <div id="macros-col-head">
-            <div id="macros-col-title">Macros</div>
-            <button id="macros-new-btn" title="Nova macro" onclick="newMacro()"
-              data-icon="plus"></button>
-          </div>
-          <div id="macros-list"></div>
-        </section>
+        <!-- ═══ MODE: MACROS ═══ -->
+        <main id="mode-macros" class="mode">
+          <section id="macros-col">
+            <div id="macros-col-head">
+              <div id="macros-col-title">Macros</div>
+              <button id="macros-new-btn" title="Nova macro"
+                onclick="newMacro()"
+                data-icon="plus"></button>
+            </div>
+            <div id="macros-list"></div>
+          </section>
 
-        <section id="macros-editor">
-          <div id="macros-editor-empty">
-            <div id="macros-editor-empty-mark" data-icon="bot"></div>
-            <div id="macros-editor-empty-text">Selecione ou crie uma macro</div>
-          </div>
+          <section id="macros-editor">
+            <div id="macros-editor-empty">
+              <div id="macros-editor-empty-mark" data-icon="bot"></div>
+              <div
+                id="macros-editor-empty-text">Selecione ou crie uma macro</div>
+            </div>
 
-          <div id="macro-path-hint">
+            <div id="macro-path-hint">
             <span data-icon="info"></span>
             Apps GUI não herdam o PATH do terminal. Prefira caminhos absolutos ou source seu perfil no script.
           </div>
 
-          <div id="macros-editor-form">
-            <div id="macro-head">
-              <input id="macro-title-input" type="text"
-                placeholder="Nome da macro…" />
-              <span id="macro-interp-badge"
-                title="Interpretador detectado pelo shebang"></span>
-              <div id="macro-head-actions">
-                <button class="tool-btn" id="btn-macro-delete"
-                  style="display:none"
-                  onclick="deleteCurrentMacro()"><span data-icon="trash"></span></button>
-                <button class="tool-btn primary" id="btn-macro-save"
-                  onclick="saveCurrentMacro()">Salvar</button>
-                <button class="tool-btn macro-run-btn" id="btn-macro-run"
-                  onclick="runCurrentMacro()">
+            <div id="macros-editor-form">
+              <div id="macro-head">
+                <input id="macro-title-input" type="text"
+                  placeholder="Nome da macro…" />
+                <span id="macro-interp-badge"
+                  title="Interpretador detectado pelo shebang"></span>
+                <div id="macro-head-actions">
+                  <button class="tool-btn" id="btn-macro-delete"
+                    style="display:none"
+                    onclick="deleteCurrentMacro()"><span data-icon="trash"></span></button>
+                  <button class="tool-btn primary" id="btn-macro-save"
+                    onclick="saveCurrentMacro()">Salvar</button>
+                  <button class="tool-btn macro-run-btn" id="btn-macro-run"
+                    onclick="runCurrentMacro()">
               <span data-icon="sparkles"></span> Executar
             </button>
+                </div>
+              </div>
+
+              <div id="macro-desc-row">
+                <input id="macro-desc-input" type="text"
+                  placeholder="Descrição curta…" />
+                <input id="macro-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+              </div>
+
+              <div id="macro-body">
+                <textarea id="macro-script" spellcheck="false"
+                  placeholder="#!/bin/bash&#10;# Seu script aqui&#10;# Variáveis disponíveis:&#10;#   $DOCMAP_API       → http://127.0.0.1:3334&#10;#   $DOCMAP_WORKSPACE → pasta aberta&#10;&#10;echo &quot;Olá do docmap!&quot;"></textarea>
+              </div>
+
+              <div id="macro-output-panel">
+                <div id="macro-output-header">
+                  <span id="macro-output-title">Output</span>
+                  <span id="macro-status-badge"></span>
+                  <button class="ghost-btn" id="btn-macro-clear"
+                    onclick="clearOutput()" style="display:none">limpar</button>
+                  <button class="ghost-btn danger" id="btn-macro-stop"
+                    onclick="stopMacro()" style="display:none">⬛ Parar</button>
+                </div>
+                <pre id="macro-output"></pre>
               </div>
             </div>
+          </section>
+        </main>
 
-            <div id="macro-desc-row">
-              <input id="macro-desc-input" type="text"
-                placeholder="Descrição curta…" />
-              <input id="macro-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
+        <!-- ═══ MODE: SKILLS ═══ -->
+        <main id="mode-skills" class="mode">
+          <section id="skills-col">
+            <div id="skills-col-head">
+              <div id="skills-col-title">Skills</div>
+              <button id="skills-new-btn" title="Nova skill"
+                onclick="newSkill()"
+                data-icon="plus"></button>
+            </div>
+            <div id="skills-search-box">
+              <input id="skills-search-input" type="text"
+                placeholder="Buscar skills…" autocomplete="off"
+                spellcheck="false" />
+            </div>
+            <div id="skills-list"></div>
+          </section>
+
+          <section id="skills-editor">
+            <div id="skills-editor-empty">
+              <div id="skills-editor-empty-mark" data-icon="sparkles"></div>
+              <div
+                id="skills-editor-empty-text">Selecione ou crie uma skill</div>
             </div>
 
-            <div id="macro-body">
-              <textarea id="macro-script" spellcheck="false"
-                placeholder="#!/bin/bash&#10;# Seu script aqui&#10;# Variáveis disponíveis:&#10;#   $DOCMAP_API       → http://127.0.0.1:3334&#10;#   $DOCMAP_WORKSPACE → pasta aberta&#10;&#10;echo &quot;Olá do docmap!&quot;"></textarea>
-            </div>
-
-            <div id="macro-output-panel">
-              <div id="macro-output-header">
-                <span id="macro-output-title">Output</span>
-                <span id="macro-status-badge"></span>
-                <button class="ghost-btn" id="btn-macro-clear"
-                  onclick="clearOutput()" style="display:none">limpar</button>
-                <button class="ghost-btn danger" id="btn-macro-stop"
-                  onclick="stopMacro()" style="display:none">⬛ Parar</button>
+            <div id="skills-editor-form">
+              <div id="skill-head">
+                <input id="skill-title-input" type="text"
+                  placeholder="Título da skill…" />
+                <span id="skill-name-badge"
+                  title="Nome/slug (use numa IA: GET /skills/nome)"></span>
               </div>
-              <pre id="macro-output"></pre>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <!-- ═══ MODE: SKILLS ═══ -->
-      <main id="mode-skills" class="mode">
-        <section id="skills-col">
-          <div id="skills-col-head">
-            <div id="skills-col-title">Skills</div>
-            <button id="skills-new-btn" title="Nova skill" onclick="newSkill()"
-              data-icon="plus"></button>
-          </div>
-          <div id="skills-search-box">
-            <input id="skills-search-input" type="text"
-              placeholder="Buscar skills…" autocomplete="off"
-              spellcheck="false" />
-          </div>
-          <div id="skills-list"></div>
-        </section>
-
-        <section id="skills-editor">
-          <div id="skills-editor-empty">
-            <div id="skills-editor-empty-mark" data-icon="sparkles"></div>
-            <div id="skills-editor-empty-text">Selecione ou crie uma skill</div>
-          </div>
-
-          <div id="skills-editor-form">
-            <div id="skill-head">
-              <input id="skill-title-input" type="text"
-                placeholder="Título da skill…" />
-              <span id="skill-name-badge"
-                title="Nome/slug (use numa IA: GET /skills/nome)"></span>
-            </div>
-            <div id="skill-toolbar">
-              <div id="skill-name-field">
-                <span id="skill-name-prefix">@</span>
-                <input id="skill-name-input" type="text"
-                  placeholder="nome-da-skill" autocomplete="off"
-                  spellcheck="false" />
-              </div>
-              <input id="skill-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-              <button class="tool-btn" id="btn-skill-preview"
-                onclick="toggleSkillPreview()"><span data-icon="eye"></span> Preview</button>
-              <button class="tool-btn" id="btn-skill-copy" style="display:none"
-                onclick="copySkillRef()"><span data-icon="copy"></span> Ref</button>
-              <button class="tool-btn danger" id="btn-skill-delete"
-                style="display:none"
-                onclick="deleteCurrentSkill()"><span data-icon="trash"></span></button>
-              <button class="tool-btn primary"
-                onclick="saveCurrentSkill()">Salvar</button>
-            </div>
-            <div id="skill-desc-row">
-              <input id="skill-desc-input" type="text"
-                placeholder="Descrição curta (aparece na listagem da IA)…" />
-            </div>
-            <div id="skill-body">
-              <textarea id="skill-content-textarea"
-                placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;\`\`\`bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;\`\`\`"></textarea>
-              <div id="skill-preview"></div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <!-- ═══ MODE: DIAGRAMS ═══ -->
-      <main id="mode-diagrams" class="mode">
-        <section id="diag-col">
-          <div id="diag-col-head">
-            <div id="diag-col-title">Diagramas</div>
-            <button id="diag-new-btn" title="Novo diagrama"
-              onclick="newDiagram()" data-icon="plus"></button>
-          </div>
-          <div id="diag-list"></div>
-        </section>
-
-        <section id="diag-editor">
-          <div id="diag-editor-empty">
-            <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
-            <div id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
-          </div>
-
-          <div id="diag-editor-form">
-            <div id="diag-head">
-              <input id="diag-title-input" type="text"
-                placeholder="Título do diagrama…" />
-              <input id="diag-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-              <span id="diag-id-badge" style="display:none"
-                title="Clique para copiar o deep link"></span>
-              <div id="diag-head-actions">
-                <button class="tool-btn" id="btn-diag-copy-link"
+              <div id="skill-toolbar">
+                <div id="skill-name-field">
+                  <span id="skill-name-prefix">@</span>
+                  <input id="skill-name-input" type="text"
+                    placeholder="nome-da-skill" autocomplete="off"
+                    spellcheck="false" />
+                </div>
+                <input id="skill-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+                <button class="tool-btn" id="btn-skill-preview"
+                  onclick="toggleSkillPreview()"><span data-icon="eye"></span> Preview</button>
+                <button class="tool-btn" id="btn-skill-copy"
                   style="display:none"
-                  onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
-                <button class="tool-btn danger" id="btn-diag-delete"
+                  onclick="copySkillRef()"><span data-icon="copy"></span> Ref</button>
+                <button class="tool-btn danger" id="btn-skill-delete"
                   style="display:none"
-                  onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
+                  onclick="deleteCurrentSkill()"><span data-icon="trash"></span></button>
                 <button class="tool-btn primary"
-                  onclick="saveCurrentDiagram()">Salvar</button>
+                  onclick="saveCurrentSkill()">Salvar</button>
+              </div>
+              <div id="skill-desc-row">
+                <input id="skill-desc-input" type="text"
+                  placeholder="Descrição curta (aparece na listagem da IA)…" />
+              </div>
+              <div id="skill-body">
+                <textarea id="skill-content-textarea"
+                  placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;\`\`\`bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;\`\`\`"></textarea>
+                <div id="skill-preview"></div>
               </div>
             </div>
+          </section>
+        </main>
 
-            <div id="diag-body">
-              <div id="diag-preview-col">
-                <div id="diag-zoom-bar">
-                  <button class="diag-zoom-btn" onclick="diagZoomOut()"
-                    title="Afastar" data-icon="zoom-out"></button>
-                  <span id="diag-zoom-label">100%</span>
-                  <button class="diag-zoom-btn" onclick="diagZoomIn()"
-                    title="Aproximar" data-icon="zoom-in"></button>
-                  <button class="diag-zoom-btn" onclick="diagZoomReset()"
-                    title="Resetar zoom" data-icon="maximize-2"></button>
+        <!-- ═══ MODE: DIAGRAMS ═══ -->
+        <main id="mode-diagrams" class="mode">
+          <section id="diag-col">
+            <div id="diag-col-head">
+              <div id="diag-col-title">Diagramas</div>
+              <button id="diag-new-btn" title="Novo diagrama"
+                onclick="newDiagram()" data-icon="plus"></button>
+            </div>
+            <div id="diag-list"></div>
+          </section>
+
+          <section id="diag-editor">
+            <div id="diag-editor-empty">
+              <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
+              <div
+                id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
+            </div>
+
+            <div id="diag-editor-form">
+              <div id="diag-head">
+                <input id="diag-title-input" type="text"
+                  placeholder="Título do diagrama…" />
+                <input id="diag-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+                <span id="diag-id-badge" style="display:none"
+                  title="Clique para copiar o deep link"></span>
+                <div id="diag-head-actions">
+                  <button class="tool-btn" id="btn-diag-copy-link"
+                    style="display:none"
+                    onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
+                  <button class="tool-btn danger" id="btn-diag-delete"
+                    style="display:none"
+                    onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
+                  <button class="tool-btn primary"
+                    onclick="saveCurrentDiagram()">Salvar</button>
                 </div>
-                <div id="diag-preview"></div>
               </div>
-              <div id="diag-source-col">
-                <div id="diag-source-header" onclick="toggleDiagSource()">
-                  <span>⌨ Código Mermaid</span>
-                  <span id="diag-source-toggle">▸</span>
-                  <a href="https://mermaid.js.org/syntax/flowchart.html"
-                    target="_blank" id="diag-docs-link"
-                    onclick="event.stopPropagation()">docs ↗</a>
+
+              <div id="diag-body">
+                <div id="diag-preview-col">
+                  <div id="diag-zoom-bar">
+                    <button class="diag-zoom-btn" onclick="diagZoomOut()"
+                      title="Afastar" data-icon="zoom-out"></button>
+                    <span id="diag-zoom-label">100%</span>
+                    <button class="diag-zoom-btn" onclick="diagZoomIn()"
+                      title="Aproximar" data-icon="zoom-in"></button>
+                    <button class="diag-zoom-btn" onclick="diagZoomReset()"
+                      title="Resetar zoom" data-icon="maximize-2"></button>
+                  </div>
+                  <div id="diag-preview"></div>
                 </div>
-                <textarea id="diag-source"
-                  placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]"
-                  spellcheck="false"></textarea>
+                <div id="diag-source-col">
+                  <div id="diag-source-header" onclick="toggleDiagSource()">
+                    <span>⌨ Código Mermaid</span>
+                    <span id="diag-source-toggle">▸</span>
+                    <a href="https://mermaid.js.org/syntax/flowchart.html"
+                      target="_blank" id="diag-docs-link"
+                      onclick="event.stopPropagation()">docs ↗</a>
+                  </div>
+                  <textarea id="diag-source"
+                    placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]"
+                    spellcheck="false"></textarea>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
 
-      <!-- ═══ MODE: MOCKS ═══ -->
-      <main id="mode-mocks" class="mode">
-        <section id="mocks-col">
-          <div id="mocks-col-head">
-            <span class="mocks-section-label">Collections</span>
-            <button class="mocks-hd-btn" onclick="newCollection()"
-              title="Nova collection" data-icon="plus"></button>
-          </div>
-          <div id="mocks-col-list"></div>
-
-          <div id="mocks-list-head">
-            <span id="mocks-list-heading">Todos os mocks</span>
-            <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
-              data-icon="plus"></button>
-          </div>
-          <div id="mocks-list"></div>
-
-          <footer id="mocks-col-footer">
-            <div id="mocks-server-badge">
-              <span class="mocks-server-pulse"></span>
-              <span class="mocks-server-url">127.0.0.1:3335</span>
-              <span id="mocks-server-count" data-count="0"></span>
+        <!-- ═══ MODE: MOCKS ═══ -->
+        <main id="mode-mocks" class="mode">
+          <section id="mocks-col">
+            <div id="mocks-col-head">
+              <span class="mocks-section-label">Collections</span>
+              <button class="mocks-hd-btn" onclick="newCollection()"
+                title="Nova collection" data-icon="plus"></button>
             </div>
-            <button id="mocks-clear-btn" onclick="clearMockDatabase()">
-              <span data-icon="trash"></span>
-              <span class="mocks-clear-label">Zerar tudo</span>
-            </button>
-          </footer>
-        </section>
+            <div id="mocks-col-list"></div>
 
-        <section id="mocks-editor">
-          <div id="mocks-editor-empty">
-            <div id="mocks-editor-empty-mark" data-icon="share"></div>
-            <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
-          </div>
+            <div id="mocks-list-head">
+              <span id="mocks-list-heading">Todos os mocks</span>
+              <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
+                data-icon="plus"></button>
+            </div>
+            <div id="mocks-list"></div>
 
-          <div id="mocks-editor-form">
-            <div id="mock-head">
-              <span id="mock-id-badge" data-method="GET">— novo mock —</span>
-              <div id="mock-head-actions">
-                <button class="tool-btn danger" id="btn-mock-delete"
-                  style="display:none" onclick="deleteCurrentMock()">
-                  <span data-icon="trash"></span>
-                </button>
-                <button class="tool-btn" id="btn-mock-curl" onclick="copyCurl()"
-                  title="Copiar curl">
+            <footer id="mocks-col-footer">
+              <div id="mocks-server-badge">
+                <span class="mocks-server-pulse"></span>
+                <span class="mocks-server-url">127.0.0.1:3335</span>
+                <span id="mocks-server-count" data-count="0"></span>
+              </div>
+              <button id="mocks-clear-btn" onclick="clearMockDatabase()">
+                <span data-icon="trash"></span>
+                <span class="mocks-clear-label">Zerar tudo</span>
+              </button>
+            </footer>
+          </section>
+
+          <section id="mocks-editor">
+            <div id="mocks-editor-empty">
+              <div id="mocks-editor-empty-mark" data-icon="share"></div>
+              <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
+            </div>
+
+            <div id="mocks-editor-form">
+              <div id="mock-head">
+                <span id="mock-id-badge" data-method="GET">— novo mock —</span>
+                <div id="mock-head-actions">
+                  <button class="tool-btn danger" id="btn-mock-delete"
+                    style="display:none" onclick="deleteCurrentMock()">
+                    <span data-icon="trash"></span>
+                  </button>
+                  <button class="tool-btn" id="btn-mock-curl"
+                    onclick="copyCurl()"
+                    title="Copiar curl">
               <span data-icon="copy"></span> curl
             </button>
-                <button class="tool-btn" id="btn-mock-test"
-                  onclick="showTestPanel()">
+                  <button class="tool-btn" id="btn-mock-test"
+                    onclick="showTestPanel()">
               <span data-icon="scan-line"></span> Testar
             </button>
-                <button class="tool-btn primary"
-                  onclick="saveMock()">Salvar</button>
+                  <button class="tool-btn primary"
+                    onclick="saveMock()">Salvar</button>
+                </div>
               </div>
-            </div>
 
-            <div id="mock-meta-row">
-              <div class="mock-field">
-                <label class="mock-label">Collection</label>
-                <select id="mock-collection-select"
-                  class="mock-select"></select>
+              <div id="mock-meta-row">
+                <div class="mock-field">
+                  <label class="mock-label">Collection</label>
+                  <select id="mock-collection-select"
+                    class="mock-select"></select>
+                </div>
+                <div class="mock-field">
+                  <label class="mock-label">Método</label>
+                  <select id="mock-method-select" class="mock-select"
+                    data-method="GET" onchange="onMethodChange(this)">
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                    <option>HEAD</option>
+                    <option>OPTIONS</option>
+                  </select>
+                </div>
               </div>
-              <div class="mock-field">
-                <label class="mock-label">Método</label>
-                <select id="mock-method-select" class="mock-select"
-                  data-method="GET" onchange="onMethodChange(this)">
-                  <option>GET</option>
-                  <option>POST</option>
-                  <option>PUT</option>
-                  <option>PATCH</option>
-                  <option>DELETE</option>
-                  <option>HEAD</option>
-                  <option>OPTIONS</option>
-                </select>
-              </div>
-            </div>
 
-            <div class="mock-field">
-              <label class="mock-label">Path</label>
-              <input id="mock-path-input" type="text" class="mock-input"
-                placeholder="/users/:id" spellcheck="false"
-                autocomplete="off" />
-            </div>
+              <div class="mock-field">
+                <label class="mock-label">Path</label>
+                <input id="mock-path-input" type="text" class="mock-input"
+                  placeholder="/users/:id" spellcheck="false"
+                  autocomplete="off" />
+              </div>
 
-            <div id="mock-meta-row-2">
-              <div class="mock-field">
-                <label class="mock-label">Nome</label>
-                <input id="mock-name-input" type="text" class="mock-input"
-                  placeholder="Get user by ID" autocomplete="off" />
+              <div id="mock-meta-row-2">
+                <div class="mock-field">
+                  <label class="mock-label">Nome</label>
+                  <input id="mock-name-input" type="text" class="mock-input"
+                    placeholder="Get user by ID" autocomplete="off" />
+                </div>
+                <div class="mock-field">
+                  <label class="mock-label">Grupo</label>
+                  <input id="mock-group-input" type="text" class="mock-input"
+                    placeholder="Authentication" autocomplete="off"
+                    list="mock-groups-list" />
+                  <datalist id="mock-groups-list"></datalist>
+                </div>
+                <div class="mock-field">
+                  <label class="mock-label">Tags</label>
+                  <input id="mock-tags-input" type="text" class="mock-input"
+                    placeholder="tags, separadas, por vírgula"
+                    autocomplete="off" />
+                </div>
               </div>
-              <div class="mock-field">
-                <label class="mock-label">Grupo</label>
-                <input id="mock-group-input" type="text" class="mock-input"
-                  placeholder="Authentication" autocomplete="off"
-                  list="mock-groups-list" />
-                <datalist id="mock-groups-list"></datalist>
-              </div>
-              <div class="mock-field">
-                <label class="mock-label">Tags</label>
-                <input id="mock-tags-input" type="text" class="mock-input"
-                  placeholder="tags, separadas, por vírgula" autocomplete="off" />
-              </div>
-            </div>
 
-            <div class="mock-field mock-field-script">
-              <div id="mock-script-label-row">
-                <label class="mock-label">Script JS</label>
-                <span
-                  id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
-                <button class="ghost-btn" id="btn-format-script"
-                  onclick="formatScript()" title="Formatar código">
+              <div class="mock-field mock-field-script">
+                <div id="mock-script-label-row">
+                  <label class="mock-label">Script JS</label>
+                  <span
+                    id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
+                  <button class="ghost-btn" id="btn-format-script"
+                    onclick="formatScript()" title="Formatar código">
               <span data-icon="sparkles"></span> formatar
             </button>
+                </div>
+                <textarea id="mock-script-textarea" spellcheck="false"
+                  placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
               </div>
-              <textarea id="mock-script-textarea" spellcheck="false"
-                placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
-            </div>
 
-            <!-- Painel de teste -->
-            <div id="mock-test-panel" style="display:none">
-              <div class="test-panel-head">
-                <span class="test-panel-title">Testar mock</span>
-                <button class="ghost-btn"
-                  onclick="hideTestPanel()"><span data-icon="x"></span></button>
+              <!-- Painel de teste -->
+              <div id="mock-test-panel" style="display:none">
+                <div class="test-panel-head">
+                  <span class="test-panel-title">Testar mock</span>
+                  <button class="ghost-btn"
+                    onclick="hideTestPanel()"><span data-icon="x"></span></button>
+                </div>
+                <div id="mock-test-params"></div>
+                <button class="tool-btn" id="btn-test-run"
+                  onclick="runTest()">Executar</button>
+                <div id="mock-test-result" style="display:none"></div>
               </div>
-              <div id="mock-test-params"></div>
-              <button class="tool-btn" id="btn-test-run"
-                onclick="runTest()">Executar</button>
-              <div id="mock-test-result" style="display:none"></div>
+            </div>
+          </section>
+        </main>
+
+        <!-- ═══ MODE: TASKS / KANBAN ═══ -->
+        <main id="mode-tasks" class="mode">
+          <div id="kanban-project-bar">
+            <select id="kanban-project-select" onchange="renderBoard()">
+              <option value="">Sem projeto</option>
+            </select>
+            <button id="kanban-project-add-btn" onclick="openNewProject()"
+              title="Novo projeto">
+              <span data-icon="plus"></span>
+            </button>
+            <button id="kanban-project-del-btn"
+              onclick="deleteSelectedProject()"
+              title="Remover projeto" disabled>
+              <span data-icon="trash"></span>
+            </button>
+          </div>
+          <div id="kanban-board">
+            <div class="kanban-col" id="kanban-col-todo" data-status="todo">
+              <div class="kanban-col-head">
+                <span class="kanban-col-dot" data-col="todo"></span>
+                <span class="kanban-col-title">A Fazer</span>
+                <span class="kanban-col-count" id="kanban-count-todo">0</span>
+                <button class="kanban-col-add" onclick="openNewTask('todo')"
+                  title="Adicionar task">
+                  <span data-icon="plus"></span>
+                </button>
+              </div>
+              <div class="kanban-cards" id="kanban-cards-todo"></div>
+            </div>
+
+            <div class="kanban-col" id="kanban-col-in-progress"
+              data-status="in-progress">
+              <div class="kanban-col-head">
+                <span class="kanban-col-dot" data-col="in-progress"></span>
+                <span class="kanban-col-title">Em Andamento</span>
+                <span class="kanban-col-count"
+                  id="kanban-count-in-progress">0</span>
+                <button class="kanban-col-add"
+                  onclick="openNewTask('in-progress')" title="Adicionar task">
+                  <span data-icon="plus"></span>
+                </button>
+              </div>
+              <div class="kanban-cards" id="kanban-cards-in-progress"></div>
+            </div>
+
+            <div class="kanban-col" id="kanban-col-done" data-status="done">
+              <div class="kanban-col-head">
+                <span class="kanban-col-dot" data-col="done"></span>
+                <span class="kanban-col-title">Concluído</span>
+                <span class="kanban-col-count" id="kanban-count-done">0</span>
+                <button class="kanban-col-add" onclick="openNewTask('done')"
+                  title="Adicionar task">
+                  <span data-icon="plus"></span>
+                </button>
+              </div>
+              <div class="kanban-cards" id="kanban-cards-done"></div>
             </div>
           </div>
-        </section>
-      </main>
+        </main>
 
-      <!-- ═══ MODE: TASKS / KANBAN ═══ -->
-      <main id="mode-tasks" class="mode">
-        <div id="kanban-project-bar">
-          <select id="kanban-project-select" onchange="renderBoard()">
-            <option value="">Sem projeto</option>
-          </select>
-          <button id="kanban-project-add-btn" onclick="openNewProject()"
-            title="Novo projeto">
-            <span data-icon="plus"></span>
-          </button>
-          <button id="kanban-project-del-btn" onclick="deleteSelectedProject()"
-            title="Remover projeto" disabled>
-            <span data-icon="trash"></span>
-          </button>
-        </div>
-        <div id="kanban-board">
-          <div class="kanban-col" id="kanban-col-todo" data-status="todo">
-            <div class="kanban-col-head">
-              <span class="kanban-col-dot" data-col="todo"></span>
-              <span class="kanban-col-title">A Fazer</span>
-              <span class="kanban-col-count" id="kanban-count-todo">0</span>
-              <button class="kanban-col-add" onclick="openNewTask('todo')"
-                title="Adicionar task">
-                <span data-icon="plus"></span>
-              </button>
+        <!-- ═══ MODE: AGENT WORKFLOWS ═══ -->
+        <main id="mode-workflows" class="mode">
+          <aside id="wf-sidebar">
+            <div id="wf-sidebar-head">
+              <div>
+                <div id="wf-sidebar-title">Workflows</div>
+                <div id="wf-sidebar-count">0 demandas</div>
+              </div>
+              <button id="wf-new-btn" onclick="openWorkflowModal()"
+                title="Novo workflow" data-icon="plus"></button>
             </div>
-            <div class="kanban-cards" id="kanban-cards-todo"></div>
-          </div>
-
-          <div class="kanban-col" id="kanban-col-in-progress"
-            data-status="in-progress">
-            <div class="kanban-col-head">
-              <span class="kanban-col-dot" data-col="in-progress"></span>
-              <span class="kanban-col-title">Em Andamento</span>
-              <span class="kanban-col-count"
-                id="kanban-count-in-progress">0</span>
-              <button class="kanban-col-add"
-                onclick="openNewTask('in-progress')" title="Adicionar task">
-                <span data-icon="plus"></span>
-              </button>
-            </div>
-            <div class="kanban-cards" id="kanban-cards-in-progress"></div>
-          </div>
-
-          <div class="kanban-col" id="kanban-col-done" data-status="done">
-            <div class="kanban-col-head">
-              <span class="kanban-col-dot" data-col="done"></span>
-              <span class="kanban-col-title">Concluído</span>
-              <span class="kanban-col-count" id="kanban-count-done">0</span>
-              <button class="kanban-col-add" onclick="openNewTask('done')"
-                title="Adicionar task">
-                <span data-icon="plus"></span>
-              </button>
-            </div>
-            <div class="kanban-cards" id="kanban-cards-done"></div>
-          </div>
-        </div>
-      </main>
-
-      <!-- ═══ MODE: FAVORITES ═══ -->
-      <main id="mode-favorites" class="mode">
-        <!-- Sidebar -->
-        <aside id="fav-sidebar">
-          <div class="fav-sidebar-section">
-            <div class="fav-sidebar-label">Categorias</div>
-            <div id="fav-cat-list"></div>
-          </div>
-          <div class="fav-sidebar-divider"></div>
-          <div class="fav-sidebar-section">
-            <div class="fav-sidebar-label">Tags</div>
-            <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
-          </div>
-        </aside>
-
-        <!-- Main -->
-        <div id="fav-main">
-          <!-- Toolbar -->
-          <div id="fav-toolbar">
-            <div id="fav-search-wrap">
-              <span id="fav-search-icon" data-icon="search"></span>
-              <input id="fav-search" type="text"
-                placeholder="Buscar por título, tag, categoria, URL…"
+            <div id="wf-search-wrap">
+              <span data-icon="search"></span>
+              <input id="wf-search" type="text" placeholder="Buscar workflows"
                 autocomplete="off" spellcheck="false">
-              <span id="fav-search-clear" data-icon="x"></span>
             </div>
-            <button id="fav-add-btn">
+            <div id="wf-filter-row">
+              <select id="wf-status-filter" onchange="renderWorkflowList()">
+                <option value="">Todos os estados</option>
+                <option value="draft">Rascunho</option>
+                <option value="planning">Planejamento</option>
+                <option value="running">Em execução</option>
+                <option value="reviewing">Em revisão</option>
+                <option value="blocked">Bloqueado</option>
+                <option value="done">Concluído</option>
+              </select>
+            </div>
+            <div id="wf-list"></div>
+          </aside>
+
+          <section id="wf-workspace">
+            <div id="wf-empty">
+              <span id="wf-empty-icon" data-icon="workflow"></span>
+              <div id="wf-empty-title">Nenhum workflow selecionado</div>
+              <button class="wf-primary-btn" onclick="openWorkflowModal()">
+              <span data-icon="plus"></span> Nova demanda
+            </button>
+            </div>
+
+            <div id="wf-active">
+              <header id="wf-toolbar">
+                <div id="wf-toolbar-title-wrap">
+                  <div id="wf-toolbar-title"></div>
+                  <div id="wf-toolbar-meta"></div>
+                </div>
+                <div id="wf-toolbar-actions">
+                  <button class="wf-icon-btn"
+                    onclick="copyWorkflowPrompt('orchestrator')"
+                    title="Copiar prompt do orquestrador"
+                    data-icon="bot"></button>
+                  <button class="wf-icon-btn"
+                    onclick="copyWorkflowPrompt('executor')"
+                    title="Copiar prompt de executor" data-icon="copy"></button>
+                  <span class="wf-toolbar-sep"></span>
+                  <button class="wf-icon-btn" onclick="openNodeModal()"
+                    title="Adicionar nó" data-icon="plus"></button>
+                  <button class="wf-icon-btn" id="wf-start-btn"
+                    onclick="startCurrentWorkflow()" title="Iniciar workflow"
+                    data-icon="play"></button>
+                  <button class="wf-icon-btn" id="wf-complete-btn"
+                    onclick="completeCurrentWorkflow()"
+                    title="Concluir workflow"
+                    data-icon="check"></button>
+                  <button class="wf-icon-btn" onclick="refreshCurrentWorkflow()"
+                    title="Recarregar" data-icon="refresh-cw"></button>
+                  <button class="wf-icon-btn danger"
+                    onclick="deleteCurrentWorkflow()"
+                    title="Excluir workflow" data-icon="trash"></button>
+                </div>
+              </header>
+
+              <div id="wf-agent-strip"></div>
+
+              <div id="wf-main-row">
+                <div id="wf-timeline">
+                  <div id="wf-timeline-list"></div>
+                  <div id="wf-timeline-empty">
+                    <span data-icon="workflow"></span>
+                    <div>Workflow aguardando decomposição</div>
+                  </div>
+                </div>
+
+                <aside id="wf-inspector">
+                  <div id="wf-inspector-empty">
+                    <span data-icon="scan-line"></span>
+                    <div>Selecione um nó</div>
+                  </div>
+                  <div id="wf-inspector-content"></div>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- ═══ MODE: FAVORITES ═══ -->
+        <main id="mode-favorites" class="mode">
+          <!-- Sidebar -->
+          <aside id="fav-sidebar">
+            <div class="fav-sidebar-section">
+              <div class="fav-sidebar-label">Categorias</div>
+              <div id="fav-cat-list"></div>
+            </div>
+            <div class="fav-sidebar-divider"></div>
+            <div class="fav-sidebar-section">
+              <div class="fav-sidebar-label">Tags</div>
+              <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
+            </div>
+          </aside>
+
+          <!-- Main -->
+          <div id="fav-main">
+            <!-- Toolbar -->
+            <div id="fav-toolbar">
+              <div id="fav-search-wrap">
+                <span id="fav-search-icon" data-icon="search"></span>
+                <input id="fav-search" type="text"
+                  placeholder="Buscar por título, tag, categoria, URL…"
+                  autocomplete="off" spellcheck="false">
+                <span id="fav-search-clear" data-icon="x"></span>
+              </div>
+              <button id="fav-add-btn">
           <span data-icon="plus"></span>
           Adicionar
           <span class="fav-add-kbd">⌘K</span>
         </button>
-          </div>
+            </div>
 
-          <!-- Type tabs -->
-          <div id="fav-type-tabs">
-            <div class="fav-type-tab active"
-              data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
-            <div class="fav-type-tab" data-type="site">
+            <!-- Type tabs -->
+            <div id="fav-type-tabs">
+              <div class="fav-type-tab active"
+                data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
+              <div class="fav-type-tab" data-type="site">
           <span class="fav-tab-dot" style="background:var(--fav-site)"></span>
           Sites <span class="fav-tab-count" id="fav-count-site">0</span>
         </div>
-            <div class="fav-type-tab" data-type="slack">
+              <div class="fav-type-tab" data-type="slack">
           <span class="fav-tab-dot" style="background:var(--fav-slack)"></span>
           Slack <span class="fav-tab-count" id="fav-count-slack">0</span>
         </div>
-            <div class="fav-type-tab" data-type="grid">
+              <div class="fav-type-tab" data-type="grid">
           <span class="fav-tab-dot" style="background:var(--fav-grid)"></span>
           Grid <span class="fav-tab-count" id="fav-count-grid">0</span>
         </div>
-            <div class="fav-type-tab" data-type="dash">
+              <div class="fav-type-tab" data-type="dash">
           <span class="fav-tab-dot" style="background:var(--fav-dash)"></span>
           Dashboards <span class="fav-tab-count" id="fav-count-dash">0</span>
         </div>
-            <div class="fav-type-tab" data-type="github">
+              <div class="fav-type-tab" data-type="github">
           <span class="fav-tab-dot" style="background:var(--fav-github)"></span>
           GitHub <span class="fav-tab-count" id="fav-count-github">0</span>
         </div>
-          </div>
+            </div>
 
-          <!-- Scrollable content -->
-          <div id="fav-scroll">
-            <!-- Most visited -->
-            <div id="fav-most-visited" style="display:none">
+            <!-- Scrollable content -->
+            <div id="fav-scroll">
+              <!-- Most visited -->
+              <div id="fav-most-visited" style="display:none">
+                <div class="fav-section-header">
+                  <span class="fav-section-title">⚡ Mais visitados</span>
+                </div>
+                <div class="fav-featured-row" id="fav-featured-row"></div>
+              </div>
+
+              <!-- Grid header -->
               <div class="fav-section-header">
-                <span class="fav-section-title">⚡ Mais visitados</span>
+                <span class="fav-section-title">◈ Links</span>
+                <span class="fav-section-count"
+                  id="fav-result-count">0 links</span>
               </div>
-              <div class="fav-featured-row" id="fav-featured-row"></div>
+
+              <!-- Grid -->
+              <div id="fav-grid"></div>
+
+              <!-- Pagination -->
+              <div id="fav-pagination"></div>
+
+              <!-- Empty -->
+              <div id="fav-empty" style="display:none">
+                <span class="fav-empty-icon" data-icon="bookmark"></span>
+                <div class="fav-empty-title">Nenhum favorito encontrado</div>
+                <div
+                  class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
+              </div>
             </div>
+          </div>
+        </main>
 
-            <!-- Grid header -->
-            <div class="fav-section-header">
-              <span class="fav-section-title">◈ Links</span>
-              <span class="fav-section-count"
-                id="fav-result-count">0 links</span>
-            </div>
-
-            <!-- Grid -->
-            <div id="fav-grid"></div>
-
-            <!-- Pagination -->
-            <div id="fav-pagination"></div>
-
-            <!-- Empty -->
-            <div id="fav-empty" style="display:none">
-              <span class="fav-empty-icon" data-icon="bookmark"></span>
-              <div class="fav-empty-title">Nenhum favorito encontrado</div>
+        <!-- ═══ MODE: PODCASTS ═══ -->
+        <main id="mode-podcasts" class="mode">
+          <section id="pod-col">
+            <div id="pod-col-head">
               <div
-                class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
+                id="pod-col-title"><span data-icon="mic"></span>Podcasts</div>
+              <button id="pod-health" class="pod-health-checking"
+                title="Verificando dependências…"
+                onclick="togglePodHealth()"></button>
             </div>
-          </div>
-        </div>
-      </main>
-
-      <!-- ═══ MODE: PODCASTS ═══ -->
-      <main id="mode-podcasts" class="mode">
-        <section id="pod-col">
-          <div id="pod-col-head">
-            <div id="pod-col-title"><span data-icon="mic"></span>Podcasts</div>
-            <button id="pod-health" class="pod-health-checking" title="Verificando dependências…"
-              onclick="togglePodHealth()"></button>
-          </div>
-          <div id="pod-health-panel" class="pod-health-panel"></div>
-          <div id="pod-filters">
-            <input id="pod-search" type="text" placeholder="Buscar podcasts…" />
-            <select id="pod-folder-filter">
-              <option value="">Todas as pastas</option>
-            </select>
-          </div>
-          <div id="pod-list"></div>
-        </section>
-
-        <section id="pod-player">
-          <div id="pod-empty">
-            <div id="pod-empty-mark" data-icon="mic"></div>
-            <div id="pod-empty-text">Selecione um podcast para ouvir</div>
-          </div>
-
-          <div id="pod-detail" style="display:none">
-            <div id="pod-head">
-              <input id="pod-title-input" type="text" placeholder="Título do podcast…" />
-              <input id="pod-folder-input" type="text" placeholder="pasta" list="pod-folder-list" />
-              <input id="pod-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-              <datalist id="pod-folder-list"></datalist>
-              <span id="pod-id-badge" title="ID do podcast"></span>
-              <div id="pod-head-actions">
-                <button class="tool-btn" id="btn-pod-copy" style="display:none"
-                  onclick="copyPodcastLink()"><span data-icon="copy"></span> Link</button>
-                <button class="tool-btn danger" id="btn-pod-delete" style="display:none"
-                  onclick="deleteCurrentPodcast()"><span data-icon="trash"></span></button>
-              </div>
-            </div>
-
-            <div id="pod-audio-wrap" style="display:none">
-              <audio id="pod-audio" controls preload="metadata"></audio>
-            </div>
-            <div id="pod-meta"></div>
-
-            <div id="pod-slides-stage" style="display:none">
-              <div id="pod-slides-host"></div>
-              <div id="pod-slides-bar">
-                <span id="pod-slide-counter"></span>
-                <span id="pod-slide-title"></span>
-                <button class="tool-btn" id="btn-slide-prev" type="button" title="Slide anterior"><span data-icon="chevron-left"></span></button>
-                <button class="tool-btn" id="btn-slide-next" type="button" title="Próximo slide"><span data-icon="chevron-right"></span></button>
-                <button class="tool-btn" id="btn-slide-full" type="button" title="Tela cheia"><span data-icon="maximize"></span></button>
-              </div>
-            </div>
-
-            <div id="pod-script"></div>
-          </div>
-        </section>
-      </main>
-
-      <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
-      <main id="mode-canvas" class="mode">
-        <div id="canvas-container">
-          <iframe id="canvas-iframe" src="/canvas" sandbox="allow-scripts allow-same-origin"></iframe>
-        </div>
-      </main>
-
-      <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
-      <main id="mode-graph" class="mode active">
-        <div id="kg-toolbar">
-          <span class="kg-title"><span data-icon="waypoints"></span> Grafo de conhecimento</span>
-          <span id="kg-count"></span>
-          <button class="kg-tool-btn" onclick="loadGraph()">↻ Recarregar</button>
-          <button class="kg-tool-btn" onclick="fitKg()">⤢ Ajustar</button>
-          <button class="kg-tool-btn" onclick="clearKgSelection()">Limpar seleção</button>
-          <div id="kg-legend"></div>
-        </div>
-        <div id="kg-canvas">
-          <svg id="kg-svg"></svg>
-          <div id="kg-empty">
-            <span class="kg-empty-mark" data-icon="waypoints"></span>
-            <div class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, diagramas… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <!-- Quick-Add / Edit Modal -->
-    <div id="fav-modal-overlay">
-      <div id="fav-modal">
-        <div class="fav-modal-header">
-          <span
-            class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
-          <button class="fav-modal-close" id="fav-modal-close"
-            data-icon="x"></button>
-        </div>
-        <div class="fav-modal-body">
-          <div>
-            <div class="fav-field-label">URL</div>
-            <div class="fav-url-wrap">
-              <input class="fav-field-input" id="fav-modal-url"
-                placeholder="cole ou digite a URL…" autocomplete="off"
-                spellcheck="false">
-              <span class="fav-url-detected" id="fav-url-detected"></span>
-            </div>
-          </div>
-          <div>
-            <div class="fav-field-label">Título</div>
-            <input class="fav-field-input" id="fav-modal-title"
-              placeholder="Nome do link…">
-          </div>
-          <div>
-            <div class="fav-field-label">Tipo</div>
-            <div class="fav-type-selector">
-              <button class="fav-type-btn active" data-t="site">🌐 Site</button>
-              <button class="fav-type-btn" data-t="slack">💬 Slack</button>
-              <button class="fav-type-btn" data-t="grid">📁 Grid</button>
-              <button class="fav-type-btn" data-t="dash">📊 Dash</button>
-              <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
-            </div>
-          </div>
-          <div>
-            <div class="fav-field-label">Categoria</div>
-            <div class="fav-cat-sel" id="fav-cat-sel"></div>
-          </div>
-          <div>
-            <div
-              class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
-            <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
-              <input class="fav-tags-input" id="fav-modal-tags-input"
-                placeholder="#api, #design…">
-            </div>
-          </div>
-          <div>
-            <div class="fav-field-label">Nota (opcional)</div>
-            <input class="fav-field-input" id="fav-modal-note"
-              placeholder="Para que serve esse link…">
-          </div>
-        </div>
-        <div class="fav-modal-footer">
-          <div class="fav-kbd-hint">
-        <kbd class="fav-kbd">Enter</kbd> salva · <kbd class="fav-kbd">Esc</kbd> fecha
-      </div>
-          <div class="fav-modal-btns">
-            <button class="fav-btn-cancel"
-              id="fav-modal-cancel">Cancelar</button>
-            <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════ Task Modal ════ -->
-    <div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
-      <div id="task-modal">
-        <div id="task-modal-head">
-          <input id="task-title-input" type="text" placeholder="Título da task…"
-            autocomplete="off" />
-          <select id="task-status-select">
-            <option value="todo">A Fazer</option>
-            <option value="in-progress">Em Andamento</option>
-            <option value="done">Concluído</option>
-          </select>
-          <button class="kanban-modal-close" id="task-modal-close"
-            onclick="closeTaskModal()" title="Fechar">
-            <span data-icon="x"></span>
-          </button>
-        </div>
-        <div id="task-modal-body">
-          <div class="task-field">
-            <label class="task-label">Descrição (markdown)</label>
-            <textarea id="task-desc-textarea"
-              placeholder="Detalhes, contexto, links…" rows="5"></textarea>
-          </div>
-          <div class="task-meta-row">
-            <div class="task-field">
-              <label class="task-label">Projeto</label>
-              <select id="task-project-select">
-                <option value="">Nenhum</option>
+            <div id="pod-health-panel" class="pod-health-panel"></div>
+            <div id="pod-filters">
+              <input id="pod-search" type="text"
+                placeholder="Buscar podcasts…" />
+              <select id="pod-folder-filter">
+                <option value="">Todas as pastas</option>
               </select>
             </div>
-            <div class="task-field">
-              <label class="task-label">Data limite</label>
-              <input id="task-due-input" type="date" />
+            <div id="pod-list"></div>
+          </section>
+
+          <section id="pod-player">
+            <div id="pod-empty">
+              <div id="pod-empty-mark" data-icon="mic"></div>
+              <div id="pod-empty-text">Selecione um podcast para ouvir</div>
             </div>
-            <div class="task-field">
-              <label class="task-label">Tags</label>
-              <input id="task-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-            </div>
-            <div class="task-field" style="position:relative">
-              <label class="task-label">Nota vinculada</label>
-              <div id="task-note-wrap">
-                <input id="task-note-input" type="text"
-                  placeholder="Buscar nota…" autocomplete="off"
-                  oninput="filterNoteSearch()" onfocus="filterNoteSearch()" />
-                <button id="task-note-clear" onclick="clearNoteLink()"
-                  title="Remover nota" style="display:none">
-                  <span data-icon="x"></span>
-                </button>
+
+            <div id="pod-detail" style="display:none">
+              <div id="pod-head">
+                <input id="pod-title-input" type="text"
+                  placeholder="Título do podcast…" />
+                <input id="pod-folder-input" type="text" placeholder="pasta"
+                  list="pod-folder-list" />
+                <input id="pod-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+                <datalist id="pod-folder-list"></datalist>
+                <span id="pod-id-badge" title="ID do podcast"></span>
+                <div id="pod-head-actions">
+                  <button class="tool-btn" id="btn-pod-copy"
+                    style="display:none"
+                    onclick="copyPodcastLink()"><span data-icon="copy"></span> Link</button>
+                  <button class="tool-btn danger" id="btn-pod-delete"
+                    style="display:none"
+                    onclick="deleteCurrentPodcast()"><span data-icon="trash"></span></button>
+                </div>
               </div>
-              <div id="task-note-dropdown"></div>
-              <input type="hidden" id="task-note-id" />
+
+              <div id="pod-audio-wrap" style="display:none">
+                <audio id="pod-audio" controls preload="metadata"></audio>
+              </div>
+              <div id="pod-meta"></div>
+
+              <div id="pod-slides-stage" style="display:none">
+                <div id="pod-slides-host"></div>
+                <div id="pod-slides-bar">
+                  <span id="pod-slide-counter"></span>
+                  <span id="pod-slide-title"></span>
+                  <button class="tool-btn" id="btn-slide-prev" type="button"
+                    title="Slide anterior"><span data-icon="chevron-left"></span></button>
+                  <button class="tool-btn" id="btn-slide-next" type="button"
+                    title="Próximo slide"><span data-icon="chevron-right"></span></button>
+                  <button class="tool-btn" id="btn-slide-full" type="button"
+                    title="Tela cheia"><span data-icon="maximize"></span></button>
+                </div>
+              </div>
+
+              <div id="pod-script"></div>
+            </div>
+          </section>
+        </main>
+
+        <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
+        <main id="mode-canvas" class="mode">
+          <div id="canvas-container">
+            <iframe id="canvas-iframe" src="/canvas"
+              sandbox="allow-scripts allow-same-origin"></iframe>
+          </div>
+        </main>
+
+        <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
+        <main id="mode-graph" class="mode active">
+          <div id="kg-toolbar">
+            <span
+              class="kg-title"><span data-icon="waypoints"></span> Grafo de conhecimento</span>
+            <span id="kg-count"></span>
+            <button class="kg-tool-btn"
+              onclick="loadGraph()">↻ Recarregar</button>
+            <button class="kg-tool-btn" onclick="fitKg()">⤢ Ajustar</button>
+            <button class="kg-tool-btn"
+              onclick="clearKgSelection()">Limpar seleção</button>
+            <div id="kg-legend"></div>
+          </div>
+          <div id="kg-canvas">
+            <svg id="kg-svg"></svg>
+            <div id="kg-empty">
+              <span class="kg-empty-mark" data-icon="waypoints"></span>
+              <div
+                class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, diagramas… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- Workflow modal -->
+      <div class="wf-modal-overlay" id="wf-modal-overlay"
+        onclick="closeWorkflowModal(event)">
+        <form class="wf-modal" id="wf-modal-form"
+          onsubmit="createWorkflowFromModal(event)">
+          <div class="wf-modal-head">
+            <span>Nova demanda</span>
+            <button type="button" onclick="closeWorkflowModal()"
+              title="Fechar" data-icon="x"></button>
+          </div>
+          <div class="wf-modal-body">
+            <label>
+              <span>Título</span>
+              <input id="wf-modal-title" required maxlength="140"
+                placeholder="Ex: Implementar autenticação">
+            </label>
+            <label>
+              <span>Objetivo</span>
+              <textarea id="wf-modal-objective" required rows="4"
+                placeholder="Resultado final esperado"></textarea>
+            </label>
+            <label>
+              <span>Contexto</span>
+              <textarea id="wf-modal-description" rows="3"
+                placeholder="Restrições e informações relevantes"></textarea>
+            </label>
+            <div class="wf-form-grid">
+              <label>
+                <span>Conflitos de escrita</span>
+                <select id="wf-modal-conflict">
+                  <option value="warn">Avisar</option>
+                  <option value="block">Bloquear claim</option>
+                </select>
+              </label>
+              <label>
+                <span>Máximo de tentativas</span>
+                <input id="wf-modal-attempts" type="number" min="1" max="20"
+                  value="3">
+              </label>
+            </div>
+            <label>
+              <span>Tags</span>
+              <input id="wf-modal-tags" placeholder="api, backend, produto">
+            </label>
+          </div>
+          <div class="wf-modal-actions">
+            <button type="button" class="wf-secondary-btn"
+              onclick="closeWorkflowModal()">Cancelar</button>
+            <button type="submit" class="wf-primary-btn">
+            <span data-icon="plus"></span> Criar workflow
+          </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Workflow node modal -->
+      <div class="wf-modal-overlay" id="wf-node-modal-overlay"
+        onclick="closeNodeModal(event)">
+        <form class="wf-modal wf-node-modal" id="wf-node-modal-form"
+          onsubmit="createNodeFromModal(event)">
+          <div class="wf-modal-head">
+            <span>Novo nó</span>
+            <button type="button" onclick="closeNodeModal()"
+              title="Fechar" data-icon="x"></button>
+          </div>
+          <div class="wf-modal-body">
+            <label>
+              <span>Título</span>
+              <input id="wf-node-title" required maxlength="140"
+                placeholder="Unidade de trabalho">
+            </label>
+            <label>
+              <span>Descrição</span>
+              <textarea id="wf-node-description" required rows="4"
+                placeholder="O que o agente deve fazer"></textarea>
+            </label>
+            <label>
+              <span>Critérios de aceite</span>
+              <textarea id="wf-node-criteria" required rows="4"
+                placeholder="Um critério por linha"></textarea>
+            </label>
+            <div class="wf-form-grid wf-form-grid-3">
+              <label>
+                <span>Complexidade</span>
+                <select id="wf-node-complexity">
+                  <option value="xs">XS</option>
+                  <option value="s">S</option>
+                  <option value="m" selected>M</option>
+                  <option value="l">L</option>
+                  <option value="xl">XL</option>
+                </select>
+              </label>
+              <label>
+                <span>Tipo</span>
+                <input id="wf-node-kind" value="code"
+                  placeholder="code, research, review">
+              </label>
+              <label>
+                <span>Isolamento</span>
+                <select id="wf-node-isolation">
+                  <option value="shared">Compartilhado</option>
+                  <option value="branch">Branch</option>
+                  <option value="worktree">Worktree</option>
+                </select>
+              </label>
+            </div>
+            <div class="wf-form-grid wf-form-grid-3">
+              <label>
+                <span>Ferramenta sugerida</span>
+                <input id="wf-node-tool" placeholder="codex-cli">
+              </label>
+              <label>
+                <span>Provider sugerido</span>
+                <input id="wf-node-provider" placeholder="openai">
+              </label>
+              <label>
+                <span>Modelo sugerido</span>
+                <input id="wf-node-model" placeholder="gpt-5-codex">
+              </label>
+            </div>
+            <label>
+              <span>Capacidades exigidas</span>
+              <input id="wf-node-capabilities"
+                placeholder="code, deno, tests">
+            </label>
+            <div class="wf-form-grid">
+              <label>
+                <span>Escopos de leitura</span>
+                <input id="wf-node-read-scopes" placeholder="src/, deno.json">
+              </label>
+              <label>
+                <span>Escopos de escrita</span>
+                <input id="wf-node-write-scopes" placeholder="src/auth/">
+              </label>
+            </div>
+            <label>
+              <span>Depende de</span>
+              <select id="wf-node-dependencies" multiple></select>
+            </label>
+          </div>
+          <div class="wf-modal-actions">
+            <button type="button" class="wf-secondary-btn"
+              onclick="closeNodeModal()">Cancelar</button>
+            <button type="submit" class="wf-primary-btn">
+            <span data-icon="plus"></span> Criar nó
+          </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Quick-Add / Edit Modal -->
+      <div id="fav-modal-overlay">
+        <div id="fav-modal">
+          <div class="fav-modal-header">
+            <span
+              class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
+            <button class="fav-modal-close" id="fav-modal-close"
+              data-icon="x"></button>
+          </div>
+          <div class="fav-modal-body">
+            <div>
+              <div class="fav-field-label">URL</div>
+              <div class="fav-url-wrap">
+                <input class="fav-field-input" id="fav-modal-url"
+                  placeholder="cole ou digite a URL…" autocomplete="off"
+                  spellcheck="false">
+                <span class="fav-url-detected" id="fav-url-detected"></span>
+              </div>
+            </div>
+            <div>
+              <div class="fav-field-label">Título</div>
+              <input class="fav-field-input" id="fav-modal-title"
+                placeholder="Nome do link…">
+            </div>
+            <div>
+              <div class="fav-field-label">Tipo</div>
+              <div class="fav-type-selector">
+                <button class="fav-type-btn active"
+                  data-t="site">🌐 Site</button>
+                <button class="fav-type-btn" data-t="slack">💬 Slack</button>
+                <button class="fav-type-btn" data-t="grid">📁 Grid</button>
+                <button class="fav-type-btn" data-t="dash">📊 Dash</button>
+                <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
+              </div>
+            </div>
+            <div>
+              <div class="fav-field-label">Categoria</div>
+              <div class="fav-cat-sel" id="fav-cat-sel"></div>
+            </div>
+            <div>
+              <div
+                class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
+              <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
+                <input class="fav-tags-input" id="fav-modal-tags-input"
+                  placeholder="#api, #design…">
+              </div>
+            </div>
+            <div>
+              <div class="fav-field-label">Nota (opcional)</div>
+              <input class="fav-field-input" id="fav-modal-note"
+                placeholder="Para que serve esse link…">
+            </div>
+          </div>
+          <div class="fav-modal-footer">
+            <div class="fav-kbd-hint">
+        <kbd class="fav-kbd">Enter</kbd> salva · <kbd class="fav-kbd">Esc</kbd> fecha
+      </div>
+            <div class="fav-modal-btns">
+              <button class="fav-btn-cancel"
+                id="fav-modal-cancel">Cancelar</button>
+              <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
             </div>
           </div>
         </div>
-        <div id="task-modal-footer">
-          <button class="tool-btn danger" id="task-delete-btn"
-            style="display:none" onclick="deleteCurrentTask()">
-            <span data-icon="trash"></span>
-          </button>
-
-          <button class="tool-btn" onclick="copyTaskRef()">
-            <span data-icon="hash"></span>
-          </button>
-
-          <div class="task-footer-spacer"></div>
-          <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
-          <button class="tool-btn primary"
-            onclick="saveCurrentTask()">Salvar</button>
-        </div>
       </div>
-    </div>
 
-    <!-- ════ Project Modal ════ -->
-    <div id="project-modal-overlay" onclick="closeProjectModalOnOverlay(event)">
-      <div id="project-modal">
-        <div id="project-modal-head">
-          <input id="project-name-input" type="text"
-            placeholder="Nome do projeto…" autocomplete="off" />
-          <button class="kanban-modal-close" onclick="closeProjectModal()"
-            title="Fechar">
-            <span data-icon="x"></span>
-          </button>
-        </div>
-        <div id="project-modal-footer">
-          <div class="task-footer-spacer"></div>
-          <button class="tool-btn" onclick="closeProjectModal()">Cancelar</button>
-          <button class="tool-btn primary"
-            onclick="saveProject()">Criar Projeto</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Floating comment button (shown on text selection in note markmap) -->
-    <button id="markmap-comment-btn" type="button">Comentar</button>
-
-    <!-- Annotation popover -->
-    <div id="annot-popover">
-      <div id="pop-head">
-        <span id="pop-label">TRECHO</span>
-        <span id="pop-quote"></span>
-      </div>
-      <div id="pop-types">
-        <button class="type-btn active" data-type="note"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
-        <button class="type-btn" data-type="decision"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
-        <button class="type-btn" data-type="question"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
-        <button class="type-btn" data-type="todo"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
-        <button class="type-btn" data-type="warning"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
-      </div>
-      <div id="pop-body">
-        <textarea id="pop-textarea"
-          placeholder="Escreva a anotação…"></textarea>
-      </div>
-      <div id="pop-foot">
-        <button class="pop-btn" id="pop-delete"
-          onclick="deleteAnnotation()">Excluir</button>
-        <button class="pop-btn" id="pop-cancel"
-          onclick="closeAnnotPopover()">Cancelar</button>
-        <button class="pop-btn primary" id="pop-save"
-          onclick="saveAnnotation()">Salvar</button>
-      </div>
-    </div>
-
-    <!-- Confirm modal (webview não suporta window.confirm) -->
-    <div id="modal-overlay">
-      <div id="modal">
-        <div id="modal-msg"></div>
-        <div id="modal-actions">
-          <button id="modal-cancel" class="pop-btn">Cancelar</button>
-          <button id="modal-ok" class="pop-btn primary">Confirmar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════ Settings Modal ════ -->
-    <div id="settings-overlay" onclick="closeSettings(event)">
-      <div id="settings-modal">
-        <div id="settings-header">
-          <span><span data-icon="settings"></span> Configurações</span>
-          <button id="settings-close" onclick="closeSettings()" data-icon="x"></button>
-        </div>
-        <div id="settings-body">
-          <div class="settings-row" id="settings-ip-row" onclick="copyNetworkIp()" title="Clique para copiar">
-            <span class="settings-row-label">IP da rede</span>
-            <span class="settings-row-value" id="settings-ip-value"></span>
+      <!-- ════ Task Modal ════ -->
+      <div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
+        <div id="task-modal">
+          <div id="task-modal-head">
+            <input id="task-title-input" type="text"
+              placeholder="Título da task…"
+              autocomplete="off" />
+            <select id="task-status-select">
+              <option value="todo">A Fazer</option>
+              <option value="in-progress">Em Andamento</option>
+              <option value="done">Concluído</option>
+            </select>
+            <button class="kanban-modal-close" id="task-modal-close"
+              onclick="closeTaskModal()" title="Fechar">
+              <span data-icon="x"></span>
+            </button>
           </div>
-          <div class="settings-row" id="settings-theme-row" onclick="toggleTheme()">
-            <span class="settings-row-label">Tema</span>
-            <span class="settings-row-value" id="settings-theme-label"></span>
+          <div id="task-modal-body">
+            <div class="task-field">
+              <label class="task-label">Descrição (markdown)</label>
+              <textarea id="task-desc-textarea"
+                placeholder="Detalhes, contexto, links…" rows="5"></textarea>
+            </div>
+            <div class="task-meta-row">
+              <div class="task-field">
+                <label class="task-label">Projeto</label>
+                <select id="task-project-select">
+                  <option value="">Nenhum</option>
+                </select>
+              </div>
+              <div class="task-field">
+                <label class="task-label">Data limite</label>
+                <input id="task-due-input" type="date" />
+              </div>
+              <div class="task-field">
+                <label class="task-label">Tags</label>
+                <input id="task-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+              </div>
+              <div class="task-field" style="position:relative">
+                <label class="task-label">Nota vinculada</label>
+                <div id="task-note-wrap">
+                  <input id="task-note-input" type="text"
+                    placeholder="Buscar nota…" autocomplete="off"
+                    oninput="filterNoteSearch()" onfocus="filterNoteSearch()" />
+                  <button id="task-note-clear" onclick="clearNoteLink()"
+                    title="Remover nota" style="display:none">
+                    <span data-icon="x"></span>
+                  </button>
+                </div>
+                <div id="task-note-dropdown"></div>
+                <input type="hidden" id="task-note-id" />
+              </div>
+            </div>
           </div>
-          <div class="settings-row" onclick="copySkill()">
-            <span class="settings-row-label">Copiar skill para IA</span>
-            <span class="settings-row-hint">Markdown com endpoints</span>
-          </div>
-          <div class="settings-row" onclick="downloadBackup()">
-            <span class="settings-row-label">Fazer backup</span>
-            <span class="settings-row-hint">JSON com todos os dados</span>
-          </div>
-          <div class="settings-row" onclick="triggerRestore()">
-            <span class="settings-row-label">Restaurar backup</span>
-            <span class="settings-row-hint">Mescla com dados atuais</span>
+          <div id="task-modal-footer">
+            <button class="tool-btn danger" id="task-delete-btn"
+              style="display:none" onclick="deleteCurrentTask()">
+              <span data-icon="trash"></span>
+            </button>
+
+            <button class="tool-btn" onclick="copyTaskRef()">
+              <span data-icon="hash"></span>
+            </button>
+
+            <div class="task-footer-spacer"></div>
+            <button class="tool-btn"
+              onclick="closeTaskModal()">Cancelar</button>
+            <button class="tool-btn primary"
+              onclick="saveCurrentTask()">Salvar</button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
-    <aside id="agent-panel">
-      <!-- Estado recolhido: rail fino vertical -->
-      <button id="agent-collapsed" onclick="toggleAgent()" title="Abrir assistente">
-        <span class="agent-orb"><span data-icon="bot"></span></span>
-        <span class="agent-collapsed-label">Assistente</span>
-      </button>
+      <!-- ════ Project Modal ════ -->
+      <div id="project-modal-overlay"
+        onclick="closeProjectModalOnOverlay(event)">
+        <div id="project-modal">
+          <div id="project-modal-head">
+            <input id="project-name-input" type="text"
+              placeholder="Nome do projeto…" autocomplete="off" />
+            <button class="kanban-modal-close" onclick="closeProjectModal()"
+              title="Fechar">
+              <span data-icon="x"></span>
+            </button>
+          </div>
+          <div id="project-modal-footer">
+            <div class="task-footer-spacer"></div>
+            <button class="tool-btn"
+              onclick="closeProjectModal()">Cancelar</button>
+            <button class="tool-btn primary"
+              onclick="saveProject()">Criar Projeto</button>
+          </div>
+        </div>
+      </div>
 
-      <!-- Estado expandido: sidebar completa -->
-      <div class="agent-body">
-        <header id="chat-header">
-          <span id="chat-title">
+      <!-- Floating comment button (shown on text selection in note markmap) -->
+      <button id="markmap-comment-btn" type="button">Comentar</button>
+
+      <!-- Annotation popover -->
+      <div id="annot-popover">
+        <div id="pop-head">
+          <span id="pop-label">TRECHO</span>
+          <span id="pop-quote"></span>
+        </div>
+        <div id="pop-types">
+          <button class="type-btn active" data-type="note"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
+          <button class="type-btn" data-type="decision"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
+          <button class="type-btn" data-type="question"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
+          <button class="type-btn" data-type="todo"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
+          <button class="type-btn" data-type="warning"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
+        </div>
+        <div id="pop-body">
+          <textarea id="pop-textarea"
+            placeholder="Escreva a anotação…"></textarea>
+        </div>
+        <div id="pop-foot">
+          <button class="pop-btn" id="pop-delete"
+            onclick="deleteAnnotation()">Excluir</button>
+          <button class="pop-btn" id="pop-cancel"
+            onclick="closeAnnotPopover()">Cancelar</button>
+          <button class="pop-btn primary" id="pop-save"
+            onclick="saveAnnotation()">Salvar</button>
+        </div>
+      </div>
+
+      <!-- Confirm modal (webview não suporta window.confirm) -->
+      <div id="modal-overlay">
+        <div id="modal">
+          <div id="modal-msg"></div>
+          <div id="modal-actions">
+            <button id="modal-cancel" class="pop-btn">Cancelar</button>
+            <button id="modal-ok" class="pop-btn primary">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ Settings Modal ════ -->
+      <div id="settings-overlay" onclick="closeSettings(event)">
+        <div id="settings-modal">
+          <div id="settings-header">
+            <span><span data-icon="settings"></span> Configurações</span>
+            <button id="settings-close" onclick="closeSettings()"
+              data-icon="x"></button>
+          </div>
+          <div id="settings-body">
+            <div class="settings-row" id="settings-ip-row"
+              onclick="copyNetworkIp()" title="Clique para copiar">
+              <span class="settings-row-label">IP da rede</span>
+              <span class="settings-row-value" id="settings-ip-value"></span>
+            </div>
+            <div class="settings-row" id="settings-theme-row"
+              onclick="toggleTheme()">
+              <span class="settings-row-label">Tema</span>
+              <span class="settings-row-value" id="settings-theme-label"></span>
+            </div>
+            <div class="settings-row" onclick="copySkill()">
+              <span class="settings-row-label">Copiar skill para IA</span>
+              <span
+                class="settings-row-hint">Endpoints, agentes e workflows</span>
+            </div>
+            <div class="settings-row" onclick="downloadBackup()">
+              <span class="settings-row-label">Fazer backup</span>
+              <span class="settings-row-hint">JSON com todos os dados</span>
+            </div>
+            <div class="settings-row" onclick="triggerRestore()">
+              <span class="settings-row-label">Restaurar backup</span>
+              <span class="settings-row-hint">Mescla com dados atuais</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
+      <aside id="agent-panel">
+        <!-- Estado recolhido: rail fino vertical -->
+        <button id="agent-collapsed" onclick="toggleAgent()"
+          title="Abrir assistente">
+          <span class="agent-orb"><span data-icon="bot"></span></span>
+          <span class="agent-collapsed-label">Assistente</span>
+        </button>
+
+        <!-- Estado expandido: sidebar completa -->
+        <div class="agent-body">
+          <header id="chat-header">
+            <span id="chat-title">
             <span class="agent-chip"><span data-icon="bot"></span></span>
             Assistente<span class="agent-presence" title="Disponível"></span>
           </span>
-          <select id="chat-provider" title="Provedor de IA">
-            <option value="ollama">Ollama (local)</option>
-            <option value="deepseek">DeepSeek</option>
-          </select>
-          <div id="chat-header-actions">
-            <button class="ghost-btn" onclick="clearChat()" title="Limpar conversa">limpar</button>
-            <button class="ghost-btn" id="agent-collapse"
-              onclick="toggleAgent()" title="Recolher">
-              <span data-icon="panel-right"></span>
-            </button>
+            <select id="chat-provider" title="Provedor de IA">
+              <option value="ollama">Ollama (local)</option>
+              <option value="deepseek">DeepSeek</option>
+            </select>
+            <div id="chat-header-actions">
+              <button class="ghost-btn" onclick="clearChat()"
+                title="Limpar conversa">limpar</button>
+              <button class="ghost-btn" id="agent-collapse"
+                onclick="toggleAgent()" title="Recolher">
+                <span data-icon="panel-right"></span>
+              </button>
+            </div>
+          </header>
+          <div id="chat-feed"></div>
+          <div id="chat-composer">
+            <button id="chat-stop" onclick="stopChat()"
+              style="display:none"><span data-icon="x"></span> Parar</button>
+            <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
+              rows="1"></textarea>
+            <button id="chat-send" onclick="sendChatMessage()"
+              data-icon="sparkles"></button>
           </div>
-        </header>
-        <div id="chat-feed"></div>
-        <div id="chat-composer">
-          <button id="chat-stop" onclick="stopChat()"
-            style="display:none"><span data-icon="x"></span> Parar</button>
-          <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
-            rows="1"></textarea>
-          <button id="chat-send" onclick="sendChatMessage()"
-            data-icon="sparkles"></button>
         </div>
-      </div>
-    </aside>
-
-    </div><!-- /#body-main -->
+      </aside>
+    </div>
+    <!-- /#body-main -->
 
     <!-- ════ Terminal Panel ════ -->
     <aside id="terminal-panel">
       <div id="terminal-handle" title="Redimensionar terminal"></div>
       <div id="terminal-header">
-        <button class="term-back" onclick="toggleTerminal()" title="Voltar">← Terminal</button>
+        <button class="term-back" onclick="toggleTerminal()"
+          title="Voltar">← Terminal</button>
         <span class="term-title">⌨ Terminal</span>
         <span class="term-status" id="term-status" title="Desconectado"></span>
-        <button class="term-close" onclick="toggleTerminal()" title="Fechar terminal">
+        <button class="term-close" onclick="toggleTerminal()"
+          title="Fechar terminal">
           <span data-icon="x"></span>
         </button>
       </div>
@@ -8938,6 +10522,7 @@ svg#kg-svg:active { cursor: grabbing; }
 
 const ICON_PATHS = {
   waypoints: '<circle cx="12" cy="4.5" r="2.5"/><path d="m10.2 6.3-3.9 3.9"/><circle cx="4.5" cy="12" r="2.5"/><path d="M7 12h10"/><circle cx="19.5" cy="12" r="2.5"/><path d="m13.8 17.7 3.9-3.9"/><circle cx="12" cy="19.5" r="2.5"/>',
+  workflow: '<rect width="8" height="6" x="3" y="3" rx="1"/><path d="M7 9v4"/><rect width="8" height="6" x="13" y="15" rx="1"/><path d="M7 13h10v2"/>',
   map: '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
   notebook: '<path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/>',
   folder: '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
@@ -8978,6 +10563,10 @@ const ICON_PATHS = {
   'chevron-left': '<path d="m15 18-6-6 6-6"/>',
   mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
   play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  'rotate-ccw': '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  'alert-triangle': '<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  'message-square': '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>',
   pause: '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
   rewind: '<polygon points="11 19 2 12 11 5 11 19"/><polygon points="22 19 13 12 22 5 22 19"/>',
   'fast-forward': '<polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/>',
@@ -9122,7 +10711,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', workflows: 'Workflows', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -9134,6 +10723,7 @@ const PANEL_BY_MODE = {
   mocks:     'mocks-col',
   favorites: 'fav-sidebar',
   podcasts:  'pod-col',
+  workflows: 'wf-sidebar',
 };
 
 const toggleSidebar = () => {
@@ -9158,6 +10748,7 @@ const setMode = (mode) => {
   else if (mode === 'skills')    loadSkillsList();
   else if (mode === 'diagrams')  loadDiagramsList();
   else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
+  else if (mode === 'workflows') loadWorkflows();
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
@@ -9214,7 +10805,7 @@ const loadCanvas = () => {
 
 </script>
     <script>
-// ════ Deep links — abre diagram/podcast/task direto pela URL ════
+// ════ Deep links — abre entidades direto pela URL ════
 
 const handleDeepLink = () => {
   const hash = window.location.hash;
@@ -9235,6 +10826,13 @@ const handleDeepLink = () => {
   const task = hash.match(/^#task\\/([a-f0-9-]{36})$/);
   if (task) {
     setMode('tasks');
+    history.replaceState(null, '', '/');
+    return;
+  }
+  const workflow = hash.match(/^#workflow\\/([a-f0-9-]{36})$/);
+  if (workflow) {
+    setMode('workflows');
+    openWorkflow(workflow[1]);
     history.replaceState(null, '', '/');
     return;
   }
@@ -11044,6 +12642,1085 @@ const saveProject = async () => {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.kanban-col').forEach(bindColumnDrop);
   document.addEventListener('click', closeNoteDropdown);
+});
+
+</script>
+    <script>
+// ════ Workflows de agentes externos ════
+
+const WF_STATUS_LABEL = {
+  draft: 'Rascunho',
+  planning: 'Planejamento',
+  running: 'Em execução',
+  reviewing: 'Em revisão',
+  blocked: 'Bloqueado',
+  done: 'Concluído',
+  cancelled: 'Cancelado',
+};
+
+const WF_NODE_STATUS_LABEL = {
+  pending: 'Aguardando dependências',
+  ready: 'Disponível',
+  claimed: 'Reservado',
+  in_progress: 'Em execução',
+  waiting_input: 'Aguardando resposta',
+  returned: 'Aguardando revisão',
+  needs_rework: 'Retrabalho',
+  done: 'Concluído',
+  human_intervention: 'Intervenção humana',
+  cancelled: 'Cancelado',
+};
+
+const WF_BOARD_COLUMNS = [
+  'pending',
+  'ready',
+  'claimed',
+  'in_progress',
+  'waiting_input',
+  'returned',
+  'needs_rework',
+  'done',
+  'human_intervention',
+  'cancelled',
+];
+
+let allWorkflows = [];
+let currentWorkflowDetail = null;
+let selectedWorkflowNodeId = null;
+let selectedWorkflowNodeDetail = null;
+let workflowEvents = null;
+let workflowRefreshTimer = null;
+let workflowBoardSuppressClick = false;
+
+const workflowCsv = (value) =>
+  value.split(',').map((item) => item.trim()).filter(Boolean);
+
+const workflowLines = (value) =>
+  value.split('\\n').map((item) => item.trim()).filter(Boolean);
+
+const workflowStatusLabel = (status) =>
+  WF_STATUS_LABEL[status] || status;
+
+const workflowNodeStatusLabel = (status) =>
+  WF_NODE_STATUS_LABEL[status] || status;
+
+const loadWorkflows = async () => {
+  ensureWorkflowEvents();
+  try {
+    const res = await fetch('/workflows');
+    allWorkflows = await res.json();
+    renderWorkflowList();
+    if (currentWorkflowDetail) {
+      const stillExists = allWorkflows.some(
+        (workflow) => workflow.id === currentWorkflowDetail.workflow.id,
+      );
+      if (!stillExists) clearCurrentWorkflow();
+    }
+  } catch (err) {
+    console.error('Erro ao carregar workflows:', err);
+    toast('Falha ao carregar workflows');
+  }
+};
+
+const renderWorkflowList = () => {
+  const list = $('wf-list');
+  if (!list) return;
+  const query = ($('wf-search')?.value || '').trim().toLowerCase();
+  const status = $('wf-status-filter')?.value || '';
+  const filtered = allWorkflows.filter((workflow) => {
+    if (status && workflow.status !== status) return false;
+    if (!query) return true;
+    return \`\${workflow.title} \${workflow.objective} \${(workflow.tags || []).join(' ')}\`
+      .toLowerCase().includes(query);
+  });
+  $('wf-sidebar-count').textContent =
+    \`\${allWorkflows.length} \${allWorkflows.length === 1 ? 'demanda' : 'demandas'}\`;
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="wf-sidebar-empty">Nenhum workflow encontrado</div>';
+    return;
+  }
+  list.innerHTML = filtered.map((workflow) => {
+    const done = workflow.nodeCounts?.done || 0;
+    const total = workflow.nodeCount || 0;
+    const progress = total ? Math.round((done / total) * 100) : 0;
+    const active = currentWorkflowDetail?.workflow.id === workflow.id;
+    return \`<button class="wf-list-item\${active ? ' active' : ''}" data-workflow-id="\${workflow.id}">
+      <span class="wf-list-title">\${escHtml(workflow.title)}</span>
+      <span class="wf-list-objective">\${escHtml(workflow.objective)}</span>
+      <span class="wf-list-meta">
+        <span class="wf-status-dot \${workflow.status}"></span>
+        <span>\${escHtml(workflowStatusLabel(workflow.status))}</span>
+        <span class="wf-list-progress"><span style="width:\${progress}%"></span></span>
+        <span>\${done}/\${total}</span>
+      </span>
+    </button>\`;
+  }).join('');
+  list.querySelectorAll('.wf-list-item').forEach((item) => {
+    item.addEventListener('click', () => openWorkflow(item.dataset.workflowId));
+  });
+};
+
+const openWorkflow = async (id) => {
+  if (currentMode !== 'workflows') setMode('workflows');
+  try {
+    const res = await fetch(\`/workflows/\${id}\`);
+    if (!res.ok) throw new Error(await res.text());
+    currentWorkflowDetail = await res.json();
+    selectedWorkflowNodeId = null;
+    selectedWorkflowNodeDetail = null;
+    renderWorkflowList();
+    renderCurrentWorkflow();
+  } catch (err) {
+    console.error('Erro ao abrir workflow:', err);
+    toast('Falha ao abrir workflow');
+  }
+};
+
+const refreshCurrentWorkflow = async () => {
+  if (!currentWorkflowDetail) return;
+  const workflowId = currentWorkflowDetail.workflow.id;
+  try {
+    const res = await fetch(\`/workflows/\${workflowId}\`);
+    if (!res.ok) throw new Error(await res.text());
+    currentWorkflowDetail = await res.json();
+    const currentNodeStillExists = currentWorkflowDetail.nodes.some(
+      (node) => node.id === selectedWorkflowNodeId,
+    );
+    if (!currentNodeStillExists) {
+      selectedWorkflowNodeId = null;
+      selectedWorkflowNodeDetail = null;
+    }
+    renderCurrentWorkflow();
+    await loadWorkflows();
+    if (selectedWorkflowNodeId) {
+      await loadSelectedWorkflowNodeDetail(selectedWorkflowNodeId);
+    }
+  } catch (err) {
+    console.error('Erro ao atualizar workflow:', err);
+  }
+};
+
+const clearCurrentWorkflow = () => {
+  currentWorkflowDetail = null;
+  selectedWorkflowNodeId = null;
+  selectedWorkflowNodeDetail = null;
+  $('wf-empty')?.style.removeProperty('display');
+  $('wf-active')?.classList.remove('visible');
+  renderWorkflowList();
+};
+
+const renderCurrentWorkflow = () => {
+  if (!currentWorkflowDetail) {
+    clearCurrentWorkflow();
+    return;
+  }
+  const { workflow, nodes, canComplete } = currentWorkflowDetail;
+  $('wf-empty').style.display = 'none';
+  $('wf-active').classList.add('visible');
+  $('wf-toolbar-title').textContent = workflow.title;
+  $('wf-toolbar-meta').innerHTML = \`
+    <span class="wf-status-dot \${workflow.status}"></span>
+    <span>\${escHtml(workflowStatusLabel(workflow.status))}</span>
+    <span>\${nodes.length} \${nodes.length === 1 ? 'nó' : 'nós'}</span>
+    <span>\${workflow.conflictPolicy === 'block' ? 'conflitos bloqueiam' : 'conflitos avisam'}</span>\`;
+  $('wf-start-btn').disabled =
+    workflow.status === 'running' || workflow.status === 'reviewing' ||
+    workflow.status === 'done';
+  $('wf-complete-btn').disabled = !canComplete || workflow.status === 'done';
+  renderWorkflowAgents();
+  renderWorkflowTimeline();
+  renderWorkflowInspector();
+  hydrateIcons($('wf-active'));
+};
+
+const renderWorkflowAgents = () => {
+  const strip = $('wf-agent-strip');
+  const detail = currentWorkflowDetail;
+  if (!detail) return;
+  const workflowId = detail.workflow.id;
+  const workflowAgentIds = new Set();
+  if (detail.workflow.orchestrationSessionId) {
+    workflowAgentIds.add(detail.workflow.orchestrationSessionId);
+  }
+  detail.nodes.forEach((node) => {
+    if (node.claimedBySessionId) workflowAgentIds.add(node.claimedBySessionId);
+  });
+  detail.runs.forEach((run) => workflowAgentIds.add(run.agentSessionId));
+  const agents = (currentWorkflowDetail?.agents || [])
+    .filter((agent) => agent.presence !== 'offline')
+    .filter((agent) =>
+      agent.currentWorkflowId === workflowId || workflowAgentIds.has(agent.id)
+    )
+    .sort((a, b) => {
+      const aOwn = a.currentWorkflowId === workflowId ? 0 : 1;
+      const bOwn = b.currentWorkflowId === workflowId ? 0 : 1;
+      return aOwn - bOwn;
+    });
+  strip.innerHTML = agents.map((agent) => \`
+    <div class="wf-agent" title="\${escHtml(agent.tool)} · \${escHtml(agent.provider)} · \${escHtml(agent.model)}">
+      <span class="wf-agent-avatar">\${ICON(agent.role === 'orchestrator' ? 'workflow' : 'bot')}</span>
+      <span class="wf-agent-info">
+        <span class="wf-agent-name">\${escHtml(agent.name)}</span>
+        <span class="wf-agent-model">\${escHtml(agent.provider)} · \${escHtml(agent.model)}</span>
+      </span>
+      <span class="wf-agent-presence \${agent.presence}" title="\${escHtml(agent.presence)}"></span>
+    </div>
+  \`).join('');
+};
+
+const workflowNodeRelations = (nodes, edges) => {
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const dependencyMap = new Map(nodes.map((node) => [node.id, []]));
+  const blockingMap = new Map(nodes.map((node) => [node.id, []]));
+  edges.filter((edge) => edge.kind === 'blocks').forEach((edge) => {
+    const from = nodeById.get(edge.fromNodeId);
+    const to = nodeById.get(edge.toNodeId);
+    if (!from || !to) return;
+    dependencyMap.get(to.id)?.push(from);
+    blockingMap.get(from.id)?.push(to);
+  });
+  return { dependencyMap, blockingMap };
+};
+
+const sortWorkflowNodes = (nodes) =>
+  [...nodes].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+
+const renderWorkflowTimeline = () => {
+  const { nodes, edges, agents } = currentWorkflowDetail;
+  const empty = $('wf-timeline-empty');
+  const list = $('wf-timeline-list');
+  empty.classList.toggle('visible', nodes.length === 0);
+  if (!nodes.length) {
+    list.innerHTML = '';
+    return;
+  }
+  const agentById = new Map(agents.map((agent) => [agent.id, agent]));
+  const { dependencyMap, blockingMap } = workflowNodeRelations(nodes, edges);
+  list.innerHTML = \`<div class="wf-board">
+    \${WF_BOARD_COLUMNS.map((status) => {
+      const columnNodes = sortWorkflowNodes(
+        nodes.filter((node) => node.status === status),
+      );
+      return \`<section class="wf-board-column" data-status="\${status}">
+        <div class="wf-board-column-head">
+          <span>\${escHtml(workflowNodeStatusLabel(status))}</span>
+          <span>\${columnNodes.length}</span>
+        </div>
+        <div class="wf-board-column-body">
+          \${columnNodes.length
+            ? columnNodes.map((node) =>
+              renderWorkflowTimelineNode(
+                node,
+                agentById,
+                dependencyMap.get(node.id) || [],
+                blockingMap.get(node.id) || [],
+              )
+            ).join('')
+            : '<div class="wf-board-empty">Sem cards</div>'}
+        </div>
+      </section>\`;
+    }).join('')}
+  </div>\`;
+  bindWorkflowNodes();
+};
+
+const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => {
+  const agent = node.claimedBySessionId
+    ? agentById.get(node.claimedBySessionId)
+    : null;
+  const recommended = node.recommendedAgent || {};
+  const agentName = agent?.name || recommended.tool || recommended.provider || '';
+  const agentModel = agent
+    ? \`\${agent.provider} · \${agent.model}\`
+    : [recommended.provider, recommended.model].filter(Boolean).join(' · ');
+  const selected = node.id === selectedWorkflowNodeId;
+  const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
+  const dependencyText = dependencies.map((item) => item.title).join(', ');
+  return \`<article class="wf-node\${selected ? ' selected' : ''}"
+    data-node-id="\${node.id}" data-status="\${node.status}">
+    <div class="wf-node-head">
+      <span class="wf-node-state">
+        <span class="wf-status-dot \${node.status}"></span>
+        <span>\${escHtml(workflowNodeStatusLabel(node.status))}</span>
+      </span>
+      <span class="wf-node-complexity">\${node.complexity.toUpperCase()}</span>
+      \${canHumanReturn
+        ? \`<button class="wf-node-copy wf-node-human" data-human-return-node="\${node.id}" title="Registrar feito por mim">\${ICON('check')}</button>\`
+        : ''}
+      <button class="wf-node-copy" data-copy-node="\${node.id}" title="Copiar prompt">\${ICON('copy')}</button>
+    </div>
+    <div class="wf-node-title">\${escHtml(node.title)}</div>
+    <div class="wf-node-description">\${escHtml(node.description || '')}</div>
+    <div class="wf-node-meta">
+      <span class="wf-node-kind">\${escHtml(node.kind)}</span>
+      <span>\${node.attemptCount}/\${node.maxAttempts} tent.</span>
+      <span>\${dependencies.length} dep.</span>
+      <span>libera \${blocking.length}</span>
+    </div>
+    \${dependencyText
+      ? \`<div class="wf-node-dependencies" title="\${escHtml(dependencyText)}">
+          Depende de \${escHtml(dependencyText)}
+        </div>\`
+      : ''}
+    <div class="wf-node-agent">
+      \${agentName
+        ? \`<span class="wf-node-agent-avatar">\${ICON(agent ? 'bot' : 'sparkles')}</span>
+           <span class="wf-node-agent-text">
+             <div class="wf-node-agent-name">\${escHtml(agentName)}</div>
+             <div class="wf-node-agent-model">\${escHtml(agentModel || 'modelo não definido')}</div>
+           </span>\`
+        : '<span class="wf-node-unassigned">Sem agente recomendado ou conectado</span>'}
+    </div>
+  </article>\`;
+};
+
+const bindWorkflowNodes = () => {
+  $('wf-timeline-list').querySelectorAll('.wf-node').forEach((element) => {
+    element.addEventListener('click', (event) => {
+      if (workflowBoardSuppressClick) return;
+      if (event.target.closest('button')) return;
+      event.stopPropagation();
+      selectWorkflowNode(element.dataset.nodeId);
+    });
+  });
+  $('wf-timeline-list').querySelectorAll('[data-copy-node]').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      copyWorkflowNodePrompt(button.dataset.copyNode);
+    });
+  });
+  $('wf-timeline-list').querySelectorAll('[data-human-return-node]').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openWorkflowHumanReturn(button.dataset.humanReturnNode);
+    });
+  });
+};
+
+const selectWorkflowNode = async (nodeId) => {
+  selectedWorkflowNodeId = nodeId;
+  selectedWorkflowNodeDetail = null;
+  renderWorkflowTimeline();
+  renderWorkflowInspector();
+  await loadSelectedWorkflowNodeDetail(nodeId);
+};
+
+const loadSelectedWorkflowNodeDetail = async (nodeId) => {
+  try {
+    const res = await fetch(\`/workflows/nodes/\${nodeId}\`);
+    if (!res.ok) return;
+    const detail = await res.json();
+    if (selectedWorkflowNodeId !== nodeId) return;
+    selectedWorkflowNodeDetail = detail;
+    renderWorkflowInspector();
+  } catch (err) {
+    console.error('Erro ao carregar nó:', err);
+  }
+};
+
+const workflowChips = (items) => {
+  if (!items?.length) return '<span class="wf-inspector-text">Nenhum</span>';
+  return \`<div class="wf-chip-row">\${items.map((item) =>
+    \`<span class="wf-chip" title="\${escHtml(item)}">\${escHtml(item)}</span>\`
+  ).join('')}</div>\`;
+};
+
+const closeWorkflowInspector = () => {
+  selectedWorkflowNodeId = null;
+  selectedWorkflowNodeDetail = null;
+  if (currentWorkflowDetail) renderWorkflowTimeline();
+  renderWorkflowInspector();
+};
+
+const renderWorkflowInspector = () => {
+  const content = $('wf-inspector-content');
+  const empty = $('wf-inspector-empty');
+  const inspector = $('wf-inspector');
+  if (!currentWorkflowDetail) {
+    inspector.classList.remove('visible');
+    content.classList.remove('visible');
+    content.innerHTML = '';
+    return;
+  }
+  if (!selectedWorkflowNodeId) {
+    inspector.classList.remove('visible');
+    content.classList.remove('visible');
+    content.innerHTML = '';
+    return;
+  }
+  const node = currentWorkflowDetail.nodes.find(
+    (item) => item.id === selectedWorkflowNodeId,
+  );
+  if (!node) return;
+  inspector.classList.add('visible');
+  empty.style.display = 'none';
+  content.classList.add('visible');
+  const detail = selectedWorkflowNodeDetail;
+  const agent = detail?.agent || currentWorkflowDetail.agents.find(
+    (item) => item.id === node.claimedBySessionId,
+  );
+  const runs = detail?.runs ||
+    currentWorkflowDetail.runs.filter((run) => run.nodeId === node.id);
+  const questions = detail?.questions ||
+    currentWorkflowDetail.questions.filter((question) => question.nodeId === node.id);
+  const dependencies = detail?.dependencies || [];
+  const conflicts = detail?.conflicts || [];
+  const recommendation = node.recommendedAgent || {};
+  const isActive = ['claimed', 'in_progress', 'waiting_input'].includes(node.status);
+  const isReturned = node.status === 'returned';
+  const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
+
+  content.innerHTML = \`
+    <div class="wf-inspector-head">
+      <button class="wf-inspector-close" onclick="closeWorkflowInspector()" title="Fechar">
+        \${ICON('x')}
+      </button>
+      <div class="wf-inspector-kicker">
+        <span class="wf-status-dot \${node.status}"></span>
+        <span>\${escHtml(workflowNodeStatusLabel(node.status))}</span>
+        <span>\${node.complexity.toUpperCase()}</span>
+      </div>
+      <div class="wf-inspector-title">\${escHtml(node.title)}</div>
+      <div class="wf-inspector-sub">\${escHtml(node.kind)} · tentativa \${node.attemptCount}/\${node.maxAttempts}</div>
+    </div>
+    <div class="wf-inspector-actions">
+      <button class="wf-action-btn" onclick="copyWorkflowNodePrompt('\${node.id}')">
+        \${ICON('copy')} Prompt
+      </button>
+      \${canHumanReturn
+        ? \`<button class="wf-action-btn approve" onclick="focusWorkflowHumanReturn()">
+             \${ICON('check')} Fiz, revisar
+           </button>\`
+        : ''}
+      \${isActive
+        ? \`<button class="wf-action-btn rework" onclick="releaseSelectedWorkflowNode()">
+             \${ICON('rotate-ccw')} Liberar
+           </button>\`
+        : ''}
+      \${isReturned
+        ? \`<button class="wf-action-btn approve" onclick="reviewSelectedWorkflowNode('approve')">
+             \${ICON('check')} Aprovar
+           </button>
+           <button class="wf-action-btn rework" onclick="reviewSelectedWorkflowNode('rework')">
+             \${ICON('rotate-ccw')} Retrabalho
+           </button>
+           <button class="wf-action-btn danger" onclick="reviewSelectedWorkflowNode('human_intervention')">
+             \${ICON('alert-triangle')} Humano
+           </button>\`
+        : ''}
+      \${!isActive
+        ? \`<button class="wf-action-btn danger" onclick="deleteSelectedWorkflowNode()">
+             \${ICON('trash')} Excluir
+           </button>\`
+        : ''}
+    </div>
+    \${isReturned
+      ? \`<div class="wf-inspector-section">
+           <div class="wf-inspector-label">Feedback da revisão</div>
+           <textarea id="wf-review-feedback" class="wf-inspector-textarea"
+             placeholder="Motivo da decisão ou instruções de retrabalho"></textarea>
+         </div>\`
+      : ''}
+    \${canHumanReturn
+      ? \`<div class="wf-inspector-section wf-human-return-panel">
+           <div class="wf-inspector-label">Retorno humano</div>
+           <textarea id="wf-human-return-summary" class="wf-inspector-textarea"
+             placeholder="Resumo do que foi feito"></textarea>
+           <input id="wf-human-return-files" class="wf-inspector-input"
+             placeholder="Arquivos alterados, separados por vírgula" />
+           <button class="wf-action-btn approve" onclick="humanReturnSelectedWorkflowNode()">
+             \${ICON('check')} Enviar para revisão
+           </button>
+         </div>\`
+      : ''}
+    <div class="wf-inspector-section">
+      <div class="wf-inspector-label">Descrição</div>
+      <div class="wf-inspector-text">\${escHtml(node.description)}</div>
+    </div>
+    <div class="wf-inspector-section">
+      <div class="wf-inspector-label">Critérios de aceite</div>
+      <ol class="wf-criteria">\${node.acceptanceCriteria.map((item) =>
+        \`<li>\${escHtml(item)}</li>\`
+      ).join('')}</ol>
+    </div>
+    <div class="wf-inspector-section">
+      <div class="wf-inspector-label">Agente</div>
+      <div class="wf-inspector-text">
+        \${agent
+          ? \`<strong>\${escHtml(agent.name)}</strong><br>\${escHtml(agent.tool)} · \${escHtml(agent.provider)} · \${escHtml(agent.model)}\`
+          : [recommendation.tool, recommendation.provider, recommendation.model].filter(Boolean).length
+          ? \`Recomendado: \${escHtml([recommendation.tool, recommendation.provider, recommendation.model].filter(Boolean).join(' · '))}\`
+          : 'Sem recomendação'}
+      </div>
+    </div>
+    <div class="wf-inspector-section">
+      <div class="wf-inspector-label">Capacidades</div>
+      \${workflowChips(node.requiredCapabilities)}
+    </div>
+    <div class="wf-inspector-section">
+      <div class="wf-inspector-label">Escrita · \${escHtml(node.isolation)}</div>
+      \${workflowChips(node.writeScopes)}
+    </div>
+    \${conflicts.length
+      ? \`<div class="wf-inspector-section">
+           <div class="wf-inspector-label">Conflitos ativos</div>
+           \${conflicts.map((item) =>
+             \`<div class="wf-conflict">\${escHtml(item.title)}<br>\${escHtml(item.writeScopes.join(', '))}</div>\`
+           ).join('')}
+         </div>\`
+      : ''}
+    <div class="wf-inspector-section">
+      <div class="wf-inspector-label">Dependências concluídas</div>
+      \${dependencies.length
+        ? dependencies.map((item) =>
+          \`<div class="wf-run">
+             <div class="wf-run-head"><span>\${escHtml(item.title)}</span><span>\${item.changedFiles.length} arquivos</span></div>
+             <div class="wf-run-summary">\${escHtml(item.summary || 'Sem resumo')}</div>
+           </div>\`
+        ).join('')
+        : '<div class="wf-inspector-text">Nenhuma</div>'}
+    </div>
+    \${node.contextRefs?.length
+      ? \`<div class="wf-inspector-section">
+           <div class="wf-inspector-label">Contexto</div>
+           \${node.contextRefs.map((item) =>
+             \`<div class="wf-run">
+               <div class="wf-run-head"><span>\${escHtml(item.label || item.ref)}</span><span>\${escHtml(item.kind)}</span></div>
+               \${item.excerpt ? \`<div class="wf-run-summary">\${escHtml(item.excerpt)}</div>\` : ''}
+             </div>\`
+           ).join('')}
+         </div>\`
+      : ''}
+    \${questions.length
+      ? \`<div class="wf-inspector-section">
+           <div class="wf-inspector-label">Perguntas</div>
+           \${questions.map((question) => \`
+             <div class="wf-question">
+               <div class="wf-inspector-text">\${escHtml(question.question)}</div>
+               \${question.status === 'open'
+                 ? \`<textarea id="wf-question-answer-\${question.id}" placeholder="Resposta do orquestrador"></textarea>
+                    <button class="wf-action-btn approve" style="margin-top:6px"
+                      onclick="answerSelectedWorkflowQuestion('\${question.id}')">\${ICON('message-square')} Responder</button>\`
+                 : \`<div class="wf-run-summary">Resposta: \${escHtml(question.answer || '')}</div>\`}
+             </div>\`
+           ).join('')}
+         </div>\`
+      : ''}
+    <div class="wf-inspector-section">
+      <div class="wf-inspector-label">Execuções</div>
+      \${runs.length
+        ? [...runs].reverse().map((run) => \`
+          <div class="wf-run">
+            <div class="wf-run-head">
+              <span>Tentativa \${run.attempt}</span>
+              <span>\${escHtml(run.status)}</span>
+            </div>
+            <div class="wf-run-summary">\${escHtml(run.output?.summary || 'Sem retorno')}</div>
+            \${run.output
+              ? \`<details>
+                   <summary>Ver evidências</summary>
+                   <pre>\${escHtml([
+                     run.output.result || '',
+                     run.output.changedFiles?.length
+                       ? \`Arquivos alterados:\\n\${run.output.changedFiles.join('\\n')}\`
+                       : '',
+                     run.output.diff ? \`Diff:\\n\${run.output.diff}\` : '',
+                     ...(run.output.logs || []),
+                     ...(run.output.tests || []).map((test) =>
+                       \`\${test.status}: \${test.command}\${test.output ? \`\\n\${test.output}\` : ''}\`
+                     ),
+                     ...(run.output.artifacts || []).map((artifact) =>
+                       \`artifact: \${artifact.kind} · \${artifact.label}\${artifact.ref ? \` · \${artifact.ref}\` : ''}\`
+                     ),
+                   ].filter(Boolean).join('\\n\\n'))}</pre>
+                 </details>\`
+              : ''}
+          </div>\`
+        ).join('')
+        : '<div class="wf-inspector-text">Nenhuma execução</div>'}
+    </div>\`;
+  hydrateIcons(content);
+};
+
+const bindWorkflowInspectorModal = () => {
+  const inspector = $('wf-inspector');
+  if (!inspector || inspector.dataset.bound) return;
+  inspector.dataset.bound = '1';
+  inspector.addEventListener('click', (event) => {
+    if (event.target === inspector) closeWorkflowInspector();
+  });
+};
+
+const copyWorkflowPrompt = async (role) => {
+  if (!currentWorkflowDetail) return;
+  try {
+    const res = await fetch(
+      \`/workflows/\${currentWorkflowDetail.workflow.id}/prompt?role=\${role}\`,
+    );
+    const text = await res.text();
+    copyToClipboard(
+      text,
+      role === 'orchestrator'
+        ? 'Prompt do orquestrador copiado'
+        : 'Prompt de executor copiado',
+    );
+  } catch {
+    toast('Falha ao copiar prompt');
+  }
+};
+
+const copyWorkflowNodePrompt = async (nodeId = selectedWorkflowNodeId) => {
+  if (!nodeId) return;
+  try {
+    const res = await fetch(\`/workflows/nodes/\${nodeId}/prompt\`);
+    const text = await res.text();
+    copyToClipboard(text, 'Prompt do nó copiado');
+  } catch {
+    toast('Falha ao copiar prompt');
+  }
+};
+
+const focusWorkflowHumanReturn = () => {
+  const field = $('wf-human-return-summary');
+  if (!field) return;
+  field.focus();
+  field.scrollIntoView({ block: 'nearest' });
+};
+
+const openWorkflowHumanReturn = async (nodeId) => {
+  if (!nodeId) return;
+  if (selectedWorkflowNodeId !== nodeId) {
+    await selectWorkflowNode(nodeId);
+  }
+  setTimeout(focusWorkflowHumanReturn, 80);
+};
+
+const humanReturnSelectedWorkflowNode = async () => {
+  if (!selectedWorkflowNodeId) return;
+  const summary = $('wf-human-return-summary')?.value.trim() || '';
+  if (!summary) {
+    toast('Descreva o que foi feito');
+    focusWorkflowHumanReturn();
+    return;
+  }
+  const changedFiles = workflowCsv($('wf-human-return-files')?.value || '');
+  try {
+    const res = await fetch(
+      \`/workflows/nodes/\${selectedWorkflowNodeId}/human-return\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          outcome: 'success',
+          summary,
+          result: summary,
+          logs: ['Retorno manual registrado na UI do Docmap'],
+          changedFiles,
+          tests: [],
+          artifacts: [],
+        }),
+      },
+    );
+    if (!res.ok) throw new Error(await res.text());
+    toast('Enviado para revisão');
+    await refreshCurrentWorkflow();
+  } catch (err) {
+    toast(err.message || 'Falha ao enviar para revisão');
+  }
+};
+
+const startCurrentWorkflow = async () => {
+  if (!currentWorkflowDetail) return;
+  try {
+    const res = await fetch(
+      \`/workflows/\${currentWorkflowDetail.workflow.id}/start\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      },
+    );
+    if (!res.ok) throw new Error(await res.text());
+    toast('Workflow iniciado');
+    await refreshCurrentWorkflow();
+  } catch (err) {
+    toast(err.message || 'Falha ao iniciar');
+  }
+};
+
+const completeCurrentWorkflow = async () => {
+  if (!currentWorkflowDetail?.canComplete) return;
+  const ok = await confirmDialog(
+    'Concluir este workflow? O orquestrador ainda poderá consultar todo o histórico.',
+    { okLabel: 'Concluir' },
+  );
+  if (!ok) return;
+  const workflow = currentWorkflowDetail.workflow;
+  try {
+    const res = await fetch(\`/workflows/\${workflow.id}/complete\`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        summary: \`Objetivo concluído: \${workflow.objective}\`,
+      }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    toast('Workflow concluído');
+    await refreshCurrentWorkflow();
+  } catch (err) {
+    toast(err.message || 'Falha ao concluir');
+  }
+};
+
+const deleteCurrentWorkflow = async () => {
+  if (!currentWorkflowDetail) return;
+  const workflow = currentWorkflowDetail.workflow;
+  const ok = await confirmDialog(
+    \`Excluir o workflow "\${workflow.title}" e todo o histórico?\`,
+    { danger: true, okLabel: 'Excluir' },
+  );
+  if (!ok) return;
+  const res = await fetch(\`/workflows/\${workflow.id}\`, { method: 'DELETE' });
+  if (!res.ok) {
+    toast('Falha ao excluir workflow');
+    return;
+  }
+  clearCurrentWorkflow();
+  await loadWorkflows();
+  toast('Workflow excluído');
+};
+
+const reviewSelectedWorkflowNode = async (decision) => {
+  if (!selectedWorkflowNodeId) return;
+  const feedback = $('wf-review-feedback')?.value.trim() || '';
+  if (decision === 'rework' && !feedback) {
+    toast('Descreva o retrabalho no campo de feedback');
+    return;
+  }
+  try {
+    const res = await fetch(
+      \`/workflows/nodes/\${selectedWorkflowNodeId}/decision\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision, feedback }),
+      },
+    );
+    if (!res.ok) throw new Error(await res.text());
+    toast(decision === 'approve' ? 'Nó aprovado' : 'Decisão registrada');
+    await refreshCurrentWorkflow();
+  } catch (err) {
+    toast(err.message || 'Falha ao revisar');
+  }
+};
+
+const releaseSelectedWorkflowNode = async () => {
+  if (!selectedWorkflowNodeId) return;
+  const ok = await confirmDialog(
+    'Liberar esta execução? A tentativa atual será marcada como abandonada.',
+    { okLabel: 'Liberar' },
+  );
+  if (!ok) return;
+  const res = await fetch(
+    \`/workflows/nodes/\${selectedWorkflowNodeId}/release\`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    },
+  );
+  if (!res.ok) {
+    toast(await res.text());
+    return;
+  }
+  await refreshCurrentWorkflow();
+  toast('Execução liberada');
+};
+
+const deleteSelectedWorkflowNode = async () => {
+  if (!selectedWorkflowNodeId) return;
+  const node = currentWorkflowDetail.nodes.find(
+    (item) => item.id === selectedWorkflowNodeId,
+  );
+  const ok = await confirmDialog(
+    \`Excluir o nó "\${node?.title || ''}"?\`,
+    { danger: true, okLabel: 'Excluir' },
+  );
+  if (!ok) return;
+  const res = await fetch(\`/workflows/nodes/\${selectedWorkflowNodeId}\`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    toast(await res.text());
+    return;
+  }
+  selectedWorkflowNodeId = null;
+  selectedWorkflowNodeDetail = null;
+  await refreshCurrentWorkflow();
+  toast('Nó excluído');
+};
+
+const answerSelectedWorkflowQuestion = async (questionId) => {
+  const answer = $(\`wf-question-answer-\${questionId}\`)?.value.trim();
+  if (!answer) {
+    toast('Escreva uma resposta');
+    return;
+  }
+  const res = await fetch(\`/workflows/questions/\${questionId}/answer\`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answer }),
+  });
+  if (!res.ok) {
+    toast(await res.text());
+    return;
+  }
+  toast('Resposta registrada');
+  await refreshCurrentWorkflow();
+};
+
+const openWorkflowModal = () => {
+  $('wf-modal-form').reset();
+  $('wf-modal-attempts').value = '3';
+  $('wf-modal-overlay').classList.add('visible');
+  $('wf-modal-title').focus();
+};
+
+const closeWorkflowModal = (event) => {
+  if (event && event.target !== $('wf-modal-overlay')) return;
+  $('wf-modal-overlay').classList.remove('visible');
+};
+
+const createWorkflowFromModal = async (event) => {
+  event.preventDefault();
+  const body = {
+    title: $('wf-modal-title').value.trim(),
+    objective: $('wf-modal-objective').value.trim(),
+    description: $('wf-modal-description').value.trim(),
+    conflictPolicy: $('wf-modal-conflict').value,
+    defaultMaxAttempts: Number($('wf-modal-attempts').value || 3),
+    tags: workflowCsv($('wf-modal-tags').value),
+  };
+  try {
+    const res = await fetch('/workflows', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const workflow = await res.json();
+    closeWorkflowModal();
+    await loadWorkflows();
+    await openWorkflow(workflow.id);
+    toast('Workflow criado');
+  } catch (err) {
+    toast(err.message || 'Falha ao criar workflow');
+  }
+};
+
+const openNodeModal = () => {
+  if (!currentWorkflowDetail) return;
+  $('wf-node-modal-form').reset();
+  $('wf-node-kind').value = 'code';
+  $('wf-node-complexity').value = 'm';
+  $('wf-node-isolation').value = 'shared';
+  $('wf-node-dependencies').innerHTML =
+    currentWorkflowDetail.nodes.map((node) =>
+      \`<option value="\${node.id}">\${escHtml(node.title)} · \${escHtml(workflowNodeStatusLabel(node.status))}</option>\`
+    ).join('');
+  $('wf-node-modal-overlay').classList.add('visible');
+  $('wf-node-title').focus();
+};
+
+const closeNodeModal = (event) => {
+  if (event && event.target !== $('wf-node-modal-overlay')) return;
+  $('wf-node-modal-overlay').classList.remove('visible');
+};
+
+const createNodeFromModal = async (event) => {
+  event.preventDefault();
+  if (!currentWorkflowDetail) return;
+  const dependencySelect = $('wf-node-dependencies');
+  const dependsOn = [...dependencySelect.selectedOptions].map((option) => option.value);
+  const recommendation = {
+    tool: $('wf-node-tool').value.trim(),
+    provider: $('wf-node-provider').value.trim(),
+    model: $('wf-node-model').value.trim(),
+  };
+  Object.keys(recommendation).forEach((key) => {
+    if (!recommendation[key]) delete recommendation[key];
+  });
+  const body = {
+    title: $('wf-node-title').value.trim(),
+    description: $('wf-node-description').value.trim(),
+    acceptanceCriteria: workflowLines($('wf-node-criteria').value),
+    complexity: $('wf-node-complexity').value,
+    kind: $('wf-node-kind').value.trim() || 'general',
+    isolation: $('wf-node-isolation').value,
+    requiredCapabilities: workflowCsv($('wf-node-capabilities').value),
+    readScopes: workflowCsv($('wf-node-read-scopes').value),
+    writeScopes: workflowCsv($('wf-node-write-scopes').value),
+    dependsOn,
+    ...(Object.keys(recommendation).length
+      ? { recommendedAgent: recommendation }
+      : {}),
+  };
+  try {
+    const res = await fetch(
+      \`/workflows/\${currentWorkflowDetail.workflow.id}/nodes\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      },
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const node = await res.json();
+    closeNodeModal();
+    await refreshCurrentWorkflow();
+    await selectWorkflowNode(node.id);
+    toast('Nó criado');
+  } catch (err) {
+    toast(err.message || 'Falha ao criar nó');
+  }
+};
+
+const ensureWorkflowEvents = () => {
+  if (workflowEvents) return;
+  workflowEvents = new EventSource('/workflows/events');
+  const eventNames = [
+    'workflow.created',
+    'workflow.updated',
+    'workflow.started',
+    'workflow.completed',
+    'workflow.deleted',
+    'workflow.orchestrator_claimed',
+    'workflow.orchestrator_released',
+    'node.created',
+    'node.updated',
+    'node.deleted',
+    'node.pending',
+    'node.ready',
+    'node.claimed',
+    'node.started',
+    'node.returned',
+    'node.done',
+    'node.needs_rework',
+    'node.human_intervention',
+    'node.cancelled',
+    'node.released',
+    'edge.created',
+    'edge.deleted',
+    'question.opened',
+    'question.answered',
+    'agent.connected',
+    'agent.heartbeat',
+    'agent.disconnected',
+  ];
+  eventNames.forEach((name) => {
+    workflowEvents.addEventListener(name, () => scheduleWorkflowRefresh());
+  });
+  workflowEvents.onerror = () => {
+    // EventSource reconecta sozinho.
+  };
+};
+
+const scheduleWorkflowRefresh = () => {
+  clearTimeout(workflowRefreshTimer);
+  workflowRefreshTimer = setTimeout(async () => {
+    if (currentMode !== 'workflows') return;
+    if (currentWorkflowDetail) await refreshCurrentWorkflow();
+    else await loadWorkflows();
+  }, 180);
+};
+
+const bindWorkflowTimeline = () => {
+  const timeline = $('wf-timeline');
+  if (!timeline || timeline.dataset.bound) return;
+  timeline.dataset.bound = '1';
+  let dragState = null;
+
+  const isInteractiveTarget = (target) =>
+    target.closest('button, input, textarea, select, a, details, summary');
+
+  timeline.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || isInteractiveTarget(event.target)) return;
+    dragState = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: timeline.scrollLeft,
+      dragging: false,
+    };
+  });
+
+  timeline.addEventListener('pointermove', (event) => {
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+    const dx = event.clientX - dragState.startX;
+    const dy = event.clientY - dragState.startY;
+    if (
+      !dragState.dragging &&
+      (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy))
+    ) return;
+    dragState.dragging = true;
+    workflowBoardSuppressClick = true;
+    timeline.classList.add('dragging');
+    if (!timeline.hasPointerCapture(event.pointerId)) {
+      timeline.setPointerCapture(event.pointerId);
+    }
+    timeline.scrollLeft = dragState.scrollLeft - dx;
+    event.preventDefault();
+  });
+
+  const finishDrag = (event) => {
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+    const dragged = dragState.dragging;
+    dragState = null;
+    timeline.classList.remove('dragging');
+    if (timeline.hasPointerCapture(event.pointerId)) {
+      timeline.releasePointerCapture(event.pointerId);
+    }
+    if (dragged) {
+      setTimeout(() => {
+        workflowBoardSuppressClick = false;
+      }, 120);
+    }
+  };
+
+  timeline.addEventListener('pointerup', finishDrag);
+  timeline.addEventListener('pointercancel', finishDrag);
+  timeline.addEventListener('pointerleave', (event) => {
+    if (dragState?.dragging) finishDrag(event);
+  });
+
+  timeline.addEventListener('click', (event) => {
+    if (workflowBoardSuppressClick) return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (target?.closest('button')) return;
+    const node = target?.closest('.wf-node');
+    if (node) {
+      selectWorkflowNode(node.dataset.nodeId);
+      return;
+    }
+    if (!selectedWorkflowNodeId) return;
+    selectedWorkflowNodeId = null;
+    selectedWorkflowNodeDetail = null;
+    renderWorkflowTimeline();
+    renderWorkflowInspector();
+  });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  $('wf-search')?.addEventListener('input', debounce(renderWorkflowList, 120));
+  bindWorkflowTimeline();
+  bindWorkflowInspectorModal();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  closeWorkflowInspector();
+  closeWorkflowModal();
+  closeNodeModal();
 });
 
 </script>
@@ -13356,13 +16033,13 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'http_request',
-      description: 'Faz uma requisição HTTP para a API do docmap. Use para ler e criar notas, diagramas, skills, macros, podcasts (POST /podcasts), e desenhar no canvas (POST /canvas/push).',
+      description: 'Faz uma requisição HTTP para a API do docmap. Use para notas, diagramas, skills, macros, podcasts, workflows de agentes (/workflows, /agents, /orchestrator) e canvas realtime.',
       parameters: {
         type: 'object',
         required: ['method', 'path'],
         properties: {
           method: { type: 'string', enum: ['GET', 'POST', 'PUT'], description: 'Método HTTP. DELETE não é permitido.' },
-          path:   { type: 'string', description: 'Caminho da API. Ex: /notes, /diagrams, /skills/nome' },
+          path:   { type: 'string', description: 'Caminho da API. Ex: /notes, /skills/nome, /workflows, /orchestrator/inbox' },
           body:   { type: 'object', description: 'Body JSON para POST e PUT (opcional)', properties: {}, additionalProperties: true },
         },
       },

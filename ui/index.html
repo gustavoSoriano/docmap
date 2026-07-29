@@ -38,7 +38,11 @@
       src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
-    <script>if(window.FitAddon&&window.FitAddon.FitAddon)window.FitAddon=window.FitAddon.FitAddon</script>
+    <script>
+    if (window.FitAddon && window.FitAddon.FitAddon) {
+      window.FitAddon = window.FitAddon.FitAddon;
+    }
+    </script>
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/markmap.css">
@@ -49,6 +53,7 @@
     <link rel="stylesheet" href="/styles/skills.css">
     <link rel="stylesheet" href="/styles/diagrams.css">
     <link rel="stylesheet" href="/styles/tasks.css">
+    <link rel="stylesheet" href="/styles/workflows.css">
     <link rel="stylesheet" href="/styles/mocks.css">
     <link rel="stylesheet" href="/styles/favorites.css">
     <link rel="stylesheet" href="/styles/podcasts.css">
@@ -57,1015 +62,1305 @@
   </head>
   <body>
     <div id="body-main">
-    <!-- ════ Left rail — mode switcher ════ -->
-    <nav id="rail">
-      <div id="rail-logo" title="Recolher sidebar" onclick="toggleSidebar()">◆</div>
-      <button class="rail-btn active" id="rail-graph" onclick="setMode('graph')"
-        title="Grafo de conhecimento">
+      <!-- ════ Left rail — mode switcher ════ -->
+      <nav id="rail">
+        <div id="rail-logo" title="Recolher sidebar"
+          onclick="toggleSidebar()">◆</div>
+        <button class="rail-btn active" id="rail-graph"
+          onclick="setMode('graph')"
+          title="Grafo de conhecimento">
     <span class="rail-ico" data-icon="waypoints"></span><span class="rail-lbl">Grafo</span>
   </button>
-      <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
-        title="Notas">
+        <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
+          title="Notas">
     <span class="rail-ico" data-icon="notebook"></span><span class="rail-lbl">Notas</span>
   </button>
-      <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')"
-        title="Kanban">
+        <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')"
+          title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
   </button>
-      <button class="rail-btn" id="rail-favorites"
-        onclick="setMode('favorites')" title="Favoritos">
+        <button class="rail-btn" id="rail-workflows"
+          onclick="setMode('workflows')" title="Workflows de agentes">
+    <span class="rail-ico" data-icon="workflow"></span><span class="rail-lbl">Flows</span>
+  </button>
+        <button class="rail-btn" id="rail-favorites"
+          onclick="setMode('favorites')" title="Favoritos">
     <span class="rail-ico" data-icon="bookmark"></span><span class="rail-lbl">Favs</span>
   </button>
-      <button class="rail-btn" id="rail-podcasts"
-        onclick="setMode('podcasts')" title="Podcasts">
+        <button class="rail-btn" id="rail-podcasts"
+          onclick="setMode('podcasts')" title="Podcasts">
     <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
-      <button class="rail-btn" id="rail-skills" onclick="setMode('skills')"
-        title="Skills">
+        <button class="rail-btn" id="rail-skills" onclick="setMode('skills')"
+          title="Skills">
     <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skills</span>
   </button>
-  <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
-        title="Macros">
+        <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
+          title="Macros">
     <span class="rail-ico" data-icon="bot"></span><span class="rail-lbl">Macros</span>
   </button>
-      <button class="rail-btn" id="rail-diagrams" onclick="setMode('diagrams')"
-        title="Diagramas">
+        <button class="rail-btn" id="rail-diagrams"
+          onclick="setMode('diagrams')"
+          title="Diagramas">
     <span class="rail-ico" data-icon="git-branch"></span><span class="rail-lbl">Diag</span>
   </button>
-      <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
-        title="Mocks HTTP">
+        <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
+          title="Mocks HTTP">
     <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
   </button>
-      <button class="rail-btn" id="rail-canvas" onclick="setMode('canvas')"
-        title="Canvas Realtime">
+        <button class="rail-btn" id="rail-canvas" onclick="setMode('canvas')"
+          title="Canvas Realtime">
     <span class="rail-ico" data-icon="paintbrush"></span><span class="rail-lbl">Canva</span>
   </button>
-      
-      <div class="rail-spacer"></div>
-      <button class="rail-btn" id="rail-terminal"
-        onclick="toggleTerminal()" title="Terminal (Ctrl+`)">
-        <span class="rail-ico" data-icon="terminal"></span>
-        <span class="rail-lbl">Term</span>
-      </button>
-      <button class="rail-btn" id="rail-settings" onclick="openSettings()"
-        title="Configurações">
+
+        <div class="rail-spacer"></div>
+        <button class="rail-btn" id="rail-terminal"
+          onclick="toggleTerminal()" title="Terminal (Ctrl+`)">
+          <span class="rail-ico" data-icon="terminal"></span>
+          <span class="rail-lbl">Term</span>
+        </button>
+        <button class="rail-btn" id="rail-settings" onclick="openSettings()"
+          title="Configurações">
     <span class="rail-ico" data-icon="settings"></span><span class="rail-lbl">Ajustes</span>
   </button>
-    </nav>
+      </nav>
 
-    <!-- ════ Content ════ -->
-    <div id="stage">
-      <!-- Update banner -->
-      <div id="update-banner">
-        <span id="update-text"></span>
-        <button id="update-apply"
-          onclick="applyUpdate()">Atualizar agora</button>
-        <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
-      </div>
+      <!-- ════ Content ════ -->
+      <div id="stage">
+        <!-- Update banner -->
+        <div id="update-banner">
+          <span id="update-text"></span>
+          <button id="update-apply"
+            onclick="applyUpdate()">Atualizar agora</button>
+          <button id="update-dismiss" onclick="dismissUpdate()">Depois</button>
+        </div>
 
-      <!-- ═══ MODE: NOTES ═══ -->
-      <main id="mode-notes" class="mode">
-        <section id="notes-col">
-          <div id="notes-col-head">
-            <div id="notes-col-title">Notas</div>
-            <button id="notes-new-btn" title="Nova nota" onclick="newNote()"
-              data-icon="plus"></button>
-          </div>
-          <div id="notes-search-box">
-            <input id="notes-search-input" type="text"
-              placeholder="Buscar notas…" autocomplete="off"
-              spellcheck="false" />
-          </div>
-          <div id="notes-filters">
-            <select id="notes-filter-cat" onchange="applyFilters()">
-              <option value="">Todas as categorias</option>
-            </select>
-            <select id="notes-filter-tag" onchange="applyFilters()">
-              <option value="">Todas as tags</option>
-            </select>
-          </div>
-          <div id="notes-list"></div>
-        </section>
-
-        <section id="notes-editor">
-          <div id="notes-editor-empty">
-            <div id="notes-editor-empty-mark" data-icon="pencil"></div>
-            <div id="notes-editor-empty-text">Selecione ou crie uma nota</div>
-          </div>
-
-          <div id="notes-editor-form">
-            <div id="note-head">
-              <input id="note-title-input" type="text"
-                placeholder="Título da nota…" />
-              <span id="note-id-badge" style="display:none"
-                onclick="copyNoteId()"
-                title="Clique para copiar o ID (use numa IA)"></span>
-              <button class="note-head-btn" id="btn-note-markmap"
-                style="display:none" onclick="toggleNoteMarkmap()"
-                title="Ver como mapa mental"><span data-icon="tree"></span></button>
-              <button class="note-head-btn" id="btn-annot"
-                style="display:none;width:auto;padding:0 9px;gap:5px;" onclick="toggleAnnotations()"
-                title="Anotações do mapa mental"><span data-icon="highlighter"></span><span id="annot-count" style="font-size:10px">0</span></button>
+        <!-- ═══ MODE: NOTES ═══ -->
+        <main id="mode-notes" class="mode">
+          <section id="notes-col">
+            <div id="notes-col-head">
+              <div id="notes-col-title">Notas</div>
+              <button id="notes-new-btn" title="Nova nota" onclick="newNote()"
+                data-icon="plus"></button>
             </div>
-            <div id="note-toolbar">
-              <div id="note-cat-field">
-                <span id="note-cat-dot" class="note-cat-dot"></span>
-                <input id="note-cat-input" list="note-cat-list"
-                  placeholder="categoria" autocomplete="off" />
-                <datalist id="note-cat-list"></datalist>
+            <div id="notes-search-box">
+              <input id="notes-search-input" type="text"
+                placeholder="Buscar notas…" autocomplete="off"
+                spellcheck="false" />
+            </div>
+            <div id="notes-filters">
+              <select id="notes-filter-cat" onchange="applyFilters()">
+                <option value="">Todas as categorias</option>
+              </select>
+              <select id="notes-filter-tag" onchange="applyFilters()">
+                <option value="">Todas as tags</option>
+              </select>
+            </div>
+            <div id="notes-list"></div>
+          </section>
+
+          <section id="notes-editor">
+            <div id="notes-editor-empty">
+              <div id="notes-editor-empty-mark" data-icon="pencil"></div>
+              <div id="notes-editor-empty-text">Selecione ou crie uma nota</div>
+            </div>
+
+            <div id="notes-editor-form">
+              <div id="note-head">
+                <input id="note-title-input" type="text"
+                  placeholder="Título da nota…" />
+                <span id="note-id-badge" style="display:none"
+                  onclick="copyNoteId()"
+                  title="Clique para copiar o ID (use numa IA)"></span>
+                <button class="note-head-btn" id="btn-note-markmap"
+                  style="display:none" onclick="toggleNoteMarkmap()"
+                  title="Ver como mapa mental"><span data-icon="tree"></span></button>
+                <button class="note-head-btn" id="btn-annot"
+                  style="display:none;width:auto;padding:0 9px;gap:5px;"
+                  onclick="toggleAnnotations()"
+                  title="Anotações do mapa mental"><span data-icon="highlighter"></span><span id="annot-count" style="font-size:10px">0</span></button>
               </div>
-              <input id="note-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-              <button class="tool-btn" id="btn-preview"
-                onclick="toggleNotePreview()"><span data-icon="eye"></span> Preview</button>
-              <button class="tool-btn" id="btn-copy-note" style="display:none"
-                onclick="copyNoteId()"><span data-icon="hash"></span> ID</button>
-              <button class="tool-btn danger" id="btn-delete-note"
-                style="display:none"
-                onclick="deleteCurrentNote()"><span data-icon="trash"></span></button>
-              <button class="tool-btn primary"
-                onclick="saveCurrentNote()">Salvar</button>
-            </div>
-            <div id="note-body">
-              <textarea id="note-content-textarea"
-                placeholder="Escreva em markdown…"></textarea>
-              <div id="note-preview"></div>
-              <div id="note-markmap"></div>
-            </div>
+              <div id="note-toolbar">
+                <div id="note-cat-field">
+                  <span id="note-cat-dot" class="note-cat-dot"></span>
+                  <input id="note-cat-input" list="note-cat-list"
+                    placeholder="categoria" autocomplete="off" />
+                  <datalist id="note-cat-list"></datalist>
+                </div>
+                <input id="note-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+                <button class="tool-btn" id="btn-preview"
+                  onclick="toggleNotePreview()"><span data-icon="eye"></span> Preview</button>
+                <button class="tool-btn" id="btn-copy-note" style="display:none"
+                  onclick="copyNoteId()"><span data-icon="hash"></span> ID</button>
+                <button class="tool-btn danger" id="btn-delete-note"
+                  style="display:none"
+                  onclick="deleteCurrentNote()"><span data-icon="trash"></span></button>
+                <button class="tool-btn primary"
+                  onclick="saveCurrentNote()">Salvar</button>
+              </div>
+              <div id="note-body">
+                <textarea id="note-content-textarea"
+                  placeholder="Escreva em markdown…"></textarea>
+                <div id="note-preview"></div>
+                <div id="note-markmap"></div>
+              </div>
 
-            <!-- Annotation panel (contextual ao markmap da nota) -->
-            <aside id="annot-panel">
-              <div id="annot-head">
-                <span id="annot-head-title">Anotações da nota</span>
-                <button class="ghost-btn" id="annot-copy-all"
-                  onclick="copyAnnotationsForAI()"
-                  title="Copiar todas para colar numa IA">
+              <!-- Annotation panel (contextual ao markmap da nota) -->
+              <aside id="annot-panel">
+                <div id="annot-head">
+                  <span id="annot-head-title">Anotações da nota</span>
+                  <button class="ghost-btn" id="annot-copy-all"
+                    onclick="copyAnnotationsForAI()"
+                    title="Copiar todas para colar numa IA">
               <span data-icon="sparkles"></span> Copiar p/ IA
             </button>
-              </div>
-              <div id="annot-list">
-                <div id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>
-              </div>
-            </aside>
-          </div>
-        </section>
-      </main>
+                </div>
+                <div id="annot-list">
+                  <div
+                    id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
 
-      <!-- ═══ MODE: MACROS ═══ -->
-      <main id="mode-macros" class="mode">
-        <section id="macros-col">
-          <div id="macros-col-head">
-            <div id="macros-col-title">Macros</div>
-            <button id="macros-new-btn" title="Nova macro" onclick="newMacro()"
-              data-icon="plus"></button>
-          </div>
-          <div id="macros-list"></div>
-        </section>
+        <!-- ═══ MODE: MACROS ═══ -->
+        <main id="mode-macros" class="mode">
+          <section id="macros-col">
+            <div id="macros-col-head">
+              <div id="macros-col-title">Macros</div>
+              <button id="macros-new-btn" title="Nova macro"
+                onclick="newMacro()"
+                data-icon="plus"></button>
+            </div>
+            <div id="macros-list"></div>
+          </section>
 
-        <section id="macros-editor">
-          <div id="macros-editor-empty">
-            <div id="macros-editor-empty-mark" data-icon="bot"></div>
-            <div id="macros-editor-empty-text">Selecione ou crie uma macro</div>
-          </div>
+          <section id="macros-editor">
+            <div id="macros-editor-empty">
+              <div id="macros-editor-empty-mark" data-icon="bot"></div>
+              <div
+                id="macros-editor-empty-text">Selecione ou crie uma macro</div>
+            </div>
 
-          <div id="macro-path-hint">
+            <div id="macro-path-hint">
             <span data-icon="info"></span>
             Apps GUI não herdam o PATH do terminal. Prefira caminhos absolutos ou source seu perfil no script.
           </div>
 
-          <div id="macros-editor-form">
-            <div id="macro-head">
-              <input id="macro-title-input" type="text"
-                placeholder="Nome da macro…" />
-              <span id="macro-interp-badge"
-                title="Interpretador detectado pelo shebang"></span>
-              <div id="macro-head-actions">
-                <button class="tool-btn" id="btn-macro-delete"
-                  style="display:none"
-                  onclick="deleteCurrentMacro()"><span data-icon="trash"></span></button>
-                <button class="tool-btn primary" id="btn-macro-save"
-                  onclick="saveCurrentMacro()">Salvar</button>
-                <button class="tool-btn macro-run-btn" id="btn-macro-run"
-                  onclick="runCurrentMacro()">
+            <div id="macros-editor-form">
+              <div id="macro-head">
+                <input id="macro-title-input" type="text"
+                  placeholder="Nome da macro…" />
+                <span id="macro-interp-badge"
+                  title="Interpretador detectado pelo shebang"></span>
+                <div id="macro-head-actions">
+                  <button class="tool-btn" id="btn-macro-delete"
+                    style="display:none"
+                    onclick="deleteCurrentMacro()"><span data-icon="trash"></span></button>
+                  <button class="tool-btn primary" id="btn-macro-save"
+                    onclick="saveCurrentMacro()">Salvar</button>
+                  <button class="tool-btn macro-run-btn" id="btn-macro-run"
+                    onclick="runCurrentMacro()">
               <span data-icon="sparkles"></span> Executar
             </button>
+                </div>
+              </div>
+
+              <div id="macro-desc-row">
+                <input id="macro-desc-input" type="text"
+                  placeholder="Descrição curta…" />
+                <input id="macro-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+              </div>
+
+              <div id="macro-body">
+                <textarea id="macro-script" spellcheck="false"
+                  placeholder="#!/bin/bash&#10;# Seu script aqui&#10;# Variáveis disponíveis:&#10;#   $DOCMAP_API       → http://127.0.0.1:3334&#10;#   $DOCMAP_WORKSPACE → pasta aberta&#10;&#10;echo &quot;Olá do docmap!&quot;"></textarea>
+              </div>
+
+              <div id="macro-output-panel">
+                <div id="macro-output-header">
+                  <span id="macro-output-title">Output</span>
+                  <span id="macro-status-badge"></span>
+                  <button class="ghost-btn" id="btn-macro-clear"
+                    onclick="clearOutput()" style="display:none">limpar</button>
+                  <button class="ghost-btn danger" id="btn-macro-stop"
+                    onclick="stopMacro()" style="display:none">⬛ Parar</button>
+                </div>
+                <pre id="macro-output"></pre>
               </div>
             </div>
+          </section>
+        </main>
 
-            <div id="macro-desc-row">
-              <input id="macro-desc-input" type="text"
-                placeholder="Descrição curta…" />
-              <input id="macro-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
+        <!-- ═══ MODE: SKILLS ═══ -->
+        <main id="mode-skills" class="mode">
+          <section id="skills-col">
+            <div id="skills-col-head">
+              <div id="skills-col-title">Skills</div>
+              <button id="skills-new-btn" title="Nova skill"
+                onclick="newSkill()"
+                data-icon="plus"></button>
+            </div>
+            <div id="skills-search-box">
+              <input id="skills-search-input" type="text"
+                placeholder="Buscar skills…" autocomplete="off"
+                spellcheck="false" />
+            </div>
+            <div id="skills-list"></div>
+          </section>
+
+          <section id="skills-editor">
+            <div id="skills-editor-empty">
+              <div id="skills-editor-empty-mark" data-icon="sparkles"></div>
+              <div
+                id="skills-editor-empty-text">Selecione ou crie uma skill</div>
             </div>
 
-            <div id="macro-body">
-              <textarea id="macro-script" spellcheck="false"
-                placeholder="#!/bin/bash&#10;# Seu script aqui&#10;# Variáveis disponíveis:&#10;#   $DOCMAP_API       → http://127.0.0.1:3334&#10;#   $DOCMAP_WORKSPACE → pasta aberta&#10;&#10;echo &quot;Olá do docmap!&quot;"></textarea>
-            </div>
-
-            <div id="macro-output-panel">
-              <div id="macro-output-header">
-                <span id="macro-output-title">Output</span>
-                <span id="macro-status-badge"></span>
-                <button class="ghost-btn" id="btn-macro-clear"
-                  onclick="clearOutput()" style="display:none">limpar</button>
-                <button class="ghost-btn danger" id="btn-macro-stop"
-                  onclick="stopMacro()" style="display:none">⬛ Parar</button>
+            <div id="skills-editor-form">
+              <div id="skill-head">
+                <input id="skill-title-input" type="text"
+                  placeholder="Título da skill…" />
+                <span id="skill-name-badge"
+                  title="Nome/slug (use numa IA: GET /skills/nome)"></span>
               </div>
-              <pre id="macro-output"></pre>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <!-- ═══ MODE: SKILLS ═══ -->
-      <main id="mode-skills" class="mode">
-        <section id="skills-col">
-          <div id="skills-col-head">
-            <div id="skills-col-title">Skills</div>
-            <button id="skills-new-btn" title="Nova skill" onclick="newSkill()"
-              data-icon="plus"></button>
-          </div>
-          <div id="skills-search-box">
-            <input id="skills-search-input" type="text"
-              placeholder="Buscar skills…" autocomplete="off"
-              spellcheck="false" />
-          </div>
-          <div id="skills-list"></div>
-        </section>
-
-        <section id="skills-editor">
-          <div id="skills-editor-empty">
-            <div id="skills-editor-empty-mark" data-icon="sparkles"></div>
-            <div id="skills-editor-empty-text">Selecione ou crie uma skill</div>
-          </div>
-
-          <div id="skills-editor-form">
-            <div id="skill-head">
-              <input id="skill-title-input" type="text"
-                placeholder="Título da skill…" />
-              <span id="skill-name-badge"
-                title="Nome/slug (use numa IA: GET /skills/nome)"></span>
-            </div>
-            <div id="skill-toolbar">
-              <div id="skill-name-field">
-                <span id="skill-name-prefix">@</span>
-                <input id="skill-name-input" type="text"
-                  placeholder="nome-da-skill" autocomplete="off"
-                  spellcheck="false" />
-              </div>
-              <input id="skill-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-              <button class="tool-btn" id="btn-skill-preview"
-                onclick="toggleSkillPreview()"><span data-icon="eye"></span> Preview</button>
-              <button class="tool-btn" id="btn-skill-copy" style="display:none"
-                onclick="copySkillRef()"><span data-icon="copy"></span> Ref</button>
-              <button class="tool-btn danger" id="btn-skill-delete"
-                style="display:none"
-                onclick="deleteCurrentSkill()"><span data-icon="trash"></span></button>
-              <button class="tool-btn primary"
-                onclick="saveCurrentSkill()">Salvar</button>
-            </div>
-            <div id="skill-desc-row">
-              <input id="skill-desc-input" type="text"
-                placeholder="Descrição curta (aparece na listagem da IA)…" />
-            </div>
-            <div id="skill-body">
-              <textarea id="skill-content-textarea"
-                placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;```bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;```"></textarea>
-              <div id="skill-preview"></div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <!-- ═══ MODE: DIAGRAMS ═══ -->
-      <main id="mode-diagrams" class="mode">
-        <section id="diag-col">
-          <div id="diag-col-head">
-            <div id="diag-col-title">Diagramas</div>
-            <button id="diag-new-btn" title="Novo diagrama"
-              onclick="newDiagram()" data-icon="plus"></button>
-          </div>
-          <div id="diag-list"></div>
-        </section>
-
-        <section id="diag-editor">
-          <div id="diag-editor-empty">
-            <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
-            <div id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
-          </div>
-
-          <div id="diag-editor-form">
-            <div id="diag-head">
-              <input id="diag-title-input" type="text"
-                placeholder="Título do diagrama…" />
-              <input id="diag-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-              <span id="diag-id-badge" style="display:none"
-                title="Clique para copiar o deep link"></span>
-              <div id="diag-head-actions">
-                <button class="tool-btn" id="btn-diag-copy-link"
+              <div id="skill-toolbar">
+                <div id="skill-name-field">
+                  <span id="skill-name-prefix">@</span>
+                  <input id="skill-name-input" type="text"
+                    placeholder="nome-da-skill" autocomplete="off"
+                    spellcheck="false" />
+                </div>
+                <input id="skill-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+                <button class="tool-btn" id="btn-skill-preview"
+                  onclick="toggleSkillPreview()"><span data-icon="eye"></span> Preview</button>
+                <button class="tool-btn" id="btn-skill-copy"
                   style="display:none"
-                  onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
-                <button class="tool-btn danger" id="btn-diag-delete"
+                  onclick="copySkillRef()"><span data-icon="copy"></span> Ref</button>
+                <button class="tool-btn danger" id="btn-skill-delete"
                   style="display:none"
-                  onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
+                  onclick="deleteCurrentSkill()"><span data-icon="trash"></span></button>
                 <button class="tool-btn primary"
-                  onclick="saveCurrentDiagram()">Salvar</button>
+                  onclick="saveCurrentSkill()">Salvar</button>
+              </div>
+              <div id="skill-desc-row">
+                <input id="skill-desc-input" type="text"
+                  placeholder="Descrição curta (aparece na listagem da IA)…" />
+              </div>
+              <div id="skill-body">
+                <textarea id="skill-content-textarea"
+                  placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;```bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;```"></textarea>
+                <div id="skill-preview"></div>
               </div>
             </div>
+          </section>
+        </main>
 
-            <div id="diag-body">
-              <div id="diag-preview-col">
-                <div id="diag-zoom-bar">
-                  <button class="diag-zoom-btn" onclick="diagZoomOut()"
-                    title="Afastar" data-icon="zoom-out"></button>
-                  <span id="diag-zoom-label">100%</span>
-                  <button class="diag-zoom-btn" onclick="diagZoomIn()"
-                    title="Aproximar" data-icon="zoom-in"></button>
-                  <button class="diag-zoom-btn" onclick="diagZoomReset()"
-                    title="Resetar zoom" data-icon="maximize-2"></button>
+        <!-- ═══ MODE: DIAGRAMS ═══ -->
+        <main id="mode-diagrams" class="mode">
+          <section id="diag-col">
+            <div id="diag-col-head">
+              <div id="diag-col-title">Diagramas</div>
+              <button id="diag-new-btn" title="Novo diagrama"
+                onclick="newDiagram()" data-icon="plus"></button>
+            </div>
+            <div id="diag-list"></div>
+          </section>
+
+          <section id="diag-editor">
+            <div id="diag-editor-empty">
+              <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
+              <div
+                id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
+            </div>
+
+            <div id="diag-editor-form">
+              <div id="diag-head">
+                <input id="diag-title-input" type="text"
+                  placeholder="Título do diagrama…" />
+                <input id="diag-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+                <span id="diag-id-badge" style="display:none"
+                  title="Clique para copiar o deep link"></span>
+                <div id="diag-head-actions">
+                  <button class="tool-btn" id="btn-diag-copy-link"
+                    style="display:none"
+                    onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
+                  <button class="tool-btn danger" id="btn-diag-delete"
+                    style="display:none"
+                    onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
+                  <button class="tool-btn primary"
+                    onclick="saveCurrentDiagram()">Salvar</button>
                 </div>
-                <div id="diag-preview"></div>
               </div>
-              <div id="diag-source-col">
-                <div id="diag-source-header" onclick="toggleDiagSource()">
-                  <span>⌨ Código Mermaid</span>
-                  <span id="diag-source-toggle">▸</span>
-                  <a href="https://mermaid.js.org/syntax/flowchart.html"
-                    target="_blank" id="diag-docs-link"
-                    onclick="event.stopPropagation()">docs ↗</a>
+
+              <div id="diag-body">
+                <div id="diag-preview-col">
+                  <div id="diag-zoom-bar">
+                    <button class="diag-zoom-btn" onclick="diagZoomOut()"
+                      title="Afastar" data-icon="zoom-out"></button>
+                    <span id="diag-zoom-label">100%</span>
+                    <button class="diag-zoom-btn" onclick="diagZoomIn()"
+                      title="Aproximar" data-icon="zoom-in"></button>
+                    <button class="diag-zoom-btn" onclick="diagZoomReset()"
+                      title="Resetar zoom" data-icon="maximize-2"></button>
+                  </div>
+                  <div id="diag-preview"></div>
                 </div>
-                <textarea id="diag-source"
-                  placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]"
-                  spellcheck="false"></textarea>
+                <div id="diag-source-col">
+                  <div id="diag-source-header" onclick="toggleDiagSource()">
+                    <span>⌨ Código Mermaid</span>
+                    <span id="diag-source-toggle">▸</span>
+                    <a href="https://mermaid.js.org/syntax/flowchart.html"
+                      target="_blank" id="diag-docs-link"
+                      onclick="event.stopPropagation()">docs ↗</a>
+                  </div>
+                  <textarea id="diag-source"
+                    placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]"
+                    spellcheck="false"></textarea>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
 
-      <!-- ═══ MODE: MOCKS ═══ -->
-      <main id="mode-mocks" class="mode">
-        <section id="mocks-col">
-          <div id="mocks-col-head">
-            <span class="mocks-section-label">Collections</span>
-            <button class="mocks-hd-btn" onclick="newCollection()"
-              title="Nova collection" data-icon="plus"></button>
-          </div>
-          <div id="mocks-col-list"></div>
-
-          <div id="mocks-list-head">
-            <span id="mocks-list-heading">Todos os mocks</span>
-            <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
-              data-icon="plus"></button>
-          </div>
-          <div id="mocks-list"></div>
-
-          <footer id="mocks-col-footer">
-            <div id="mocks-server-badge">
-              <span class="mocks-server-pulse"></span>
-              <span class="mocks-server-url">127.0.0.1:3335</span>
-              <span id="mocks-server-count" data-count="0"></span>
+        <!-- ═══ MODE: MOCKS ═══ -->
+        <main id="mode-mocks" class="mode">
+          <section id="mocks-col">
+            <div id="mocks-col-head">
+              <span class="mocks-section-label">Collections</span>
+              <button class="mocks-hd-btn" onclick="newCollection()"
+                title="Nova collection" data-icon="plus"></button>
             </div>
-            <button id="mocks-clear-btn" onclick="clearMockDatabase()">
-              <span data-icon="trash"></span>
-              <span class="mocks-clear-label">Zerar tudo</span>
-            </button>
-          </footer>
-        </section>
+            <div id="mocks-col-list"></div>
 
-        <section id="mocks-editor">
-          <div id="mocks-editor-empty">
-            <div id="mocks-editor-empty-mark" data-icon="share"></div>
-            <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
-          </div>
+            <div id="mocks-list-head">
+              <span id="mocks-list-heading">Todos os mocks</span>
+              <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
+                data-icon="plus"></button>
+            </div>
+            <div id="mocks-list"></div>
 
-          <div id="mocks-editor-form">
-            <div id="mock-head">
-              <span id="mock-id-badge" data-method="GET">— novo mock —</span>
-              <div id="mock-head-actions">
-                <button class="tool-btn danger" id="btn-mock-delete"
-                  style="display:none" onclick="deleteCurrentMock()">
-                  <span data-icon="trash"></span>
-                </button>
-                <button class="tool-btn" id="btn-mock-curl" onclick="copyCurl()"
-                  title="Copiar curl">
+            <footer id="mocks-col-footer">
+              <div id="mocks-server-badge">
+                <span class="mocks-server-pulse"></span>
+                <span class="mocks-server-url">127.0.0.1:3335</span>
+                <span id="mocks-server-count" data-count="0"></span>
+              </div>
+              <button id="mocks-clear-btn" onclick="clearMockDatabase()">
+                <span data-icon="trash"></span>
+                <span class="mocks-clear-label">Zerar tudo</span>
+              </button>
+            </footer>
+          </section>
+
+          <section id="mocks-editor">
+            <div id="mocks-editor-empty">
+              <div id="mocks-editor-empty-mark" data-icon="share"></div>
+              <div id="mocks-editor-empty-text">Selecione ou crie um mock</div>
+            </div>
+
+            <div id="mocks-editor-form">
+              <div id="mock-head">
+                <span id="mock-id-badge" data-method="GET">— novo mock —</span>
+                <div id="mock-head-actions">
+                  <button class="tool-btn danger" id="btn-mock-delete"
+                    style="display:none" onclick="deleteCurrentMock()">
+                    <span data-icon="trash"></span>
+                  </button>
+                  <button class="tool-btn" id="btn-mock-curl"
+                    onclick="copyCurl()"
+                    title="Copiar curl">
               <span data-icon="copy"></span> curl
             </button>
-                <button class="tool-btn" id="btn-mock-test"
-                  onclick="showTestPanel()">
+                  <button class="tool-btn" id="btn-mock-test"
+                    onclick="showTestPanel()">
               <span data-icon="scan-line"></span> Testar
             </button>
-                <button class="tool-btn primary"
-                  onclick="saveMock()">Salvar</button>
+                  <button class="tool-btn primary"
+                    onclick="saveMock()">Salvar</button>
+                </div>
               </div>
-            </div>
 
-            <div id="mock-meta-row">
-              <div class="mock-field">
-                <label class="mock-label">Collection</label>
-                <select id="mock-collection-select"
-                  class="mock-select"></select>
+              <div id="mock-meta-row">
+                <div class="mock-field">
+                  <label class="mock-label">Collection</label>
+                  <select id="mock-collection-select"
+                    class="mock-select"></select>
+                </div>
+                <div class="mock-field">
+                  <label class="mock-label">Método</label>
+                  <select id="mock-method-select" class="mock-select"
+                    data-method="GET" onchange="onMethodChange(this)">
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                    <option>HEAD</option>
+                    <option>OPTIONS</option>
+                  </select>
+                </div>
               </div>
-              <div class="mock-field">
-                <label class="mock-label">Método</label>
-                <select id="mock-method-select" class="mock-select"
-                  data-method="GET" onchange="onMethodChange(this)">
-                  <option>GET</option>
-                  <option>POST</option>
-                  <option>PUT</option>
-                  <option>PATCH</option>
-                  <option>DELETE</option>
-                  <option>HEAD</option>
-                  <option>OPTIONS</option>
-                </select>
-              </div>
-            </div>
 
-            <div class="mock-field">
-              <label class="mock-label">Path</label>
-              <input id="mock-path-input" type="text" class="mock-input"
-                placeholder="/users/:id" spellcheck="false"
-                autocomplete="off" />
-            </div>
+              <div class="mock-field">
+                <label class="mock-label">Path</label>
+                <input id="mock-path-input" type="text" class="mock-input"
+                  placeholder="/users/:id" spellcheck="false"
+                  autocomplete="off" />
+              </div>
 
-            <div id="mock-meta-row-2">
-              <div class="mock-field">
-                <label class="mock-label">Nome</label>
-                <input id="mock-name-input" type="text" class="mock-input"
-                  placeholder="Get user by ID" autocomplete="off" />
+              <div id="mock-meta-row-2">
+                <div class="mock-field">
+                  <label class="mock-label">Nome</label>
+                  <input id="mock-name-input" type="text" class="mock-input"
+                    placeholder="Get user by ID" autocomplete="off" />
+                </div>
+                <div class="mock-field">
+                  <label class="mock-label">Grupo</label>
+                  <input id="mock-group-input" type="text" class="mock-input"
+                    placeholder="Authentication" autocomplete="off"
+                    list="mock-groups-list" />
+                  <datalist id="mock-groups-list"></datalist>
+                </div>
+                <div class="mock-field">
+                  <label class="mock-label">Tags</label>
+                  <input id="mock-tags-input" type="text" class="mock-input"
+                    placeholder="tags, separadas, por vírgula"
+                    autocomplete="off" />
+                </div>
               </div>
-              <div class="mock-field">
-                <label class="mock-label">Grupo</label>
-                <input id="mock-group-input" type="text" class="mock-input"
-                  placeholder="Authentication" autocomplete="off"
-                  list="mock-groups-list" />
-                <datalist id="mock-groups-list"></datalist>
-              </div>
-              <div class="mock-field">
-                <label class="mock-label">Tags</label>
-                <input id="mock-tags-input" type="text" class="mock-input"
-                  placeholder="tags, separadas, por vírgula" autocomplete="off" />
-              </div>
-            </div>
 
-            <div class="mock-field mock-field-script">
-              <div id="mock-script-label-row">
-                <label class="mock-label">Script JS</label>
-                <span
-                  id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
-                <button class="ghost-btn" id="btn-format-script"
-                  onclick="formatScript()" title="Formatar código">
+              <div class="mock-field mock-field-script">
+                <div id="mock-script-label-row">
+                  <label class="mock-label">Script JS</label>
+                  <span
+                    id="mock-script-hint">ctx · db · retorna <code>{ status?, headers?, body? }</code></span>
+                  <button class="ghost-btn" id="btn-format-script"
+                    onclick="formatScript()" title="Formatar código">
               <span data-icon="sparkles"></span> formatar
             </button>
+                </div>
+                <textarea id="mock-script-textarea" spellcheck="false"
+                  placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
               </div>
-              <textarea id="mock-script-textarea" spellcheck="false"
-                placeholder="// ctx: { method, path, params, query, headers, body }&#10;return {&#10;  status: 200,&#10;  body: { message: &quot;ok&quot; }&#10;};"></textarea>
-            </div>
 
-            <!-- Painel de teste -->
-            <div id="mock-test-panel" style="display:none">
-              <div class="test-panel-head">
-                <span class="test-panel-title">Testar mock</span>
-                <button class="ghost-btn"
-                  onclick="hideTestPanel()"><span data-icon="x"></span></button>
+              <!-- Painel de teste -->
+              <div id="mock-test-panel" style="display:none">
+                <div class="test-panel-head">
+                  <span class="test-panel-title">Testar mock</span>
+                  <button class="ghost-btn"
+                    onclick="hideTestPanel()"><span data-icon="x"></span></button>
+                </div>
+                <div id="mock-test-params"></div>
+                <button class="tool-btn" id="btn-test-run"
+                  onclick="runTest()">Executar</button>
+                <div id="mock-test-result" style="display:none"></div>
               </div>
-              <div id="mock-test-params"></div>
-              <button class="tool-btn" id="btn-test-run"
-                onclick="runTest()">Executar</button>
-              <div id="mock-test-result" style="display:none"></div>
+            </div>
+          </section>
+        </main>
+
+        <!-- ═══ MODE: TASKS / KANBAN ═══ -->
+        <main id="mode-tasks" class="mode">
+          <div id="kanban-project-bar">
+            <select id="kanban-project-select" onchange="renderBoard()">
+              <option value="">Sem projeto</option>
+            </select>
+            <button id="kanban-project-add-btn" onclick="openNewProject()"
+              title="Novo projeto">
+              <span data-icon="plus"></span>
+            </button>
+            <button id="kanban-project-del-btn"
+              onclick="deleteSelectedProject()"
+              title="Remover projeto" disabled>
+              <span data-icon="trash"></span>
+            </button>
+          </div>
+          <div id="kanban-board">
+            <div class="kanban-col" id="kanban-col-todo" data-status="todo">
+              <div class="kanban-col-head">
+                <span class="kanban-col-dot" data-col="todo"></span>
+                <span class="kanban-col-title">A Fazer</span>
+                <span class="kanban-col-count" id="kanban-count-todo">0</span>
+                <button class="kanban-col-add" onclick="openNewTask('todo')"
+                  title="Adicionar task">
+                  <span data-icon="plus"></span>
+                </button>
+              </div>
+              <div class="kanban-cards" id="kanban-cards-todo"></div>
+            </div>
+
+            <div class="kanban-col" id="kanban-col-in-progress"
+              data-status="in-progress">
+              <div class="kanban-col-head">
+                <span class="kanban-col-dot" data-col="in-progress"></span>
+                <span class="kanban-col-title">Em Andamento</span>
+                <span class="kanban-col-count"
+                  id="kanban-count-in-progress">0</span>
+                <button class="kanban-col-add"
+                  onclick="openNewTask('in-progress')" title="Adicionar task">
+                  <span data-icon="plus"></span>
+                </button>
+              </div>
+              <div class="kanban-cards" id="kanban-cards-in-progress"></div>
+            </div>
+
+            <div class="kanban-col" id="kanban-col-done" data-status="done">
+              <div class="kanban-col-head">
+                <span class="kanban-col-dot" data-col="done"></span>
+                <span class="kanban-col-title">Concluído</span>
+                <span class="kanban-col-count" id="kanban-count-done">0</span>
+                <button class="kanban-col-add" onclick="openNewTask('done')"
+                  title="Adicionar task">
+                  <span data-icon="plus"></span>
+                </button>
+              </div>
+              <div class="kanban-cards" id="kanban-cards-done"></div>
             </div>
           </div>
-        </section>
-      </main>
+        </main>
 
-      <!-- ═══ MODE: TASKS / KANBAN ═══ -->
-      <main id="mode-tasks" class="mode">
-        <div id="kanban-project-bar">
-          <select id="kanban-project-select" onchange="renderBoard()">
-            <option value="">Sem projeto</option>
-          </select>
-          <button id="kanban-project-add-btn" onclick="openNewProject()"
-            title="Novo projeto">
-            <span data-icon="plus"></span>
-          </button>
-          <button id="kanban-project-del-btn" onclick="deleteSelectedProject()"
-            title="Remover projeto" disabled>
-            <span data-icon="trash"></span>
-          </button>
-        </div>
-        <div id="kanban-board">
-          <div class="kanban-col" id="kanban-col-todo" data-status="todo">
-            <div class="kanban-col-head">
-              <span class="kanban-col-dot" data-col="todo"></span>
-              <span class="kanban-col-title">A Fazer</span>
-              <span class="kanban-col-count" id="kanban-count-todo">0</span>
-              <button class="kanban-col-add" onclick="openNewTask('todo')"
-                title="Adicionar task">
-                <span data-icon="plus"></span>
-              </button>
+        <!-- ═══ MODE: AGENT WORKFLOWS ═══ -->
+        <main id="mode-workflows" class="mode">
+          <aside id="wf-sidebar">
+            <div id="wf-sidebar-head">
+              <div>
+                <div id="wf-sidebar-title">Workflows</div>
+                <div id="wf-sidebar-count">0 demandas</div>
+              </div>
+              <button id="wf-new-btn" onclick="openWorkflowModal()"
+                title="Novo workflow" data-icon="plus"></button>
             </div>
-            <div class="kanban-cards" id="kanban-cards-todo"></div>
-          </div>
-
-          <div class="kanban-col" id="kanban-col-in-progress"
-            data-status="in-progress">
-            <div class="kanban-col-head">
-              <span class="kanban-col-dot" data-col="in-progress"></span>
-              <span class="kanban-col-title">Em Andamento</span>
-              <span class="kanban-col-count"
-                id="kanban-count-in-progress">0</span>
-              <button class="kanban-col-add"
-                onclick="openNewTask('in-progress')" title="Adicionar task">
-                <span data-icon="plus"></span>
-              </button>
-            </div>
-            <div class="kanban-cards" id="kanban-cards-in-progress"></div>
-          </div>
-
-          <div class="kanban-col" id="kanban-col-done" data-status="done">
-            <div class="kanban-col-head">
-              <span class="kanban-col-dot" data-col="done"></span>
-              <span class="kanban-col-title">Concluído</span>
-              <span class="kanban-col-count" id="kanban-count-done">0</span>
-              <button class="kanban-col-add" onclick="openNewTask('done')"
-                title="Adicionar task">
-                <span data-icon="plus"></span>
-              </button>
-            </div>
-            <div class="kanban-cards" id="kanban-cards-done"></div>
-          </div>
-        </div>
-      </main>
-
-      <!-- ═══ MODE: FAVORITES ═══ -->
-      <main id="mode-favorites" class="mode">
-        <!-- Sidebar -->
-        <aside id="fav-sidebar">
-          <div class="fav-sidebar-section">
-            <div class="fav-sidebar-label">Categorias</div>
-            <div id="fav-cat-list"></div>
-          </div>
-          <div class="fav-sidebar-divider"></div>
-          <div class="fav-sidebar-section">
-            <div class="fav-sidebar-label">Tags</div>
-            <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
-          </div>
-        </aside>
-
-        <!-- Main -->
-        <div id="fav-main">
-          <!-- Toolbar -->
-          <div id="fav-toolbar">
-            <div id="fav-search-wrap">
-              <span id="fav-search-icon" data-icon="search"></span>
-              <input id="fav-search" type="text"
-                placeholder="Buscar por título, tag, categoria, URL…"
+            <div id="wf-search-wrap">
+              <span data-icon="search"></span>
+              <input id="wf-search" type="text" placeholder="Buscar workflows"
                 autocomplete="off" spellcheck="false">
-              <span id="fav-search-clear" data-icon="x"></span>
             </div>
-            <button id="fav-add-btn">
+            <div id="wf-filter-row">
+              <select id="wf-status-filter" onchange="renderWorkflowList()">
+                <option value="">Todos os estados</option>
+                <option value="draft">Rascunho</option>
+                <option value="planning">Planejamento</option>
+                <option value="running">Em execução</option>
+                <option value="reviewing">Em revisão</option>
+                <option value="blocked">Bloqueado</option>
+                <option value="done">Concluído</option>
+              </select>
+            </div>
+            <div id="wf-list"></div>
+          </aside>
+
+          <section id="wf-workspace">
+            <div id="wf-empty">
+              <span id="wf-empty-icon" data-icon="workflow"></span>
+              <div id="wf-empty-title">Nenhum workflow selecionado</div>
+              <button class="wf-primary-btn" onclick="openWorkflowModal()">
+              <span data-icon="plus"></span> Nova demanda
+            </button>
+            </div>
+
+            <div id="wf-active">
+              <header id="wf-toolbar">
+                <div id="wf-toolbar-title-wrap">
+                  <div id="wf-toolbar-title"></div>
+                  <div id="wf-toolbar-meta"></div>
+                </div>
+                <div id="wf-toolbar-actions">
+                  <button class="wf-icon-btn"
+                    onclick="copyWorkflowPrompt('orchestrator')"
+                    title="Copiar prompt do orquestrador"
+                    data-icon="bot"></button>
+                  <button class="wf-icon-btn"
+                    onclick="copyWorkflowPrompt('executor')"
+                    title="Copiar prompt de executor" data-icon="copy"></button>
+                  <span class="wf-toolbar-sep"></span>
+                  <button class="wf-icon-btn" onclick="openNodeModal()"
+                    title="Adicionar nó" data-icon="plus"></button>
+                  <button class="wf-icon-btn" id="wf-start-btn"
+                    onclick="startCurrentWorkflow()" title="Iniciar workflow"
+                    data-icon="play"></button>
+                  <button class="wf-icon-btn" id="wf-complete-btn"
+                    onclick="completeCurrentWorkflow()"
+                    title="Concluir workflow"
+                    data-icon="check"></button>
+                  <button class="wf-icon-btn" onclick="refreshCurrentWorkflow()"
+                    title="Recarregar" data-icon="refresh-cw"></button>
+                  <button class="wf-icon-btn danger"
+                    onclick="deleteCurrentWorkflow()"
+                    title="Excluir workflow" data-icon="trash"></button>
+                </div>
+              </header>
+
+              <div id="wf-agent-strip"></div>
+
+              <div id="wf-main-row">
+                <div id="wf-timeline">
+                  <div id="wf-timeline-list"></div>
+                  <div id="wf-timeline-empty">
+                    <span data-icon="workflow"></span>
+                    <div>Workflow aguardando decomposição</div>
+                  </div>
+                </div>
+
+                <aside id="wf-inspector">
+                  <div id="wf-inspector-empty">
+                    <span data-icon="scan-line"></span>
+                    <div>Selecione um nó</div>
+                  </div>
+                  <div id="wf-inspector-content"></div>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- ═══ MODE: FAVORITES ═══ -->
+        <main id="mode-favorites" class="mode">
+          <!-- Sidebar -->
+          <aside id="fav-sidebar">
+            <div class="fav-sidebar-section">
+              <div class="fav-sidebar-label">Categorias</div>
+              <div id="fav-cat-list"></div>
+            </div>
+            <div class="fav-sidebar-divider"></div>
+            <div class="fav-sidebar-section">
+              <div class="fav-sidebar-label">Tags</div>
+              <div class="fav-tag-cloud" id="fav-tag-cloud"></div>
+            </div>
+          </aside>
+
+          <!-- Main -->
+          <div id="fav-main">
+            <!-- Toolbar -->
+            <div id="fav-toolbar">
+              <div id="fav-search-wrap">
+                <span id="fav-search-icon" data-icon="search"></span>
+                <input id="fav-search" type="text"
+                  placeholder="Buscar por título, tag, categoria, URL…"
+                  autocomplete="off" spellcheck="false">
+                <span id="fav-search-clear" data-icon="x"></span>
+              </div>
+              <button id="fav-add-btn">
           <span data-icon="plus"></span>
           Adicionar
           <span class="fav-add-kbd">⌘K</span>
         </button>
-          </div>
+            </div>
 
-          <!-- Type tabs -->
-          <div id="fav-type-tabs">
-            <div class="fav-type-tab active"
-              data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
-            <div class="fav-type-tab" data-type="site">
+            <!-- Type tabs -->
+            <div id="fav-type-tabs">
+              <div class="fav-type-tab active"
+                data-type="all">Todos <span class="fav-tab-count" id="fav-count-all">0</span></div>
+              <div class="fav-type-tab" data-type="site">
           <span class="fav-tab-dot" style="background:var(--fav-site)"></span>
           Sites <span class="fav-tab-count" id="fav-count-site">0</span>
         </div>
-            <div class="fav-type-tab" data-type="slack">
+              <div class="fav-type-tab" data-type="slack">
           <span class="fav-tab-dot" style="background:var(--fav-slack)"></span>
           Slack <span class="fav-tab-count" id="fav-count-slack">0</span>
         </div>
-            <div class="fav-type-tab" data-type="grid">
+              <div class="fav-type-tab" data-type="grid">
           <span class="fav-tab-dot" style="background:var(--fav-grid)"></span>
           Grid <span class="fav-tab-count" id="fav-count-grid">0</span>
         </div>
-            <div class="fav-type-tab" data-type="dash">
+              <div class="fav-type-tab" data-type="dash">
           <span class="fav-tab-dot" style="background:var(--fav-dash)"></span>
           Dashboards <span class="fav-tab-count" id="fav-count-dash">0</span>
         </div>
-            <div class="fav-type-tab" data-type="github">
+              <div class="fav-type-tab" data-type="github">
           <span class="fav-tab-dot" style="background:var(--fav-github)"></span>
           GitHub <span class="fav-tab-count" id="fav-count-github">0</span>
         </div>
-          </div>
+            </div>
 
-          <!-- Scrollable content -->
-          <div id="fav-scroll">
-            <!-- Most visited -->
-            <div id="fav-most-visited" style="display:none">
+            <!-- Scrollable content -->
+            <div id="fav-scroll">
+              <!-- Most visited -->
+              <div id="fav-most-visited" style="display:none">
+                <div class="fav-section-header">
+                  <span class="fav-section-title">⚡ Mais visitados</span>
+                </div>
+                <div class="fav-featured-row" id="fav-featured-row"></div>
+              </div>
+
+              <!-- Grid header -->
               <div class="fav-section-header">
-                <span class="fav-section-title">⚡ Mais visitados</span>
+                <span class="fav-section-title">◈ Links</span>
+                <span class="fav-section-count"
+                  id="fav-result-count">0 links</span>
               </div>
-              <div class="fav-featured-row" id="fav-featured-row"></div>
+
+              <!-- Grid -->
+              <div id="fav-grid"></div>
+
+              <!-- Pagination -->
+              <div id="fav-pagination"></div>
+
+              <!-- Empty -->
+              <div id="fav-empty" style="display:none">
+                <span class="fav-empty-icon" data-icon="bookmark"></span>
+                <div class="fav-empty-title">Nenhum favorito encontrado</div>
+                <div
+                  class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
+              </div>
             </div>
+          </div>
+        </main>
 
-            <!-- Grid header -->
-            <div class="fav-section-header">
-              <span class="fav-section-title">◈ Links</span>
-              <span class="fav-section-count"
-                id="fav-result-count">0 links</span>
-            </div>
-
-            <!-- Grid -->
-            <div id="fav-grid"></div>
-
-            <!-- Pagination -->
-            <div id="fav-pagination"></div>
-
-            <!-- Empty -->
-            <div id="fav-empty" style="display:none">
-              <span class="fav-empty-icon" data-icon="bookmark"></span>
-              <div class="fav-empty-title">Nenhum favorito encontrado</div>
+        <!-- ═══ MODE: PODCASTS ═══ -->
+        <main id="mode-podcasts" class="mode">
+          <section id="pod-col">
+            <div id="pod-col-head">
               <div
-                class="fav-empty-hint">Tente buscar por outro termo ou adicione um novo link com ⌘K</div>
+                id="pod-col-title"><span data-icon="mic"></span>Podcasts</div>
+              <button id="pod-health" class="pod-health-checking"
+                title="Verificando dependências…"
+                onclick="togglePodHealth()"></button>
             </div>
-          </div>
-        </div>
-      </main>
-
-      <!-- ═══ MODE: PODCASTS ═══ -->
-      <main id="mode-podcasts" class="mode">
-        <section id="pod-col">
-          <div id="pod-col-head">
-            <div id="pod-col-title"><span data-icon="mic"></span>Podcasts</div>
-            <button id="pod-health" class="pod-health-checking" title="Verificando dependências…"
-              onclick="togglePodHealth()"></button>
-          </div>
-          <div id="pod-health-panel" class="pod-health-panel"></div>
-          <div id="pod-filters">
-            <input id="pod-search" type="text" placeholder="Buscar podcasts…" />
-            <select id="pod-folder-filter">
-              <option value="">Todas as pastas</option>
-            </select>
-          </div>
-          <div id="pod-list"></div>
-        </section>
-
-        <section id="pod-player">
-          <div id="pod-empty">
-            <div id="pod-empty-mark" data-icon="mic"></div>
-            <div id="pod-empty-text">Selecione um podcast para ouvir</div>
-          </div>
-
-          <div id="pod-detail" style="display:none">
-            <div id="pod-head">
-              <input id="pod-title-input" type="text" placeholder="Título do podcast…" />
-              <input id="pod-folder-input" type="text" placeholder="pasta" list="pod-folder-list" />
-              <input id="pod-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-              <datalist id="pod-folder-list"></datalist>
-              <span id="pod-id-badge" title="ID do podcast"></span>
-              <div id="pod-head-actions">
-                <button class="tool-btn" id="btn-pod-copy" style="display:none"
-                  onclick="copyPodcastLink()"><span data-icon="copy"></span> Link</button>
-                <button class="tool-btn danger" id="btn-pod-delete" style="display:none"
-                  onclick="deleteCurrentPodcast()"><span data-icon="trash"></span></button>
-              </div>
-            </div>
-
-            <div id="pod-audio-wrap" style="display:none">
-              <audio id="pod-audio" controls preload="metadata"></audio>
-            </div>
-            <div id="pod-meta"></div>
-
-            <div id="pod-slides-stage" style="display:none">
-              <div id="pod-slides-host"></div>
-              <div id="pod-slides-bar">
-                <span id="pod-slide-counter"></span>
-                <span id="pod-slide-title"></span>
-                <button class="tool-btn" id="btn-slide-prev" type="button" title="Slide anterior"><span data-icon="chevron-left"></span></button>
-                <button class="tool-btn" id="btn-slide-next" type="button" title="Próximo slide"><span data-icon="chevron-right"></span></button>
-                <button class="tool-btn" id="btn-slide-full" type="button" title="Tela cheia"><span data-icon="maximize"></span></button>
-              </div>
-            </div>
-
-            <div id="pod-script"></div>
-          </div>
-        </section>
-      </main>
-
-      <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
-      <main id="mode-canvas" class="mode">
-        <div id="canvas-container">
-          <iframe id="canvas-iframe" src="/canvas" sandbox="allow-scripts allow-same-origin"></iframe>
-        </div>
-      </main>
-
-      <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
-      <main id="mode-graph" class="mode active">
-        <div id="kg-toolbar">
-          <span class="kg-title"><span data-icon="waypoints"></span> Grafo de conhecimento</span>
-          <span id="kg-count"></span>
-          <button class="kg-tool-btn" onclick="loadGraph()">↻ Recarregar</button>
-          <button class="kg-tool-btn" onclick="fitKg()">⤢ Ajustar</button>
-          <button class="kg-tool-btn" onclick="clearKgSelection()">Limpar seleção</button>
-          <div id="kg-legend"></div>
-        </div>
-        <div id="kg-canvas">
-          <svg id="kg-svg"></svg>
-          <div id="kg-empty">
-            <span class="kg-empty-mark" data-icon="waypoints"></span>
-            <div class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, diagramas… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <!-- Quick-Add / Edit Modal -->
-    <div id="fav-modal-overlay">
-      <div id="fav-modal">
-        <div class="fav-modal-header">
-          <span
-            class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
-          <button class="fav-modal-close" id="fav-modal-close"
-            data-icon="x"></button>
-        </div>
-        <div class="fav-modal-body">
-          <div>
-            <div class="fav-field-label">URL</div>
-            <div class="fav-url-wrap">
-              <input class="fav-field-input" id="fav-modal-url"
-                placeholder="cole ou digite a URL…" autocomplete="off"
-                spellcheck="false">
-              <span class="fav-url-detected" id="fav-url-detected"></span>
-            </div>
-          </div>
-          <div>
-            <div class="fav-field-label">Título</div>
-            <input class="fav-field-input" id="fav-modal-title"
-              placeholder="Nome do link…">
-          </div>
-          <div>
-            <div class="fav-field-label">Tipo</div>
-            <div class="fav-type-selector">
-              <button class="fav-type-btn active" data-t="site">🌐 Site</button>
-              <button class="fav-type-btn" data-t="slack">💬 Slack</button>
-              <button class="fav-type-btn" data-t="grid">📁 Grid</button>
-              <button class="fav-type-btn" data-t="dash">📊 Dash</button>
-              <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
-            </div>
-          </div>
-          <div>
-            <div class="fav-field-label">Categoria</div>
-            <div class="fav-cat-sel" id="fav-cat-sel"></div>
-          </div>
-          <div>
-            <div
-              class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
-            <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
-              <input class="fav-tags-input" id="fav-modal-tags-input"
-                placeholder="#api, #design…">
-            </div>
-          </div>
-          <div>
-            <div class="fav-field-label">Nota (opcional)</div>
-            <input class="fav-field-input" id="fav-modal-note"
-              placeholder="Para que serve esse link…">
-          </div>
-        </div>
-        <div class="fav-modal-footer">
-          <div class="fav-kbd-hint">
-        <kbd class="fav-kbd">Enter</kbd> salva · <kbd class="fav-kbd">Esc</kbd> fecha
-      </div>
-          <div class="fav-modal-btns">
-            <button class="fav-btn-cancel"
-              id="fav-modal-cancel">Cancelar</button>
-            <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════ Task Modal ════ -->
-    <div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
-      <div id="task-modal">
-        <div id="task-modal-head">
-          <input id="task-title-input" type="text" placeholder="Título da task…"
-            autocomplete="off" />
-          <select id="task-status-select">
-            <option value="todo">A Fazer</option>
-            <option value="in-progress">Em Andamento</option>
-            <option value="done">Concluído</option>
-          </select>
-          <button class="kanban-modal-close" id="task-modal-close"
-            onclick="closeTaskModal()" title="Fechar">
-            <span data-icon="x"></span>
-          </button>
-        </div>
-        <div id="task-modal-body">
-          <div class="task-field">
-            <label class="task-label">Descrição (markdown)</label>
-            <textarea id="task-desc-textarea"
-              placeholder="Detalhes, contexto, links…" rows="5"></textarea>
-          </div>
-          <div class="task-meta-row">
-            <div class="task-field">
-              <label class="task-label">Projeto</label>
-              <select id="task-project-select">
-                <option value="">Nenhum</option>
+            <div id="pod-health-panel" class="pod-health-panel"></div>
+            <div id="pod-filters">
+              <input id="pod-search" type="text"
+                placeholder="Buscar podcasts…" />
+              <select id="pod-folder-filter">
+                <option value="">Todas as pastas</option>
               </select>
             </div>
-            <div class="task-field">
-              <label class="task-label">Data limite</label>
-              <input id="task-due-input" type="date" />
+            <div id="pod-list"></div>
+          </section>
+
+          <section id="pod-player">
+            <div id="pod-empty">
+              <div id="pod-empty-mark" data-icon="mic"></div>
+              <div id="pod-empty-text">Selecione um podcast para ouvir</div>
             </div>
-            <div class="task-field">
-              <label class="task-label">Tags</label>
-              <input id="task-tags-input" type="text"
-                placeholder="tags, separadas, por vírgula" />
-            </div>
-            <div class="task-field" style="position:relative">
-              <label class="task-label">Nota vinculada</label>
-              <div id="task-note-wrap">
-                <input id="task-note-input" type="text"
-                  placeholder="Buscar nota…" autocomplete="off"
-                  oninput="filterNoteSearch()" onfocus="filterNoteSearch()" />
-                <button id="task-note-clear" onclick="clearNoteLink()"
-                  title="Remover nota" style="display:none">
-                  <span data-icon="x"></span>
-                </button>
+
+            <div id="pod-detail" style="display:none">
+              <div id="pod-head">
+                <input id="pod-title-input" type="text"
+                  placeholder="Título do podcast…" />
+                <input id="pod-folder-input" type="text" placeholder="pasta"
+                  list="pod-folder-list" />
+                <input id="pod-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+                <datalist id="pod-folder-list"></datalist>
+                <span id="pod-id-badge" title="ID do podcast"></span>
+                <div id="pod-head-actions">
+                  <button class="tool-btn" id="btn-pod-copy"
+                    style="display:none"
+                    onclick="copyPodcastLink()"><span data-icon="copy"></span> Link</button>
+                  <button class="tool-btn danger" id="btn-pod-delete"
+                    style="display:none"
+                    onclick="deleteCurrentPodcast()"><span data-icon="trash"></span></button>
+                </div>
               </div>
-              <div id="task-note-dropdown"></div>
-              <input type="hidden" id="task-note-id" />
+
+              <div id="pod-audio-wrap" style="display:none">
+                <audio id="pod-audio" controls preload="metadata"></audio>
+              </div>
+              <div id="pod-meta"></div>
+
+              <div id="pod-slides-stage" style="display:none">
+                <div id="pod-slides-host"></div>
+                <div id="pod-slides-bar">
+                  <span id="pod-slide-counter"></span>
+                  <span id="pod-slide-title"></span>
+                  <button class="tool-btn" id="btn-slide-prev" type="button"
+                    title="Slide anterior"><span data-icon="chevron-left"></span></button>
+                  <button class="tool-btn" id="btn-slide-next" type="button"
+                    title="Próximo slide"><span data-icon="chevron-right"></span></button>
+                  <button class="tool-btn" id="btn-slide-full" type="button"
+                    title="Tela cheia"><span data-icon="maximize"></span></button>
+                </div>
+              </div>
+
+              <div id="pod-script"></div>
+            </div>
+          </section>
+        </main>
+
+        <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
+        <main id="mode-canvas" class="mode">
+          <div id="canvas-container">
+            <iframe id="canvas-iframe" src="/canvas"
+              sandbox="allow-scripts allow-same-origin"></iframe>
+          </div>
+        </main>
+
+        <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
+        <main id="mode-graph" class="mode active">
+          <div id="kg-toolbar">
+            <span
+              class="kg-title"><span data-icon="waypoints"></span> Grafo de conhecimento</span>
+            <span id="kg-count"></span>
+            <button class="kg-tool-btn"
+              onclick="loadGraph()">↻ Recarregar</button>
+            <button class="kg-tool-btn" onclick="fitKg()">⤢ Ajustar</button>
+            <button class="kg-tool-btn"
+              onclick="clearKgSelection()">Limpar seleção</button>
+            <div id="kg-legend"></div>
+          </div>
+          <div id="kg-canvas">
+            <svg id="kg-svg"></svg>
+            <div id="kg-empty">
+              <span class="kg-empty-mark" data-icon="waypoints"></span>
+              <div
+                class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, diagramas… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- Workflow modal -->
+      <div class="wf-modal-overlay" id="wf-modal-overlay"
+        onclick="closeWorkflowModal(event)">
+        <form class="wf-modal" id="wf-modal-form"
+          onsubmit="createWorkflowFromModal(event)">
+          <div class="wf-modal-head">
+            <span>Nova demanda</span>
+            <button type="button" onclick="closeWorkflowModal()"
+              title="Fechar" data-icon="x"></button>
+          </div>
+          <div class="wf-modal-body">
+            <label>
+              <span>Título</span>
+              <input id="wf-modal-title" required maxlength="140"
+                placeholder="Ex: Implementar autenticação">
+            </label>
+            <label>
+              <span>Objetivo</span>
+              <textarea id="wf-modal-objective" required rows="4"
+                placeholder="Resultado final esperado"></textarea>
+            </label>
+            <label>
+              <span>Contexto</span>
+              <textarea id="wf-modal-description" rows="3"
+                placeholder="Restrições e informações relevantes"></textarea>
+            </label>
+            <div class="wf-form-grid">
+              <label>
+                <span>Conflitos de escrita</span>
+                <select id="wf-modal-conflict">
+                  <option value="warn">Avisar</option>
+                  <option value="block">Bloquear claim</option>
+                </select>
+              </label>
+              <label>
+                <span>Máximo de tentativas</span>
+                <input id="wf-modal-attempts" type="number" min="1" max="20"
+                  value="3">
+              </label>
+            </div>
+            <label>
+              <span>Tags</span>
+              <input id="wf-modal-tags" placeholder="api, backend, produto">
+            </label>
+          </div>
+          <div class="wf-modal-actions">
+            <button type="button" class="wf-secondary-btn"
+              onclick="closeWorkflowModal()">Cancelar</button>
+            <button type="submit" class="wf-primary-btn">
+            <span data-icon="plus"></span> Criar workflow
+          </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Workflow node modal -->
+      <div class="wf-modal-overlay" id="wf-node-modal-overlay"
+        onclick="closeNodeModal(event)">
+        <form class="wf-modal wf-node-modal" id="wf-node-modal-form"
+          onsubmit="createNodeFromModal(event)">
+          <div class="wf-modal-head">
+            <span>Novo nó</span>
+            <button type="button" onclick="closeNodeModal()"
+              title="Fechar" data-icon="x"></button>
+          </div>
+          <div class="wf-modal-body">
+            <label>
+              <span>Título</span>
+              <input id="wf-node-title" required maxlength="140"
+                placeholder="Unidade de trabalho">
+            </label>
+            <label>
+              <span>Descrição</span>
+              <textarea id="wf-node-description" required rows="4"
+                placeholder="O que o agente deve fazer"></textarea>
+            </label>
+            <label>
+              <span>Critérios de aceite</span>
+              <textarea id="wf-node-criteria" required rows="4"
+                placeholder="Um critério por linha"></textarea>
+            </label>
+            <div class="wf-form-grid wf-form-grid-3">
+              <label>
+                <span>Complexidade</span>
+                <select id="wf-node-complexity">
+                  <option value="xs">XS</option>
+                  <option value="s">S</option>
+                  <option value="m" selected>M</option>
+                  <option value="l">L</option>
+                  <option value="xl">XL</option>
+                </select>
+              </label>
+              <label>
+                <span>Tipo</span>
+                <input id="wf-node-kind" value="code"
+                  placeholder="code, research, review">
+              </label>
+              <label>
+                <span>Isolamento</span>
+                <select id="wf-node-isolation">
+                  <option value="shared">Compartilhado</option>
+                  <option value="branch">Branch</option>
+                  <option value="worktree">Worktree</option>
+                </select>
+              </label>
+            </div>
+            <div class="wf-form-grid wf-form-grid-3">
+              <label>
+                <span>Ferramenta sugerida</span>
+                <input id="wf-node-tool" placeholder="codex-cli">
+              </label>
+              <label>
+                <span>Provider sugerido</span>
+                <input id="wf-node-provider" placeholder="openai">
+              </label>
+              <label>
+                <span>Modelo sugerido</span>
+                <input id="wf-node-model" placeholder="gpt-5-codex">
+              </label>
+            </div>
+            <label>
+              <span>Capacidades exigidas</span>
+              <input id="wf-node-capabilities"
+                placeholder="code, deno, tests">
+            </label>
+            <div class="wf-form-grid">
+              <label>
+                <span>Escopos de leitura</span>
+                <input id="wf-node-read-scopes" placeholder="src/, deno.json">
+              </label>
+              <label>
+                <span>Escopos de escrita</span>
+                <input id="wf-node-write-scopes" placeholder="src/auth/">
+              </label>
+            </div>
+            <label>
+              <span>Depende de</span>
+              <select id="wf-node-dependencies" multiple></select>
+            </label>
+          </div>
+          <div class="wf-modal-actions">
+            <button type="button" class="wf-secondary-btn"
+              onclick="closeNodeModal()">Cancelar</button>
+            <button type="submit" class="wf-primary-btn">
+            <span data-icon="plus"></span> Criar nó
+          </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Quick-Add / Edit Modal -->
+      <div id="fav-modal-overlay">
+        <div id="fav-modal">
+          <div class="fav-modal-header">
+            <span
+              class="fav-modal-title"><span id="fav-modal-title-text">⚡ Novo Favorito</span></span>
+            <button class="fav-modal-close" id="fav-modal-close"
+              data-icon="x"></button>
+          </div>
+          <div class="fav-modal-body">
+            <div>
+              <div class="fav-field-label">URL</div>
+              <div class="fav-url-wrap">
+                <input class="fav-field-input" id="fav-modal-url"
+                  placeholder="cole ou digite a URL…" autocomplete="off"
+                  spellcheck="false">
+                <span class="fav-url-detected" id="fav-url-detected"></span>
+              </div>
+            </div>
+            <div>
+              <div class="fav-field-label">Título</div>
+              <input class="fav-field-input" id="fav-modal-title"
+                placeholder="Nome do link…">
+            </div>
+            <div>
+              <div class="fav-field-label">Tipo</div>
+              <div class="fav-type-selector">
+                <button class="fav-type-btn active"
+                  data-t="site">🌐 Site</button>
+                <button class="fav-type-btn" data-t="slack">💬 Slack</button>
+                <button class="fav-type-btn" data-t="grid">📁 Grid</button>
+                <button class="fav-type-btn" data-t="dash">📊 Dash</button>
+                <button class="fav-type-btn" data-t="github">🐙 GitHub</button>
+              </div>
+            </div>
+            <div>
+              <div class="fav-field-label">Categoria</div>
+              <div class="fav-cat-sel" id="fav-cat-sel"></div>
+            </div>
+            <div>
+              <div
+                class="fav-field-label">Tags — <span style="font-style:italic;text-transform:none;letter-spacing:0;font-family:var(--font-ui)">Enter para adicionar</span></div>
+              <div class="fav-tags-wrap" id="fav-modal-tags-wrap">
+                <input class="fav-tags-input" id="fav-modal-tags-input"
+                  placeholder="#api, #design…">
+              </div>
+            </div>
+            <div>
+              <div class="fav-field-label">Nota (opcional)</div>
+              <input class="fav-field-input" id="fav-modal-note"
+                placeholder="Para que serve esse link…">
+            </div>
+          </div>
+          <div class="fav-modal-footer">
+            <div class="fav-kbd-hint">
+        <kbd class="fav-kbd">Enter</kbd> salva · <kbd class="fav-kbd">Esc</kbd> fecha
+      </div>
+            <div class="fav-modal-btns">
+              <button class="fav-btn-cancel"
+                id="fav-modal-cancel">Cancelar</button>
+              <button class="fav-btn-save" id="fav-modal-save">Salvar</button>
             </div>
           </div>
         </div>
-        <div id="task-modal-footer">
-          <button class="tool-btn danger" id="task-delete-btn"
-            style="display:none" onclick="deleteCurrentTask()">
-            <span data-icon="trash"></span>
-          </button>
-
-          <button class="tool-btn" onclick="copyTaskRef()">
-            <span data-icon="hash"></span>
-          </button>
-
-          <div class="task-footer-spacer"></div>
-          <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
-          <button class="tool-btn primary"
-            onclick="saveCurrentTask()">Salvar</button>
-        </div>
       </div>
-    </div>
 
-    <!-- ════ Project Modal ════ -->
-    <div id="project-modal-overlay" onclick="closeProjectModalOnOverlay(event)">
-      <div id="project-modal">
-        <div id="project-modal-head">
-          <input id="project-name-input" type="text"
-            placeholder="Nome do projeto…" autocomplete="off" />
-          <button class="kanban-modal-close" onclick="closeProjectModal()"
-            title="Fechar">
-            <span data-icon="x"></span>
-          </button>
-        </div>
-        <div id="project-modal-footer">
-          <div class="task-footer-spacer"></div>
-          <button class="tool-btn" onclick="closeProjectModal()">Cancelar</button>
-          <button class="tool-btn primary"
-            onclick="saveProject()">Criar Projeto</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Floating comment button (shown on text selection in note markmap) -->
-    <button id="markmap-comment-btn" type="button">Comentar</button>
-
-    <!-- Annotation popover -->
-    <div id="annot-popover">
-      <div id="pop-head">
-        <span id="pop-label">TRECHO</span>
-        <span id="pop-quote"></span>
-      </div>
-      <div id="pop-types">
-        <button class="type-btn active" data-type="note"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
-        <button class="type-btn" data-type="decision"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
-        <button class="type-btn" data-type="question"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
-        <button class="type-btn" data-type="todo"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
-        <button class="type-btn" data-type="warning"
-          onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
-      </div>
-      <div id="pop-body">
-        <textarea id="pop-textarea"
-          placeholder="Escreva a anotação…"></textarea>
-      </div>
-      <div id="pop-foot">
-        <button class="pop-btn" id="pop-delete"
-          onclick="deleteAnnotation()">Excluir</button>
-        <button class="pop-btn" id="pop-cancel"
-          onclick="closeAnnotPopover()">Cancelar</button>
-        <button class="pop-btn primary" id="pop-save"
-          onclick="saveAnnotation()">Salvar</button>
-      </div>
-    </div>
-
-    <!-- Confirm modal (webview não suporta window.confirm) -->
-    <div id="modal-overlay">
-      <div id="modal">
-        <div id="modal-msg"></div>
-        <div id="modal-actions">
-          <button id="modal-cancel" class="pop-btn">Cancelar</button>
-          <button id="modal-ok" class="pop-btn primary">Confirmar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════ Settings Modal ════ -->
-    <div id="settings-overlay" onclick="closeSettings(event)">
-      <div id="settings-modal">
-        <div id="settings-header">
-          <span><span data-icon="settings"></span> Configurações</span>
-          <button id="settings-close" onclick="closeSettings()" data-icon="x"></button>
-        </div>
-        <div id="settings-body">
-          <div class="settings-row" id="settings-ip-row" onclick="copyNetworkIp()" title="Clique para copiar">
-            <span class="settings-row-label">IP da rede</span>
-            <span class="settings-row-value" id="settings-ip-value"></span>
+      <!-- ════ Task Modal ════ -->
+      <div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
+        <div id="task-modal">
+          <div id="task-modal-head">
+            <input id="task-title-input" type="text"
+              placeholder="Título da task…"
+              autocomplete="off" />
+            <select id="task-status-select">
+              <option value="todo">A Fazer</option>
+              <option value="in-progress">Em Andamento</option>
+              <option value="done">Concluído</option>
+            </select>
+            <button class="kanban-modal-close" id="task-modal-close"
+              onclick="closeTaskModal()" title="Fechar">
+              <span data-icon="x"></span>
+            </button>
           </div>
-          <div class="settings-row" id="settings-theme-row" onclick="toggleTheme()">
-            <span class="settings-row-label">Tema</span>
-            <span class="settings-row-value" id="settings-theme-label"></span>
+          <div id="task-modal-body">
+            <div class="task-field">
+              <label class="task-label">Descrição (markdown)</label>
+              <textarea id="task-desc-textarea"
+                placeholder="Detalhes, contexto, links…" rows="5"></textarea>
+            </div>
+            <div class="task-meta-row">
+              <div class="task-field">
+                <label class="task-label">Projeto</label>
+                <select id="task-project-select">
+                  <option value="">Nenhum</option>
+                </select>
+              </div>
+              <div class="task-field">
+                <label class="task-label">Data limite</label>
+                <input id="task-due-input" type="date" />
+              </div>
+              <div class="task-field">
+                <label class="task-label">Tags</label>
+                <input id="task-tags-input" type="text"
+                  placeholder="tags, separadas, por vírgula" />
+              </div>
+              <div class="task-field" style="position:relative">
+                <label class="task-label">Nota vinculada</label>
+                <div id="task-note-wrap">
+                  <input id="task-note-input" type="text"
+                    placeholder="Buscar nota…" autocomplete="off"
+                    oninput="filterNoteSearch()" onfocus="filterNoteSearch()" />
+                  <button id="task-note-clear" onclick="clearNoteLink()"
+                    title="Remover nota" style="display:none">
+                    <span data-icon="x"></span>
+                  </button>
+                </div>
+                <div id="task-note-dropdown"></div>
+                <input type="hidden" id="task-note-id" />
+              </div>
+            </div>
           </div>
-          <div class="settings-row" onclick="copySkill()">
-            <span class="settings-row-label">Copiar skill para IA</span>
-            <span class="settings-row-hint">Markdown com endpoints</span>
-          </div>
-          <div class="settings-row" onclick="downloadBackup()">
-            <span class="settings-row-label">Fazer backup</span>
-            <span class="settings-row-hint">JSON com todos os dados</span>
-          </div>
-          <div class="settings-row" onclick="triggerRestore()">
-            <span class="settings-row-label">Restaurar backup</span>
-            <span class="settings-row-hint">Mescla com dados atuais</span>
+          <div id="task-modal-footer">
+            <button class="tool-btn danger" id="task-delete-btn"
+              style="display:none" onclick="deleteCurrentTask()">
+              <span data-icon="trash"></span>
+            </button>
+
+            <button class="tool-btn" onclick="copyTaskRef()">
+              <span data-icon="hash"></span>
+            </button>
+
+            <div class="task-footer-spacer"></div>
+            <button class="tool-btn"
+              onclick="closeTaskModal()">Cancelar</button>
+            <button class="tool-btn primary"
+              onclick="saveCurrentTask()">Salvar</button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
-    <aside id="agent-panel">
-      <!-- Estado recolhido: rail fino vertical -->
-      <button id="agent-collapsed" onclick="toggleAgent()" title="Abrir assistente">
-        <span class="agent-orb"><span data-icon="bot"></span></span>
-        <span class="agent-collapsed-label">Assistente</span>
-      </button>
+      <!-- ════ Project Modal ════ -->
+      <div id="project-modal-overlay"
+        onclick="closeProjectModalOnOverlay(event)">
+        <div id="project-modal">
+          <div id="project-modal-head">
+            <input id="project-name-input" type="text"
+              placeholder="Nome do projeto…" autocomplete="off" />
+            <button class="kanban-modal-close" onclick="closeProjectModal()"
+              title="Fechar">
+              <span data-icon="x"></span>
+            </button>
+          </div>
+          <div id="project-modal-footer">
+            <div class="task-footer-spacer"></div>
+            <button class="tool-btn"
+              onclick="closeProjectModal()">Cancelar</button>
+            <button class="tool-btn primary"
+              onclick="saveProject()">Criar Projeto</button>
+          </div>
+        </div>
+      </div>
 
-      <!-- Estado expandido: sidebar completa -->
-      <div class="agent-body">
-        <header id="chat-header">
-          <span id="chat-title">
+      <!-- Floating comment button (shown on text selection in note markmap) -->
+      <button id="markmap-comment-btn" type="button">Comentar</button>
+
+      <!-- Annotation popover -->
+      <div id="annot-popover">
+        <div id="pop-head">
+          <span id="pop-label">TRECHO</span>
+          <span id="pop-quote"></span>
+        </div>
+        <div id="pop-types">
+          <button class="type-btn active" data-type="note"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
+          <button class="type-btn" data-type="decision"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
+          <button class="type-btn" data-type="question"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
+          <button class="type-btn" data-type="todo"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
+          <button class="type-btn" data-type="warning"
+            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
+        </div>
+        <div id="pop-body">
+          <textarea id="pop-textarea"
+            placeholder="Escreva a anotação…"></textarea>
+        </div>
+        <div id="pop-foot">
+          <button class="pop-btn" id="pop-delete"
+            onclick="deleteAnnotation()">Excluir</button>
+          <button class="pop-btn" id="pop-cancel"
+            onclick="closeAnnotPopover()">Cancelar</button>
+          <button class="pop-btn primary" id="pop-save"
+            onclick="saveAnnotation()">Salvar</button>
+        </div>
+      </div>
+
+      <!-- Confirm modal (webview não suporta window.confirm) -->
+      <div id="modal-overlay">
+        <div id="modal">
+          <div id="modal-msg"></div>
+          <div id="modal-actions">
+            <button id="modal-cancel" class="pop-btn">Cancelar</button>
+            <button id="modal-ok" class="pop-btn primary">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ Settings Modal ════ -->
+      <div id="settings-overlay" onclick="closeSettings(event)">
+        <div id="settings-modal">
+          <div id="settings-header">
+            <span><span data-icon="settings"></span> Configurações</span>
+            <button id="settings-close" onclick="closeSettings()"
+              data-icon="x"></button>
+          </div>
+          <div id="settings-body">
+            <div class="settings-row" id="settings-ip-row"
+              onclick="copyNetworkIp()" title="Clique para copiar">
+              <span class="settings-row-label">IP da rede</span>
+              <span class="settings-row-value" id="settings-ip-value"></span>
+            </div>
+            <div class="settings-row" id="settings-theme-row"
+              onclick="toggleTheme()">
+              <span class="settings-row-label">Tema</span>
+              <span class="settings-row-value" id="settings-theme-label"></span>
+            </div>
+            <div class="settings-row" onclick="copySkill()">
+              <span class="settings-row-label">Copiar skill para IA</span>
+              <span
+                class="settings-row-hint">Endpoints, agentes e workflows</span>
+            </div>
+            <div class="settings-row" onclick="downloadBackup()">
+              <span class="settings-row-label">Fazer backup</span>
+              <span class="settings-row-hint">JSON com todos os dados</span>
+            </div>
+            <div class="settings-row" onclick="triggerRestore()">
+              <span class="settings-row-label">Restaurar backup</span>
+              <span class="settings-row-hint">Mescla com dados atuais</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
+      <aside id="agent-panel">
+        <!-- Estado recolhido: rail fino vertical -->
+        <button id="agent-collapsed" onclick="toggleAgent()"
+          title="Abrir assistente">
+          <span class="agent-orb"><span data-icon="bot"></span></span>
+          <span class="agent-collapsed-label">Assistente</span>
+        </button>
+
+        <!-- Estado expandido: sidebar completa -->
+        <div class="agent-body">
+          <header id="chat-header">
+            <span id="chat-title">
             <span class="agent-chip"><span data-icon="bot"></span></span>
             Assistente<span class="agent-presence" title="Disponível"></span>
           </span>
-          <select id="chat-provider" title="Provedor de IA">
-            <option value="ollama">Ollama (local)</option>
-            <option value="deepseek">DeepSeek</option>
-          </select>
-          <div id="chat-header-actions">
-            <button class="ghost-btn" onclick="clearChat()" title="Limpar conversa">limpar</button>
-            <button class="ghost-btn" id="agent-collapse"
-              onclick="toggleAgent()" title="Recolher">
-              <span data-icon="panel-right"></span>
-            </button>
+            <select id="chat-provider" title="Provedor de IA">
+              <option value="ollama">Ollama (local)</option>
+              <option value="deepseek">DeepSeek</option>
+            </select>
+            <div id="chat-header-actions">
+              <button class="ghost-btn" onclick="clearChat()"
+                title="Limpar conversa">limpar</button>
+              <button class="ghost-btn" id="agent-collapse"
+                onclick="toggleAgent()" title="Recolher">
+                <span data-icon="panel-right"></span>
+              </button>
+            </div>
+          </header>
+          <div id="chat-feed"></div>
+          <div id="chat-composer">
+            <button id="chat-stop" onclick="stopChat()"
+              style="display:none"><span data-icon="x"></span> Parar</button>
+            <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
+              rows="1"></textarea>
+            <button id="chat-send" onclick="sendChatMessage()"
+              data-icon="sparkles"></button>
           </div>
-        </header>
-        <div id="chat-feed"></div>
-        <div id="chat-composer">
-          <button id="chat-stop" onclick="stopChat()"
-            style="display:none"><span data-icon="x"></span> Parar</button>
-          <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
-            rows="1"></textarea>
-          <button id="chat-send" onclick="sendChatMessage()"
-            data-icon="sparkles"></button>
         </div>
-      </div>
-    </aside>
-
-    </div><!-- /#body-main -->
+      </aside>
+    </div>
+    <!-- /#body-main -->
 
     <!-- ════ Terminal Panel ════ -->
     <aside id="terminal-panel">
       <div id="terminal-handle" title="Redimensionar terminal"></div>
       <div id="terminal-header">
-        <button class="term-back" onclick="toggleTerminal()" title="Voltar">← Terminal</button>
+        <button class="term-back" onclick="toggleTerminal()"
+          title="Voltar">← Terminal</button>
         <span class="term-title">⌨ Terminal</span>
         <span class="term-status" id="term-status" title="Desconectado"></span>
-        <button class="term-close" onclick="toggleTerminal()" title="Fechar terminal">
+        <button class="term-close" onclick="toggleTerminal()"
+          title="Fechar terminal">
           <span data-icon="x"></span>
         </button>
       </div>
@@ -1086,6 +1381,7 @@
     <script src="/scripts/skills.js"></script>
     <script src="/scripts/diagrams.js"></script>
     <script src="/scripts/tasks.js"></script>
+    <script src="/scripts/workflows.js"></script>
     <script src="/scripts/mocks.js"></script>
     <script src="/scripts/favorites.js"></script>
     <script src="/scripts/podcasts.js"></script>

@@ -77,6 +77,10 @@ const migrations: Migration[] = [
       }
     }
   },
+
+  // v7 — workflows de agentes externos. As entidades usam prefixos novos no
+  // KV, então não há dados antigos para transformar.
+  async (_kv) => {},
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

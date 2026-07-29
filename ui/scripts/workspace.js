@@ -1,4 +1,4 @@
-// ════ Deep links — abre diagram/podcast/task direto pela URL ════
+// ════ Deep links — abre entidades direto pela URL ════
 
 const handleDeepLink = () => {
   const hash = window.location.hash;
@@ -19,6 +19,13 @@ const handleDeepLink = () => {
   const task = hash.match(/^#task\/([a-f0-9-]{36})$/);
   if (task) {
     setMode('tasks');
+    history.replaceState(null, '', '/');
+    return;
+  }
+  const workflow = hash.match(/^#workflow\/([a-f0-9-]{36})$/);
+  if (workflow) {
+    setMode('workflows');
+    openWorkflow(workflow[1]);
     history.replaceState(null, '', '/');
     return;
   }

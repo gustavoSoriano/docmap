@@ -42,6 +42,7 @@ Ideal para:
 | **🎙️ Podcasts com IA** | Gera áudio com 2+ vozes a partir de texto ou roteiro |
 | **🎬 Slides sincronizados** | CSS art puro animado que troca conforme o áudio avança |
 | **✅ Kanban de tarefas** | Organize tarefas e vincule a notas |
+| **🔀 Workflows multiagente** | Coordene Claude, Codex, opencode e outros agentes externos em um DAG |
 | **🔖 Favoritos** | Bookmarks inteligentes com tags, categorias e contador de acesso |
 | **🧪 Mocks HTTP** | Servidor local de mocks para testar integrações |
 | **🤖 AI API** | Endpoint local para agentes e integrações próprias |
@@ -89,7 +90,7 @@ Use **Ollama** local (padrão, sem custo, sem internet) ou conecte a provedores 
 A única ferramenta open-source que transforma texto em episódio de áudio com **slides visuais sincronizados**, tudo em CSS art puro. Pause, acelere, volte: os slides seguem o tempo do áudio naturalmente.
 
 ### 🧩 Extensível via API
-A porta `:3334` expõe uma API REST para agentes. Integrações próprias podem criar notas, diagramas, tasks, favoritos e podcasts programaticamente.
+A porta `:3334` expõe uma API REST para agentes. Integrações próprias podem criar notas, diagramas, tasks, favoritos e podcasts, ou participar de workflows persistidos declarando ferramenta, provider e modelo. O docmap coordena dependências, claims, eventos e revisões sem iniciar nenhuma CLI.
 
 ### 🚀 Auto-update transparente
 Binários são distribuídos via GitHub Releases. O app detecta novas versões e atualiza sozinho — sem loja, sem gatekeeper.

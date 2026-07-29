@@ -11,11 +11,13 @@ import { tasksHandler } from '../tasks/handler.ts';
 import { projectsHandler } from '../projects/handler.ts';
 import { mocksHandler } from '../mocks/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
+import { workflowsHandler } from '../workflows/handler.ts';
+import { skillMarkdown } from '../skill.ts';
 import { notFound } from '../server/response.ts';
 import type { HandlerDeps } from '../server/types.ts';
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '127.0.0.1',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
@@ -40,6 +42,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const projects = projectsHandler(deps.kv);
   const mocks = mocksHandler(deps.kv);
   const podcasts = podcastsHandler(deps.kv);
+  const workflows = workflowsHandler(deps.kv);
 
   return async (req: Request): Promise<Response> => {
     if (req.method === 'OPTIONS') {
@@ -63,7 +66,16 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/favorites')) res = await favorites(req, url);
     else if (pathname.startsWith('/mocks')) res = await mocks(req, url);
     else if (pathname.startsWith('/podcasts')) res = await podcasts(req, url);
-    else res = notFound();
+    else if (
+      pathname.startsWith('/workflows') ||
+      pathname.startsWith('/agents') ||
+      pathname.startsWith('/orchestrator')
+    ) res = await workflows(req, url);
+    else if (pathname === '/system/skill') {
+      res = new Response(skillMarkdown(), {
+        headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+      });
+    } else res = notFound();
 
     return withCors(res);
   };

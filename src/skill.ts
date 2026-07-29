@@ -8,7 +8,7 @@ export const skillMarkdown = (): string =>
 Base URL: \`http://127.0.0.1:3334\`
 Formato: JSON. App precisa estar rodando.
 
-> **Tags = tema.** Notas, tarefas, diagramas, macros, podcasts e favoritos
+> **Tags = tema.** Notas, tarefas, workflows, diagramas, macros, podcasts e favoritos
 > aceitam \`tags?: string[]\` (opcional) — o ASSUNTO da entidade, eixo pelo qual
 > o docmap conecta itens do mesmo tema. São normalizadas ao salvar: minúsculas,
 > sem acento, slug ("Machine Learning" → \`machine-learning\`; "Programação" →
@@ -101,6 +101,194 @@ Tipos Mermaid: \`flowchart\`, \`sequenceDiagram\`, \`classDiagram\`, \`stateDiag
 
 O \`interpreter\` (\`bash\` ou \`deno\`) é detectado automaticamente pelo shebang.
 Execução continua sendo manual pelo usuário dentro do app.
+
+---
+
+## Workflows — orquestração de agentes externos
+
+Workflows são apartados das tasks do Kanban. O Docmap **não chama CLIs nem
+LLMs** neste módulo: Claude Code, Codex, opencode e o próprio orquestrador são
+agentes externos iniciados manualmente. A API apenas coordena estado,
+dependências, claims, conflitos, eventos e histórico.
+
+### Regra fundamental
+
+O executor nunca marca um nó como concluído. Ele envia
+\`POST /workflows/nodes/:id/return\`, que deixa o nó em \`returned\`. O usuário
+também pode registrar manualmente "fiz isso" pela UI ou por
+\`POST /workflows/nodes/:id/human-return\`; isso cria uma execução humana
+rastreável e também deixa o nó em \`returned\`. O orquestrador descobre o
+retorno pela inbox persistida e decide se aprova, solicita retrabalho, expande
+o fluxo ou pede intervenção humana.
+
+### Papel estrito do orquestrador
+
+O orquestrador **não executa trabalho de nó**. Ele não altera arquivos, não roda
+testes, não implementa código, não cria branch/worktree, não faz commits e não
+deve chamar endpoints de execução de nó como \`/workflows/nodes/:id/claim\`,
+\`/start\` ou \`/return\`. O papel dele é somente:
+
+- decompor o objetivo em nós;
+- criar dependências e escopos;
+- recomendar ferramenta/provider/modelo e complexidade;
+- responder perguntas dos executores;
+- revisar retornos \`returned\` e decidir \`approve | rework | expand |
+  human_intervention | cancel\`;
+- concluir o workflow quando a inbox indicar que ele está concluível.
+
+Para saber se uma tarefa terminou, o orquestrador deve consultar
+\`GET /orchestrator/inbox?agentSessionId=...\`. O ciclo operacional é:
+
+1. enviar \`POST /agents/:agentSessionId/heartbeat\`;
+2. consultar a inbox;
+3. processar todos os itens \`planning\`, \`returned\`, \`questions\` e
+   \`completable\`;
+4. se não houver ação, aguardar o \`pollAfterSeconds\` retornado pela inbox
+   (padrão: 180 segundos) e consultar novamente.
+
+O orquestrador não deve dizer apenas "vou verificar depois" e parar; ele precisa
+manter essa cadência enquanto estiver conectado.
+
+### Conectar um agente
+
+\`\`\`http
+POST /agents/connect
+Content-Type: application/json
+
+{
+  "name": "codex-backend-1",
+  "tool": "codex-cli",
+  "provider": "openai",
+  "model": "gpt-5-codex",
+  "role": "executor",
+  "capabilities": ["code", "deno", "tests"]
+}
+\`\`\`
+
+Guarde o \`agentSessionId\` retornado. Durante trabalhos longos, envie
+\`POST /agents/:agentSessionId/heartbeat\`. A interface mostra nome,
+ferramenta, provider, modelo, papel, presença e nó atual.
+
+### Endpoints de agentes
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/agents\` | Sessões e presença dos agentes |
+| POST | \`/agents/connect\` | Conecta e declara identidade |
+| POST | \`/agents/:id/heartbeat\` | Mantém a sessão ativa |
+| GET | \`/agents/:id/inbox\` | Trabalho, perguntas e respostas da sessão |
+| POST | \`/agents/:id/disconnect\` | Encerra sessão sem trabalho ativo |
+| GET | \`/orchestrator/inbox?agentSessionId=...\` | Planejamentos, retornos, perguntas e workflows concluíveis |
+
+### Endpoints de workflows
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/workflows\` | Lista demandas e contagens por estado |
+| POST | \`/workflows\` | Cria \`{ title, objective, description?, tags?, conflictPolicy?, defaultMaxAttempts? }\` |
+| GET | \`/workflows/:id\` | Workflow, nós, arestas, runs, perguntas e agentes |
+| PUT | \`/workflows/:id\` | Edita metadados |
+| DELETE | \`/workflows/:id\` | Remove workflow e histórico |
+| POST | \`/workflows/:id/claim-orchestration\` | Orquestrador assume o workflow |
+| POST | \`/workflows/:id/release-orchestration\` | Libera o orquestrador |
+| POST | \`/workflows/:id/start\` | Inicia e libera nós sem bloqueios |
+| POST | \`/workflows/:id/complete\` | Conclusão explícita quando \`canComplete=true\` |
+| GET | \`/workflows/:id/events\` | Event log persistido |
+| GET | \`/workflows/events\` | SSE de atualizações em tempo real |
+| GET | \`/workflows/:id/prompt?role=orchestrator|executor\` | Prompt sincronizado com a API |
+
+### Nós e dependências
+
+\`\`\`http
+POST /workflows/:workflowId/nodes
+Content-Type: application/json
+
+{
+  "title": "Implementar store",
+  "description": "Criar persistência e regras determinísticas",
+  "acceptanceCriteria": ["check passa", "claim é atômico"],
+  "contextRefs": [{"kind": "file", "ref": "src/tasks/store.ts"}],
+  "complexity": "m",
+  "kind": "code",
+  "requiredCapabilities": ["deno", "tests"],
+  "recommendedAgent": {
+    "tool": "codex-cli",
+    "provider": "openai",
+    "model": "gpt-5-codex"
+  },
+  "readScopes": ["src/tasks/"],
+  "writeScopes": ["src/workflows/"],
+  "isolation": "worktree",
+  "maxAttempts": 3,
+  "dependsOn": ["<node-id>"]
+}
+\`\`\`
+
+Complexidade: \`xs | s | m | l | xl\`. Isolamento:
+\`shared | branch | worktree\`. O agente externo cria a branch/worktree; o
+Docmap apenas registra e valida o contrato.
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/workflows/available?agentSessionId=...&workflowId=...\` | Nós prontos compatíveis com capacidades |
+| POST | \`/workflows/:id/nodes\` | Cria nó |
+| POST | \`/workflows/:id/edges\` | Cria \`{ fromNodeId, toNodeId, kind }\` |
+| GET | \`/workflows/nodes/:id\` | Pacote completo + dependências aprovadas |
+| GET | \`/workflows/nodes/:id/prompt\` | Prompt específico copiável |
+| POST | \`/workflows/nodes/:id/claim\` | Claim atômico \`{ agentSessionId }\` |
+| POST | \`/workflows/nodes/:id/start\` | Inicia e registra ambiente/worktree |
+| POST | \`/workflows/nodes/:id/questions\` | Registra dúvida sem falhar |
+| POST | \`/workflows/questions/:id/answer\` | Orquestrador/humano responde |
+| POST | \`/workflows/nodes/:id/return\` | Executor devolve resultado |
+| POST | \`/workflows/nodes/:id/human-return\` | Usuário registra execução manual e envia para revisão |
+| POST | \`/workflows/nodes/:id/decision\` | Revisa o retorno |
+| POST | \`/workflows/nodes/:id/release\` | Abandona tentativa e libera nó |
+
+### Retorno estruturado
+
+\`\`\`json
+{
+  "agentSessionId": "...",
+  "outcome": "success",
+  "summary": "Implementação concluída",
+  "result": "Decisões e detalhes para o orquestrador",
+  "logs": ["deno task check: ok"],
+  "changedFiles": ["src/workflows/store.ts"],
+  "diff": "...",
+  "tests": [{"command": "deno task check", "status": "passed"}],
+  "artifacts": []
+}
+\`\`\`
+
+\`outcome\`: \`success | partial | failed | blocked | needs_input\`.
+
+### Retorno humano
+
+\`POST /workflows/nodes/:id/human-return\` usa o mesmo contrato de evidências do
+retorno estruturado, mas não exige \`agentSessionId\`. O Docmap cria uma sessão
+sintética \`docmap-ui · human · manual\`, registra uma tentativa e move o nó para
+\`returned\`. O orquestrador continua sendo responsável por revisar e decidir.
+
+### Revisão
+
+\`\`\`json
+POST /workflows/nodes/:id/decision
+{
+  "agentSessionId": "<sessão do orquestrador>",
+  "decision": "approve",
+  "feedback": "Critérios atendidos"
+}
+\`\`\`
+
+\`decision\`: \`approve | rework | expand | human_intervention | cancel\`.
+Em \`expand\`, envie também \`newNodes\`; os novos nós dependerão do nó revisado.
+Ao esgotar \`maxAttempts\`, retrabalho vira \`human_intervention\`.
+
+### Prompts prontos
+
+- \`GET /workflows/prompts/connect?role=orchestrator|executor|reviewer\`
+- \`GET /workflows/:id/prompt?role=orchestrator|executor|reviewer\`
+- \`GET /workflows/nodes/:id/prompt\`
 
 ---
 
