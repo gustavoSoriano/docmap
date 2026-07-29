@@ -7924,25 +7924,9 @@ svg#kg-svg:active { cursor: grabbing; }
         title="Notas">
     <span class="rail-ico" data-icon="notebook"></span><span class="rail-lbl">Notas</span>
   </button>
-      <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
-        title="Macros">
-    <span class="rail-ico" data-icon="bot"></span><span class="rail-lbl">Macros</span>
-  </button>
-      <button class="rail-btn" id="rail-skills" onclick="setMode('skills')"
-        title="Skills">
-    <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skills</span>
-  </button>
-      <button class="rail-btn" id="rail-diagrams" onclick="setMode('diagrams')"
-        title="Diagramas">
-    <span class="rail-ico" data-icon="git-branch"></span><span class="rail-lbl">Diag</span>
-  </button>
       <button class="rail-btn" id="rail-tasks" onclick="setMode('tasks')"
         title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
-  </button>
-      <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
-        title="Mocks HTTP">
-    <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
   </button>
       <button class="rail-btn" id="rail-favorites"
         onclick="setMode('favorites')" title="Favoritos">
@@ -7952,16 +7936,33 @@ svg#kg-svg:active { cursor: grabbing; }
         onclick="setMode('podcasts')" title="Podcasts">
     <span class="rail-ico" data-icon="mic"></span><span class="rail-lbl">Pods</span>
   </button>
+      <button class="rail-btn" id="rail-skills" onclick="setMode('skills')"
+        title="Skills">
+    <span class="rail-ico" data-icon="sparkles"></span><span class="rail-lbl">Skills</span>
+  </button>
+  <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
+        title="Macros">
+    <span class="rail-ico" data-icon="bot"></span><span class="rail-lbl">Macros</span>
+  </button>
+      <button class="rail-btn" id="rail-diagrams" onclick="setMode('diagrams')"
+        title="Diagramas">
+    <span class="rail-ico" data-icon="git-branch"></span><span class="rail-lbl">Diag</span>
+  </button>
+      <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
+        title="Mocks HTTP">
+    <span class="rail-ico" data-icon="share"></span><span class="rail-lbl">Mocks</span>
+  </button>
       <button class="rail-btn" id="rail-canvas" onclick="setMode('canvas')"
         title="Canvas Realtime">
     <span class="rail-ico" data-icon="paintbrush"></span><span class="rail-lbl">Canva</span>
   </button>
+      
+      <div class="rail-spacer"></div>
       <button class="rail-btn" id="rail-terminal"
         onclick="toggleTerminal()" title="Terminal (Ctrl+\`)">
         <span class="rail-ico" data-icon="terminal"></span>
         <span class="rail-lbl">Term</span>
       </button>
-      <div class="rail-spacer"></div>
       <button class="rail-btn" id="rail-settings" onclick="openSettings()"
         title="Configurações">
     <span class="rail-ico" data-icon="settings"></span><span class="rail-lbl">Ajustes</span>
