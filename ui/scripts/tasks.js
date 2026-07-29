@@ -446,6 +446,18 @@ const deleteCurrentTask = async () => {
   await loadTasks();
 };
 
+const copyTaskRef = () => {
+  if (!currentTaskId) return;
+  const task = allTasks.find((t) => t.id === currentTaskId);
+  if (!task) return;
+  const ref = `#${task.id}`;
+  navigator.clipboard.writeText(ref).then(() => {
+    toast(`Referência copiada: ${ref}`);
+  }).catch(() => {
+    toast('Erro ao copiar referência');
+  });
+};
+
 // ══════════════════════════════════════════
 // Toolbar — deletar projeto selecionado
 // ══════════════════════════════════════════

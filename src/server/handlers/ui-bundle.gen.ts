@@ -8754,6 +8754,11 @@ svg#kg-svg:active { cursor: grabbing; }
             style="display:none" onclick="deleteCurrentTask()">
             <span data-icon="trash"></span>
           </button>
+
+          <button class="tool-btn" onclick="copyTaskRef()">
+            <span data-icon="hash"></span>
+          </button>
+
           <div class="task-footer-spacer"></div>
           <button class="tool-btn" onclick="closeTaskModal()">Cancelar</button>
           <button class="tool-btn primary"
@@ -10194,7 +10199,7 @@ const deleteCurrentSkill = async () => {
 // Copia a referência que você cola num prompt de IA
 const copySkillRef = () => {
   if (!currentSkill) return;
-  const ref = \`Skill disponível em: GET http://127.0.0.1:3334/skills/\${currentSkill.name}\\n(ou pelo ID: \${currentSkill.id})\`;
+  const ref = \`CURL http://127.0.0.1:3334/skills/\${currentSkill.name}\`;
   copyToClipboard(ref, 'Referência copiada — cole no prompt da IA');
 };
 
@@ -10917,6 +10922,18 @@ const deleteCurrentTask = async () => {
   await fetch(\`/tasks/\${currentTaskId}\`, { method: 'DELETE' });
   closeTaskModal();
   await loadTasks();
+};
+
+const copyTaskRef = () => {
+  if (!currentTaskId) return;
+  const task = allTasks.find((t) => t.id === currentTaskId);
+  if (!task) return;
+  const ref = \`#\${task.id}\`;
+  navigator.clipboard.writeText(ref).then(() => {
+    toast(\`Referência copiada: \${ref}\`);
+  }).catch(() => {
+    toast('Erro ao copiar referência');
+  });
 };
 
 // ══════════════════════════════════════════

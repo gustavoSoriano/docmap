@@ -140,7 +140,7 @@ const deleteCurrentSkill = async () => {
 // Copia a referência que você cola num prompt de IA
 const copySkillRef = () => {
   if (!currentSkill) return;
-  const ref = `Skill disponível em: GET http://127.0.0.1:3334/skills/${currentSkill.name}\n(ou pelo ID: ${currentSkill.id})`;
+  const ref = `CURL http://127.0.0.1:3334/skills/${currentSkill.name}`;
   copyToClipboard(ref, 'Referência copiada — cole no prompt da IA');
 };
 
