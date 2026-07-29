@@ -442,6 +442,12 @@ const saveCurrentTask = async () => {
 
 const deleteCurrentTask = async () => {
   if (!currentTaskId) return;
+  const title = $('task-title-input')?.value?.trim() || 'esta task';
+  const ok = await confirmDialog(
+    `Excluir "${title}"? Esta ação não pode ser desfeita.`,
+    { danger: true, okLabel: 'Excluir' },
+  );
+  if (!ok) return;
   await fetch(`/tasks/${currentTaskId}`, { method: 'DELETE' });
   closeTaskModal();
   await loadTasks();
