@@ -10831,7 +10831,8 @@ const openNewTask = async (status) => {
   $('task-desc-textarea').value = '';
   $('task-due-input').value     = '';
   $('task-tags-input').value    = '';
-  $('task-project-select').value = '';
+  // Herda projeto selecionado na toolbar do kanban
+  $('task-project-select').value = $('kanban-project-select')?.value ?? '';
   $('task-delete-btn').style.display = 'none';
 
   showTaskModal();
