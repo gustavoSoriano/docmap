@@ -66,6 +66,21 @@ export const spawnShell = (
   let closed = false;
   let sigkillTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // ── Watcher de exit ──
+  (async () => {
+    try {
+      const status = await process.status;
+      // Cancela timer de SIGKILL pendente (B-1 do code-quality-review)
+      if (sigkillTimer !== null) {
+        clearTimeout(sigkillTimer);
+        sigkillTimer = null;
+      }
+      onExit(status.code);
+    } catch {
+      onExit(-1);
+    }
+  })();
+
   // ── Loop de leitura do stdout ──
   const outDecoder = new TextDecoder();
   (async () => {
@@ -74,19 +89,18 @@ export const spawnShell = (
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
-          // MED-1: flush final do decoder para não perder bytes multi-byte
           try {
             const remainder = outDecoder.decode();
             if (remainder) onOutput(remainder);
           } catch {
-            // onOutput pode lançar se o WebSocket já fechou
+            // ignorar
           }
           break;
         }
         try {
           onOutput(outDecoder.decode(value, { stream: true }));
         } catch {
-          // onOutput pode lançar se o WebSocket já fechou — ignora
+          // ignorar
         }
       }
     } catch (err) {
@@ -94,7 +108,7 @@ export const spawnShell = (
     }
   })();
 
-  // ── Loop de leitura do stderr (decoder próprio, sem compartilhar estado) ──
+  // ── Loop de leitura do stderr ──
   const errDecoder = new TextDecoder();
   (async () => {
     try {
@@ -102,7 +116,6 @@ export const spawnShell = (
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
-          // MED-1: flush final
           try {
             const remainder = errDecoder.decode();
             if (remainder) onOutput(remainder);
@@ -122,24 +135,10 @@ export const spawnShell = (
     }
   })();
 
-  // ── Watcher de exit ──
-  (async () => {
-    try {
-      const status = await process.status;
-      // Cancela timer de SIGKILL pendente (B-1 do code-quality-review)
-      if (sigkillTimer !== null) {
-        clearTimeout(sigkillTimer);
-        sigkillTimer = null;
-      }
-      onExit(status.code);
-    } catch {
-      onExit(-1);
-    }
-  })();
-
   const shellObj: ShellProcess = {
     process,
     stdinWriter,
+    ptyPath: null,
     write: (data: Uint8Array): void => {
       writeChain = writeChain.then(() =>
         stdinWriter.write(data).catch(() => {
@@ -151,7 +150,6 @@ export const spawnShell = (
       if (closed) return; // ALT-4: idempotente
       closed = true;
 
-      // Drena writes pendentes com um write vazio antes de liberar o lock
       writeChain = writeChain.catch(() => {});
 
       try {
@@ -164,7 +162,6 @@ export const spawnShell = (
       } catch {
         // processo já morto
       }
-      // Garantia extra: SIGKILL após 1s se ainda estiver vivo
       sigkillTimer = setTimeout(() => {
         try {
           process.kill('SIGKILL');
@@ -176,9 +173,36 @@ export const spawnShell = (
     },
   };
 
-  // Ajusta PTY com o tamanho inicial (env COLUMNS/LINES + stty).
-  // Executa uma vez na abertura — resize em tempo real não é necessário.
-  resizeShell(shellObj, opts?.cols ?? 80, opts?.rows ?? 24);
+  // ── Detecta o caminho do PTY via inspeção de processos ──
+  // Usa pgrep -P e ps -o tty= para achar o terminal do shell filho.
+  // Zero writes no stdin — nada aparece no terminal.
+  // Após detectar (ou falhar), faz o resize inicial com o que tiver.
+  const initCols = opts?.cols ?? 80;
+  const initRows = opts?.rows ?? 24;
+  (async () => {
+    try {
+      await new Promise((r) => setTimeout(r, 100));
+      const pgrep = new Deno.Command('pgrep', {
+        args: ['-P', String(process.pid)],
+      });
+      const pgrepOut = await pgrep.output();
+      const childPid = new TextDecoder().decode(pgrepOut.stdout).trim();
+      if (childPid) {
+        const ps = new Deno.Command('ps', {
+          args: ['-o', 'tty=', '-p', childPid],
+        });
+        const psOut = await ps.output();
+        const ttyName = new TextDecoder().decode(psOut.stdout).trim();
+        if (ttyName && !ttyName.includes('??') && !ttyName.includes('error')) {
+          shellObj.ptyPath = `/dev/${ttyName}`;
+        }
+      }
+    } catch {
+      console.warn('[terminal] falha ao detectar PTY — resize via stdin');
+    }
+    // Tenta resize inicial após detecção (sempre roda — fallback via stdin se ptyPath for null)
+    void resizeShell(shellObj, initCols, initRows);
+  })();
 
   return shellObj;
 };
@@ -200,31 +224,31 @@ export const writeStdin = (shell: ShellProcess, data: string): void => {
 /**
  * Ajusta o tamanho do terminal.
  *
- * Escreve uma sequência no stdin do shell que:
- * 1. Desabilita o eco local (stty -echo) — o próprio comando ainda ecoa,
- *    mas comandos futuros não.
- * 2. Ajusta rows/cols.
- * 3. Limpa a tela com ANSI escape (\033[2J\033[H\033[3J) — isso apaga
- *    o texto do comando que foi ecoado no passo 1.
- * 4. Reabilita o eco (stty echo) — este comando NÃO ecoa porque o eco
- *    já está desligado.
- *
- * O resultado visual: o comando de resize pisca por ~1 frame e desaparece.
- * O prompt do shell aparece logo após, como se nada tivesse acontecido.
+ * Tenta primeiro via `stty -f <pty>` (subprocesso — zero echo).
+ * Se o PTY path não foi descoberto, usa fallback via stdin (eco breve,
+ * sem limpar a tela).
  */
-export const resizeShell = (
+export const resizeShell = async (
   shell: ShellProcess,
   cols: number,
   rows: number,
-): void => {
+): Promise<void> => {
   try {
-    // \033[2J = limpa tela inteira
-    // \033[H  = cursor para (0,0)
-    // \033[3J = limpa scrollback (xterm extension, suportado pelo xterm.js)
-    const encoded = new TextEncoder().encode(
-      `stty -echo rows ${rows} cols ${cols} 2>/dev/null; printf '\\033[2J\\033[H\\033[3J'; stty echo 2>/dev/null\n`,
-    );
-    shell.write(encoded);
+    const ptyPath = shell.ptyPath;
+    if (ptyPath) {
+      await new Deno.Command('stty', {
+        args: ['-f', ptyPath, 'rows', String(rows), 'cols', String(cols)],
+      }).output();
+      return;
+    }
+  } catch {
+    // stty -f falhou — tenta fallback via stdin
+  }
+
+  // Fallback: escreve no stdin (eco breve, sem \033[2J\033[H\033[3J)
+  try {
+    const cmd = `stty -echo rows ${rows} cols ${cols} 2>/dev/null; stty echo 2>/dev/null\n`;
+    shell.write(new TextEncoder().encode(cmd));
   } catch {
     // stdin fechado — sem ação
   }

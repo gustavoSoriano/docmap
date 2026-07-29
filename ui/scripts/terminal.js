@@ -1,96 +1,30 @@
 // ════ Terminal Integrated — xterm.js + WebSocket ════
-// Depende de: Terminal (CDN xterm.js), dom.js ($)
-// Fit é implementado manualmente (sem dependência do FitAddon CDN)
+// Depende de: Terminal (CDN xterm.js), FitAddon (CDN xterm-addon-fit), dom.js ($)
 
 (function () {
   'use strict';
 
   // ── Estado ──
   let termInstance = null;
+  let fitAddon = null;
   let termSocket = null;
   let termOpen = false;
   var TERM_HEIGHT_KEY = 'docmap-term-height';
 
-  // ── Fit manual (substitui FitAddon) ──
-  // Guarda contra loop: só chama term.resize se cols/rows realmente mudaram.
-  var _lastFitCols = 0;
-  var _lastFitRows = 0;
-  var _fitting = false;
-
-  // Elemento de medição injetado no DOM — mais confiável que a API interna
-  // do xterm.js (_core._renderService.dimensions), que pode não estar
-  // disponível se o renderer ainda não terminou de inicializar.
-  var _measureEl = null;
-
-  const _ensureMeasureEl = function (fontFamily, fontSize) {
-    // B-4: guard contra chamada antes do DOM estar pronto
-    if (!document.body) return;
-    if (_measureEl) {
-      // Atualiza se mudou
-      _measureEl.style.fontFamily = fontFamily;
-      _measureEl.style.fontSize = fontSize + 'px';
-      return;
-    }
-    _measureEl = document.createElement('span');
-    _measureEl.style.position = 'absolute';
-    _measureEl.style.visibility = 'hidden';
-    _measureEl.style.whiteSpace = 'pre';
-    _measureEl.style.pointerEvents = 'none';
-    _measureEl.style.fontFamily = fontFamily;
-    _measureEl.style.fontSize = fontSize + 'px';
-    _measureEl.textContent = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    document.body.appendChild(_measureEl);
-  };
-
-  const _measureCell = function () {
-    if (!_measureEl) return null;
-    var rect = _measureEl.getBoundingClientRect();
-    var len = 62; // comprimento da string acima (letras + números)
-    var cellW = rect.width / len;
-    var cellH = rect.height;
-    if (cellW <= 0 || cellH <= 0) return null;
-    return { width: cellW, height: cellH };
-  };
-
-  const manualFit = function () {
-    if (!termInstance || !termOpen || _fitting) return false;
+  // ── Fit via FitAddon oficial (substitui manualFit) ──
+  // NOTA: fitAddon.fit() resize o canvas internamente mas retorna undefined.
+  // Para saber se houve resize, usamos proposeDimensions() antes de fit().
+  const doFit = function () {
+    if (!termInstance || !fitAddon || !termOpen) return false;
     try {
-      var element = termInstance.element;
-      var parent = element && element.parentElement;
-      if (!parent) return false;
-
-      var w = parent.clientWidth;
-      var h = parent.clientHeight;
-      if (w <= 0 || h <= 0) return false;
-
-      var cs = getComputedStyle(parent);
-      w -= parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-      h -= parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-      if (w <= 0 || h <= 0) return false;
-
-      // Garante que o elemento de medição existe com a font correta
-      var fontFamily = termInstance.options.fontFamily || 'monospace';
-      var fontSize = termInstance.options.fontSize || 14;
-      _ensureMeasureEl(fontFamily, fontSize);
-
-      var cell = _measureCell();
-      if (!cell) return false; // elemento de medição não renderizou ainda
-
-      var cols = Math.max(2, Math.floor(w / cell.width));
-      var rows = Math.max(1, Math.floor(h / cell.height));
-
-      // Evita resize desnecessário (previne loop com ResizeObserver)
-      if (cols === _lastFitCols && rows === _lastFitRows) return false;
-
-      _fitting = true;
-      _lastFitCols = cols;
-      _lastFitRows = rows;
-      termInstance.resize(cols, rows);
-      _fitting = false;
+      var dims = fitAddon.proposeDimensions();
+      if (!dims) return false;
+      // Só resize se colunas/linhas realmente mudaram
+      if (dims.cols === termInstance.cols && dims.rows === termInstance.rows) return false;
+      fitAddon.fit();
       return true;
     } catch (e) {
-      _fitting = false;
-      console.warn('[terminal] manualFit failed:', e);
+      console.warn('[terminal] FitAddon.fit() failed:', e);
       return false;
     }
   };
@@ -158,6 +92,10 @@
       console.warn('xterm.js não carregou — terminal indisponível');
       return;
     }
+    if (typeof FitAddon === 'undefined') {
+      console.warn('xterm-addon-fit não carregou — terminal indisponível');
+      return;
+    }
 
     termInstance = new Terminal({
       cursorBlink: true,
@@ -169,20 +107,22 @@
       allowProposedApi: true,
     });
 
+    fitAddon = new FitAddon();
+    termInstance.loadAddon(fitAddon);
+
     var container = document.getElementById('terminal-container');
     if (!container) return;
 
     termInstance.open(container);
 
     // Fit inicial: espera o browser completar o layout antes de medir.
-    // requestAnimationFrame garante que o frame de renderização aconteceu.
-    // Um segundo rAF + setTimeout(0) garante que qualquer layout pendente
-    // (fontes, xterm interno) foi resolvido.
+    // O FitAddon usa as dimensões internas do xterm (mais preciso que
+    // span de medição), e já subtrai a scrollbar automaticamente.
     var fitRetries = 0;
     var MAX_FIT_RETRIES = 10;
     var tryInitialFit = function () {
       if (!termOpen || !termInstance) return;
-      var ok = manualFit();
+      var ok = doFit();
       if (!ok && fitRetries < MAX_FIT_RETRIES) {
         fitRetries++;
         requestAnimationFrame(function () {
@@ -209,7 +149,7 @@
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
           try {
-            var didResize = manualFit();
+            var didResize = doFit();
             // Só notifica o servidor se o resize REALMENTE mudou cols/rows
             if (didResize && termSocket && termSocket.readyState === WebSocket.OPEN) {
               termSocket.send(JSON.stringify({
@@ -225,8 +165,6 @@
     }
 
     // ── MutationObserver: sync de tema ──
-    // ALT-2: usa setOption() em vez de options.theme = (que opera num clone)
-    // B-5: só aplica tema se o terminal já foi aberto (element existe)
     if (window.MutationObserver) {
       var themeObserver = new MutationObserver(function () {
         if (termInstance && termInstance.element && typeof termInstance.setOption === 'function') {
@@ -242,10 +180,8 @@
 
   // ── Conexão WebSocket ──
   const connectTerminal = function () {
-    // CRIT-1: cobre também CONNECTING para evitar race condition
     if (termSocket && (termSocket.readyState === WebSocket.OPEN || termSocket.readyState === WebSocket.CONNECTING)) return;
 
-    // Fecha socket anterior se existir (evita double-connect que corrompe referência)
     if (termSocket) {
       try { termSocket.close(); } catch (_) { /* noop */ }
       termSocket = null;
@@ -268,8 +204,7 @@
       if (status) status.classList.add('connected');
       if (termInstance) {
         requestAnimationFrame(function () {
-          var did = manualFit();
-          // Se o fit funcionou, notifica o servidor do tamanho inicial
+          var did = doFit();
           if (did && termSocket && termSocket.readyState === WebSocket.OPEN) {
             termSocket.send(JSON.stringify({
               type: 'resize',
@@ -336,7 +271,7 @@
 
     // Fit após o painel ficar visível e layout completo
     requestAnimationFrame(function () {
-      setTimeout(function () { manualFit(); }, 50);
+      setTimeout(function () { doFit(); }, 50);
     });
   };
 
@@ -347,8 +282,6 @@
 
     var btn = document.getElementById('rail-terminal');
     if (btn) btn.classList.remove('active');
-
-    // Não desconecta WebSocket nem destrói xterm — shell persiste
   };
 
   // ── Drag handle (desktop apenas) ──
@@ -362,8 +295,8 @@
     var startHeight = 0;
 
     const onStart = function (e) {
-      if (window.innerWidth <= 600) return; // sem drag no mobile
-      if (e.touches) e.preventDefault();  // evita scroll simultâneo no touch
+      if (window.innerWidth <= 600) return;
+      if (e.touches) e.preventDefault();
       dragging = true;
       startY = e.touches ? e.touches[0].clientY : e.clientY;
       startHeight = panel.offsetHeight;
@@ -373,12 +306,11 @@
 
     const onMove = function (e) {
       if (!dragging) return;
-      if (e.touches) e.preventDefault();  // evita scroll simultâneo no touch
+      if (e.touches) e.preventDefault();
       var clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      var deltaY = startY - clientY; // arrastar pra cima = aumentar
+      var deltaY = startY - clientY;
       var newHeight = startHeight + deltaY;
 
-      // Clamp: 15vh a 60vh
       var vh = window.innerHeight / 100;
       var minH = 15 * vh;
       var maxH = 60 * vh;
@@ -393,12 +325,11 @@
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
 
-      // Salva altura
       try { localStorage.setItem(TERM_HEIGHT_KEY, panel.style.height); } catch (_) { /* quota ou private browsing */ }
 
-      // Re-fit do xterm após drag (container já visível, layout estável)
+      // Re-fit do xterm após drag
       requestAnimationFrame(function () {
-        var did = manualFit();
+        var did = doFit();
         if (did && termSocket && termSocket.readyState === WebSocket.OPEN) {
           termSocket.send(JSON.stringify({
             type: 'resize',

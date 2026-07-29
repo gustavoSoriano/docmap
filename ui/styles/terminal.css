@@ -2,6 +2,7 @@
 
 /* ── Desktop: dock inferior ── */
 #terminal-panel {
+  width: 100%;
   height: var(--term-default-h, 35vh);
   min-height: 15vh;
   max-height: 60vh;
@@ -108,6 +109,7 @@
 #terminal-container {
   flex: 1;
   min-height: 0;
+  width: 100%;
   overflow: hidden;        /* contém o xterm e evita que ele empurre o layout */
   position: relative;       /* containing block para os absolutes do xterm */
   /* fundo espelha o tema do terminal.
@@ -127,10 +129,12 @@
 }
 
 /* Viewport: sobrescreve background-color: #000 do xterm.css do CDN.
-   Transparente deixa o fundo do container (#terminal-container) aparecer
-   na folga à direita e em qualquer área não coberta pelo canvas. */
+   width: 100% !important sobrescreve o inline style que xterm.js define
+   (cols × charWidth < containerWidth) e força o viewport a ocupar toda
+   a largura do container — eliminando qualquer gap residual à direita. */
 #terminal-container .xterm-viewport {
   background-color: transparent !important;
+  width: 100% !important;
 }
 
 /* ═══ Scrollbar do xterm ═══ */

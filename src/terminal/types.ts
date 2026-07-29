@@ -19,6 +19,12 @@ export interface ShellProcess {
   readonly process: Deno.ChildProcess;
   readonly stdinWriter: WritableStreamDefaultWriter<Uint8Array>;
   /**
+   * Caminho do PTY (ex: /dev/ttys004). Descoberto uma vez na inicialização
+   * via pgrep -P + ps -o tty=. Usado para resize via `stty -f` sem escrever
+   * no stdin. null se a detecção ainda não ocorreu ou falhou.
+   */
+  ptyPath: string | null;
+  /**
    * Escreve dados no stdin de forma serializada.
    * Garante ordem e evita perda sob backpressure.
    */
