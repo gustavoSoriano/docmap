@@ -14,14 +14,15 @@ version: ${VERSION}
 description: >
   API REST local do docmap desktop — notas com mapa mental anotável, diagramas
   Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio por IA
-  (2+ vozes) e slides visuais sincronizados, mocks HTTP e workflows para
-  orquestrar agentes externos de diferentes ferramentas, providers e modelos.
+  (2+ vozes) e slides visuais sincronizados, canvas realtime para IA desenhar
+  HTML ao vivo, mocks HTTP e workflows para orquestrar agentes externos de
+  diferentes ferramentas, providers e modelos.
   Use quando o usuário mencionar notas, diagramas, skills, macros, tasks,
   kanban, agentes, orquestração, workflows, favoritos, podcasts, slides, mocks,
-  ou compartilhar um ID/link do docmap. O app precisa estar rodando.
+  canvas, canva, ou compartilhar um ID/link do docmap. O app precisa estar rodando.
 metadata:
   category: productivity
-  tags: [notes, diagrams, skills, tasks, agents, orchestration, workflows, podcasts, mocks, knowledge-base]
+  tags: [notes, diagrams, skills, tasks, agents, orchestration, workflows, podcasts, mocks, canvas, knowledge-base]
 ---
 
 `;

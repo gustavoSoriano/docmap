@@ -4,14 +4,15 @@ version: 7.0.0
 description: >
   API REST local do docmap desktop — notas com mapa mental anotável, diagramas
   Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio por IA
-  (2+ vozes) e slides visuais sincronizados, mocks HTTP e workflows para
-  orquestrar agentes externos de diferentes ferramentas, providers e modelos.
+  (2+ vozes) e slides visuais sincronizados, canvas realtime para IA desenhar
+  HTML ao vivo, mocks HTTP e workflows para orquestrar agentes externos de
+  diferentes ferramentas, providers e modelos.
   Use quando o usuário mencionar notas, diagramas, skills, macros, tasks,
   kanban, agentes, orquestração, workflows, favoritos, podcasts, slides, mocks,
-  ou compartilhar um ID/link do docmap. O app precisa estar rodando.
+  canvas, canva, ou compartilhar um ID/link do docmap. O app precisa estar rodando.
 metadata:
   category: productivity
-  tags: [notes, diagrams, skills, tasks, agents, orchestration, workflows, podcasts, mocks, knowledge-base]
+  tags: [notes, diagrams, skills, tasks, agents, orchestration, workflows, podcasts, mocks, canvas, knowledge-base]
 ---
 
 # docmap — API local (para IA)
@@ -35,10 +36,10 @@ Formato: JSON. App precisa estar rodando.
 ## Grafo de conhecimento
 
 - `GET /graph` — grafo de TODAS as entidades do docmap (notas, tasks, diagramas,
-  macros, podcasts, favoritos, skills) conectadas por TEMA. Read-only; reflete o
+  macros, podcasts, favoritos, skills, mocks, workflows) conectadas por TEMA. Read-only; reflete o
   estado atual do KV.
   - `nodes`: `{ id, label, kind }` — `id` = `"<tipo>:<uuid>"` (entidade) ou
-    `"tag:<slug>"` (tag). `kind` = `note|task|diagram|macro|podcast|favorite|skill|tag`.
+    `"tag:<slug>"` (tag). `kind` = `note|task|diagram|macro|podcast|favorite|skill|mock|workflow|tag`.
   - `links`: `{ source, target, kind }` — `kind` = `tagged` (entidade→tag) ou
     `reference` (task→nota via `noteId`).
   - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por
@@ -652,4 +653,73 @@ GET /favorites?q=api&type=site&type=dash
 # Cadastrar novo favorito
 POST /favorites { type: "site", title: "DocMap docs", url: "...", category: "docs", tags: ["produto"] }
 ```
+
+
+---
+
+## Canvas — tela realtime para IA desenhar HTML/CSS/JS ao vivo
+
+O docmap tem uma tela de canvas onde **IAs externas podem desenhar HTML visual em tempo real**,
+e o usuario ve o resultado instantaneamente. Util para prototipacao visual, diagramas
+dinamicos, debugging front-end e conversas visuais entre humano e IA.
+
+### Endpoints (porta :3333)
+
+| Metodo | Endpoint | Descricao |
+|--------|----------|-----------|
+| GET | `/canvas` | Abre a pagina standalone do canvas no navegador |
+| GET | `/canvas/ws` | WebSocket para receber atualizacoes em tempo real |
+| POST | `/canvas/push` | Envia HTML pro canvas (veja body abaixo) |
+| POST | `/canvas/clear` | Limpa o canvas |
+
+### POST /canvas/push — body
+
+```json
+{
+  "html": "<h1>Ola</h1>",
+  "type": "replace"
+}
+```
+
+**Tipos de mensagem:**
+
+| Type | Efeito |
+|------|--------|
+| `replace` | Substitui TODO o conteudo do canvas pelo HTML enviado |
+| `append` | Adiciona o HTML ao final do conteudo existente |
+| `css` | Injeta CSS (envolto em `<style>`) no canvas |
+| `clear` | Limpa o canvas (ignora o campo `html`) |
+
+### Quick start
+
+```bash
+# Abrir o canvas standalone
+open http://127.0.0.1:3333/canvas
+
+# Desenhar algo
+curl -X POST http://127.0.0.1:3333/canvas/push \
+  -H "Content-Type: application/json" \
+  -d '{"html":"<h1>Ola!</h1><style>body{background:#1a1a2e;color:#fff;display:grid;place-items:center;min-height:100vh;font-family:system-ui}</style>","type":"replace"}'
+
+# Acrescentar conteudo
+curl -X POST http://127.0.0.1:3333/canvas/push \
+  -H "Content-Type: application/json" \
+  -d '{"html":"<p>Mais conteudo</p>","type":"append"}'
+
+# Limpar
+curl -X POST http://127.0.0.1:3333/canvas/clear
+```
+
+### Seguranca
+
+- HTML renderizado em **iframe sandbox="allow-scripts"** (sem allow-same-origin)
+- O conteudo nao acessa cookies, localStorage ou DOM do docmap
+- Servidor valida tipo da mensagem e estrutura do body
+- Reconexao WebSocket com backoff exponencial e limite de 20 tentativas
+
+### Acesso
+
+- **Standalone**: http://127.0.0.1:3333/canvas
+- **Rail do docmap**: botao "Canva" na barra lateral
+- **URL direta**: qualquer navegador na rede local
 
