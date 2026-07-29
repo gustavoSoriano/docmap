@@ -10,6 +10,8 @@
   --kg-podcast: #f472b6;
   --kg-favorite: #fbbf24;
   --kg-skill: #22d3ee;
+  --kg-mock: #a8a29e;
+  --kg-workflow: #ef4444;
   --kg-tag: var(--text-3);
 }
 
@@ -81,6 +83,8 @@
 .kg-leg-podcast i { background: var(--kg-podcast); }
 .kg-leg-favorite i { background: var(--kg-favorite); }
 .kg-leg-skill i { background: var(--kg-skill); }
+.kg-leg-mock i { background: var(--kg-mock); }
+.kg-leg-workflow i { background: var(--kg-workflow); }
 .kg-leg-tag i { background: var(--kg-tag); }
 
 #kg-canvas {

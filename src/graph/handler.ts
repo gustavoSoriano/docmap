@@ -10,14 +10,16 @@ import { listPodcasts } from '../podcasts/store.ts';
 import { listFavorites } from '../favorites/store.ts';
 import { listSkills } from '../skills/store.ts';
 import { listMocks } from '../mocks/store.ts';
+import { listWorkflows } from '../workflows/store.ts';
+import type { Workflow } from '../workflows/types.ts';
 import { buildKnowledgeGraph } from './build.ts';
 import { json } from '../server/response.ts';
 import type { GraphEntity } from './types.ts';
 
 export const graphHandler =
   (kv: Deno.Kv) => async (_req: Request, _url: URL): Promise<Response> => {
-    const [notes, tasks, diagrams, macros, podcasts, favorites, skills, mocks] =
-      await Promise.all([
+    const [notes, tasks, diagrams, macros, podcasts, favorites, skills, mocks,
+      workflows] = await Promise.all([
         listNotes(kv),
         listTasks(kv),
         listDiagrams(kv),
@@ -26,6 +28,7 @@ export const graphHandler =
         listFavorites(kv),
         listSkills(kv),
         listMocks(kv),
+        listWorkflows(kv) as Promise<Workflow[]>,
       ]);
 
     const entities: GraphEntity[] = [
@@ -77,6 +80,12 @@ export const graphHandler =
         kind: 'mock' as const,
         label: `${m.method} ${m.path}`,
         tags: m.tags,
+      })),
+      ...workflows.map((w) => ({
+        id: w.id,
+        kind: 'workflow' as const,
+        label: w.title,
+        tags: w.tags,
       })),
     ];
 

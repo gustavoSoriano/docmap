@@ -4834,6 +4834,20 @@ body::before {
   line-height: 14px;
 }
 
+.wf-list-tags {
+  margin: 4px 0 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.wf-toolbar-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  vertical-align: middle;
+}
+
 .wf-list-meta {
   display: flex;
   align-items: center;
@@ -8832,6 +8846,8 @@ mark.fav-hl {
   --kg-podcast: #f472b6;
   --kg-favorite: #fbbf24;
   --kg-skill: #22d3ee;
+  --kg-mock: #a8a29e;
+  --kg-workflow: #ef4444;
   --kg-tag: var(--text-3);
 }
 
@@ -8903,6 +8919,8 @@ mark.fav-hl {
 .kg-leg-podcast i { background: var(--kg-podcast); }
 .kg-leg-favorite i { background: var(--kg-favorite); }
 .kg-leg-skill i { background: var(--kg-skill); }
+.kg-leg-mock i { background: var(--kg-mock); }
+.kg-leg-workflow i { background: var(--kg-workflow); }
 .kg-leg-tag i { background: var(--kg-tag); }
 
 #kg-canvas {
@@ -9823,6 +9841,8 @@ svg#kg-svg:active { cursor: grabbing; }
                     onclick="copyWorkflowPrompt('executor')"
                     title="Copiar prompt de executor" data-icon="copy"></button>
                   <span class="wf-toolbar-sep"></span>
+                  <button class="wf-icon-btn" onclick="openEditWorkflowModal()"
+                    title="Editar workflow" data-icon="pencil"></button>
                   <button class="wf-icon-btn" onclick="openNodeModal()"
                     title="Adicionar nó" data-icon="plus"></button>
                   <button class="wf-icon-btn" id="wf-start-btn"
@@ -10065,11 +10085,12 @@ svg#kg-svg:active { cursor: grabbing; }
         <form class="wf-modal" id="wf-modal-form"
           onsubmit="createWorkflowFromModal(event)">
           <div class="wf-modal-head">
-            <span>Nova demanda</span>
+            <span id="wf-modal-title-label">Nova demanda</span>
             <button type="button" onclick="closeWorkflowModal()"
               title="Fechar" data-icon="x"></button>
           </div>
           <div class="wf-modal-body">
+            <input id="wf-modal-edit-id" type="hidden" value="">
             <label>
               <span>Título</span>
               <input id="wf-modal-title" required maxlength="140"
@@ -10108,7 +10129,8 @@ svg#kg-svg:active { cursor: grabbing; }
             <button type="button" class="wf-secondary-btn"
               onclick="closeWorkflowModal()">Cancelar</button>
             <button type="submit" class="wf-primary-btn">
-            <span data-icon="plus"></span> Criar workflow
+            <span id="wf-modal-submit-icon" data-icon="plus"></span>
+            <span id="wf-modal-submit-label">Criar workflow</span>
           </button>
           </div>
         </form>
@@ -12698,6 +12720,9 @@ const workflowCsv = (value) =>
 const workflowLines = (value) =>
   value.split('\\n').map((item) => item.trim()).filter(Boolean);
 
+const renderWorkflowTags = (tags) =>
+  (tags || []).map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('');
+
 const workflowStatusLabel = (status) =>
   WF_STATUS_LABEL[status] || status;
 
@@ -12744,9 +12769,11 @@ const renderWorkflowList = () => {
     const total = workflow.nodeCount || 0;
     const progress = total ? Math.round((done / total) * 100) : 0;
     const active = currentWorkflowDetail?.workflow.id === workflow.id;
+    const tagsHtml = renderWorkflowTags(workflow.tags);
     return \`<button class="wf-list-item\${active ? ' active' : ''}" data-workflow-id="\${workflow.id}">
       <span class="wf-list-title">\${escHtml(workflow.title)}</span>
       <span class="wf-list-objective">\${escHtml(workflow.objective)}</span>
+      \${tagsHtml ? \`<div class="wf-list-tags">\${tagsHtml}</div>\` : ''}
       <span class="wf-list-meta">
         <span class="wf-status-dot \${workflow.status}"></span>
         <span>\${escHtml(workflowStatusLabel(workflow.status))}</span>
@@ -12818,11 +12845,13 @@ const renderCurrentWorkflow = () => {
   $('wf-empty').style.display = 'none';
   $('wf-active').classList.add('visible');
   $('wf-toolbar-title').textContent = workflow.title;
+  const tagsHtml = renderWorkflowTags(workflow.tags);
   $('wf-toolbar-meta').innerHTML = \`
     <span class="wf-status-dot \${workflow.status}"></span>
     <span>\${escHtml(workflowStatusLabel(workflow.status))}</span>
     <span>\${nodes.length} \${nodes.length === 1 ? 'nó' : 'nós'}</span>
-    <span>\${workflow.conflictPolicy === 'block' ? 'conflitos bloqueiam' : 'conflitos avisam'}</span>\`;
+    <span>\${workflow.conflictPolicy === 'block' ? 'conflitos bloqueiam' : 'conflitos avisam'}</span>
+    \${tagsHtml ? \`<span class="wf-toolbar-tags">\${tagsHtml}</span>\` : ''}\`;
   $('wf-start-btn').disabled =
     workflow.status === 'running' || workflow.status === 'reviewing' ||
     workflow.status === 'done';
@@ -13481,9 +13510,27 @@ const answerSelectedWorkflowQuestion = async (questionId) => {
 
 const openWorkflowModal = () => {
   $('wf-modal-form').reset();
+  $('wf-modal-edit-id').value = '';
   $('wf-modal-attempts').value = '3';
+  $('wf-modal-title-label').textContent = 'Nova demanda';
+  $('wf-modal-submit-label').textContent = 'Criar workflow';
   $('wf-modal-overlay').classList.add('visible');
   $('wf-modal-title').focus();
+};
+
+const openEditWorkflowModal = () => {
+  if (!currentWorkflowDetail) return;
+  openWorkflowModal();
+  const wf = currentWorkflowDetail.workflow;
+  $('wf-modal-edit-id').value = wf.id;
+  $('wf-modal-title').value = wf.title;
+  $('wf-modal-objective').value = wf.objective;
+  $('wf-modal-description').value = wf.description;
+  $('wf-modal-conflict').value = wf.conflictPolicy;
+  $('wf-modal-attempts').value = String(wf.defaultMaxAttempts);
+  $('wf-modal-tags').value = (wf.tags || []).join(', ');
+  $('wf-modal-title-label').textContent = 'Editar demanda';
+  $('wf-modal-submit-label').textContent = 'Salvar';
 };
 
 const closeWorkflowModal = (event) => {
@@ -13493,6 +13540,7 @@ const closeWorkflowModal = (event) => {
 
 const createWorkflowFromModal = async (event) => {
   event.preventDefault();
+  const editId = $('wf-modal-edit-id').value.trim();
   const body = {
     title: $('wf-modal-title').value.trim(),
     objective: $('wf-modal-objective').value.trim(),
@@ -13501,20 +13549,35 @@ const createWorkflowFromModal = async (event) => {
     defaultMaxAttempts: Number($('wf-modal-attempts').value || 3),
     tags: workflowCsv($('wf-modal-tags').value),
   };
+  let workflowId;
+  let toastMessage;
   try {
-    const res = await fetch('/workflows', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    const workflow = await res.json();
+    if (editId) {
+      const res = await fetch(\`/workflows/\${editId}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      workflowId = editId;
+      toastMessage = 'Workflow atualizado';
+    } else {
+      const res = await fetch('/workflows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const workflow = await res.json();
+      workflowId = workflow.id;
+      toastMessage = 'Workflow criado';
+    }
     closeWorkflowModal();
     await loadWorkflows();
-    await openWorkflow(workflow.id);
-    toast('Workflow criado');
+    await openWorkflow(workflowId);
+    toast(toastMessage);
   } catch (err) {
-    toast(err.message || 'Falha ao criar workflow');
+    toast(err.message || 'Falha ao salvar workflow');
   }
 };
 
@@ -15672,10 +15735,11 @@ let kgLinks = [];
 let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'diagram', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'tag'];
+const KG_KINDS = ['note', 'task', 'diagram', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'tag'];
 const KG_LABELS = {
   note: 'Notas', task: 'Tasks', diagram: 'Diagramas', macro: 'Macros',
-  podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks', tag: 'Tags',
+  podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
+  workflow: 'Workflows', tag: 'Tags',
 };
 const KG_COLOR = {};
 
@@ -15693,6 +15757,7 @@ const OPEN_BY_KIND = {
   skill: (id) => openSkill(id),
   task: (id) => { setMode('tasks'); openTaskModal(id); },
   mock: (id) => { setMode('mocks'); if (typeof openMockEditor === 'function') openMockEditor(id); },
+  workflow: (id) => { setMode('workflows'); if (typeof openWorkflow === 'function') openWorkflow(id); },
   // Favorito é um link salvo → abre a URL no browser (registra acesso).
   favorite: async (id) => {
     try {

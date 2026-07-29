@@ -724,7 +724,10 @@ const handleWorkflows = async (
   }
 
   if (req.method === 'GET' && segments.length === 1) {
-    return json(await listWorkflows(kv));
+    const tags = url.searchParams.getAll('tag');
+    return json(
+      await listWorkflows(kv, tags.length > 0 ? tags : undefined),
+    );
   }
 
   if (req.method === 'POST' && segments.length === 1) {

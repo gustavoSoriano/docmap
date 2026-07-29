@@ -50,6 +50,9 @@ const workflowCsv = (value) =>
 const workflowLines = (value) =>
   value.split('\n').map((item) => item.trim()).filter(Boolean);
 
+const renderWorkflowTags = (tags) =>
+  (tags || []).map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('');
+
 const workflowStatusLabel = (status) =>
   WF_STATUS_LABEL[status] || status;
 
@@ -96,9 +99,11 @@ const renderWorkflowList = () => {
     const total = workflow.nodeCount || 0;
     const progress = total ? Math.round((done / total) * 100) : 0;
     const active = currentWorkflowDetail?.workflow.id === workflow.id;
+    const tagsHtml = renderWorkflowTags(workflow.tags);
     return `<button class="wf-list-item${active ? ' active' : ''}" data-workflow-id="${workflow.id}">
       <span class="wf-list-title">${escHtml(workflow.title)}</span>
       <span class="wf-list-objective">${escHtml(workflow.objective)}</span>
+      ${tagsHtml ? `<div class="wf-list-tags">${tagsHtml}</div>` : ''}
       <span class="wf-list-meta">
         <span class="wf-status-dot ${workflow.status}"></span>
         <span>${escHtml(workflowStatusLabel(workflow.status))}</span>
@@ -170,11 +175,13 @@ const renderCurrentWorkflow = () => {
   $('wf-empty').style.display = 'none';
   $('wf-active').classList.add('visible');
   $('wf-toolbar-title').textContent = workflow.title;
+  const tagsHtml = renderWorkflowTags(workflow.tags);
   $('wf-toolbar-meta').innerHTML = `
     <span class="wf-status-dot ${workflow.status}"></span>
     <span>${escHtml(workflowStatusLabel(workflow.status))}</span>
     <span>${nodes.length} ${nodes.length === 1 ? 'nó' : 'nós'}</span>
-    <span>${workflow.conflictPolicy === 'block' ? 'conflitos bloqueiam' : 'conflitos avisam'}</span>`;
+    <span>${workflow.conflictPolicy === 'block' ? 'conflitos bloqueiam' : 'conflitos avisam'}</span>
+    ${tagsHtml ? `<span class="wf-toolbar-tags">${tagsHtml}</span>` : ''}`;
   $('wf-start-btn').disabled =
     workflow.status === 'running' || workflow.status === 'reviewing' ||
     workflow.status === 'done';
@@ -833,9 +840,27 @@ const answerSelectedWorkflowQuestion = async (questionId) => {
 
 const openWorkflowModal = () => {
   $('wf-modal-form').reset();
+  $('wf-modal-edit-id').value = '';
   $('wf-modal-attempts').value = '3';
+  $('wf-modal-title-label').textContent = 'Nova demanda';
+  $('wf-modal-submit-label').textContent = 'Criar workflow';
   $('wf-modal-overlay').classList.add('visible');
   $('wf-modal-title').focus();
+};
+
+const openEditWorkflowModal = () => {
+  if (!currentWorkflowDetail) return;
+  openWorkflowModal();
+  const wf = currentWorkflowDetail.workflow;
+  $('wf-modal-edit-id').value = wf.id;
+  $('wf-modal-title').value = wf.title;
+  $('wf-modal-objective').value = wf.objective;
+  $('wf-modal-description').value = wf.description;
+  $('wf-modal-conflict').value = wf.conflictPolicy;
+  $('wf-modal-attempts').value = String(wf.defaultMaxAttempts);
+  $('wf-modal-tags').value = (wf.tags || []).join(', ');
+  $('wf-modal-title-label').textContent = 'Editar demanda';
+  $('wf-modal-submit-label').textContent = 'Salvar';
 };
 
 const closeWorkflowModal = (event) => {
@@ -845,6 +870,7 @@ const closeWorkflowModal = (event) => {
 
 const createWorkflowFromModal = async (event) => {
   event.preventDefault();
+  const editId = $('wf-modal-edit-id').value.trim();
   const body = {
     title: $('wf-modal-title').value.trim(),
     objective: $('wf-modal-objective').value.trim(),
@@ -853,20 +879,35 @@ const createWorkflowFromModal = async (event) => {
     defaultMaxAttempts: Number($('wf-modal-attempts').value || 3),
     tags: workflowCsv($('wf-modal-tags').value),
   };
+  let workflowId;
+  let toastMessage;
   try {
-    const res = await fetch('/workflows', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    const workflow = await res.json();
+    if (editId) {
+      const res = await fetch(`/workflows/${editId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      workflowId = editId;
+      toastMessage = 'Workflow atualizado';
+    } else {
+      const res = await fetch('/workflows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const workflow = await res.json();
+      workflowId = workflow.id;
+      toastMessage = 'Workflow criado';
+    }
     closeWorkflowModal();
     await loadWorkflows();
-    await openWorkflow(workflow.id);
-    toast('Workflow criado');
+    await openWorkflow(workflowId);
+    toast(toastMessage);
   } catch (err) {
-    toast(err.message || 'Falha ao criar workflow');
+    toast(err.message || 'Falha ao salvar workflow');
   }
 };
 

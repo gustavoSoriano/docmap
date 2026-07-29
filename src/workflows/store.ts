@@ -227,7 +227,10 @@ export const listWorkflowQuestions = async (
   return questions.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 };
 
-export const listWorkflows = async (kv: Deno.Kv): Promise<unknown[]> => {
+export const listWorkflows = async (
+  kv: Deno.Kv,
+  tags?: readonly string[],
+): Promise<unknown[]> => {
   const workflows: Workflow[] = [];
   for await (
     const entry of kv.list<Workflow>({ prefix: WORKFLOW_PREFIX })
@@ -235,7 +238,12 @@ export const listWorkflows = async (kv: Deno.Kv): Promise<unknown[]> => {
     if (entry.value) workflows.push(entry.value);
   }
   const nodes = await listWorkflowNodes(kv);
+  const normalizedFilter = tags ? normalizeTags(tags) : undefined;
   return workflows
+    .filter((workflow) => {
+      if (!normalizedFilter || normalizedFilter.length === 0) return true;
+      return normalizedFilter.every((tag) => workflow.tags.includes(tag));
+    })
     .map((workflow) => {
       const own = nodes.filter((node) => node.workflowId === workflow.id);
       const counts = own.reduce<Record<string, number>>((acc, node) => {

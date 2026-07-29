@@ -24,10 +24,10 @@ Formato: JSON. App precisa estar rodando.
 ## Grafo de conhecimento
 
 - \`GET /graph\` — grafo de TODAS as entidades do docmap (notas, tasks, diagramas,
-  macros, podcasts, favoritos, skills) conectadas por TEMA. Read-only; reflete o
+  macros, podcasts, favoritos, skills, mocks, workflows) conectadas por TEMA. Read-only; reflete o
   estado atual do KV.
   - \`nodes\`: \`{ id, label, kind }\` — \`id\` = \`"<tipo>:<uuid>"\` (entidade) ou
-    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|diagram|macro|podcast|favorite|skill|tag\`.
+    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|diagram|macro|podcast|favorite|skill|mock|workflow|tag\`.
   - \`links\`: \`{ source, target, kind }\` — \`kind\` = \`tagged\` (entidade→tag) ou
     \`reference\` (task→nota via \`noteId\`).
   - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por

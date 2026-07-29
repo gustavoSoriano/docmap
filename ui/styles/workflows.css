@@ -190,6 +190,20 @@
   line-height: 14px;
 }
 
+.wf-list-tags {
+  margin: 4px 0 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.wf-toolbar-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  vertical-align: middle;
+}
+
 .wf-list-meta {
   display: flex;
   align-items: center;

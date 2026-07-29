@@ -678,6 +678,8 @@
                     onclick="copyWorkflowPrompt('executor')"
                     title="Copiar prompt de executor" data-icon="copy"></button>
                   <span class="wf-toolbar-sep"></span>
+                  <button class="wf-icon-btn" onclick="openEditWorkflowModal()"
+                    title="Editar workflow" data-icon="pencil"></button>
                   <button class="wf-icon-btn" onclick="openNodeModal()"
                     title="Adicionar nó" data-icon="plus"></button>
                   <button class="wf-icon-btn" id="wf-start-btn"
@@ -920,11 +922,12 @@
         <form class="wf-modal" id="wf-modal-form"
           onsubmit="createWorkflowFromModal(event)">
           <div class="wf-modal-head">
-            <span>Nova demanda</span>
+            <span id="wf-modal-title-label">Nova demanda</span>
             <button type="button" onclick="closeWorkflowModal()"
               title="Fechar" data-icon="x"></button>
           </div>
           <div class="wf-modal-body">
+            <input id="wf-modal-edit-id" type="hidden" value="">
             <label>
               <span>Título</span>
               <input id="wf-modal-title" required maxlength="140"
@@ -963,7 +966,8 @@
             <button type="button" class="wf-secondary-btn"
               onclick="closeWorkflowModal()">Cancelar</button>
             <button type="submit" class="wf-primary-btn">
-            <span data-icon="plus"></span> Criar workflow
+            <span id="wf-modal-submit-icon" data-icon="plus"></span>
+            <span id="wf-modal-submit-label">Criar workflow</span>
           </button>
           </div>
         </form>

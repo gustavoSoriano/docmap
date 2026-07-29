@@ -15,7 +15,8 @@ export type EntityKind =
   | 'podcast'
   | 'favorite'
   | 'skill'
-  | 'mock';
+  | 'mock'
+  | 'workflow';
 
 export type NodeKind = EntityKind | 'tag';
 
