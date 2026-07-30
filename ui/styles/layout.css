@@ -272,12 +272,17 @@ body::before {
 #mode-canvas {
   flex-direction: column;
 }
-#canvas-container {
+#mode-debug {
+  flex-direction: column;
+}
+#canvas-container,
+#debug-container {
   flex: 1;
   min-height: 0;
   position: relative;
 }
-#canvas-iframe {
+#canvas-iframe,
+#debug-iframe {
   width: 100%;
   height: 100%;
   border: none;

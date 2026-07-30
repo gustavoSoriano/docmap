@@ -751,4 +751,61 @@ curl -X POST http://127.0.0.1:3333/canvas/clear
 - **Standalone**: http://127.0.0.1:3333/canvas
 - **Rail do docmap**: botao "Canva" na barra lateral
 - **URL direta**: qualquer navegador na rede local
+
+---
+
+## Debug Audit — log efemero para agentes
+
+Buffer in-memory (sem persistencia) para IA/agentes instrumentarem codigo e
+inspecionarem dados arbitrarios. Tudo expira em 20 minutos (TTL) e o buffer
+global tem limite de 1000 entradas (ring buffer).
+
+### Endpoints (porta :3334)
+
+| Metodo | Endpoint | Descricao |
+|--------|----------|-----------|
+| POST | \`/debug\` | Envia um payload de debug |
+| GET | \`/debug/:sessionId\` | Lista entradas da sessao |
+
+### POST /debug — body
+
+\`\`\`json
+{
+  "sessionId": "agent-123",
+  "payload": { "qualquer": "json" }
+}
+\`\`\`
+
+Resposta **201**:
+
+\`\`\`json
+{ "seq": 1, "ts": "HH:MM:SS.mmm" }
+\`\`\`
+
+- \`sessionId\`: escolhido pelo agente/IA.
+- \`payload\`: qualquer JSON, sem validacao.
+- \`seq\`: numero global monotonico crescente, nunca reseta.
+- \`ts\`: timestamp formatado como \`HH:MM:SS.mmm\`.
+
+### GET /debug/:sessionId
+
+Resposta: array de entradas ordenadas por \`seq\`:
+
+\`\`\`json
+[
+  { "seq": 1, "ts": "14:32:10.042", "sessionId": "agent-123", "payload": { ... } }
+]
+\`\`\`
+
+### UI
+
+Abra pelo app no botao **Debug** do rail lateral. A pagina mostra:
+
+- contagem de sessoes e entradas;
+- cards de sessao com copiar/excluir;
+- tabela de entradas com \`seq\`, \`ts\` e payload JSON formatado;
+- atualizacao automatica a cada 2 segundos.
+
+---
+
 `;

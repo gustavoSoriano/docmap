@@ -45,6 +45,11 @@
   /* ── Typography ── */
   --font-ui: 'Geist', 'Onest', system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+  /* aliases padronizados para iframes e plugins */
+  --font: var(--font-ui);
+  --mono: var(--font-mono);
+  --danger: var(--cat-security);
+  --radius: var(--r-sm);
 
   /* ── Metrics ── */
   /* Breakpoints usados nas @media queries: 600px (mobile), 900px (tablet) */

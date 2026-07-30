@@ -2,7 +2,7 @@
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', workflows: 'Workflows', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', workflows: 'Workflows', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -44,6 +44,7 @@ const setMode = (mode) => {
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
   else if (mode === 'canvas')    loadCanvas();
+  else if (mode === 'debug')     loadDebug();
   else if (mode === 'graph')     loadGraph();
 };
 
@@ -91,5 +92,14 @@ const loadCanvas = () => {
   const iframe = document.getElementById('canvas-iframe');
   if (iframe && iframe.getAttribute('src') !== '/canvas') {
     iframe.setAttribute('src', '/canvas');
+  }
+};
+
+// ── Debug mode ──
+// O Debug Audit carrega via iframe apontando para /debug.
+const loadDebug = () => {
+  const iframe = document.getElementById('debug-iframe');
+  if (iframe && iframe.getAttribute('src') !== '/debug') {
+    iframe.setAttribute('src', '/debug');
   }
 };

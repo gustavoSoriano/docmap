@@ -4,6 +4,7 @@ import { createApiSearchHandler } from './handlers/search.ts';
 import { createApiContentHandler } from './handlers/content.ts';
 import { createApiSearchDocsHandler } from './handlers/search-docs.ts';
 import { createApiFavoritesHandler } from './handlers/favorites.ts';
+import { createDebugApiHandler } from '../debug/api.ts';
 import { graphHandler } from '../graph/handler.ts';
 import { diagramsHandler } from '../diagrams/handler.ts';
 import { skillsApiHandler } from '../skills/handler.ts';
@@ -43,6 +44,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const mocks = mocksHandler(deps.kv);
   const podcasts = podcastsHandler(deps.kv);
   const workflows = workflowsHandler(deps.kv);
+  const debug = createDebugApiHandler();
 
   return async (req: Request): Promise<Response> => {
     if (req.method === 'OPTIONS') {
@@ -53,7 +55,8 @@ export const createApiRouter = (deps: HandlerDeps) => {
     const { pathname } = url;
 
     let res: Response;
-    if (pathname.startsWith('/notes')) res = await notes(req, url);
+    if (pathname === '/debug' || pathname.startsWith('/debug/')) res = await debug(req, url);
+    else if (pathname.startsWith('/notes')) res = await notes(req, url);
     else if (pathname.startsWith('/macros')) res = await macros(req, url);
     else if (pathname.startsWith('/diagrams')) res = await diagrams(req, url);
     else if (pathname.startsWith('/skills')) res = await skills(req, url);

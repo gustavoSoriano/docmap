@@ -92,6 +92,11 @@ export const UI_HTML = `<!DOCTYPE html>
   /* ── Typography ── */
   --font-ui: 'Geist', 'Onest', system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+  /* aliases padronizados para iframes e plugins */
+  --font: var(--font-ui);
+  --mono: var(--font-mono);
+  --danger: var(--cat-security);
+  --radius: var(--r-sm);
 
   /* ── Metrics ── */
   /* Breakpoints usados nas @media queries: 600px (mobile), 900px (tablet) */
@@ -417,12 +422,17 @@ body::before {
 #mode-canvas {
   flex-direction: column;
 }
-#canvas-container {
+#mode-debug {
+  flex-direction: column;
+}
+#canvas-container,
+#debug-container {
   flex: 1;
   min-height: 0;
   position: relative;
 }
-#canvas-iframe {
+#canvas-iframe,
+#debug-iframe {
   width: 100%;
   height: 100%;
   border: none;
@@ -9275,6 +9285,10 @@ svg#kg-svg:active { cursor: grabbing; }
           title="Canvas Realtime">
     <span class="rail-ico" data-icon="paintbrush"></span><span class="rail-lbl">Canva</span>
   </button>
+        <button class="rail-btn" id="rail-debug" onclick="setMode('debug')"
+          title="Debug Audit">
+    <span class="rail-ico" data-icon="bug"></span><span class="rail-lbl">Debug</span>
+  </button>
 
         <div class="rail-spacer"></div>
         <button class="rail-btn" id="rail-terminal"
@@ -10055,6 +10069,14 @@ svg#kg-svg:active { cursor: grabbing; }
           </div>
         </main>
 
+        <!-- ═══ MODE: DEBUG AUDIT ═══ -->
+        <main id="mode-debug" class="mode">
+          <div id="debug-container">
+            <iframe id="debug-iframe" src="/debug"
+              sandbox="allow-scripts allow-same-origin"></iframe>
+          </div>
+        </main>
+
         <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
         <main id="mode-graph" class="mode active">
           <div id="kg-toolbar">
@@ -10597,6 +10619,7 @@ const ICON_PATHS = {
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
   paintbrush: '<path d="M2 21C14 21 18 17 20 14c2-3 0-7-2-9-2-2-6-4-9-2C7 5 3 9 3 21h-1z"/><path d="M17 13c-3 1-5 3-6 6"/>',
   terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
+  bug: '<path d="m8 6 4-4 4 4"/><path d="M12 2v10"/><path d="m8 18 4 4 4-4"/><path d="M12 12v10"/><path d="m19 8 2 1-2 1"/><path d="m5 8-2 1 2 1"/><path d="M20 10H4"/><path d="M20 14H4"/>',
 };
 
 const ICON = (name, cls = '') =>
@@ -10733,7 +10756,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', workflows: 'Workflows', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', workflows: 'Workflows', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -10775,6 +10798,7 @@ const setMode = (mode) => {
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
   else if (mode === 'canvas')    loadCanvas();
+  else if (mode === 'debug')     loadDebug();
   else if (mode === 'graph')     loadGraph();
 };
 
@@ -10822,6 +10846,15 @@ const loadCanvas = () => {
   const iframe = document.getElementById('canvas-iframe');
   if (iframe && iframe.getAttribute('src') !== '/canvas') {
     iframe.setAttribute('src', '/canvas');
+  }
+};
+
+// ── Debug mode ──
+// O Debug Audit carrega via iframe apontando para /debug.
+const loadDebug = () => {
+  const iframe = document.getElementById('debug-iframe');
+  if (iframe && iframe.getAttribute('src') !== '/debug') {
+    iframe.setAttribute('src', '/debug');
   }
 };
 

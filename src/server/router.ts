@@ -24,6 +24,7 @@ import { podcastsHandler } from '../podcasts/handler.ts';
 import { createCanvasHandler } from '../canvas/handler.ts';
 import { createTerminalHandler } from '../terminal/handler.ts';
 import { workflowsHandler } from '../workflows/handler.ts';
+import { createDebugHandler } from '../debug/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
 import { notFound } from './response.ts';
 import type { HandlerDeps } from './types.ts';
@@ -53,11 +54,13 @@ export const createRouter = (deps: HandlerDeps) => {
   const canvas = createCanvasHandler(deps);
   const terminal = createTerminalHandler(deps);
   const workflows = workflowsHandler(deps.kv);
+  const debug = createDebugHandler();
   return (req: Request): Response | Promise<Response> => {
     const url = new URL(req.url);
     const { pathname } = url;
 
     if (pathname === '/') return serveIndex();
+    if (pathname === '/debug' || pathname.startsWith('/debug/')) return debug(req, url);
     if (pathname === '/graph') return graph(req, url);
     if (pathname === '/content') return content(req, url);
     if (pathname === '/search') return search(req, url);

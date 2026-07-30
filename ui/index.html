@@ -112,6 +112,10 @@
           title="Canvas Realtime">
     <span class="rail-ico" data-icon="paintbrush"></span><span class="rail-lbl">Canva</span>
   </button>
+        <button class="rail-btn" id="rail-debug" onclick="setMode('debug')"
+          title="Debug Audit">
+    <span class="rail-ico" data-icon="bug"></span><span class="rail-lbl">Debug</span>
+  </button>
 
         <div class="rail-spacer"></div>
         <button class="rail-btn" id="rail-terminal"
@@ -888,6 +892,14 @@
         <main id="mode-canvas" class="mode">
           <div id="canvas-container">
             <iframe id="canvas-iframe" src="/canvas"
+              sandbox="allow-scripts allow-same-origin"></iframe>
+          </div>
+        </main>
+
+        <!-- ═══ MODE: DEBUG AUDIT ═══ -->
+        <main id="mode-debug" class="mode">
+          <div id="debug-container">
+            <iframe id="debug-iframe" src="/debug"
               sandbox="allow-scripts allow-same-origin"></iframe>
           </div>
         </main>
