@@ -1,10 +1,15 @@
 import { serveCanvasPage } from './page.ts';
 import { canvasHub } from './hub.ts';
+import { createImportFileHandler } from './import.ts';
+import { createInspectHandler } from './inspect.ts';
 import { json } from '../server/response.ts';
 import type { HandlerDeps } from '../server/types.ts';
 
-export const createCanvasHandler = (_deps: HandlerDeps) =>
-  (req: Request, url: URL): Response | Promise<Response> => {
+export const createCanvasHandler = (deps: HandlerDeps) => {
+  const inspectHandler = createInspectHandler(deps);
+  const importFileHandler = createImportFileHandler(deps);
+
+  return (req: Request, url: URL): Response | Promise<Response> => {
     const { pathname } = url;
 
     if (req.method === 'GET' && pathname === '/canvas') {
@@ -24,8 +29,17 @@ export const createCanvasHandler = (_deps: HandlerDeps) =>
       return json({ ok: true, connections: canvasHub.connectionCount });
     }
 
+    if (req.method === 'POST' && pathname === '/canvas/inspect') {
+      return inspectHandler(req);
+    }
+
+    if (req.method === 'POST' && pathname === '/canvas/import-file') {
+      return importFileHandler(req);
+    }
+
     return new Response('Not found', { status: 404 });
   };
+};
 
 // ── WebSocket upgrade ──
 

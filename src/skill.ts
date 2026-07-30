@@ -659,6 +659,47 @@ dinamicos, debugging front-end e conversas visuais entre humano e IA.
 | GET | \`/canvas/ws\` | WebSocket para receber atualizacoes em tempo real |
 | POST | \`/canvas/push\` | Envia HTML pro canvas (veja body abaixo) |
 | POST | \`/canvas/clear\` | Limpa o canvas |
+| POST | \`/canvas/inspect\` | Gera prompt estruturado para LLM a partir de elemento HTML + instrucao do usuario |
+| POST | \`/canvas/import-file\` | Importa arquivo .html do filesystem e renderiza no canvas |
+
+### POST /canvas/inspect — body
+
+\`\`\`json
+{
+  "element": {
+    "tag": "button",
+    "id": "submit-btn",
+    "classes": ["primary", "large"],
+    "attributes": { "data-testid": "submit", "type": "submit" },
+    "textContent": "Enviar",
+    "boundingRect": { "x": 100, "y": 200, "width": 120, "height": 40 }
+  },
+  "userText": "mudar a cor para azul e aumentar o padding"
+}
+\`\`\`
+
+Retorna \`{ prompt, elementDescription }\`. O prompt combina a identificacao do elemento
+(seletor CSS, atributos, posicao, texto) com a instrucao do usuario, pronto para colar
+numa LLM.
+
+### POST /canvas/import-file — body
+
+\`\`\`json
+{
+  "filePath": "/caminho/absoluto/para/pagina.html"
+}
+\`\`\`
+
+Valida extensao (.html/.htm), tipo (arquivo regular), tamanho (ate 10MB por default,
+configuravel via \`DOCMAP_CANVAS_MAX_IMPORT_SIZE\`). Retorna \`{ success, path, fileSize, preview }\`.
+Util para arquivos HTML muito grandes que excederiam o limite do JSON via push.
+
+### Modo inspecionar (UI)
+
+O canvas tem um botao "Inspecionar" que ativa o modo de inspecao de elementos:
+- Ao passar o mouse, um contorno roxo segue os elementos (hover highlight)
+- Ao clicar, abre um modal com resumo do elemento + campo de texto
+- O botao "Copiar prompt" gera o prompt via \`POST /canvas/inspect\` e copia pro clipboard
 
 ### POST /canvas/push — body
 
