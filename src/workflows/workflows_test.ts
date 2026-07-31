@@ -956,6 +956,91 @@ Deno.test('inbox bloqueante retorna timeout sem polling ativo', async () => {
   });
 });
 
+Deno.test('prompt e inbox explicam capacidades ausentes', async () => {
+  await withKv(async (kv) => {
+    const workflow = await jsonBody(
+      await request(kv, 'POST', '/workflows', {
+        title: 'Capacidades especializadas',
+        objective: 'Distribuir trabalho compatível',
+      }),
+    );
+    const workflowId = String(workflow.id);
+    const node = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Analisar regressões',
+        description: 'Inspecionar código e riscos',
+        acceptanceCriteria: ['riscos documentados'],
+        requiredCapabilities: ['code', 'tests', 'analysis'],
+      }),
+    );
+    await request(kv, 'POST', `/workflows/${workflowId}/start`, {});
+    const executor = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'executor-sem-analysis',
+        tool: 'opencode',
+        provider: 'anthropic',
+        model: 'modelo',
+        role: 'executor',
+        capabilities: ['code', 'tests'],
+      }),
+    );
+    const agentSessionId = String(executor.agentSessionId);
+    const inbox = await jsonBody(
+      await request(
+        kv,
+        'GET',
+        `/agents/${agentSessionId}/inbox?workflowId=${workflowId}&wait=1`,
+      ),
+    );
+    assert(
+      inbox.nextAction === 'capability_mismatch',
+      'inbox deveria explicar por que o nó pronto foi filtrado',
+    );
+    assert(
+      (inbox.wait as Record<string, unknown>).trigger === 'initial',
+      'incompatibilidade deveria despertar a inbox imediatamente',
+    );
+    const mismatch = inbox.capabilityMismatch as Record<string, unknown>;
+    assert(
+      (mismatch.missingCapabilities as string[]).includes('analysis'),
+      'inbox deveria listar capability ausente',
+    );
+    assert(
+      (mismatch.incompatibleAvailable as Array<Record<string, unknown>>)
+        .some((item) => item.nodeId === node.id),
+      'diagnóstico deveria identificar o nó incompatível',
+    );
+
+    const prompt = await (
+      await request(
+        kv,
+        'GET',
+        `/workflows/${workflowId}/prompt?role=executor`,
+      )
+    ).text();
+    assert(
+      prompt.includes('"analysis"'),
+      'prompt do workflow deveria declarar capabilities dos nós',
+    );
+    assert(
+      prompt.includes(`inbox?workflowId=${workflowId}&wait=55`),
+      'prompt deveria manter a inbox limitada ao workflow alvo',
+    );
+
+    const nodePrompt = await (
+      await request(
+        kv,
+        'GET',
+        `/workflows/nodes/${String(node.id)}/prompt`,
+      )
+    ).text();
+    assert(
+      nodePrompt.includes('"analysis"'),
+      'prompt específico do nó deveria declarar capability exigida',
+    );
+  });
+});
+
 Deno.test('barreiras finais automáticas são estritas e idempotentes', async () => {
   await withKv(async (kv) => {
     const workflow = await jsonBody(

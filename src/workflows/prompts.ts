@@ -1,9 +1,17 @@
-import type { AgentRole, NodeExecutionPackage, Workflow } from './types.ts';
+import type {
+  AgentRole,
+  NodeExecutionPackage,
+  Workflow,
+  WorkflowNode,
+} from './types.ts';
 
 const API = 'http://127.0.0.1:3334';
-export const WORKFLOW_PROTOCOL_VERSION = '8.2';
+export const WORKFLOW_PROTOCOL_VERSION = '8.3';
 
-const identityExample = (role: AgentRole): string =>
+const identityExample = (
+  role: AgentRole,
+  executorCapabilities: readonly string[] = [],
+): string =>
   JSON.stringify(
     {
       name: role === 'orchestrator'
@@ -19,6 +27,8 @@ const identityExample = (role: AgentRole): string =>
         ? ['planning', 'review']
         : role === 'reviewer'
         ? ['review', 'code-quality']
+        : executorCapabilities.length > 0
+        ? executorCapabilities
         : ['code', 'tests'],
     },
     null,
@@ -102,14 +112,20 @@ primeiro /workflows/nodes/{id}?view=review e abra o detalhe completo sob demanda
 5. em rework, reler feedback, assumir o mesmo nó e corrigir;
 6. em claim_next, fazer checkpoint, compactar/resetar contexto se suportado e
    assumir próximo nó;
-7. em wait ou timeout, repetir imediatamente a inbox bloqueante;
-8. parar apenas em stop, intervenção humana ou ordem explícita do operador.
+7. em capability_mismatch, ler missingCapabilities e reconectar declarando
+   somente capacidades que sua ferramenta realmente possui;
+8. em wait ou timeout, repetir imediatamente a inbox bloqueante;
+9. parar apenas em stop, intervenção humana ou ordem explícita do operador.
 
 O POST /return NÃO encerra seu trabalho. Nunca compacte antes da revisão:
 detalhes ainda podem ser necessários para retrabalho.`;
 };
 
-export const buildAgentConnectPrompt = (role: AgentRole): string =>
+export const buildAgentConnectPrompt = (
+  role: AgentRole,
+  executorCapabilities: readonly string[] = [],
+  workflowId?: string,
+): string =>
   `${buildRoleProtocol(role)}
 
 Este prompt já contém o protocolo necessário. Consulte
@@ -121,7 +137,7 @@ Conecte-se informando sua identidade real:
 POST ${API}/agents/connect
 Content-Type: application/json
 
-${identityExample(role)}
+${identityExample(role, executorCapabilities)}
 
 Guarde o \`agentSessionId\` retornado.
 
@@ -130,13 +146,19 @@ ${
       ? `Consulte:
 GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}&compact=true&wait=55`
       : `Consulte:
-GET ${API}/agents/{agentSessionId}/inbox?wait=55`
+GET ${API}/agents/{agentSessionId}/inbox?${
+        workflowId ? `workflowId=${workflowId}&` : ''
+      }wait=55`
   }`;
 
 export const buildWorkflowPrompt = (
   workflow: Workflow,
   role: AgentRole,
+  nodes: readonly WorkflowNode[] = [],
 ): string => {
+  const workflowCapabilities = [
+    ...new Set(nodes.flatMap((node) => node.requiredCapabilities)),
+  ];
   const header = `Workflow alvo: ${workflow.title}
 ID: ${workflow.id}
 Objetivo: ${workflow.objective}
@@ -147,12 +169,25 @@ Quality gate obrigatório: ${workflow.completionPolicy.requireQualityGate}
 Auditoria final obrigatória: ${workflow.completionPolicy.requireFinalAudit}`;
 
   if (role === 'executor') {
-    return `${buildAgentConnectPrompt(role)}
+    return `${
+      buildAgentConnectPrompt(
+        role,
+        workflowCapabilities,
+        workflow.id,
+      )
+    }
 
 ${header}
 
+As capacidades no payload de conexão foram derivadas dos nós atuais deste
+workflow: ${workflowCapabilities.join(', ') || 'code, tests'}. Não remova itens,
+pois a API usa correspondência estrita para distribuir trabalho.
+
 Trabalhe somente neste workflow. Consulte a inbox e filtre trabalho por:
 
+GET ${API}/agents/{agentSessionId}/inbox?workflowId=${workflow.id}&wait=55
+
+Para inspeção sem espera:
 GET ${API}/workflows/available?workflowId=${workflow.id}&agentSessionId={agentSessionId}
 
 Respeite dependências, critérios, escopos e isolamento. Após cada return,
@@ -278,7 +313,13 @@ export const buildNodePrompt = (pkg: NodeExecutionPackage): string => {
   const dependencies = pkg.dependencies.length > 0
     ? JSON.stringify(pkg.dependencies, null, 2)
     : '[]';
-  return `${buildAgentConnectPrompt('executor')}
+  return `${
+    buildAgentConnectPrompt(
+      'executor',
+      pkg.node.requiredCapabilities,
+      pkg.workflow.id,
+    )
+  }
 
 Execute o nó abaixo e depois permaneça no loop do worker.
 

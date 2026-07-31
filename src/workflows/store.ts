@@ -2319,6 +2319,7 @@ export const listWorkflowEvents = async (
 export const getAgentInbox = async (
   kv: Deno.Kv,
   agentSessionId: string,
+  filter: { readonly workflowId?: string } = {},
 ): Promise<Record<string, unknown>> => {
   const agent = await getAgent(kv, agentSessionId);
   if (!agent) throw new WorkflowMissingError('sessão de agente não encontrada');
@@ -2403,8 +2404,10 @@ export const getAgentInbox = async (
   const currentNode = agent.currentNodeId
     ? await getNodeExecutionPackage(kv, agent.currentNodeId)
     : null;
-  const agentRuns = await listAgentRuns(kv, agentSessionId);
-  const nodes = await listWorkflowNodes(kv);
+  const agentRuns = (await listAgentRuns(kv, agentSessionId)).filter((run) =>
+    !filter.workflowId || run.workflowId === filter.workflowId
+  );
+  const nodes = await listWorkflowNodes(kv, filter.workflowId);
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const awaitingReview = agentRuns
     .filter((run) => run.status === 'returned')
@@ -2458,7 +2461,30 @@ export const getAgentInbox = async (
         question.askedBySessionId === agentSessionId,
     )
     : [];
-  const available = await listAvailableNodes(kv, { agentSessionId });
+  const available = await listAvailableNodes(kv, {
+    agentSessionId,
+    workflowId: filter.workflowId,
+  });
+  const incompatibleAvailable = (await listAvailableNodes(kv, {
+    workflowId: filter.workflowId,
+  }))
+    .filter((pkg) => !agentCanExecute(agent, pkg.node))
+    .slice(0, 10)
+    .map((pkg) => ({
+      workflowId: pkg.workflow.id,
+      workflowTitle: pkg.workflow.title,
+      nodeId: pkg.node.id,
+      nodeTitle: pkg.node.title,
+      requiredCapabilities: pkg.node.requiredCapabilities,
+      missingCapabilities: pkg.node.requiredCapabilities.filter(
+        (capability) => !agent.capabilities.includes(capability),
+      ),
+    }));
+  const missingCapabilities = [
+    ...new Set(
+      incompatibleAvailable.flatMap((item) => item.missingCapabilities),
+    ),
+  ];
   const recentWorkflow = agentRuns[0]
     ? await getWorkflow(kv, agentRuns[0].workflowId)
     : null;
@@ -2470,6 +2496,8 @@ export const getAgentInbox = async (
     ? 'await_review'
     : available.length > 0
     ? 'claim_next'
+    : incompatibleAvailable.length > 0
+    ? 'capability_mismatch'
     : recentWorkflow?.status === 'done' ||
         recentWorkflow?.status === 'cancelled'
     ? 'stop'
@@ -2486,6 +2514,15 @@ export const getAgentInbox = async (
     reviewedRuns,
     questions,
     available,
+    capabilityMismatch: incompatibleAvailable.length > 0
+      ? {
+        workflowId: filter.workflowId,
+        missingCapabilities,
+        incompatibleAvailable,
+        recommendation:
+          'Reconecte declarando apenas capacidades que sua ferramenta realmente possui.',
+      }
+      : null,
   };
 };
 

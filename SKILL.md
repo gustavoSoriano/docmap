@@ -1,6 +1,6 @@
 ---
 name: docmap
-version: 8.2.0
+version: 8.3.0
 description: >
   API REST local do docmap desktop — notas com mapa mental anotável, diagramas
   Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio por IA
@@ -139,12 +139,21 @@ retorno pela inbox persistida e decide se aprova, solicita retrabalho, expande
 o fluxo ou pede intervenção humana.
 
 O `POST .../return` **não encerra o executor**. Depois de devolver, ele
-consulta `GET /agents/:id/inbox?wait=55` e segue `nextAction`:
-`await_review | rework | claim_next | wait | stop`. Em `await_review`,
-mantém a inbox bloqueante conectada; em `rework`, relê o feedback e assume
-novamente o mesmo nó; somente depois de aprovação pode compactar/resetar
-contexto e pegar o próximo trabalho. Retrabalho fica reservado ao executor
-original enquanto sua sessão estiver ativa.
+consulta `GET /agents/:id/inbox?workflowId=...&wait=55` e segue
+`nextAction`: `await_review | rework | claim_next | capability_mismatch |
+wait | stop`. Em `await_review`, mantém a inbox bloqueante conectada; em
+`rework`, relê o feedback e assume novamente o mesmo nó; somente depois de
+aprovação pode compactar/resetar contexto e pegar o próximo trabalho.
+Retrabalho fica reservado ao executor original enquanto sua sessão estiver
+ativa.
+
+Capacidades são filtros estritos: o executor só recebe um nó quando declarou
+todas as `requiredCapabilities`. Prompts de workflow derivam automaticamente
+a união das capacidades dos nós atuais e prompts de nó usam as capacidades
+daquele nó. Se uma sessão antiga não for compatível, a inbox retorna
+`nextAction: capability_mismatch`, `missingCapabilities` e os nós filtrados,
+em vez de aparentar que não existe trabalho. O agente só deve reconectar
+declarando capacidades que realmente possui.
 
 ### Papel estrito do orquestrador
 
@@ -206,7 +215,7 @@ ferramenta, provider, modelo, papel, presença e nó atual.
 | GET | `/agents` | Sessões e presença dos agentes |
 | POST | `/agents/connect` | Conecta e declara identidade |
 | POST | `/agents/:id/heartbeat` | Mantém a sessão ativa |
-| GET | `/agents/:id/inbox?wait=55` | Trabalho, perguntas e respostas; espera bloqueante opcional |
+| GET | `/agents/:id/inbox?workflowId=...&wait=55` | Trabalho filtrado pelo workflow; espera bloqueante opcional |
 | POST | `/agents/:id/disconnect` | Encerra sessão sem trabalho ativo |
 | GET | `/orchestrator/inbox?agentSessionId=...&compact=true&wait=55` | Próximas ações compactas com espera bloqueante opcional |
 

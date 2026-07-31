@@ -93,10 +93,10 @@ O executor nunca marca o nó como concluído. `POST .../return` produz o estado
 e registra a decisão.
 
 Depois do retorno, o executor continua conectado pela inbox bloqueante
-`GET /agents/:id/inbox?wait=55`. O campo `nextAction` direciona `await_review`,
-`rework`, `claim_next`, `wait` ou `stop`. Retrabalho fica reservado ao executor
-original enquanto sua sessão estiver ativa; após desconexão ou staleness volta
-ao pool compatível.
+`GET /agents/:id/inbox?workflowId=...&wait=55`. O campo `nextAction` direciona
+`await_review`, `rework`, `claim_next`, `capability_mismatch`, `wait` ou `stop`.
+Retrabalho fica reservado ao executor original enquanto sua sessão estiver
+ativa; após desconexão ou staleness volta ao pool compatível.
 
 ## Fluxo
 
@@ -170,12 +170,28 @@ O Docmap aplica regras determinísticas:
 - consultas à inbox renovam a presença da sessão, evitando que um agente ativo
   apareça como stale apenas por esquecer uma chamada separada de heartbeat;
 
+### Capacidades e afinidade ao workflow
+
+`requiredCapabilities` usa correspondência estrita: um executor só enxerga um nó
+se sua sessão declarou todas as capacidades exigidas. Para impedir que o prompt
+padrão esconda trabalho válido:
+
+- o prompt copiável do workflow declara a união das capacidades de seus nós;
+- o prompt específico de nó declara exatamente as capacidades daquele nó;
+- a inbox aceita `workflowId` para não oferecer trabalho de outra demanda;
+- quando há nó pronto, mas incompatível, a inbox retorna
+  `nextAction=capability_mismatch`, as `missingCapabilities` e os nós filtrados.
+
+Assim, ausência real de trabalho e incompatibilidade de executor são estados
+distintos e observáveis. O executor só deve reconectar com capacidades que sua
+ferramenta realmente possui.
+
 ### Espera dirigida por eventos
 
 As duas inboxes aceitam `wait=<segundos>`, limitado pelo servidor a 120
 segundos. O padrão recomendado para agentes é 55 segundos:
 
-- `GET /agents/:id/inbox?wait=55`;
+- `GET /agents/:id/inbox?workflowId=...&wait=55`;
 - `GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=55`.
 
 Se já houver uma ação, a resposta é imediata. Caso contrário, o servidor mantém

@@ -37,6 +37,7 @@ import {
   listAvailableNodes,
   listNodeRuns,
   listWorkflowEvents,
+  listWorkflowNodes,
   listWorkflowQuestions,
   listWorkflows,
   releaseNode,
@@ -278,9 +279,13 @@ const inboxHasAction = (inbox: Record<string, unknown>): boolean => {
   if (agent.role === 'orchestrator' || agent.role === 'reviewer') {
     return Array.isArray(inbox.nextActions) && inbox.nextActions.length > 0;
   }
-  return ['execute_current', 'rework', 'claim_next', 'stop'].includes(
-    String(inbox.nextAction),
-  );
+  return [
+    'execute_current',
+    'rework',
+    'claim_next',
+    'capability_mismatch',
+    'stop',
+  ].includes(String(inbox.nextAction));
 };
 
 const relevantInboxEvent = (event: RealtimeWorkflowEvent): boolean =>
@@ -299,6 +304,7 @@ const getAgentInboxWithWait = async (
   agentSessionId: string,
   waitMs: number,
   signal: AbortSignal,
+  workflowId?: string,
 ): Promise<{
   readonly inbox: Record<string, unknown>;
   readonly wait: InboxWaitMetadata;
@@ -306,7 +312,7 @@ const getAgentInboxWithWait = async (
   const startedAt = Date.now();
   const deadline = startedAt + waitMs;
   let revision = getWorkflowEventRevision();
-  let inbox = await getAgentInbox(kv, agentSessionId);
+  let inbox = await getAgentInbox(kv, agentSessionId, { workflowId });
 
   if (inboxHasAction(inbox)) {
     return {
@@ -329,7 +335,7 @@ const getAgentInboxWithWait = async (
       predicate: relevantInboxEvent,
     });
     revision = eventResult.revision;
-    inbox = await getAgentInbox(kv, agentSessionId);
+    inbox = await getAgentInbox(kv, agentSessionId, { workflowId });
 
     if (inboxHasAction(inbox)) {
       return {
@@ -428,9 +434,18 @@ const handleAgents = async (
   if (req.method === 'GET' && id && action === 'inbox') {
     const agent = await getAgent(kv, id);
     if (agent && agent.presence !== 'offline') await heartbeatAgent(kv, id);
+    const workflowId = url.searchParams.get('workflowId') ?? undefined;
     const waitMs = parseInboxWaitMs(url);
-    if (waitMs === null) return json(await getAgentInbox(kv, id));
-    const result = await getAgentInboxWithWait(kv, id, waitMs, req.signal);
+    if (waitMs === null) {
+      return json(await getAgentInbox(kv, id, { workflowId }));
+    }
+    const result = await getAgentInboxWithWait(
+      kv,
+      id,
+      waitMs,
+      req.signal,
+      workflowId,
+    );
     return json({ ...result.inbox, wait: result.wait });
   }
 
@@ -881,7 +896,10 @@ const handleWorkflowById = async (
     const role = validateAgentRole(
       url.searchParams.get('role') ?? 'orchestrator',
     );
-    return textResponse(buildWorkflowPrompt(workflow, role));
+    const nodes = role === 'executor'
+      ? await listWorkflowNodes(kv, workflowId)
+      : [];
+    return textResponse(buildWorkflowPrompt(workflow, role, nodes));
   }
 
   if (req.method === 'POST' && action === 'claim-orchestration') {
