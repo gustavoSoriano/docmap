@@ -1,8 +1,11 @@
 import { badRequest, conflict, json, notFound } from '../server/response.ts';
+import { listWorkflowMacroArchives } from '../macros/store.ts';
 import {
   buildAgentConnectPrompt,
   buildNodePrompt,
+  buildRoleProtocol,
   buildWorkflowPrompt,
+  WORKFLOW_PROTOCOL_VERSION,
 } from './prompts.ts';
 import {
   answerWorkflowQuestion,
@@ -18,12 +21,16 @@ import {
   deleteWorkflowEdge,
   deleteWorkflowNode,
   disconnectAgent,
+  ensureWorkflowFinalBarriers,
   getAgent,
   getAgentInbox,
   getNodeExecutionPackage,
+  getNodeReviewPacket,
   getWorkflow,
   getWorkflowDetail,
   getWorkflowNode,
+  getWorkflowPlanningPacket,
+  getWorkflowStatusPacket,
   heartbeatAgent,
   humanReturnNode,
   listAgents,
@@ -44,7 +51,12 @@ import {
   WorkflowMissingError,
   WorkflowValidationError,
 } from './store.ts';
-import { subscribeWorkflowEvents } from './events.ts';
+import {
+  getWorkflowEventRevision,
+  type RealtimeWorkflowEvent,
+  subscribeWorkflowEvents,
+  waitForWorkflowEvent,
+} from './events.ts';
 import type {
   AgentRole,
   ConnectAgentInput,
@@ -58,6 +70,7 @@ import type {
   RunWorkspace,
   UpdateWorkflowInput,
   UpdateWorkflowNodeInput,
+  WorkflowCompletionPolicy,
   WorkflowEdgeKind,
 } from './types.ts';
 
@@ -94,8 +107,44 @@ const optionalString = (
 const stringArray = (
   body: Record<string, unknown>,
   field: string,
-): string[] =>
-  Array.isArray(body[field]) ? (body[field] as unknown[]).map(String) : [];
+): string[] => {
+  const value = body[field];
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) {
+    throw new WorkflowValidationError(`${field} deve ser um array de strings`);
+  }
+  return value.map((item, index) => {
+    if (typeof item !== 'string' || !item.trim()) {
+      throw new WorkflowValidationError(
+        `${field}[${index}] deve ser uma string não vazia`,
+      );
+    }
+    return item.trim();
+  });
+};
+
+const parseCompletionPolicy = (
+  value: unknown,
+): Partial<WorkflowCompletionPolicy> | undefined => {
+  if (value === undefined) return undefined;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new WorkflowValidationError('completionPolicy deve ser um objeto');
+  }
+  const policy = value as Record<string, unknown>;
+  for (const field of ['requireQualityGate', 'requireFinalAudit']) {
+    if (policy[field] !== undefined && typeof policy[field] !== 'boolean') {
+      throw new WorkflowValidationError(`${field} deve ser boolean`);
+    }
+  }
+  return {
+    ...(typeof policy.requireQualityGate === 'boolean'
+      ? { requireQualityGate: policy.requireQualityGate }
+      : {}),
+    ...(typeof policy.requireFinalAudit === 'boolean'
+      ? { requireFinalAudit: policy.requireFinalAudit }
+      : {}),
+  };
+};
 
 const parseWorkspace = (value: unknown): RunWorkspace | undefined => {
   if (value === undefined) return undefined;
@@ -211,6 +260,115 @@ const validateAgentRole = (value: unknown): AgentRole => {
   return value;
 };
 
+const MAX_INBOX_WAIT_SECONDS = 120;
+
+const parseInboxWaitMs = (url: URL): number | null => {
+  if (!url.searchParams.has('wait')) return null;
+  const seconds = Number(url.searchParams.get('wait'));
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    throw new WorkflowValidationError(
+      'wait deve ser um número positivo de segundos',
+    );
+  }
+  return Math.min(seconds, MAX_INBOX_WAIT_SECONDS) * 1000;
+};
+
+const inboxHasAction = (inbox: Record<string, unknown>): boolean => {
+  const agent = inbox.agent as Record<string, unknown>;
+  if (agent.role === 'orchestrator' || agent.role === 'reviewer') {
+    return Array.isArray(inbox.nextActions) && inbox.nextActions.length > 0;
+  }
+  return ['execute_current', 'rework', 'claim_next', 'stop'].includes(
+    String(inbox.nextAction),
+  );
+};
+
+const relevantInboxEvent = (event: RealtimeWorkflowEvent): boolean =>
+  event.type !== 'agent.heartbeat';
+
+type InboxWaitMetadata = {
+  readonly mode: 'long_poll';
+  readonly reason: 'actionable' | 'timeout' | 'aborted';
+  readonly trigger: 'initial' | 'event' | 'timeout' | 'abort';
+  readonly waitedMs: number;
+  readonly timeoutSeconds: number;
+};
+
+const getAgentInboxWithWait = async (
+  kv: Deno.Kv,
+  agentSessionId: string,
+  waitMs: number,
+  signal: AbortSignal,
+): Promise<{
+  readonly inbox: Record<string, unknown>;
+  readonly wait: InboxWaitMetadata;
+}> => {
+  const startedAt = Date.now();
+  const deadline = startedAt + waitMs;
+  let revision = getWorkflowEventRevision();
+  let inbox = await getAgentInbox(kv, agentSessionId);
+
+  if (inboxHasAction(inbox)) {
+    return {
+      inbox,
+      wait: {
+        mode: 'long_poll',
+        reason: 'actionable',
+        trigger: 'initial',
+        waitedMs: Date.now() - startedAt,
+        timeoutSeconds: waitMs / 1000,
+      },
+    };
+  }
+
+  while (Date.now() < deadline) {
+    const eventResult = await waitForWorkflowEvent({
+      afterRevision: revision,
+      timeoutMs: deadline - Date.now(),
+      signal,
+      predicate: relevantInboxEvent,
+    });
+    revision = eventResult.revision;
+    inbox = await getAgentInbox(kv, agentSessionId);
+
+    if (inboxHasAction(inbox)) {
+      return {
+        inbox,
+        wait: {
+          mode: 'long_poll',
+          reason: 'actionable',
+          trigger: 'event',
+          waitedMs: Date.now() - startedAt,
+          timeoutSeconds: waitMs / 1000,
+        },
+      };
+    }
+    if (eventResult.reason !== 'event') {
+      return {
+        inbox,
+        wait: {
+          mode: 'long_poll',
+          reason: eventResult.reason,
+          trigger: eventResult.reason === 'aborted' ? 'abort' : 'timeout',
+          waitedMs: Date.now() - startedAt,
+          timeoutSeconds: waitMs / 1000,
+        },
+      };
+    }
+  }
+
+  return {
+    inbox,
+    wait: {
+      mode: 'long_poll',
+      reason: 'timeout',
+      trigger: 'timeout',
+      waitedMs: Date.now() - startedAt,
+      timeoutSeconds: waitMs / 1000,
+    },
+  };
+};
+
 const handleAgents = async (
   kv: Deno.Kv,
   req: Request,
@@ -231,9 +389,7 @@ const handleAgents = async (
       provider: requiredString(body, 'provider'),
       model: requiredString(body, 'model'),
       role: validateAgentRole(body.role),
-      capabilities: Array.isArray(body.capabilities)
-        ? body.capabilities.map(String)
-        : [],
+      capabilities: stringArray(body, 'capabilities'),
       ...(optionalString(body, 'operator')
         ? { operator: optionalString(body, 'operator') }
         : {}),
@@ -244,8 +400,13 @@ const handleAgents = async (
       agentSessionId: agent.id,
       heartbeatUrl: `/agents/${agent.id}/heartbeat`,
       inboxUrl: `/agents/${agent.id}/inbox`,
+      blockingInboxUrl: `/agents/${agent.id}/inbox?wait=55`,
       availableWorkUrl: `/workflows/available?agentSessionId=${agent.id}`,
       orchestratorInboxUrl: `/orchestrator/inbox?agentSessionId=${agent.id}`,
+      orchestratorBlockingInboxUrl:
+        `/orchestrator/inbox?agentSessionId=${agent.id}&compact=true&wait=55`,
+      protocolVersion: WORKFLOW_PROTOCOL_VERSION,
+      protocolUrl: `/workflows/protocol?role=${agent.role}`,
     }, 201);
   }
 
@@ -265,7 +426,12 @@ const handleAgents = async (
   }
 
   if (req.method === 'GET' && id && action === 'inbox') {
-    return json(await getAgentInbox(kv, id));
+    const agent = await getAgent(kv, id);
+    if (agent && agent.presence !== 'offline') await heartbeatAgent(kv, id);
+    const waitMs = parseInboxWaitMs(url);
+    if (waitMs === null) return json(await getAgentInbox(kv, id));
+    const result = await getAgentInboxWithWait(kv, id, waitMs, req.signal);
+    return json({ ...result.inbox, wait: result.wait });
   }
 
   return notFound();
@@ -281,13 +447,57 @@ const handleOrchestrator = async (
   }
   const agentSessionId = url.searchParams.get('agentSessionId');
   if (!agentSessionId) return badRequest('agentSessionId é obrigatório');
-  return json(await getAgentInbox(kv, agentSessionId));
+  const currentAgent = await getAgent(kv, agentSessionId);
+  if (currentAgent && currentAgent.presence !== 'offline') {
+    await heartbeatAgent(kv, agentSessionId);
+  }
+  const waitMs = parseInboxWaitMs(url);
+  const result = waitMs === null
+    ? { inbox: await getAgentInbox(kv, agentSessionId) }
+    : await getAgentInboxWithWait(
+      kv,
+      agentSessionId,
+      waitMs,
+      req.signal,
+    );
+  const inbox = result.inbox;
+  if (url.searchParams.get('compact') !== 'true') {
+    return json({
+      ...inbox,
+      ...('wait' in result ? { wait: result.wait } : {}),
+    });
+  }
+  const agent = inbox.agent as Record<string, unknown>;
+  return json({
+    agent: {
+      id: agent.id,
+      name: agent.name,
+      role: agent.role,
+      presence: agent.presence,
+      lastHeartbeatAt: agent.lastHeartbeatAt,
+    },
+    pollAfterSeconds: inbox.pollAfterSeconds,
+    role: inbox.role,
+    nextActions: inbox.nextActions,
+    counts: {
+      planning: (inbox.planning as unknown[] | undefined)?.length ?? 0,
+      returned: (inbox.returned as unknown[] | undefined)?.length ?? 0,
+      questions: (inbox.questions as unknown[] | undefined)?.length ?? 0,
+      completable: (inbox.completable as unknown[] | undefined)?.length ?? 0,
+    },
+    ...('wait' in result ? { wait: result.wait } : {}),
+  });
 };
 
 const nodeDetail = async (
   kv: Deno.Kv,
   nodeId: string,
+  view: string | null,
 ): Promise<Response> => {
+  if (view === 'review') {
+    const packet = await getNodeReviewPacket(kv, nodeId);
+    return packet ? json(packet) : notFound();
+  }
   const pkg = await getNodeExecutionPackage(kv, nodeId);
   if (!pkg) return notFound();
   const [runs, questions, agent] = await Promise.all([
@@ -308,13 +518,16 @@ const nodeDetail = async (
 const handleNodeRoute = async (
   kv: Deno.Kv,
   req: Request,
+  url: URL,
   segments: string[],
 ): Promise<Response> => {
   const nodeId = segments[2];
   const action = segments[3];
   if (!nodeId) return notFound();
 
-  if (req.method === 'GET' && !action) return nodeDetail(kv, nodeId);
+  if (req.method === 'GET' && !action) {
+    return nodeDetail(kv, nodeId, url.searchParams.get('view'));
+  }
 
   if (req.method === 'GET' && action === 'prompt') {
     const pkg = await getNodeExecutionPackage(kv, nodeId);
@@ -384,7 +597,36 @@ const handleNodeRoute = async (
     if (!decisions.includes(String(body.decision))) {
       throw new WorkflowValidationError('decision inválida');
     }
-    const input = body as ReviewInput;
+    const rawChecks = body.acceptanceChecks;
+    if (rawChecks !== undefined && !Array.isArray(rawChecks)) {
+      throw new WorkflowValidationError('acceptanceChecks deve ser um array');
+    }
+    const acceptanceChecks = (rawChecks as unknown[] | undefined)?.map(
+      (value, index) => {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+          throw new WorkflowValidationError(
+            `acceptanceChecks[${index}] deve ser um objeto`,
+          );
+        }
+        const check = value as Record<string, unknown>;
+        const criterion = requiredString(check, 'criterion');
+        const status = String(check.status ?? '');
+        if (!['pass', 'fail', 'insufficient'].includes(status)) {
+          throw new WorkflowValidationError(
+            `acceptanceChecks[${index}].status inválido`,
+          );
+        }
+        return {
+          criterion,
+          status: status as 'pass' | 'fail' | 'insufficient',
+          evidence: requiredString(check, 'evidence'),
+        };
+      },
+    );
+    const input: ReviewInput = {
+      ...(body as ReviewInput),
+      ...(acceptanceChecks ? { acceptanceChecks } : {}),
+    };
     const original = await getWorkflowNode(kv, nodeId);
     if (!original) return notFound();
     if (input.decision === 'expand') {
@@ -469,6 +711,7 @@ const validateCreateNode = (
       'acceptanceCriteria deve ter ao menos um item',
     );
   }
+  const acceptanceCriteria = stringArray(body, 'acceptanceCriteria');
   const validComplexities = ['xs', 's', 'm', 'l', 'xl'];
   if (
     body.complexity !== undefined &&
@@ -509,7 +752,7 @@ const validateCreateNode = (
   return {
     title: requiredString(body, 'title'),
     description: requiredString(body, 'description'),
-    acceptanceCriteria: criteria.map(String),
+    acceptanceCriteria,
     contextRefs,
     ...(body.complexity
       ? {
@@ -558,6 +801,29 @@ const validateCreateNode = (
   };
 };
 
+const touchWorkflowOrchestrator = async (
+  kv: Deno.Kv,
+  workflowId: string,
+  agentSessionId: string,
+): Promise<void> => {
+  const [workflow, agent] = await Promise.all([
+    getWorkflow(kv, workflowId),
+    getAgent(kv, agentSessionId),
+  ]);
+  if (!workflow) throw new WorkflowMissingError('workflow não encontrado');
+  if (!agent) throw new WorkflowMissingError('sessão de agente não encontrada');
+  if (agent.role !== 'orchestrator') {
+    throw new WorkflowValidationError('agente não é orquestrador');
+  }
+  if (agent.presence === 'offline') {
+    throw new WorkflowConflictError('sessão do orquestrador está offline');
+  }
+  if (workflow.orchestrationSessionId !== agentSessionId) {
+    throw new WorkflowConflictError('sessão não controla este workflow');
+  }
+  await heartbeatAgent(kv, agentSessionId);
+};
+
 const handleWorkflowById = async (
   kv: Deno.Kv,
   req: Request,
@@ -570,15 +836,28 @@ const handleWorkflowById = async (
   if (!workflowId) return notFound();
 
   if (req.method === 'GET' && !action) {
-    const detail = await getWorkflowDetail(kv, workflowId);
+    const view = url.searchParams.get('view');
+    const detail = view === 'planning'
+      ? await getWorkflowPlanningPacket(kv, workflowId)
+      : view === 'status'
+      ? await getWorkflowStatusPacket(kv, workflowId)
+      : await getWorkflowDetail(kv, workflowId);
     return detail ? json(detail) : notFound();
   }
 
   if (req.method === 'PUT' && !action) {
+    const body = await readJson(req);
     const updated = await updateWorkflow(
       kv,
       workflowId,
-      await readJson(req) as UpdateWorkflowInput,
+      {
+        ...(body as UpdateWorkflowInput),
+        ...(body.completionPolicy !== undefined
+          ? {
+            completionPolicy: parseCompletionPolicy(body.completionPolicy),
+          }
+          : {}),
+      },
     );
     return updated ? json(updated) : notFound();
   }
@@ -590,6 +869,10 @@ const handleWorkflowById = async (
   if (req.method === 'GET' && action === 'events') {
     const limit = Number(url.searchParams.get('limit') ?? '200');
     return json(await listWorkflowEvents(kv, workflowId, limit));
+  }
+
+  if (req.method === 'GET' && action === 'macro-archives') {
+    return json(await listWorkflowMacroArchives(kv, workflowId));
   }
 
   if (req.method === 'GET' && action === 'prompt') {
@@ -646,10 +929,25 @@ const handleWorkflowById = async (
     );
   }
 
+  if (req.method === 'POST' && action === 'final-barriers') {
+    const body = await readJson(req);
+    const agentSessionId = requiredString(body, 'agentSessionId');
+    await touchWorkflowOrchestrator(kv, workflowId, agentSessionId);
+    return json(
+      await ensureWorkflowFinalBarriers(kv, workflowId),
+      201,
+    );
+  }
+
   if (req.method === 'POST' && action === 'nodes') {
     const body = await readJson(req);
+    const input = validateCreateNode(body);
+    const agentSessionId = optionalString(body, 'agentSessionId');
+    if (agentSessionId) {
+      await touchWorkflowOrchestrator(kv, workflowId, agentSessionId);
+    }
     return json(
-      await createWorkflowNode(kv, workflowId, validateCreateNode(body)),
+      await createWorkflowNode(kv, workflowId, input),
       201,
     );
   }
@@ -660,6 +958,10 @@ const handleWorkflowById = async (
     const kind = String(body.kind ?? 'blocks') as WorkflowEdgeKind;
     if (!validKinds.includes(kind)) {
       throw new WorkflowValidationError('kind de aresta inválido');
+    }
+    const agentSessionId = optionalString(body, 'agentSessionId');
+    if (agentSessionId) {
+      await touchWorkflowOrchestrator(kv, workflowId, agentSessionId);
     }
     return json(
       await createWorkflowEdge(
@@ -709,6 +1011,13 @@ const handleWorkflows = async (
     );
   }
 
+  if (req.method === 'GET' && url.pathname === '/workflows/protocol') {
+    const role = validateAgentRole(
+      url.searchParams.get('role') ?? 'executor',
+    );
+    return textResponse(buildRoleProtocol(role));
+  }
+
   if (req.method === 'GET' && url.pathname === '/workflows/prompts/connect') {
     const role = validateAgentRole(
       url.searchParams.get('role') ?? 'executor',
@@ -717,7 +1026,7 @@ const handleWorkflows = async (
   }
 
   if (segments[1] === 'nodes') {
-    return handleNodeRoute(kv, req, segments);
+    return handleNodeRoute(kv, req, url, segments);
   }
   if (segments[1] === 'questions') {
     return handleQuestionRoute(kv, req, segments);
@@ -737,6 +1046,11 @@ const handleWorkflows = async (
       title: requiredString(body, 'title'),
       objective: requiredString(body, 'objective'),
       tags: stringArray(body, 'tags'),
+      ...(body.completionPolicy !== undefined
+        ? {
+          completionPolicy: parseCompletionPolicy(body.completionPolicy),
+        }
+        : {}),
     };
     return json(await createWorkflow(kv, input), 201);
   }

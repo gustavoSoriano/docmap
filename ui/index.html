@@ -674,13 +674,41 @@
                   <div id="wf-toolbar-meta"></div>
                 </div>
                 <div id="wf-toolbar-actions">
-                  <button class="wf-icon-btn"
-                    onclick="copyWorkflowPrompt('orchestrator')"
-                    title="Copiar prompt do orquestrador"
-                    data-icon="bot"></button>
-                  <button class="wf-icon-btn"
-                    onclick="copyWorkflowPrompt('executor')"
-                    title="Copiar prompt de executor" data-icon="copy"></button>
+                  <div class="wf-prompt-actions"
+                    aria-label="Copiar prompts dos agentes">
+                    <span class="wf-prompt-actions-label">Copiar prompt</span>
+                    <button
+                      class="wf-role-btn orchestrator"
+                      id="wf-copy-orchestrator-btn"
+                      onclick="copyWorkflowPrompt('orchestrator')"
+                      title="Copiar instruções exclusivas do orquestrador">
+                      <span data-icon="workflow"></span>
+                      <span>Orquestrador</span>
+                    </button>
+                    <span class="wf-role-state"
+                      id="wf-orchestrator-state" hidden>
+                      <span data-icon="workflow"></span>
+                      <span id="wf-orchestrator-state-label">
+                        Orquestrador conectado
+                      </span>
+                    </span>
+                    <button
+                      class="wf-role-btn release"
+                      id="wf-release-orchestrator-btn"
+                      onclick="releaseStaleWorkflowOrchestrator()"
+                      title="Liberar orquestrador inativo" hidden>
+                      <span data-icon="unlink"></span>
+                      <span>Liberar</span>
+                    </button>
+                    <button
+                      class="wf-role-btn executor"
+                      id="wf-copy-executor-btn"
+                      onclick="copyWorkflowPrompt('executor')"
+                      title="Copiar instruções exclusivas do executor">
+                      <span data-icon="terminal"></span>
+                      <span>Executor</span>
+                    </button>
+                  </div>
                   <span class="wf-toolbar-sep"></span>
                   <button class="wf-icon-btn" onclick="openEditWorkflowModal()"
                     title="Editar workflow" data-icon="pencil"></button>
@@ -978,9 +1006,9 @@
             <button type="button" class="wf-secondary-btn"
               onclick="closeWorkflowModal()">Cancelar</button>
             <button type="submit" class="wf-primary-btn">
-            <span id="wf-modal-submit-icon" data-icon="plus"></span>
-            <span id="wf-modal-submit-label">Criar workflow</span>
-          </button>
+              <span id="wf-modal-submit-icon" data-icon="plus"></span>
+              <span id="wf-modal-submit-label">Criar workflow</span>
+            </button>
           </div>
         </form>
       </div>

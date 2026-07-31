@@ -1,6 +1,6 @@
 ---
 name: docmap
-version: 7.0.0
+version: 8.2.0
 description: >
   API REST local do docmap desktop — notas com mapa mental anotável, diagramas
   Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio por IA
@@ -108,11 +108,16 @@ Tipos Mermaid: `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram-v2`
 |--------|----------|-----------|
 | GET | `/macros` | Lista macros (id, name, title, description, interpreter, tags) |
 | GET | `/macros/:id` | Macro completa com `script` e `interpreter` |
-| POST | `/macros` | Cria `{ name, title, description?, script, tags? }` |
+| POST | `/macros` | Cria `{ name, title, description?, script, tags?, lifecycle?, workflowId? }` |
 | PUT | `/macros/:id` | Edita (campos parciais) |
 
 O `interpreter` (`bash` ou `deno`) é detectado automaticamente pelo shebang.
 Execução continua sendo manual pelo usuário dentro do app.
+
+Macros temporárias de quality gate usam `lifecycle: "workflow"` e o
+`workflowId` correspondente. Quando o workflow é concluído, o Docmap arquiva
+script, hash SHA-256 e metadados e remove automaticamente a macro da lista
+ativa. Macros sem esses campos continuam persistentes.
 
 ---
 
@@ -133,6 +138,14 @@ rastreável e também deixa o nó em `returned`. O orquestrador descobre o
 retorno pela inbox persistida e decide se aprova, solicita retrabalho, expande
 o fluxo ou pede intervenção humana.
 
+O `POST .../return` **não encerra o executor**. Depois de devolver, ele
+consulta `GET /agents/:id/inbox?wait=55` e segue `nextAction`:
+`await_review | rework | claim_next | wait | stop`. Em `await_review`,
+mantém a inbox bloqueante conectada; em `rework`, relê o feedback e assume
+novamente o mesmo nó; somente depois de aprovação pode compactar/resetar
+contexto e pegar o próximo trabalho. Retrabalho fica reservado ao executor
+original enquanto sua sessão estiver ativa.
+
 ### Papel estrito do orquestrador
 
 O orquestrador **não executa trabalho de nó**. Ele não altera arquivos, não roda
@@ -149,17 +162,22 @@ deve chamar endpoints de execução de nó como `/workflows/nodes/:id/claim`,
 - concluir o workflow quando a inbox indicar que ele está concluível.
 
 Para saber se uma tarefa terminou, o orquestrador deve consultar
-`GET /orchestrator/inbox?agentSessionId=...`. O ciclo operacional é:
+`GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=55`. A view
+compacta retorna `nextActions`, contagens e URLs dos pacotes necessários sem
+repetir todo o estado. Com `wait`, a chamada retorna imediatamente quando já
+há uma ação; caso contrário, fica aberta até um evento relevante ou timeout.
+Consultar a inbox renova automaticamente a presença. O ciclo é:
 
-1. enviar `POST /agents/:agentSessionId/heartbeat`;
-2. consultar a inbox;
-3. processar todos os itens `planning`, `returned`, `questions` e
-   `completable`;
-4. se não houver ação, aguardar o `pollAfterSeconds` retornado pela inbox
-   (padrão: 180 segundos) e consultar novamente.
+1. consultar a inbox;
+2. processar `nextActions` em ordem de `priority`, drenando
+   `review_return` antes de criar ou expandir nós;
+3. usar o `decisionRequest` pronto de cada pacote de revisão;
+4. se `wait.reason=timeout`, repetir imediatamente a mesma chamada bloqueante,
+   sem sleep e sem uma nova inferência do modelo.
 
 O orquestrador não deve dizer apenas "vou verificar depois" e parar; ele precisa
-manter essa cadência enquanto estiver conectado.
+manter essa cadência enquanto estiver conectado. `pollAfterSeconds` permanece
+somente como fallback para ferramentas que não consigam manter HTTP bloqueante.
 
 ### Conectar um agente
 
@@ -188,22 +206,26 @@ ferramenta, provider, modelo, papel, presença e nó atual.
 | GET | `/agents` | Sessões e presença dos agentes |
 | POST | `/agents/connect` | Conecta e declara identidade |
 | POST | `/agents/:id/heartbeat` | Mantém a sessão ativa |
-| GET | `/agents/:id/inbox` | Trabalho, perguntas e respostas da sessão |
+| GET | `/agents/:id/inbox?wait=55` | Trabalho, perguntas e respostas; espera bloqueante opcional |
 | POST | `/agents/:id/disconnect` | Encerra sessão sem trabalho ativo |
-| GET | `/orchestrator/inbox?agentSessionId=...` | Planejamentos, retornos, perguntas e workflows concluíveis |
+| GET | `/orchestrator/inbox?agentSessionId=...&compact=true&wait=55` | Próximas ações compactas com espera bloqueante opcional |
 
 ### Endpoints de workflows
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | GET | `/workflows` | Lista demandas e contagens por estado |
+| GET | `/workflows/protocol?role=...` | Protocolo compacto específico do papel |
 | POST | `/workflows` | Cria `{ title, objective, description?, tags?, conflictPolicy?, defaultMaxAttempts? }` |
 | GET | `/workflows/:id` | Workflow, nós, arestas, runs, perguntas e agentes |
+| GET | `/workflows/:id?view=planning|status` | Pacote compacto para decisão |
+| GET | `/workflows/:id/macro-archives` | Macros efêmeras arquivadas com script/hash |
 | PUT | `/workflows/:id` | Edita metadados |
 | DELETE | `/workflows/:id` | Remove workflow e histórico |
 | POST | `/workflows/:id/claim-orchestration` | Orquestrador assume o workflow |
 | POST | `/workflows/:id/release-orchestration` | Libera o orquestrador |
 | POST | `/workflows/:id/start` | Inicia e libera nós sem bloqueios |
+| POST | `/workflows/:id/final-barriers` | Cria/reutiliza gate, auditoria e arestas em uma chamada idempotente |
 | POST | `/workflows/:id/complete` | Conclusão explícita quando `canComplete=true` |
 | GET | `/workflows/:id/events` | Event log persistido |
 | GET | `/workflows/events` | SSE de atualizações em tempo real |
@@ -246,6 +268,7 @@ Docmap apenas registra e valida o contrato.
 | POST | `/workflows/:id/nodes` | Cria nó |
 | POST | `/workflows/:id/edges` | Cria `{ fromNodeId, toNodeId, kind }` |
 | GET | `/workflows/nodes/:id` | Pacote completo + dependências aprovadas |
+| GET | `/workflows/nodes/:id?view=review` | Pacote compacto do retorno atual |
 | GET | `/workflows/nodes/:id/prompt` | Prompt específico copiável |
 | POST | `/workflows/nodes/:id/claim` | Claim atômico `{ agentSessionId }` |
 | POST | `/workflows/nodes/:id/start` | Inicia e registra ambiente/worktree |
@@ -288,19 +311,64 @@ POST /workflows/nodes/:id/decision
 {
   "agentSessionId": "<sessão do orquestrador>",
   "decision": "approve",
-  "feedback": "Critérios atendidos"
+  "feedback": "Critérios atendidos",
+  "acceptanceChecks": [
+    {
+      "criterion": "texto exato do critério",
+      "status": "pass",
+      "evidence": "comando, saída, arquivo ou comportamento observado"
+    }
+  ]
 }
 ```
 
 `decision`: `approve | rework | expand | human_intervention | cancel`.
+Uma aprovação exige um item `acceptanceChecks` com `status=pass` e evidência
+não vazia para cada critério do nó. A avaliação fica persistida no run.
+Use o `decisionRequest` retornado por
+`GET /workflows/nodes/:id?view=review`: ele já contém os textos exatos dos
+critérios. Nunca crie um nó para representar aprovação.
 Em `expand`, envie também `newNodes`; os novos nós dependerão do nó revisado.
 Ao esgotar `maxAttempts`, retrabalho vira `human_intervention`.
+
+### Barreira obrigatória de conclusão
+
+Novos workflows exigem dois nós finais, criados depois do trabalho normal:
+
+1. `kind: "quality_gate"`: depende de todas as folhas de implementação,
+   não altera código e executa format/lint/typecheck/test/build/smoke e checks
+   específicos da demanda.
+2. `kind: "final_audit"`: depende por aresta `blocks` do quality gate e
+   revisa de forma independente qualidade, bugs, crashes, regressões,
+   segurança, efeitos fora do escopo e riscos residuais.
+
+O orquestrador não deve montar esses payloads e arestas manualmente. Use:
+
+```json
+POST /workflows/:id/final-barriers
+{"agentSessionId":"<sessão do orquestrador>"}
+```
+
+A operação é idempotente, identifica as folhas de trabalho, cria ou reutiliza
+as duas barreiras e garante todas as arestas necessárias.
+
+`completionReadiness.canComplete` só fica verdadeiro quando todos os nós
+estão aprovados, não há cancelamento/pergunta aberta e o gate + auditoria
+válidos são posteriores ao último trabalho normal. Se uma correção for criada
+depois deles, crie um novo par de gate/auditoria.
 
 ### Prompts prontos
 
 - `GET /workflows/prompts/connect?role=orchestrator|executor|reviewer`
+- `GET /workflows/protocol?role=orchestrator|executor|reviewer`
 - `GET /workflows/:id/prompt?role=orchestrator|executor|reviewer`
 - `GET /workflows/nodes/:id/prompt`
+
+Os prompts são autocontidos e priorizam views compactas. Não é necessário
+carregar a skill global inteira para participar de um workflow.
+Na UI, o prompt do orquestrador fica oculto enquanto há uma sessão vinculada.
+Quando ela fica `stale` ou `offline`, aparece a ação confirmada de liberação;
+depois disso o botão de copiar o novo prompt volta a aparecer.
 
 ---
 

@@ -1,6 +1,7 @@
 import type { AgentRole, NodeExecutionPackage, Workflow } from './types.ts';
 
 const API = 'http://127.0.0.1:3334';
+export const WORKFLOW_PROTOCOL_VERSION = '8.2';
 
 const identityExample = (role: AgentRole): string =>
   JSON.stringify(
@@ -16,89 +17,121 @@ const identityExample = (role: AgentRole): string =>
       role,
       capabilities: role === 'orchestrator'
         ? ['planning', 'review']
+        : role === 'reviewer'
+        ? ['review', 'code-quality']
         : ['code', 'tests'],
     },
     null,
     2,
   );
 
-export const buildAgentConnectPrompt = (role: AgentRole): string =>
-  `Você é um agente ${role} externo conectado ao Docmap.
+const strictRole = (role: AgentRole): string =>
+  role === 'executor'
+    ? `Você executa nós, valida resultados e devolve evidências. Nunca aprova o
+próprio retorno nem conclui o workflow. Depois do return, aguarda a decisão,
+faz o retrabalho solicitado ou pega o próximo nó.`
+    : `Você é SOMENTE ${role === 'orchestrator' ? 'orquestrador' : 'revisor'}.
+Não altera arquivos, não implementa código, não cria branch/worktree, não faz
+commit, não assume nó executor e não chama /claim, /start ou /return em nós.
+Quando precisar de execução prática, cria/solicita um nó executor.`;
 
-O Docmap não vai iniciar sua CLI nem executar comandos por você. Use a API local
-como plano de coordenação e faça o trabalho no seu próprio ambiente.
+export const buildRoleProtocol = (role: AgentRole): string => {
+  const common = `# Protocolo Docmap Workflows v${WORKFLOW_PROTOCOL_VERSION}
 
-${
-    role === 'orchestrator' || role === 'reviewer'
-      ? `Papel estrito: você é SOMENTE ${
-        role === 'orchestrator' ? 'orquestrador' : 'revisor'
-      }. Não altere arquivos, não rode testes,
-não implemente código, não crie branch/worktree, não faça commits, não faça
-claim de nó executor e não chame endpoints de execução como \`/claim\`,
-\`/start\` ou \`/return\` em nós. Sua atuação é decidir: decompor demandas,
-criar dependências quando seu papel permitir, responder dúvidas, revisar
-retornos, pedir retrabalho, expandir o workflow quando permitido e concluir
-quando permitido. Se precisar de verificação prática, crie uma subdemanda de
-revisão ou peça retrabalho; não execute você.`
-      : ''
+${strictRole(role)}
+
+Fonte da verdade: a API local ${API}. Não dependa da memória da conversa para
+retomar trabalho. Não invente IDs nem pule estados. Consultar a inbox renova sua
+presença; durante operações longas, envie heartbeat. Busque payloads compactos
+primeiro; use views completas somente quando faltar evidência. Para esperar
+trabalho, prefira a inbox bloqueante com wait=55: ela retorna imediatamente
+quando há ação e, caso contrário, aguarda um evento sem consumir tokens do
+modelo. Em timeout, repita a chamada imediatamente, sem sleep. Use
+pollAfterSeconds somente como fallback se sua ferramenta não suportar uma
+requisição HTTP bloqueante.`;
+
+  if (role === 'orchestrator') {
+    return `${common}
+
+## Loop obrigatório
+
+1. consultar /orchestrator/inbox?compact=true&wait=55;
+2. processar nextActions em ordem de priority, sem pular review_return;
+3. revisar cada critério como pass|fail|insufficient e registrar evidência;
+4. usar o decisionRequest do pacote de revisão, preenchendo seus campos;
+5. decidir approve|rework|expand|human_intervention|cancel;
+6. em timeout, repetir imediatamente a inbox bloqueante;
+7. repetir até estado terminal.
+
+Nunca crie um nó para representar uma aprovação e nunca crie nós com nomes como
+"aprovado". Aprovação existe somente via POST /decision. Antes de expandir o
+plano, drene todos os review_return já presentes na inbox.
+
+## Planejamento eficiente
+
+- Comece por GET /workflows/{id}?view=planning.
+- Para demandas grandes/incertas, crie uma onda curta de discovery com modelos
+  econômicos para mapear arquitetura, testes e riscos; sintetize os briefings.
+- Paralelize apenas nós sem dependência lógica e sem writeScopes conflitantes.
+- Todo critério deve declarar resultado observável e evidência esperada.
+- Crie as barreiras finais por POST /workflows/{id}/final-barriers; o servidor
+  cria/reutiliza nós kind=quality_gate e kind=final_audit e liga
+  automaticamente todas as folhas.
+- Se houver correções posteriores, chame final-barriers novamente.
+- Nunca conclua enquanto completionReadiness.canComplete for false.`;
   }
 
-1. Leia a skill atualizada:
+  if (role === 'reviewer') {
+    return `${common}
 
-   GET ${API}/system/skill
+Revise de forma independente objetivo, critérios, evidências, diff, riscos de
+regressão, bugs, crashes, efeitos não intencionais e qualidade. Classifique
+achados por severidade. Toda aprovação deve enviar acceptanceChecks com status
+e evidência para cada critério; aprove apenas quando todos forem pass. Consulte
+primeiro /workflows/nodes/{id}?view=review e abra o detalhe completo sob demanda.`;
+  }
 
-2. Conecte-se informando sua identidade real:
+  return `${common}
 
-   POST ${API}/agents/connect
-   Content-Type: application/json
+## Loop obrigatório do worker
+
+1. consultar /agents/{agentSessionId}/inbox?wait=55;
+2. seguir nextAction;
+3. claim -> start -> executar -> validar -> return;
+4. em await_review, manter a inbox bloqueante até chegar a decisão;
+5. em rework, reler feedback, assumir o mesmo nó e corrigir;
+6. em claim_next, fazer checkpoint, compactar/resetar contexto se suportado e
+   assumir próximo nó;
+7. em wait ou timeout, repetir imediatamente a inbox bloqueante;
+8. parar apenas em stop, intervenção humana ou ordem explícita do operador.
+
+O POST /return NÃO encerra seu trabalho. Nunca compacte antes da revisão:
+detalhes ainda podem ser necessários para retrabalho.`;
+};
+
+export const buildAgentConnectPrompt = (role: AgentRole): string =>
+  `${buildRoleProtocol(role)}
+
+Este prompt já contém o protocolo necessário. Consulte
+GET ${API}/workflows/protocol?role=${role} apenas ao retomar uma sessão ou se a
+versão local for diferente de ${WORKFLOW_PROTOCOL_VERSION}.
+
+Conecte-se informando sua identidade real:
+
+POST ${API}/agents/connect
+Content-Type: application/json
 
 ${identityExample(role)}
 
-Guarde o \`id\` retornado como \`agentSessionId\`. Envie heartbeat em
-\`POST /agents/{agentSessionId}/heartbeat\` durante trabalhos longos.
+Guarde o \`agentSessionId\` retornado.
 
 ${
     role === 'orchestrator'
-      ? `3. Consulte sua caixa de entrada:
-
-   GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}
-
-Pegue um workflow em planejamento, faça claim da orquestração, crie nós e
-dependências, e inicie o workflow. Depois monitore a mesma inbox. Um executor
-termina apenas quando envia seu retorno; isso cria um item \`returned\`. Revise
-cada retorno e registre \`approve\`, \`rework\`, \`expand\`,
-\`human_intervention\` ou \`cancel\`.
-
-Rotina obrigatória de monitoramento:
-
-- Envie heartbeat antes de cada ciclo: POST /agents/{agentSessionId}/heartbeat
-- Consulte a inbox.
-- Processe todos os itens acionáveis: \`planning\`, \`returned\`, \`questions\`
-  e \`completable\`.
-- Se não houver ação, aguarde o \`pollAfterSeconds\` retornado pela inbox
-  (padrão: 180 segundos) e consulte de novo. Não diga apenas "vou verificar";
-  mantenha o loop no ambiente onde você está rodando.
-- Repita até o workflow ser concluído, cancelado ou bloqueado por intervenção
-  humana.`
-      : role === 'reviewer'
-      ? `3. Consulte sua caixa de entrada de revisão:
-
-   GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}
-
-Revise itens \`returned\`, responda perguntas quando tiver contexto suficiente e
-registre decisões em \`/workflows/nodes/{nodeId}/decision\`. Você não assume
-nós de execução e não devolve \`return\`; só revisa evidências e decide. Se não
-houver ação, aguarde o \`pollAfterSeconds\` retornado pela inbox e consulte de
-novo.`
-      : `3. Liste trabalho compatível:
-
-   GET ${API}/workflows/available?agentSessionId={agentSessionId}
-
-Escolha um nó, faça claim atômico, inicie, execute e devolva resultado
-estruturado. Você nunca marca o nó como done; o orquestrador revisa o retorno.`
-  }
-
-Não invente IDs e não altere estados pulando endpoints do contrato.`;
+      ? `Consulte:
+GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}&compact=true&wait=55`
+      : `Consulte:
+GET ${API}/agents/{agentSessionId}/inbox?wait=55`
+  }`;
 
 export const buildWorkflowPrompt = (
   workflow: Workflow,
@@ -109,19 +142,24 @@ ID: ${workflow.id}
 Objetivo: ${workflow.objective}
 Descrição: ${workflow.description || '(sem descrição adicional)'}
 Política de conflitos: ${workflow.conflictPolicy}
-Máximo padrão de tentativas: ${workflow.defaultMaxAttempts}`;
+Máximo padrão de tentativas: ${workflow.defaultMaxAttempts}
+Quality gate obrigatório: ${workflow.completionPolicy.requireQualityGate}
+Auditoria final obrigatória: ${workflow.completionPolicy.requireFinalAudit}`;
 
   if (role === 'executor') {
     return `${buildAgentConnectPrompt(role)}
 
 ${header}
 
-Filtre a busca por este workflow:
+Trabalhe somente neste workflow. Consulte a inbox e filtre trabalho por:
 
 GET ${API}/workflows/available?workflowId=${workflow.id}&agentSessionId={agentSessionId}
 
-Respeite as dependências, critérios de aceite, escopos e isolamento descritos em
-cada pacote de execução.`;
+Respeite dependências, critérios, escopos e isolamento. Após cada return,
+aguarde a decisão pela inbox. Se aprovado, preserve apenas um checkpoint mínimo
+(agentSessionId, workflowId, workspace e último run), compacte o contexto se a
+ferramenta permitir e busque o próximo nó. Não encerre enquanto houver
+nextAction acionável.`;
   }
 
   if (role === 'reviewer') {
@@ -129,19 +167,17 @@ cada pacote de execução.`;
 
 ${header}
 
-Este workflow é o alvo da revisão. Depois de conectar:
+Revise somente este workflow. Para cada item returned:
 
-1. Consulte o estado completo:
-   GET ${API}/workflows/${workflow.id}
+1. GET ${API}/workflows/nodes/{nodeId}?view=review
+2. Compare cada critério com evidência concreta.
+3. Abra GET ${API}/workflows/nodes/{nodeId} apenas se o pacote compacto não
+   bastar.
+4. Copie o decisionRequest retornado pelo pacote, substitua agentSessionId,
+   preencha evidências e envie para a URL indicada. Não redigite critérios.
 
-2. Consulte a inbox de revisão:
-   GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}
-
-3. Quando houver nó \`returned\` deste workflow, leia as evidências e registre:
-   POST ${API}/workflows/nodes/{nodeId}/decision
-   {"agentSessionId":"...","decision":"approve|rework|expand|human_intervention|cancel","feedback":"..."}
-
-Não faça claim de nó, não inicie execução e não altere arquivos.`;
+Em final_audit, procure qualidade de código, bugs, edge cases, crashes,
+regressões e mudanças fora do escopo.`;
   }
 
   return `${buildAgentConnectPrompt('orchestrator')}
@@ -154,50 +190,85 @@ Depois de conectar:
    POST ${API}/workflows/${workflow.id}/claim-orchestration
    {"agentSessionId":"..."}
 
-2. Consulte o estado completo:
-   GET ${API}/workflows/${workflow.id}
+2. Leia apenas o pacote de planejamento:
+   GET ${API}/workflows/${workflow.id}?view=planning
 
-3. Decomponha o objetivo em nós independentes com descrição, critérios de
-   aceite, contexto, complexidade, capacidades, recomendação de
-   ferramenta/provider/model, readScopes, writeScopes e isolamento. Não
-   implemente nenhuma parte do trabalho e não execute comandos de código.
+3. Classifique a demanda:
+   - pequena/clara: decomponha diretamente;
+   - média/grande/incerta: crie primeiro nós discovery econômicos para
+     arquitetura/impacto, testes/comandos e riscos/regressões. Após os retornos,
+     sintetize e expanda o plano.
 
-4. Crie os nós:
-   POST ${API}/workflows/${workflow.id}/nodes
+4. Construa um DAG de entregáveis coesos:
+   - paralelize apenas trabalho realmente independente;
+   - serialize writeScopes sobrepostos;
+   - cada nó deve ter critérios observáveis, evidência esperada, contexto,
+     complexidade, capacidades, readScopes, writeScopes e isolamento;
+   - prefira resumos/refs e abra arquivos/diffs completos sob demanda.
+   - inclua agentSessionId em toda criação de nó ou aresta para renovar presença.
 
-5. Crie dependências adicionais quando necessário:
-   POST ${API}/workflows/${workflow.id}/edges
-   {"fromNodeId":"...","toNodeId":"...","kind":"blocks"}
+5. Crie/repare as barreiras finais em uma única chamada idempotente:
+
+   POST ${API}/workflows/${workflow.id}/final-barriers
+   {"agentSessionId":"..."}
+
+O servidor identifica as folhas, cria/reutiliza quality_gate e final_audit e
+liga as arestas. Não crie essas barreiras manualmente.
+
+Se um executor criar macro agregadora para o gate, ela deve usar:
+{"lifecycle":"workflow","workflowId":"${workflow.id}"}
+O servidor arquiva o script/hash e remove a macro ao concluir.
 
 6. Inicie:
    POST ${API}/workflows/${workflow.id}/start
    {"agentSessionId":"..."}
 
-7. A partir daqui, apenas monitore e revise. Não implemente nada, não altere
-   arquivos e não execute comandos de código. Consulte continuamente:
-   GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}
+## Loop de decisão
 
-Loop de orquestração:
+1. GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}&compact=true&wait=55
+2. Execute nextActions em ordem de priority. Drene review_return antes de criar
+   ou expandir qualquer nó.
+3. Para cada review_return, abra:
+   GET ${API}/workflows/nodes/{nodeId}?view=review
+4. Use o decisionRequest retornado, apenas substituindo agentSessionId,
+   decisão, feedback e evidências. Não redigite os critérios.
+5. Aprove apenas com evidência suficiente. Feedback de rework deve ser
+   específico, verificável e limitado ao gap.
+6. Se discovery revelar trabalho, use expand/crie nós e arestas.
+7. Se gate/auditoria revelar problema, crie correções e depois chame
+   /final-barriers novamente.
+8. Se wait.reason=timeout, repita imediatamente a mesma chamada. Não use sleep.
 
-1. POST ${API}/agents/{agentSessionId}/heartbeat
-2. GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}
-3. Se houver \`returned\`, revise as evidências e registre decisão.
-4. Se houver \`questions\`, responda ou marque a necessidade de intervenção humana.
-5. Se houver \`completable\`, consolide o resultado e conclua o workflow.
-6. Se não houver ação, aguarde o \`pollAfterSeconds\` retornado pela inbox
-   (padrão: 180 segundos) e repita. Não encerre dizendo que vai verificar
-   depois sem realmente manter essa cadência.
-
-Quando aparecer um nó em \`returned\`, leia seu run e decida via:
-
-POST ${API}/workflows/nodes/{nodeId}/decision
-{"agentSessionId":"...","decision":"approve|rework|expand|human_intervention|cancel","feedback":"..."}
-
-Para \`expand\`, envie também \`newNodes\`; eles dependerão automaticamente do
-nó revisado. Só conclua o workflow quando \`canComplete\` for true:
+Só conclua quando a inbox trouxer o workflow em completable e
+\`completionReadiness.canComplete=true\`:
 
 POST ${API}/workflows/${workflow.id}/complete
-{"agentSessionId":"...","summary":"resultado final consolidado"}`;
+{"agentSessionId":"...","summary":"resultado, gates, auditoria e riscos residuais"}`;
+};
+
+const nodeKindProtocol = (pkg: NodeExecutionPackage): string => {
+  if (pkg.node.kind === 'quality_gate') {
+    return `Este é um QUALITY GATE. Não altere código. Execute todos os checks
+oficiais do projeto e os específicos da demanda: format, lint, typecheck,
+testes, build e smoke/startup quando aplicáveis. Registre cada comando, status e
+evidência. outcome=success somente se todos os checks obrigatórios passarem.
+Se criar uma macro agregadora no Docmap, use lifecycle=workflow e
+workflowId=${pkg.workflow.id}; não a apague manualmente.`;
+  }
+  if (pkg.node.kind === 'final_audit') {
+    return `Esta é uma AUDITORIA FINAL independente e read-only. Não altere
+código. Revise objetivo, diff consolidado, arquitetura, legibilidade, erros,
+edge cases, crashes, concorrência, segurança, regressões, efeitos fora do
+escopo e cobertura. No result, informe verdict=pass|changes_required|blocked,
+findings com severity/category/evidence/expectedFix e residualRisks.
+outcome=success somente com verdict=pass e sem achados critical/high.`;
+  }
+  if (pkg.node.kind === 'discovery') {
+    return `Este é um nó DISCOVERY. Não implemente. Produza briefing curto e
+estruturado com fatos, caminhos, comandos, riscos, incertezas e recomendações
+para o orquestrador. Evite despejar arquivos ou logs completos.`;
+  }
+  return 'Implemente apenas o escopo deste nó e valide todos os critérios.';
 };
 
 export const buildNodePrompt = (pkg: NodeExecutionPackage): string => {
@@ -207,11 +278,9 @@ export const buildNodePrompt = (pkg: NodeExecutionPackage): string => {
   const dependencies = pkg.dependencies.length > 0
     ? JSON.stringify(pkg.dependencies, null, 2)
     : '[]';
-  return `Você é um agente executor externo do Docmap. Execute o nó abaixo.
+  return `${buildAgentConnectPrompt('executor')}
 
-Antes de começar, conecte-se em \`${API}/agents/connect\` informando seu nome,
-ferramenta, provider, modelo, papel \`executor\` e capacidades reais. Guarde o
-\`agentSessionId\`.
+Execute o nó abaixo e depois permaneça no loop do worker.
 
 Workflow: ${pkg.workflow.title}
 Workflow ID: ${pkg.workflow.id}
@@ -223,6 +292,9 @@ Tipo: ${pkg.node.kind}
 Complexidade: ${pkg.node.complexity}
 Descrição:
 ${pkg.node.description}
+
+Instrução do tipo:
+${nodeKindProtocol(pkg)}
 
 Critérios de aceite:
 ${
@@ -243,39 +315,49 @@ Escopos de escrita: ${pkg.node.writeScopes.join(', ') || 'não declarados'}
 Isolamento exigido: ${pkg.node.isolation}
 Tentativas: ${pkg.node.attemptCount}/${pkg.node.maxAttempts}
 
-Fluxo obrigatório:
+## Execução
 
 1. POST ${API}/workflows/nodes/${pkg.node.id}/claim
    {"agentSessionId":"..."}
 
-2. Prepare o ambiente. Se o isolamento for \`worktree\`, crie/use uma worktree
-   no seu próprio processo. O Docmap não executa comandos.
+2. Prepare o ambiente exigido.
 
 3. POST ${API}/workflows/nodes/${pkg.node.id}/start
    {"agentSessionId":"...","workspace":{"kind":"${pkg.node.isolation}","path":"...","branch":"...","baseCommit":"..."}}
 
-4. Envie heartbeat durante a execução:
-   POST ${API}/agents/{agentSessionId}/heartbeat
+4. Envie heartbeat durante trabalhos longos.
 
 5. Se precisar perguntar:
    POST ${API}/workflows/nodes/${pkg.node.id}/questions
    {"agentSessionId":"...","question":"..."}
-   Consulte a resposta em GET ${API}/agents/{agentSessionId}/inbox.
+   Consulte a resposta na inbox.
 
-6. Ao terminar, devolva:
+6. Antes de devolver, avalie cada critério e registre evidência. Então:
    POST ${API}/workflows/nodes/${pkg.node.id}/return
    {
      "agentSessionId":"...",
      "outcome":"success|partial|failed|blocked|needs_input",
      "summary":"resumo curto",
-     "result":"resultado detalhado",
-     "logs":["comandos e fatos relevantes"],
+     "result":"resultado detalhado e critérios verificados",
+     "logs":["fatos relevantes"],
      "changedFiles":["..."],
      "diff":"diff ou referência",
      "tests":[{"command":"...","status":"passed|failed|skipped","output":"..."}],
      "artifacts":[{"kind":"...","label":"...","ref":"..."}]
    }
 
-O retorno deixa o nó em \`returned\`. Não tente marcá-lo como \`done\`; isso é
-responsabilidade do orquestrador após revisar as evidências.`;
+## Depois do return — obrigatório
+
+Não encerre e não marque done. Consulte:
+
+GET ${API}/agents/{agentSessionId}/inbox?wait=55
+
+- await_review: repita a inbox bloqueante até chegar a decisão;
+- rework: leia feedback, faça claim do mesmo nó e execute nova tentativa;
+- claim_next: somente após aprovação, faça checkpoint/compact se suportado e
+  assuma o próximo nó deste workflow;
+- wait ou wait.reason=timeout: repita imediatamente a chamada, sem sleep;
+- stop: desconecte e encerre.
+
+O estado persistido no Docmap deve permitir retomada mesmo após compactação.`;
 };

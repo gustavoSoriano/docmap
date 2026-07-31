@@ -23,6 +23,10 @@ export type WorkflowComplexity = 'xs' | 's' | 'm' | 'l' | 'xl';
 export type WorkflowConflictPolicy = 'warn' | 'block';
 export type WorkflowIsolation = 'shared' | 'branch' | 'worktree';
 export type WorkflowEdgeKind = 'blocks' | 'informs' | 'reviews' | 'rework_of';
+export type WorkflowCompletionPolicy = {
+  readonly requireQualityGate: boolean;
+  readonly requireFinalAudit: boolean;
+};
 export type AgentRole = 'orchestrator' | 'executor' | 'reviewer';
 export type AgentPresence = 'online' | 'idle' | 'busy' | 'stale' | 'offline';
 export type RunStatus =
@@ -64,6 +68,7 @@ export type Workflow = {
   readonly status: WorkflowStatus;
   readonly conflictPolicy: WorkflowConflictPolicy;
   readonly defaultMaxAttempts: number;
+  readonly completionPolicy: WorkflowCompletionPolicy;
   readonly orchestrationSessionId?: string;
   readonly completionSummary?: string;
   readonly stopReason?: string;
@@ -94,6 +99,13 @@ export type WorkflowNode = {
   readonly position?: { readonly x: number; readonly y: number };
   readonly createdAt: string;
   readonly updatedAt: string;
+};
+
+export type WorkflowCompletionReadiness = {
+  readonly canComplete: boolean;
+  readonly missing: readonly string[];
+  readonly qualityGateNodeId?: string;
+  readonly finalAuditNodeId?: string;
 };
 
 export type WorkflowEdge = {
@@ -152,6 +164,14 @@ export type RunWorkspace = {
   readonly baseCommit?: string;
 };
 
+export type AcceptanceCheckStatus = 'pass' | 'fail' | 'insufficient';
+
+export type AcceptanceCheck = {
+  readonly criterion: string;
+  readonly status: AcceptanceCheckStatus;
+  readonly evidence: string;
+};
+
 export type WorkflowRun = {
   readonly id: string;
   readonly workflowId: string;
@@ -168,6 +188,7 @@ export type WorkflowRun = {
     | 'human_intervention'
     | 'cancel';
   readonly reviewFeedback?: string;
+  readonly acceptanceChecks?: readonly AcceptanceCheck[];
   readonly reviewedBySessionId?: string;
   readonly createdAt: string;
   readonly startedAt?: string;
@@ -208,19 +229,24 @@ export type CreateWorkflowInput = {
   readonly tags?: readonly string[];
   readonly conflictPolicy?: WorkflowConflictPolicy;
   readonly defaultMaxAttempts?: number;
+  readonly completionPolicy?: Partial<WorkflowCompletionPolicy>;
 };
 
-export type UpdateWorkflowInput = Partial<
-  Pick<
-    Workflow,
-    | 'title'
-    | 'objective'
-    | 'description'
-    | 'tags'
-    | 'conflictPolicy'
-    | 'defaultMaxAttempts'
+export type UpdateWorkflowInput =
+  & Partial<
+    Pick<
+      Workflow,
+      | 'title'
+      | 'objective'
+      | 'description'
+      | 'tags'
+      | 'conflictPolicy'
+      | 'defaultMaxAttempts'
+    >
   >
->;
+  & {
+    readonly completionPolicy?: Partial<WorkflowCompletionPolicy>;
+  };
 
 export type CreateWorkflowNodeInput = {
   readonly title: string;
@@ -292,6 +318,7 @@ export type ReviewInput = {
     | 'human_intervention'
     | 'cancel';
   readonly feedback?: string;
+  readonly acceptanceChecks?: readonly AcceptanceCheck[];
   readonly newNodes?: readonly CreateWorkflowNodeInput[];
 };
 

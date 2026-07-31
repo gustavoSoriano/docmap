@@ -1,4 +1,9 @@
 import { workflowsHandler } from './handler.ts';
+import {
+  createMacro,
+  getMacroById,
+  listWorkflowMacroArchives,
+} from '../macros/store.ts';
 
 const assert: (
   condition: unknown,
@@ -43,6 +48,13 @@ const jsonBody = async (
   const data = await response.json();
   return data as Record<string, unknown>;
 };
+
+const passedChecks = (...criteria: string[]) =>
+  criteria.map((criterion) => ({
+    criterion,
+    status: 'pass',
+    evidence: `Evidência verificada para: ${criterion}`,
+  }));
 
 Deno.test('workflow externo libera dependências somente após revisão', async () => {
   await withKv(async (kv) => {
@@ -230,8 +242,8 @@ Deno.test('workflow externo libera dependências somente após revisão', async 
       ),
     );
     assert(
-      inbox.pollAfterSeconds === 180,
-      'inbox do orquestrador deveria sugerir cadência de polling',
+      inbox.pollAfterSeconds === 15,
+      'inbox acionável deveria sugerir polling curto',
     );
     assert(
       (inbox.role as Record<string, unknown>).canExecuteNodes === false,
@@ -241,6 +253,35 @@ Deno.test('workflow externo libera dependências somente após revisão', async 
     assert(
       returned.some((node) => node.id === firstId),
       'retorno não apareceu na inbox',
+    );
+    const executorWaitingInbox = await jsonBody(
+      await request(kv, 'GET', `/agents/${executorId}/inbox`),
+    );
+    assert(
+      executorWaitingInbox.nextAction === 'await_review',
+      'executor deveria aguardar revisão após return',
+    );
+    assert(
+      (executorWaitingInbox.awaitingReview as Array<Record<string, unknown>>)
+        .some((item) => item.nodeId === firstId),
+      'inbox do executor deveria preservar o run devolvido',
+    );
+    const reviewPacket = await jsonBody(
+      await request(
+        kv,
+        'GET',
+        `/workflows/nodes/${firstId}?view=review`,
+      ),
+    );
+    const decisionRequest = reviewPacket.decisionRequest as Record<
+      string,
+      unknown
+    >;
+    const decisionBody = decisionRequest.body as Record<string, unknown>;
+    assert(
+      (decisionBody.acceptanceChecks as Array<Record<string, unknown>>)[0]
+        .criterion === 'base pronta',
+      'pacote de revisão deveria fornecer critério exato no payload pronto',
     );
 
     const detailReturned = await jsonBody(
@@ -254,6 +295,11 @@ Deno.test('workflow externo libera dependências somente após revisão', async 
       'retorno sem aprovação não pode liberar dependente',
     );
 
+    const executorBlockingInbox = request(
+      kv,
+      'GET',
+      `/agents/${executorId}/inbox?wait=2`,
+    ).then(jsonBody);
     const approval = await request(
       kv,
       'POST',
@@ -262,6 +308,7 @@ Deno.test('workflow externo libera dependências somente após revisão', async 
         agentSessionId: orchestratorId,
         decision: 'approve',
         feedback: 'Aceito',
+        acceptanceChecks: passedChecks('base pronta'),
       },
     );
     assert(approval.ok, 'aprovação falhou');
@@ -275,6 +322,21 @@ Deno.test('workflow externo libera dependências somente após revisão', async 
     assert(
       approvedNodes.find((node) => node.id === secondId)?.status === 'ready',
       'aprovação deveria liberar dependente',
+    );
+    const executorApprovedInbox = await executorBlockingInbox;
+    assert(
+      executorApprovedInbox.nextAction === 'claim_next',
+      'inbox bloqueante deveria despertar com o próximo trabalho',
+    );
+    const wait = executorApprovedInbox.wait as Record<string, unknown>;
+    assert(
+      wait.reason === 'actionable' && wait.trigger === 'event',
+      'inbox bloqueante deveria informar despertar por evento',
+    );
+    assert(
+      (executorApprovedInbox.reviewedRuns as Array<Record<string, unknown>>)
+        .some((item) => item.nodeId === firstId && item.status === 'approved'),
+      'decisão aprovada deveria aparecer na inbox do executor',
     );
   });
 });
@@ -365,6 +427,7 @@ Deno.test('retorno humano envia nó disponível para revisão', async () => {
         agentSessionId: orchestratorId,
         decision: 'approve',
         feedback: 'Aceito',
+        acceptanceChecks: passedChecks('evidência registrada'),
       },
     );
     assert(approval.ok, 'orquestrador não aprovou retorno humano');
@@ -474,6 +537,536 @@ Deno.test('dúvida volta para o executor e limite encerra retrabalho', async () 
       nodes.find((item) => item.id === nodeId)?.status ===
         'human_intervention',
       'limite deveria exigir intervenção humana',
+    );
+  });
+});
+
+Deno.test('retrabalho permanece com executor original enquanto sessão está ativa', async () => {
+  await withKv(async (kv) => {
+    const workflow = await jsonBody(
+      await request(kv, 'POST', '/workflows', {
+        title: 'Afinidade de retrabalho',
+        objective: 'Preservar contexto do executor',
+        defaultMaxAttempts: 2,
+      }),
+    );
+    const workflowId = String(workflow.id);
+    const orchestrator = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'orquestrador',
+        tool: 'codex-cli',
+        provider: 'openai',
+        model: 'modelo',
+        role: 'orchestrator',
+      }),
+    );
+    const orchestratorId = String(orchestrator.agentSessionId);
+    await request(
+      kv,
+      'POST',
+      `/workflows/${workflowId}/claim-orchestration`,
+      { agentSessionId: orchestratorId },
+    );
+    const node = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Implementar',
+        description: 'Executar e corrigir',
+        acceptanceCriteria: ['resultado validado'],
+      }),
+    );
+    const nodeId = String(node.id);
+    await request(kv, 'POST', `/workflows/${workflowId}/start`, {
+      agentSessionId: orchestratorId,
+    });
+
+    const firstExecutor = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'executor-1',
+        tool: 'codex-cli',
+        provider: 'openai',
+        model: 'modelo',
+        role: 'executor',
+      }),
+    );
+    const firstExecutorId = String(firstExecutor.agentSessionId);
+    const secondExecutor = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'executor-2',
+        tool: 'opencode',
+        provider: 'openai',
+        model: 'modelo',
+        role: 'executor',
+      }),
+    );
+    const secondExecutorId = String(secondExecutor.agentSessionId);
+
+    await request(kv, 'POST', `/workflows/nodes/${nodeId}/claim`, {
+      agentSessionId: firstExecutorId,
+    });
+    await request(kv, 'POST', `/workflows/nodes/${nodeId}/start`, {
+      agentSessionId: firstExecutorId,
+    });
+    await request(kv, 'POST', `/workflows/nodes/${nodeId}/return`, {
+      agentSessionId: firstExecutorId,
+      outcome: 'partial',
+      summary: 'Precisa de ajuste',
+      logs: [],
+      changedFiles: [],
+      tests: [],
+      artifacts: [],
+    });
+    await request(kv, 'POST', `/workflows/nodes/${nodeId}/decision`, {
+      agentSessionId: orchestratorId,
+      decision: 'rework',
+      feedback: 'Corrigir o caso limite',
+    });
+
+    const originalInbox = await jsonBody(
+      await request(kv, 'GET', `/agents/${firstExecutorId}/inbox`),
+    );
+    assert(
+      originalInbox.nextAction === 'rework',
+      'executor original deveria receber retrabalho',
+    );
+    const otherAvailable = await jsonBody(
+      await request(
+        kv,
+        'GET',
+        `/agents/${secondExecutorId}/inbox`,
+      ),
+    );
+    assert(
+      !(otherAvailable.available as Array<Record<string, unknown>>).some(
+        (item) =>
+          (item.node as Record<string, unknown> | undefined)?.id === nodeId,
+      ),
+      'retrabalho não deveria aparecer para outro executor ativo',
+    );
+
+    await request(
+      kv,
+      'POST',
+      `/agents/${firstExecutorId}/disconnect`,
+    );
+    const releasedAvailable = await jsonBody(
+      await request(kv, 'GET', `/agents/${secondExecutorId}/inbox`),
+    );
+    assert(
+      (releasedAvailable.available as Array<Record<string, unknown>>).some(
+        (item) =>
+          (item.node as Record<string, unknown> | undefined)?.id === nodeId,
+      ),
+      'retrabalho deveria voltar ao pool após desconexão',
+    );
+  });
+});
+
+Deno.test('barreiras finais, macro efêmera e conclusão verificável', async () => {
+  await withKv(async (kv) => {
+    const workflow = await jsonBody(
+      await request(kv, 'POST', '/workflows', {
+        title: 'Fechamento rigoroso',
+        objective: 'Validar gate e auditoria',
+      }),
+    );
+    const workflowId = String(workflow.id);
+    const work = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Implementação',
+        description: 'Entregar funcionalidade',
+        acceptanceCriteria: ['funcionalidade pronta'],
+        kind: 'code',
+      }),
+    );
+    const workId = String(work.id);
+    const gate = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Quality gate',
+        description: 'Executar checks oficiais',
+        acceptanceCriteria: ['checks obrigatórios passam'],
+        kind: 'quality_gate',
+        dependsOn: [workId],
+      }),
+    );
+    const gateId = String(gate.id);
+    const audit = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Auditoria final',
+        description: 'Revisar riscos e regressões',
+        acceptanceCriteria: ['verdict pass sem achado crítico'],
+        kind: 'final_audit',
+        dependsOn: [gateId],
+      }),
+    );
+    const auditId = String(audit.id);
+
+    await request(kv, 'POST', `/workflows/${workflowId}/start`, {});
+
+    const workReturn = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${workId}/human-return`,
+      { summary: 'Implementação pronta' },
+    );
+    assert(workReturn.ok, 'retorno da implementação falhou');
+    const uncheckedApproval = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${workId}/decision`,
+      { decision: 'approve', feedback: 'Sem checklist' },
+    );
+    assert(
+      uncheckedApproval.status === 409,
+      'aprovação sem checks de aceite deveria ser bloqueada',
+    );
+    const workApproval = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${workId}/decision`,
+      {
+        decision: 'approve',
+        feedback: 'Evidência suficiente',
+        acceptanceChecks: passedChecks('funcionalidade pronta'),
+      },
+    );
+    assert(workApproval.ok, 'aprovação da implementação falhou');
+
+    const partialGateReturn = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${gateId}/human-return`,
+      { summary: 'Gate parcial', outcome: 'partial' },
+    );
+    assert(partialGateReturn.ok, 'retorno parcial do gate falhou');
+    const invalidGateApproval = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${gateId}/decision`,
+      {
+        decision: 'approve',
+        feedback: 'Aprovação indevida',
+        acceptanceChecks: passedChecks('checks obrigatórios passam'),
+      },
+    );
+    assert(
+      invalidGateApproval.status === 409,
+      'gate sem outcome=success não deveria ser aprovado',
+    );
+    const gateRework = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${gateId}/decision`,
+      { decision: 'rework', feedback: 'Corrigir checks que falharam' },
+    );
+    assert(gateRework.ok, 'gate parcial deveria aceitar retrabalho');
+
+    for (
+      const [nodeId, summary, criterion] of [
+        [gateId, 'Gate passou', 'checks obrigatórios passam'],
+        [auditId, 'Auditoria passou', 'verdict pass sem achado crítico'],
+      ]
+    ) {
+      const returned = await request(
+        kv,
+        'POST',
+        `/workflows/nodes/${nodeId}/human-return`,
+        { summary },
+      );
+      assert(returned.ok, `retorno humano falhou para ${nodeId}`);
+      const approved = await request(
+        kv,
+        'POST',
+        `/workflows/nodes/${nodeId}/decision`,
+        {
+          decision: 'approve',
+          feedback: 'Evidência suficiente',
+          acceptanceChecks: passedChecks(criterion),
+        },
+      );
+      assert(approved.ok, `aprovação falhou para ${nodeId}`);
+    }
+
+    const detail = await jsonBody(
+      await request(kv, 'GET', `/workflows/${workflowId}`),
+    );
+    assert(detail.canComplete === true, 'barreiras deveriam liberar conclusão');
+    assert(
+      (detail.completionReadiness as Record<string, unknown>).canComplete ===
+        true,
+      'readiness deveria estar explícita',
+    );
+
+    const macro = await createMacro(kv, {
+      name: 'gate-efemero',
+      title: 'Gate efêmero',
+      script: '#!/bin/bash\nexit 0',
+      lifecycle: 'workflow',
+      workflowId,
+    });
+    const completed = await request(
+      kv,
+      'POST',
+      `/workflows/${workflowId}/complete`,
+      { summary: 'Tudo validado' },
+    );
+    assert(completed.ok, 'workflow com barreiras não concluiu');
+    assert(
+      await getMacroById(kv, macro.id) === null,
+      'macro efêmera deveria ser removida',
+    );
+    const archives = await listWorkflowMacroArchives(kv, workflowId);
+    assert(archives.length === 1, 'macro deveria ser arquivada');
+    assert(
+      archives[0].scriptHash.length === 64,
+      'arquivo deveria guardar hash SHA-256',
+    );
+  });
+});
+
+Deno.test('protocolos e views compactas evitam contexto global', async () => {
+  await withKv(async (kv) => {
+    const protocolResponse = await request(
+      kv,
+      'GET',
+      '/workflows/protocol?role=orchestrator',
+    );
+    const protocol = await protocolResponse.text();
+    assert(protocol.includes('quality_gate'), 'protocolo deveria incluir gate');
+    assert(
+      !protocol.toLowerCase().includes('podcast'),
+      'protocolo de workflow não deveria carregar módulos irrelevantes',
+    );
+    assert(protocol.length < 7000, 'protocolo deveria permanecer compacto');
+
+    const workflow = await jsonBody(
+      await request(kv, 'POST', '/workflows', {
+        title: 'Payload compacto',
+        objective: 'Reduzir tokens',
+      }),
+    );
+    const workflowId = String(workflow.id);
+    const orchestrator = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'orquestrador-compacto',
+        tool: 'codex-cli',
+        provider: 'openai',
+        model: 'modelo',
+        role: 'orchestrator',
+      }),
+    );
+    const compactInbox = await jsonBody(
+      await request(
+        kv,
+        'GET',
+        `/orchestrator/inbox?agentSessionId=${
+          String(orchestrator.agentSessionId)
+        }&compact=true&wait=1`,
+      ),
+    );
+    assert(
+      Array.isArray(compactInbox.nextActions),
+      'inbox compacta deveria trazer próximas ações',
+    );
+    assert(
+      !('planning' in compactInbox) && !('returned' in compactInbox),
+      'inbox compacta não deveria repetir coleções completas',
+    );
+    assert(
+      (compactInbox.wait as Record<string, unknown>).trigger === 'initial',
+      'inbox bloqueante deveria retornar imediatamente quando já há ação',
+    );
+    const planning = await jsonBody(
+      await request(
+        kv,
+        'GET',
+        `/workflows/${workflowId}?view=planning`,
+      ),
+    );
+    assert(!('runs' in planning), 'planning não deveria trazer runs');
+    assert(!('events' in planning), 'planning não deveria trazer eventos');
+    assert(!('agents' in planning), 'planning não deveria trazer agentes');
+
+    const orchestratorPromptResponse = await request(
+      kv,
+      'GET',
+      `/workflows/${workflowId}/prompt?role=orchestrator`,
+    );
+    const orchestratorPrompt = await orchestratorPromptResponse.text();
+    assert(
+      !orchestratorPrompt.includes('/system/skill'),
+      'prompt não deveria exigir skill global',
+    );
+    assert(
+      orchestratorPrompt.includes('?view=planning'),
+      'prompt deveria priorizar pacote de planejamento',
+    );
+    assert(
+      orchestratorPrompt.includes('Você é SOMENTE orquestrador.') &&
+        !orchestratorPrompt.includes(
+          'Você executa nós, valida resultados e devolve evidências.',
+        ),
+      'prompt do orquestrador deveria manter papel exclusivo',
+    );
+
+    const executorPromptResponse = await request(
+      kv,
+      'GET',
+      `/workflows/${workflowId}/prompt?role=executor`,
+    );
+    const executorPrompt = await executorPromptResponse.text();
+    assert(
+      executorPrompt.includes('await_review'),
+      'executor deveria receber loop pós-return',
+    );
+    assert(
+      executorPrompt.includes(
+        'Você executa nós, valida resultados e devolve evidências.',
+      ) && !executorPrompt.includes('Você é SOMENTE orquestrador.'),
+      'prompt do executor não deveria conter instruções do orquestrador',
+    );
+  });
+});
+
+Deno.test('inbox bloqueante retorna timeout sem polling ativo', async () => {
+  await withKv(async (kv) => {
+    const executor = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'executor-em-espera',
+        tool: 'codex-cli',
+        provider: 'openai',
+        model: 'modelo',
+        role: 'executor',
+      }),
+    );
+    const startedAt = Date.now();
+    const inbox = await jsonBody(
+      await request(
+        kv,
+        'GET',
+        `/agents/${String(executor.agentSessionId)}/inbox?wait=0.02`,
+      ),
+    );
+    const wait = inbox.wait as Record<string, unknown>;
+    assert(wait.reason === 'timeout', 'espera deveria terminar por timeout');
+    assert(
+      Number(wait.waitedMs) >= 10 && Date.now() - startedAt < 1000,
+      'timeout curto deveria aguardar sem travar o servidor',
+    );
+    assert(inbox.nextAction === 'wait', 'inbox deveria preservar nextAction');
+  });
+});
+
+Deno.test('barreiras finais automáticas são estritas e idempotentes', async () => {
+  await withKv(async (kv) => {
+    const workflow = await jsonBody(
+      await request(kv, 'POST', '/workflows', {
+        title: 'Barreiras automáticas',
+        objective: 'Evitar JSON manual e arestas ausentes',
+      }),
+    );
+    const workflowId = String(workflow.id);
+    const orchestrator = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'orquestrador-barreiras',
+        tool: 'codex-cli',
+        provider: 'openai',
+        model: 'modelo',
+        role: 'orchestrator',
+        capabilities: ['planning', 'review'],
+      }),
+    );
+    const orchestratorId = String(orchestrator.agentSessionId);
+    await request(
+      kv,
+      'POST',
+      `/workflows/${workflowId}/claim-orchestration`,
+      { agentSessionId: orchestratorId },
+    );
+
+    const invalidNode = await request(
+      kv,
+      'POST',
+      `/workflows/${workflowId}/nodes`,
+      {
+        agentSessionId: orchestratorId,
+        title: 'Critério inválido',
+        description: 'Não deve ser criado',
+        acceptanceCriteria: [{ status: 'pass' }],
+      },
+    );
+    assert(
+      invalidNode.status === 400,
+      'acceptanceCriteria com objeto deveria ser rejeitado',
+    );
+
+    const first = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        agentSessionId: orchestratorId,
+        title: 'Implementar base',
+        description: 'Criar base',
+        acceptanceCriteria: ['base pronta'],
+      }),
+    );
+    const second = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        agentSessionId: orchestratorId,
+        title: 'Integrar base',
+        description: 'Integrar base',
+        acceptanceCriteria: ['integração pronta'],
+        dependsOn: [String(first.id)],
+      }),
+    );
+
+    const firstEnsure = await jsonBody(
+      await request(
+        kv,
+        'POST',
+        `/workflows/${workflowId}/final-barriers`,
+        { agentSessionId: orchestratorId },
+      ),
+    );
+    const gate = firstEnsure.qualityGate as Record<string, unknown>;
+    const audit = firstEnsure.finalAudit as Record<string, unknown>;
+    assert(gate.kind === 'quality_gate', 'quality gate não foi criado');
+    assert(audit.kind === 'final_audit', 'auditoria final não foi criada');
+    assert(
+      (firstEnsure.leafNodeIds as string[]).length === 1 &&
+        (firstEnsure.leafNodeIds as string[])[0] === String(second.id),
+      'barreira deveria depender somente da folha do DAG de trabalho',
+    );
+
+    const secondEnsure = await jsonBody(
+      await request(
+        kv,
+        'POST',
+        `/workflows/${workflowId}/final-barriers`,
+        { agentSessionId: orchestratorId },
+      ),
+    );
+    assert(
+      (secondEnsure.qualityGate as Record<string, unknown>).id === gate.id &&
+        (secondEnsure.finalAudit as Record<string, unknown>).id === audit.id,
+      'segunda chamada deveria reutilizar as mesmas barreiras',
+    );
+
+    const detail = await jsonBody(
+      await request(kv, 'GET', `/workflows/${workflowId}`),
+    );
+    const nodes = detail.nodes as Array<Record<string, unknown>>;
+    const edges = detail.edges as Array<Record<string, unknown>>;
+    assert(
+      nodes.filter((node) => node.kind === 'quality_gate').length === 1 &&
+        nodes.filter((node) => node.kind === 'final_audit').length === 1,
+      'chamada idempotente não deveria duplicar barreiras',
+    );
+    assert(
+      edges.some((edge) =>
+        edge.fromNodeId === second.id && edge.toNodeId === gate.id
+      ) &&
+        edges.some((edge) =>
+          edge.fromNodeId === gate.id && edge.toNodeId === audit.id
+        ),
+      'arestas finais não foram ligadas corretamente',
     );
   });
 });

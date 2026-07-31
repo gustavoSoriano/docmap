@@ -21,6 +21,7 @@ Representa a demanda principal.
   `draft | planning | running | reviewing | blocked | done | cancelled`
 - `conflictPolicy`: `warn | block`
 - `defaultMaxAttempts`
+- `completionPolicy`: quality gate e auditoria final obrigatórios por padrão
 - `orchestrationSessionId`
 - timestamps e resumo final
 
@@ -88,7 +89,14 @@ stateDiagram-v2
 
 O executor nunca marca o nó como concluído. `POST .../return` produz o estado
 `returned` e o evento persistido `node.returned`. O orquestrador consulta
-`GET /orchestrator/inbox` ou recebe o evento por SSE e registra a decisão.
+`GET /orchestrator/inbox?agentSessionId=...&wait=55` ou recebe o evento por SSE
+e registra a decisão.
+
+Depois do retorno, o executor continua conectado pela inbox bloqueante
+`GET /agents/:id/inbox?wait=55`. O campo `nextAction` direciona `await_review`,
+`rework`, `claim_next`, `wait` ou `stop`. Retrabalho fica reservado ao executor
+original enquanto sua sessão estiver ativa; após desconexão ou staleness volta
+ao pool compatível.
 
 ## Fluxo
 
@@ -99,10 +107,15 @@ flowchart LR
   O -->|conecta e cria nós/arestas| API[API local :3334]
   E -->|conecta, claim, heartbeat, return| API
   API <--> KV[(Deno KV)]
-  API -->|event log + SSE + inbox| O
+  API -->|event log + SSE + inbox bloqueante| O
   API --> UI[Timeline de workflows]
   UI -->|ações humanas e prompts copiáveis| API
 ```
+
+O ciclo completo do executor é:
+
+`inbox -> claim -> start -> execute -> validate -> return -> await review ->
+rework ou checkpoint/compact -> inbox`.
 
 ## Contratos externos
 
@@ -137,9 +150,10 @@ O retorno de uma execução usa:
 
 Quando o usuário executa uma subdemanda manualmente pela UI, o Docmap usa
 `POST /workflows/nodes/:id/human-return` com o mesmo contrato de evidências, mas
-sem `agentSessionId`. Isso cria uma sessão sintética `docmap-ui · human ·
-manual`, registra uma tentativa e move o nó para `returned`; a aprovação continua
-com o orquestrador/revisor.
+sem `agentSessionId`. Isso cria uma sessão sintética
+`docmap-ui · human ·
+manual`, registra uma tentativa e move o nó para
+`returned`; a aprovação continua com o orquestrador/revisor.
 
 ## Concorrência e código
 
@@ -153,6 +167,62 @@ O Docmap aplica regras determinísticas:
   cargo do agente externo;
 - heartbeat não libera automaticamente uma execução: sessão stale fica visível e
   a liberação é uma decisão explícita, evitando trabalho duplicado.
+- consultas à inbox renovam a presença da sessão, evitando que um agente ativo
+  apareça como stale apenas por esquecer uma chamada separada de heartbeat;
+
+### Espera dirigida por eventos
+
+As duas inboxes aceitam `wait=<segundos>`, limitado pelo servidor a 120
+segundos. O padrão recomendado para agentes é 55 segundos:
+
+- `GET /agents/:id/inbox?wait=55`;
+- `GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=55`.
+
+Se já houver uma ação, a resposta é imediata. Caso contrário, o servidor mantém
+a requisição aberta e desperta quando um evento pode alterar a inbox. Após
+despertar, a inbox persistida é recalculada; eventos são apenas o sinal, nunca a
+fonte da verdade. Um contador e um buffer curto de eventos fecham a janela de
+corrida entre ler o estado e registrar a espera.
+
+A resposta bloqueante inclui `wait.reason` (`actionable`, `timeout` ou
+`aborted`), `wait.trigger` e `wait.waitedMs`. Em timeout, o cliente repete a
+chamada imediatamente. Isso mantém o processo aguardando sem gastar uma
+inferência de LLM nem executar ciclos de sleep. O campo `pollAfterSeconds`
+continua no payload para compatibilidade com clientes que não suportam
+requisições bloqueantes.
+
+## Fechamento e barreiras
+
+Novos workflows exigem:
+
+1. um nó `quality_gate`, criado depois do trabalho normal e dependente de todas
+   as folhas relevantes;
+2. um nó `final_audit`, ligado por `blocks` ao quality gate.
+
+`POST /workflows/:id/final-barriers` cria ou reutiliza essas barreiras de forma
+idempotente, identifica as folhas do DAG e garante as arestas
+`folhas -> quality_gate -> final_audit`. Assim o modelo não precisa montar
+vários payloads JSON e IDs manualmente.
+
+O quality gate executa verificações automatizadas sem alterar código. A
+auditoria final é independente e cobre qualidade, bugs, crashes, edge cases,
+regressões, segurança, mudanças fora do escopo e riscos residuais. Se surgir
+remediação depois das barreiras, um novo par deve ser criado.
+
+`completionReadiness` explica por que o workflow ainda não pode concluir. Nós
+cancelados, perguntas abertas, barreiras ausentes/incompletas ou barreiras mais
+antigas que o último trabalho impedem o fechamento.
+
+Uma decisão `approve` ou `expand` também precisa registrar `acceptanceChecks`
+para todos os critérios do nó. Cada item usa o texto exato do critério,
+`status: pass` e evidência observável; a avaliação fica persistida no run e no
+evento de revisão. Gate e auditoria só aceitam aprovação com `outcome=success`.
+O pacote compacto de revisão fornece `decisionRequest` já preenchido com os
+textos exatos, e a criação de nós rejeita critérios que não sejam strings.
+
+Macros agregadoras podem usar `lifecycle: workflow` e `workflowId`. Ao concluir,
+o servidor arquiva script, SHA-256 e metadados em
+`GET /workflows/:id/macro-archives` e remove a macro ativa.
 
 ## Contrato do orquestrador
 
@@ -162,11 +232,19 @@ arquivos e não registra retorno de execução. Quando precisar de validação
 prática, ele cria uma nova subdemanda de revisão ou pede retrabalho.
 
 A forma determinística de saber que algo terminou é consultar
-`GET /orchestrator/inbox?agentSessionId=...`. A resposta inclui
-`pollAfterSeconds`; o orquestrador deve manter o ciclo
-`heartbeat -> inbox ->
-decisão -> espera -> inbox` até concluir, cancelar ou
+`GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=55`. A própria
+consulta renova a presença e espera no servidor quando não há ação. O
+orquestrador deve processar `nextActions` por prioridade, drenando revisões
+antes de expandir o plano, e manter o ciclo
+`inbox bloqueante -> decisão -> inbox bloqueante` até concluir, cancelar ou
 bloquear o workflow.
+
+Para reduzir tokens, o orquestrador usa `GET /workflows/:id?view=planning`,
+itens `nextActions` da inbox e `GET /workflows/nodes/:id?view=review`. Detalhe
+completo, eventos, logs e diff são carregados somente quando o pacote compacto
+não basta. O protocolo específico do papel está em
+`GET /workflows/protocol?role=...`; agentes de workflow não precisam carregar a
+skill global.
 
 ## Atualização da interface
 
@@ -176,7 +254,11 @@ mostram estado, complexidade, tipo, tentativas, dependências e identidade do
 agente. Nós disponíveis ou em retrabalho têm ação de retorno humano, que envia o
 card para revisão sem marcá-lo como concluído. Prompts para orquestrador,
 executor e nó específico são gerados pelo servidor para permanecerem
-sincronizados com a API.
+sincronizados com a API. O botão do orquestrador desaparece quando o workflow já
+possui uma sessão de orquestração; prompts de executor e de nó continuam
+copiáveis durante todo o fluxo. Se a sessão do orquestrador ficar `stale` ou
+`offline`, a toolbar oferece uma ação explícita de liberação. Após confirmação,
+o botão de copiar um novo prompt volta a aparecer.
 
 O conteúdo servido em `GET /system/skill`, o botão global **Copiar skill** e o
 prompt de sistema da IA integrada usam a mesma fonte canônica.

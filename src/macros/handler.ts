@@ -66,6 +66,16 @@ const postMacro = async (kv: Deno.Kv, req: Request): Promise<Response> => {
   if (!input.title || !input.script) {
     return badRequest('title and script required');
   }
+  if (
+    input.lifecycle !== undefined &&
+    input.lifecycle !== 'persistent' &&
+    input.lifecycle !== 'workflow'
+  ) {
+    return badRequest('lifecycle must be persistent or workflow');
+  }
+  if (input.lifecycle === 'workflow' && !input.workflowId?.trim()) {
+    return badRequest('workflowId required for workflow lifecycle');
+  }
   return json(await createMacro(kv, input), 201);
 };
 

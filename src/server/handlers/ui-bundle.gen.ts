@@ -5015,6 +5015,96 @@ body::before {
   gap: 5px;
 }
 
+.wf-prompt-actions {
+  min-height: 38px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.wf-prompt-actions > [hidden] {
+  display: none;
+}
+
+.wf-prompt-actions-label {
+  padding: 0 5px 0 7px;
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.wf-role-btn,
+.wf-role-state {
+  min-height: 30px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--r-xs);
+  font: 650 10px var(--font-ui);
+  white-space: nowrap;
+}
+
+.wf-role-btn {
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: color .14s, background .14s, border-color .14s;
+}
+
+.wf-role-btn .ico,
+.wf-role-state .ico {
+  width: 14px;
+  height: 14px;
+}
+
+.wf-role-btn.orchestrator {
+  color: var(--wf-planning);
+  border-color: color-mix(in srgb, var(--wf-planning) 28%, transparent);
+  background: color-mix(in srgb, var(--wf-planning) 9%, var(--surface));
+}
+
+.wf-role-btn.orchestrator:hover {
+  border-color: color-mix(in srgb, var(--wf-planning) 55%, transparent);
+  background: color-mix(in srgb, var(--wf-planning) 16%, var(--surface));
+}
+
+.wf-role-btn.executor {
+  color: var(--wf-ready);
+  border-color: color-mix(in srgb, var(--wf-ready) 28%, transparent);
+  background: color-mix(in srgb, var(--wf-ready) 9%, var(--surface));
+}
+
+.wf-role-btn.executor:hover {
+  border-color: color-mix(in srgb, var(--wf-ready) 55%, transparent);
+  background: color-mix(in srgb, var(--wf-ready) 16%, var(--surface));
+}
+
+.wf-role-state {
+  color: var(--wf-done);
+  background: color-mix(in srgb, var(--wf-done) 9%, var(--surface));
+}
+
+.wf-role-state.inactive {
+  color: var(--wf-blocked);
+  background: color-mix(in srgb, var(--wf-blocked) 9%, var(--surface));
+}
+
+.wf-role-btn.release {
+  color: var(--wf-blocked);
+  border-color: color-mix(in srgb, var(--wf-blocked) 35%, transparent);
+  background: transparent;
+}
+
+.wf-role-btn.release:hover {
+  background: color-mix(in srgb, var(--wf-blocked) 12%, transparent);
+}
+
 .wf-toolbar-sep {
   width: 1px;
   height: 22px;
@@ -5664,6 +5754,32 @@ body::before {
   line-height: 20px;
 }
 
+.wf-review-criteria {
+  display: grid;
+  gap: 8px;
+}
+
+.wf-review-criterion {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+}
+
+.wf-review-criterion label {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.wf-review-criterion input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: var(--wf-done);
+}
+
 .wf-chip-row {
   display: flex;
   flex-wrap: wrap;
@@ -5912,6 +6028,10 @@ body::before {
   .wf-icon-btn {
     width: 30px;
     height: 30px;
+  }
+
+  .wf-prompt-actions-label {
+    display: none;
   }
 }
 
@@ -9847,13 +9967,41 @@ svg#kg-svg:active { cursor: grabbing; }
                   <div id="wf-toolbar-meta"></div>
                 </div>
                 <div id="wf-toolbar-actions">
-                  <button class="wf-icon-btn"
-                    onclick="copyWorkflowPrompt('orchestrator')"
-                    title="Copiar prompt do orquestrador"
-                    data-icon="bot"></button>
-                  <button class="wf-icon-btn"
-                    onclick="copyWorkflowPrompt('executor')"
-                    title="Copiar prompt de executor" data-icon="copy"></button>
+                  <div class="wf-prompt-actions"
+                    aria-label="Copiar prompts dos agentes">
+                    <span class="wf-prompt-actions-label">Copiar prompt</span>
+                    <button
+                      class="wf-role-btn orchestrator"
+                      id="wf-copy-orchestrator-btn"
+                      onclick="copyWorkflowPrompt('orchestrator')"
+                      title="Copiar instruções exclusivas do orquestrador">
+                      <span data-icon="workflow"></span>
+                      <span>Orquestrador</span>
+                    </button>
+                    <span class="wf-role-state"
+                      id="wf-orchestrator-state" hidden>
+                      <span data-icon="workflow"></span>
+                      <span id="wf-orchestrator-state-label">
+                        Orquestrador conectado
+                      </span>
+                    </span>
+                    <button
+                      class="wf-role-btn release"
+                      id="wf-release-orchestrator-btn"
+                      onclick="releaseStaleWorkflowOrchestrator()"
+                      title="Liberar orquestrador inativo" hidden>
+                      <span data-icon="unlink"></span>
+                      <span>Liberar</span>
+                    </button>
+                    <button
+                      class="wf-role-btn executor"
+                      id="wf-copy-executor-btn"
+                      onclick="copyWorkflowPrompt('executor')"
+                      title="Copiar instruções exclusivas do executor">
+                      <span data-icon="terminal"></span>
+                      <span>Executor</span>
+                    </button>
+                  </div>
                   <span class="wf-toolbar-sep"></span>
                   <button class="wf-icon-btn" onclick="openEditWorkflowModal()"
                     title="Editar workflow" data-icon="pencil"></button>
@@ -10151,9 +10299,9 @@ svg#kg-svg:active { cursor: grabbing; }
             <button type="button" class="wf-secondary-btn"
               onclick="closeWorkflowModal()">Cancelar</button>
             <button type="submit" class="wf-primary-btn">
-            <span id="wf-modal-submit-icon" data-icon="plus"></span>
-            <span id="wf-modal-submit-label">Criar workflow</span>
-          </button>
+              <span id="wf-modal-submit-icon" data-icon="plus"></span>
+              <span id="wf-modal-submit-label">Criar workflow</span>
+            </button>
           </div>
         </form>
       </div>
@@ -10585,6 +10733,7 @@ const ICON_PATHS = {
   'zoom-in': '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/>',
   'zoom-out': '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/>',
   'git-branch': '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+  unlink: '<path d="m18.84 12.25 1.72-1.71a5.5 5.5 0 0 0-7.78-7.78l-1.72 1.72"/><path d="m5.17 11.75-1.71 1.71a5.5 5.5 0 0 0 7.78 7.78l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/>',
   trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
@@ -12889,6 +13038,23 @@ const renderCurrentWorkflow = () => {
     workflow.status === 'running' || workflow.status === 'reviewing' ||
     workflow.status === 'done';
   $('wf-complete-btn').disabled = !canComplete || workflow.status === 'done';
+  $('wf-complete-btn').title = canComplete
+    ? 'Concluir workflow'
+    : \`Aguardando: \${(currentWorkflowDetail.completionReadiness?.missing || []).join(', ')}\`;
+  const hasOrchestrator = Boolean(workflow.orchestrationSessionId);
+  $('wf-copy-orchestrator-btn').hidden = hasOrchestrator;
+  const orchestrator = currentWorkflowDetail.agents.find(
+    (agent) => agent.id === workflow.orchestrationSessionId,
+  );
+  const orchestratorInactive = hasOrchestrator &&
+    (!orchestrator || ['stale', 'offline'].includes(orchestrator.presence));
+  const orchestratorState = $('wf-orchestrator-state');
+  orchestratorState.hidden = !hasOrchestrator;
+  orchestratorState.classList.toggle('inactive', orchestratorInactive);
+  $('wf-orchestrator-state-label').textContent = orchestratorInactive
+    ? 'Orquestrador inativo'
+    : 'Orquestrador conectado';
+  $('wf-release-orchestrator-btn').hidden = !orchestratorInactive;
   renderWorkflowAgents();
   renderWorkflowTimeline();
   renderWorkflowInspector();
@@ -13178,6 +13344,22 @@ const renderWorkflowInspector = () => {
     </div>
     \${isReturned
       ? \`<div class="wf-inspector-section">
+           <div class="wf-inspector-label">Checklist de aceite</div>
+           <div class="wf-review-criteria">
+             \${node.acceptanceCriteria.map((item, index) =>
+               \`<div class="wf-review-criterion">
+                  <label>
+                    <input type="checkbox" id="wf-acceptance-pass-\${index}" />
+                    <span>\${escHtml(item)}</span>
+                  </label>
+                  <input id="wf-acceptance-evidence-\${index}"
+                    class="wf-inspector-input"
+                    placeholder="Evidência observável: comando, saída, arquivo ou comportamento" />
+                </div>\`
+             ).join('')}
+           </div>
+         </div>
+         <div class="wf-inspector-section">
            <div class="wf-inspector-label">Feedback da revisão</div>
            <textarea id="wf-review-feedback" class="wf-inspector-textarea"
              placeholder="Motivo da decisão ou instruções de retrabalho"></textarea>
@@ -13315,19 +13497,73 @@ const bindWorkflowInspectorModal = () => {
 
 const copyWorkflowPrompt = async (role) => {
   if (!currentWorkflowDetail) return;
+  if (!['orchestrator', 'executor'].includes(role)) {
+    toast('Papel de agente inválido');
+    return;
+  }
+  if (
+    role === 'orchestrator' &&
+    currentWorkflowDetail.workflow.orchestrationSessionId
+  ) {
+    toast('Este workflow já possui orquestrador');
+    return;
+  }
   try {
     const res = await fetch(
       \`/workflows/\${currentWorkflowDetail.workflow.id}/prompt?role=\${role}\`,
     );
+    if (!res.ok) throw new Error(await res.text());
     const text = await res.text();
+    const expectedRoleText = role === 'orchestrator'
+      ? 'Você é SOMENTE orquestrador.'
+      : 'Você executa nós, valida resultados e devolve evidências.';
+    if (!text.includes(expectedRoleText)) {
+      throw new Error(\`A API retornou um prompt diferente de \${role}\`);
+    }
     copyToClipboard(
       text,
       role === 'orchestrator'
         ? 'Prompt do orquestrador copiado'
         : 'Prompt de executor copiado',
     );
-  } catch {
-    toast('Falha ao copiar prompt');
+  } catch (err) {
+    console.error('Erro ao copiar prompt de workflow:', err);
+    toast(err.message || 'Falha ao copiar prompt');
+  }
+};
+
+const releaseStaleWorkflowOrchestrator = async () => {
+  if (!currentWorkflowDetail) return;
+  const workflow = currentWorkflowDetail.workflow;
+  if (!workflow.orchestrationSessionId) return;
+  const orchestrator = currentWorkflowDetail.agents.find(
+    (agent) => agent.id === workflow.orchestrationSessionId,
+  );
+  if (orchestrator && !['stale', 'offline'].includes(orchestrator.presence)) {
+    toast('O orquestrador ainda está ativo');
+    return;
+  }
+  const ok = await confirmDialog(
+    'Liberar a sessão inativa? Depois você poderá copiar um novo prompt de orquestrador.',
+    { okLabel: 'Liberar' },
+  );
+  if (!ok) return;
+  try {
+    const res = await fetch(
+      \`/workflows/\${workflow.id}/release-orchestration\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentSessionId: workflow.orchestrationSessionId,
+        }),
+      },
+    );
+    if (!res.ok) throw new Error(await res.text());
+    await refreshCurrentWorkflow();
+    toast('Orquestrador liberado; o prompt está disponível novamente');
+  } catch (err) {
+    toast(err.message || 'Falha ao liberar orquestrador');
   }
 };
 
@@ -13454,9 +13690,31 @@ const deleteCurrentWorkflow = async () => {
 
 const reviewSelectedWorkflowNode = async (decision) => {
   if (!selectedWorkflowNodeId) return;
+  const node = currentWorkflowDetail?.nodes.find(
+    (item) => item.id === selectedWorkflowNodeId,
+  );
+  if (!node) return;
   const feedback = $('wf-review-feedback')?.value.trim() || '';
   if (decision === 'rework' && !feedback) {
     toast('Descreva o retrabalho no campo de feedback');
+    return;
+  }
+  const acceptanceChecks = decision === 'approve'
+    ? node.acceptanceCriteria.map((criterion, index) => ({
+      criterion,
+      status: $(\`wf-acceptance-pass-\${index}\`)?.checked
+        ? 'pass'
+        : 'insufficient',
+      evidence: $(\`wf-acceptance-evidence-\${index}\`)?.value.trim() || '',
+    }))
+    : [];
+  if (
+    decision === 'approve' &&
+    acceptanceChecks.some((check) =>
+      check.status !== 'pass' || !check.evidence
+    )
+  ) {
+    toast('Marque todos os critérios e informe uma evidência para cada um');
     return;
   }
   try {
@@ -13465,7 +13723,11 @@ const reviewSelectedWorkflowNode = async (decision) => {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision, feedback }),
+        body: JSON.stringify({
+          decision,
+          feedback,
+          ...(acceptanceChecks.length ? { acceptanceChecks } : {}),
+        }),
       },
     );
     if (!res.ok) throw new Error(await res.text());

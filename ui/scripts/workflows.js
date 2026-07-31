@@ -186,6 +186,23 @@ const renderCurrentWorkflow = () => {
     workflow.status === 'running' || workflow.status === 'reviewing' ||
     workflow.status === 'done';
   $('wf-complete-btn').disabled = !canComplete || workflow.status === 'done';
+  $('wf-complete-btn').title = canComplete
+    ? 'Concluir workflow'
+    : `Aguardando: ${(currentWorkflowDetail.completionReadiness?.missing || []).join(', ')}`;
+  const hasOrchestrator = Boolean(workflow.orchestrationSessionId);
+  $('wf-copy-orchestrator-btn').hidden = hasOrchestrator;
+  const orchestrator = currentWorkflowDetail.agents.find(
+    (agent) => agent.id === workflow.orchestrationSessionId,
+  );
+  const orchestratorInactive = hasOrchestrator &&
+    (!orchestrator || ['stale', 'offline'].includes(orchestrator.presence));
+  const orchestratorState = $('wf-orchestrator-state');
+  orchestratorState.hidden = !hasOrchestrator;
+  orchestratorState.classList.toggle('inactive', orchestratorInactive);
+  $('wf-orchestrator-state-label').textContent = orchestratorInactive
+    ? 'Orquestrador inativo'
+    : 'Orquestrador conectado';
+  $('wf-release-orchestrator-btn').hidden = !orchestratorInactive;
   renderWorkflowAgents();
   renderWorkflowTimeline();
   renderWorkflowInspector();
@@ -475,6 +492,22 @@ const renderWorkflowInspector = () => {
     </div>
     ${isReturned
       ? `<div class="wf-inspector-section">
+           <div class="wf-inspector-label">Checklist de aceite</div>
+           <div class="wf-review-criteria">
+             ${node.acceptanceCriteria.map((item, index) =>
+               `<div class="wf-review-criterion">
+                  <label>
+                    <input type="checkbox" id="wf-acceptance-pass-${index}" />
+                    <span>${escHtml(item)}</span>
+                  </label>
+                  <input id="wf-acceptance-evidence-${index}"
+                    class="wf-inspector-input"
+                    placeholder="Evidência observável: comando, saída, arquivo ou comportamento" />
+                </div>`
+             ).join('')}
+           </div>
+         </div>
+         <div class="wf-inspector-section">
            <div class="wf-inspector-label">Feedback da revisão</div>
            <textarea id="wf-review-feedback" class="wf-inspector-textarea"
              placeholder="Motivo da decisão ou instruções de retrabalho"></textarea>
@@ -612,19 +645,73 @@ const bindWorkflowInspectorModal = () => {
 
 const copyWorkflowPrompt = async (role) => {
   if (!currentWorkflowDetail) return;
+  if (!['orchestrator', 'executor'].includes(role)) {
+    toast('Papel de agente inválido');
+    return;
+  }
+  if (
+    role === 'orchestrator' &&
+    currentWorkflowDetail.workflow.orchestrationSessionId
+  ) {
+    toast('Este workflow já possui orquestrador');
+    return;
+  }
   try {
     const res = await fetch(
       `/workflows/${currentWorkflowDetail.workflow.id}/prompt?role=${role}`,
     );
+    if (!res.ok) throw new Error(await res.text());
     const text = await res.text();
+    const expectedRoleText = role === 'orchestrator'
+      ? 'Você é SOMENTE orquestrador.'
+      : 'Você executa nós, valida resultados e devolve evidências.';
+    if (!text.includes(expectedRoleText)) {
+      throw new Error(`A API retornou um prompt diferente de ${role}`);
+    }
     copyToClipboard(
       text,
       role === 'orchestrator'
         ? 'Prompt do orquestrador copiado'
         : 'Prompt de executor copiado',
     );
-  } catch {
-    toast('Falha ao copiar prompt');
+  } catch (err) {
+    console.error('Erro ao copiar prompt de workflow:', err);
+    toast(err.message || 'Falha ao copiar prompt');
+  }
+};
+
+const releaseStaleWorkflowOrchestrator = async () => {
+  if (!currentWorkflowDetail) return;
+  const workflow = currentWorkflowDetail.workflow;
+  if (!workflow.orchestrationSessionId) return;
+  const orchestrator = currentWorkflowDetail.agents.find(
+    (agent) => agent.id === workflow.orchestrationSessionId,
+  );
+  if (orchestrator && !['stale', 'offline'].includes(orchestrator.presence)) {
+    toast('O orquestrador ainda está ativo');
+    return;
+  }
+  const ok = await confirmDialog(
+    'Liberar a sessão inativa? Depois você poderá copiar um novo prompt de orquestrador.',
+    { okLabel: 'Liberar' },
+  );
+  if (!ok) return;
+  try {
+    const res = await fetch(
+      `/workflows/${workflow.id}/release-orchestration`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentSessionId: workflow.orchestrationSessionId,
+        }),
+      },
+    );
+    if (!res.ok) throw new Error(await res.text());
+    await refreshCurrentWorkflow();
+    toast('Orquestrador liberado; o prompt está disponível novamente');
+  } catch (err) {
+    toast(err.message || 'Falha ao liberar orquestrador');
   }
 };
 
@@ -751,9 +838,31 @@ const deleteCurrentWorkflow = async () => {
 
 const reviewSelectedWorkflowNode = async (decision) => {
   if (!selectedWorkflowNodeId) return;
+  const node = currentWorkflowDetail?.nodes.find(
+    (item) => item.id === selectedWorkflowNodeId,
+  );
+  if (!node) return;
   const feedback = $('wf-review-feedback')?.value.trim() || '';
   if (decision === 'rework' && !feedback) {
     toast('Descreva o retrabalho no campo de feedback');
+    return;
+  }
+  const acceptanceChecks = decision === 'approve'
+    ? node.acceptanceCriteria.map((criterion, index) => ({
+      criterion,
+      status: $(`wf-acceptance-pass-${index}`)?.checked
+        ? 'pass'
+        : 'insufficient',
+      evidence: $(`wf-acceptance-evidence-${index}`)?.value.trim() || '',
+    }))
+    : [];
+  if (
+    decision === 'approve' &&
+    acceptanceChecks.some((check) =>
+      check.status !== 'pass' || !check.evidence
+    )
+  ) {
+    toast('Marque todos os critérios e informe uma evidência para cada um');
     return;
   }
   try {
@@ -762,7 +871,11 @@ const reviewSelectedWorkflowNode = async (decision) => {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision, feedback }),
+        body: JSON.stringify({
+          decision,
+          feedback,
+          ...(acceptanceChecks.length ? { acceptanceChecks } : {}),
+        }),
       },
     );
     if (!res.ok) throw new Error(await res.text());

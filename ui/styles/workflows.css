@@ -361,6 +361,96 @@
   gap: 5px;
 }
 
+.wf-prompt-actions {
+  min-height: 38px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.wf-prompt-actions > [hidden] {
+  display: none;
+}
+
+.wf-prompt-actions-label {
+  padding: 0 5px 0 7px;
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.wf-role-btn,
+.wf-role-state {
+  min-height: 30px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--r-xs);
+  font: 650 10px var(--font-ui);
+  white-space: nowrap;
+}
+
+.wf-role-btn {
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: color .14s, background .14s, border-color .14s;
+}
+
+.wf-role-btn .ico,
+.wf-role-state .ico {
+  width: 14px;
+  height: 14px;
+}
+
+.wf-role-btn.orchestrator {
+  color: var(--wf-planning);
+  border-color: color-mix(in srgb, var(--wf-planning) 28%, transparent);
+  background: color-mix(in srgb, var(--wf-planning) 9%, var(--surface));
+}
+
+.wf-role-btn.orchestrator:hover {
+  border-color: color-mix(in srgb, var(--wf-planning) 55%, transparent);
+  background: color-mix(in srgb, var(--wf-planning) 16%, var(--surface));
+}
+
+.wf-role-btn.executor {
+  color: var(--wf-ready);
+  border-color: color-mix(in srgb, var(--wf-ready) 28%, transparent);
+  background: color-mix(in srgb, var(--wf-ready) 9%, var(--surface));
+}
+
+.wf-role-btn.executor:hover {
+  border-color: color-mix(in srgb, var(--wf-ready) 55%, transparent);
+  background: color-mix(in srgb, var(--wf-ready) 16%, var(--surface));
+}
+
+.wf-role-state {
+  color: var(--wf-done);
+  background: color-mix(in srgb, var(--wf-done) 9%, var(--surface));
+}
+
+.wf-role-state.inactive {
+  color: var(--wf-blocked);
+  background: color-mix(in srgb, var(--wf-blocked) 9%, var(--surface));
+}
+
+.wf-role-btn.release {
+  color: var(--wf-blocked);
+  border-color: color-mix(in srgb, var(--wf-blocked) 35%, transparent);
+  background: transparent;
+}
+
+.wf-role-btn.release:hover {
+  background: color-mix(in srgb, var(--wf-blocked) 12%, transparent);
+}
+
 .wf-toolbar-sep {
   width: 1px;
   height: 22px;
@@ -1010,6 +1100,32 @@
   line-height: 20px;
 }
 
+.wf-review-criteria {
+  display: grid;
+  gap: 8px;
+}
+
+.wf-review-criterion {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+}
+
+.wf-review-criterion label {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.wf-review-criterion input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: var(--wf-done);
+}
+
 .wf-chip-row {
   display: flex;
   flex-wrap: wrap;
@@ -1258,6 +1374,10 @@
   .wf-icon-btn {
     width: 30px;
     height: 30px;
+  }
+
+  .wf-prompt-actions-label {
+    display: none;
   }
 }
 

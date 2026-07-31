@@ -6,7 +6,7 @@
 
 import { skillMarkdown } from '../src/skill.ts';
 
-const VERSION = '7.0.0';
+const VERSION = '8.2.0';
 
 const frontMatter = `---
 name: docmap

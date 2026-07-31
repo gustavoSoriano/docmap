@@ -1,6 +1,13 @@
 import { normalizeTags } from '../tags/normalize.ts';
+import {
+  archiveAndDeleteWorkflowMacros,
+  deleteWorkflowMacroArchives,
+  deleteWorkflowMacros,
+  listWorkflowMacroArchives,
+} from '../macros/store.ts';
 import { broadcastWorkflowEvent } from './events.ts';
 import type {
+  AcceptanceCheck,
   AgentPresence,
   AgentSession,
   ConnectAgentInput,
@@ -16,6 +23,7 @@ import type {
   UpdateWorkflowInput,
   UpdateWorkflowNodeInput,
   Workflow,
+  WorkflowCompletionReadiness,
   WorkflowEdge,
   WorkflowEdgeKind,
   WorkflowEvent,
@@ -33,6 +41,11 @@ const EVENT_PREFIX = ['workflow_events'] as const;
 const QUESTION_PREFIX = ['workflow_questions'] as const;
 const STALE_AFTER_MS = 2 * 60 * 1000;
 const WORKFLOW_POLL_AFTER_SECONDS = 180;
+const EXECUTOR_REVIEW_POLL_AFTER_SECONDS = 15;
+const DEFAULT_COMPLETION_POLICY = {
+  requireQualityGate: true,
+  requireFinalAudit: true,
+} as const;
 
 const workflowKey = (id: string) => ['workflows', id] as const;
 const nodeKey = (id: string) => ['workflow_nodes', id] as const;
@@ -134,12 +147,20 @@ const withComputedPresence = (agent: AgentSession): AgentSession => ({
   presence: computedPresence(agent),
 });
 
+const normalizeWorkflow = (workflow: Workflow): Workflow => ({
+  ...workflow,
+  completionPolicy: {
+    ...DEFAULT_COMPLETION_POLICY,
+    ...(workflow.completionPolicy ?? {}),
+  },
+});
+
 export const getWorkflow = async (
   kv: Deno.Kv,
   id: string,
 ): Promise<Workflow | null> => {
   const entry = await kv.get<Workflow>(workflowKey(id));
-  return entry.value;
+  return entry.value ? normalizeWorkflow(entry.value) : null;
 };
 
 export const listWorkflowNodes = async (
@@ -213,6 +234,19 @@ export const listWorkflowRuns = async (
   return runs.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 };
 
+const listAgentRuns = async (
+  kv: Deno.Kv,
+  agentSessionId: string,
+): Promise<WorkflowRun[]> => {
+  const runs: WorkflowRun[] = [];
+  for await (const entry of kv.list<WorkflowRun>({ prefix: RUN_PREFIX })) {
+    if (entry.value?.agentSessionId === agentSessionId) {
+      runs.push(entry.value);
+    }
+  }
+  return runs.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+};
+
 export const listWorkflowQuestions = async (
   kv: Deno.Kv,
   workflowId?: string,
@@ -227,6 +261,103 @@ export const listWorkflowQuestions = async (
   return questions.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 };
 
+export const getWorkflowCompletionReadiness = async (
+  kv: Deno.Kv,
+  workflowId: string,
+): Promise<WorkflowCompletionReadiness> => {
+  const workflow = await getWorkflow(kv, workflowId);
+  if (!workflow) throw new WorkflowMissingError('workflow não encontrado');
+  if (workflow.status === 'done') return { canComplete: true, missing: [] };
+
+  const [nodes, edges, questions] = await Promise.all([
+    listWorkflowNodes(kv, workflowId),
+    listWorkflowEdges(kv, workflowId),
+    listWorkflowQuestions(kv, workflowId),
+  ]);
+  const missing: string[] = [];
+  const workNodes = nodes.filter((node) =>
+    node.kind !== 'quality_gate' && node.kind !== 'final_audit'
+  );
+  if (workNodes.length === 0) missing.push('work_nodes');
+  if (nodes.some((node) => node.status === 'cancelled')) {
+    missing.push('cancelled_nodes');
+  }
+  if (nodes.some((node) => node.status !== 'done')) {
+    missing.push('unfinished_nodes');
+  }
+  if (questions.some((question) => question.status === 'open')) {
+    missing.push('open_questions');
+  }
+
+  const blockingTargets = new Map<string, string[]>();
+  for (const edge of edges.filter((item) => item.kind === 'blocks')) {
+    const targets = blockingTargets.get(edge.fromNodeId) ?? [];
+    targets.push(edge.toNodeId);
+    blockingTargets.set(edge.fromNodeId, targets);
+  }
+  const hasBlockingPath = (fromNodeId: string, toNodeId: string): boolean => {
+    const queue = [fromNodeId];
+    const visited = new Set<string>();
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (current === toNodeId) return true;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      queue.push(...(blockingTargets.get(current) ?? []));
+    }
+    return false;
+  };
+  const qualityGate = [...nodes]
+    .filter((node) =>
+      node.kind === 'quality_gate' &&
+      node.status === 'done' &&
+      workNodes.every((workNode) => hasBlockingPath(workNode.id, node.id))
+    )
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  if (workflow.completionPolicy.requireQualityGate && !qualityGate) {
+    missing.push(
+      nodes.some((node) => node.kind === 'quality_gate')
+        ? 'quality_gate_stale_or_incomplete'
+        : 'quality_gate',
+    );
+  }
+
+  const finalAudit =
+    qualityGate || !workflow.completionPolicy.requireQualityGate
+      ? [...nodes]
+        .filter((node) =>
+          node.kind === 'final_audit' &&
+          node.status === 'done' &&
+          (
+            !workflow.completionPolicy.requireQualityGate
+              ? workNodes.every((workNode) =>
+                hasBlockingPath(workNode.id, node.id)
+              )
+              : edges.some((edge) =>
+                edge.fromNodeId === qualityGate?.id &&
+                edge.toNodeId === node.id &&
+                edge.kind === 'blocks'
+              )
+          )
+        )
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+      : undefined;
+  if (workflow.completionPolicy.requireFinalAudit && !finalAudit) {
+    missing.push(
+      nodes.some((node) => node.kind === 'final_audit')
+        ? 'final_audit_stale_incomplete_or_unlinked'
+        : 'final_audit',
+    );
+  }
+
+  return {
+    canComplete: missing.length === 0,
+    missing: [...new Set(missing)],
+    ...(qualityGate ? { qualityGateNodeId: qualityGate.id } : {}),
+    ...(finalAudit ? { finalAuditNodeId: finalAudit.id } : {}),
+  };
+};
+
 export const listWorkflows = async (
   kv: Deno.Kv,
   tags?: readonly string[],
@@ -235,32 +366,36 @@ export const listWorkflows = async (
   for await (
     const entry of kv.list<Workflow>({ prefix: WORKFLOW_PREFIX })
   ) {
-    if (entry.value) workflows.push(entry.value);
+    if (entry.value) workflows.push(normalizeWorkflow(entry.value));
   }
   const nodes = await listWorkflowNodes(kv);
   const normalizedFilter = tags ? normalizeTags(tags) : undefined;
-  return workflows
+  const filtered = workflows
     .filter((workflow) => {
       if (!normalizedFilter || normalizedFilter.length === 0) return true;
       return normalizedFilter.every((tag) => workflow.tags.includes(tag));
-    })
-    .map((workflow) => {
+    });
+  const decorated = await Promise.all(
+    filtered.map(async (workflow) => {
       const own = nodes.filter((node) => node.workflowId === workflow.id);
       const counts = own.reduce<Record<string, number>>((acc, node) => {
         acc[node.status] = (acc[node.status] ?? 0) + 1;
         return acc;
       }, {});
+      const completionReadiness = await getWorkflowCompletionReadiness(
+        kv,
+        workflow.id,
+      );
       return {
         ...workflow,
         nodeCount: own.length,
         nodeCounts: counts,
-        canComplete: own.length > 0 &&
-          own.every((node) =>
-            node.status === 'done' || node.status === 'cancelled'
-          ),
+        canComplete: completionReadiness.canComplete,
+        completionReadiness,
       };
-    })
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    }),
+  );
+  return decorated.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 };
 
 export const getWorkflowDetail = async (
@@ -269,13 +404,24 @@ export const getWorkflowDetail = async (
 ): Promise<Record<string, unknown> | null> => {
   const workflow = await getWorkflow(kv, id);
   if (!workflow) return null;
-  const [nodes, edges, runs, questions, agents, events] = await Promise.all([
+  const [
+    nodes,
+    edges,
+    runs,
+    questions,
+    agents,
+    events,
+    completionReadiness,
+    macroArchives,
+  ] = await Promise.all([
     listWorkflowNodes(kv, id),
     listWorkflowEdges(kv, id),
     listWorkflowRuns(kv, id),
     listWorkflowQuestions(kv, id),
     listAgents(kv),
     listWorkflowEvents(kv, id, 100),
+    getWorkflowCompletionReadiness(kv, id),
+    listWorkflowMacroArchives(kv, id),
   ]);
   return {
     workflow,
@@ -285,11 +431,89 @@ export const getWorkflowDetail = async (
     questions,
     agents,
     events,
-    canComplete: nodes.length > 0 &&
-      nodes.every((node) =>
-        node.status === 'done' || node.status === 'cancelled'
-      ),
+    canComplete: completionReadiness.canComplete,
+    completionReadiness,
+    macroArchives: macroArchives.map((archive) => ({
+      macroId: archive.macroId,
+      name: archive.name,
+      title: archive.title,
+      interpreter: archive.interpreter,
+      scriptHash: archive.scriptHash,
+      archivedAt: archive.archivedAt,
+    })),
     deepLink: `http://127.0.0.1:3333/#workflow/${workflow.id}`,
+  };
+};
+
+export const getWorkflowPlanningPacket = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<Record<string, unknown> | null> => {
+  const workflow = await getWorkflow(kv, id);
+  if (!workflow) return null;
+  const [nodes, edges, questions, completionReadiness] = await Promise.all([
+    listWorkflowNodes(kv, id),
+    listWorkflowEdges(kv, id),
+    listWorkflowQuestions(kv, id),
+    getWorkflowCompletionReadiness(kv, id),
+  ]);
+  return {
+    workflow,
+    planDigest: {
+      nodeCount: nodes.length,
+      statusCounts: nodes.reduce<Record<string, number>>((counts, node) => {
+        counts[node.status] = (counts[node.status] ?? 0) + 1;
+        return counts;
+      }, {}),
+      openQuestionCount:
+        questions.filter((question) => question.status === 'open').length,
+      completionReadiness,
+    },
+    nodes: nodes.map((node) => ({
+      id: node.id,
+      title: node.title,
+      description: node.description,
+      acceptanceCriteria: node.acceptanceCriteria,
+      contextRefs: node.contextRefs,
+      status: node.status,
+      complexity: node.complexity,
+      kind: node.kind,
+      requiredCapabilities: node.requiredCapabilities,
+      recommendedAgent: node.recommendedAgent,
+      readScopes: node.readScopes,
+      writeScopes: node.writeScopes,
+      isolation: node.isolation,
+      attemptCount: node.attemptCount,
+      maxAttempts: node.maxAttempts,
+    })),
+    edges,
+  };
+};
+
+export const getWorkflowStatusPacket = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<Record<string, unknown> | null> => {
+  const workflow = await getWorkflow(kv, id);
+  if (!workflow) return null;
+  const [nodes, completionReadiness] = await Promise.all([
+    listWorkflowNodes(kv, id),
+    getWorkflowCompletionReadiness(kv, id),
+  ]);
+  return {
+    workflow: {
+      id: workflow.id,
+      title: workflow.title,
+      objective: workflow.objective,
+      status: workflow.status,
+      orchestrationSessionId: workflow.orchestrationSessionId,
+      updatedAt: workflow.updatedAt,
+    },
+    nodeCounts: nodes.reduce<Record<string, number>>((counts, node) => {
+      counts[node.status] = (counts[node.status] ?? 0) + 1;
+      return counts;
+    }, {}),
+    completionReadiness,
   };
 };
 
@@ -310,6 +534,10 @@ export const createWorkflow = async (
       1,
       Math.min(20, input.defaultMaxAttempts ?? 3),
     ),
+    completionPolicy: {
+      ...DEFAULT_COMPLETION_POLICY,
+      ...(input.completionPolicy ?? {}),
+    },
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -349,6 +577,14 @@ export const updateWorkflow = async (
         ),
       }
       : {}),
+    ...(input.completionPolicy !== undefined
+      ? {
+        completionPolicy: {
+          ...existing.completionPolicy,
+          ...input.completionPolicy,
+        },
+      }
+      : {}),
     updatedAt: now(),
   };
   await kv.set(workflowKey(id), updated);
@@ -385,6 +621,8 @@ export const deleteWorkflow = async (
   ) {
     await kv.delete(entry.key);
   }
+  await deleteWorkflowMacros(kv, id);
+  await deleteWorkflowMacroArchives(kv, id);
   await kv.delete(workflowKey(id));
   broadcastWorkflowEvent({
     id: crypto.randomUUID(),
@@ -686,6 +924,133 @@ export const createWorkflowEdge = async (
   return edge;
 };
 
+export const ensureWorkflowFinalBarriers = async (
+  kv: Deno.Kv,
+  workflowId: string,
+): Promise<Record<string, unknown>> => {
+  const workflow = await getWorkflow(kv, workflowId);
+  if (!workflow) throw new WorkflowMissingError('workflow não encontrado');
+  if (workflow.status === 'done' || workflow.status === 'cancelled') {
+    throw new WorkflowConflictError(`workflow está ${workflow.status}`);
+  }
+
+  let nodes = await listWorkflowNodes(kv, workflowId);
+  const workNodes = nodes.filter((node) =>
+    node.kind !== 'quality_gate' && node.kind !== 'final_audit'
+  );
+  if (workNodes.length === 0) {
+    throw new WorkflowValidationError(
+      'crie ao menos um nó de trabalho antes das barreiras finais',
+    );
+  }
+
+  const edgesBefore = await listWorkflowEdges(kv, workflowId);
+  const workNodeIds = new Set(workNodes.map((node) => node.id));
+  const workNodesWithSuccessor = new Set(
+    edgesBefore
+      .filter((edge) =>
+        edge.kind === 'blocks' &&
+        workNodeIds.has(edge.fromNodeId) &&
+        workNodeIds.has(edge.toNodeId)
+      )
+      .map((edge) => edge.fromNodeId),
+  );
+  const leafNodes = workNodes.filter((node) =>
+    !workNodesWithSuccessor.has(node.id)
+  );
+  const reusable = (node: WorkflowNode): boolean =>
+    node.status !== 'done' && node.status !== 'cancelled' &&
+    node.status !== 'human_intervention';
+  let qualityGate = [...nodes]
+    .filter((node) => node.kind === 'quality_gate' && reusable(node))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  let qualityGateCreated = false;
+  if (!qualityGate) {
+    qualityGate = await createWorkflowNode(kv, workflowId, {
+      title: 'Quality Gate: validação consolidada',
+      description:
+        'Executar em modo read-only todos os checks oficiais do projeto e os checks específicos da demanda.',
+      acceptanceCriteria: [
+        'Todos os comandos obrigatórios foram executados e registrados',
+        'Lint, typecheck, testes, build e smoke aplicáveis passaram',
+        'Nenhuma falha obrigatória foi omitida ou classificada como sucesso',
+      ],
+      kind: 'quality_gate',
+      complexity: 'm',
+      requiredCapabilities: ['code', 'tests'],
+      readScopes: ['*'],
+      writeScopes: [],
+      dependsOn: leafNodes.map((node) => node.id),
+    });
+    qualityGateCreated = true;
+  } else {
+    for (const leaf of leafNodes) {
+      await createWorkflowEdge(
+        kv,
+        workflowId,
+        leaf.id,
+        qualityGate.id,
+        'blocks',
+      );
+    }
+  }
+
+  nodes = await listWorkflowNodes(kv, workflowId);
+  let finalAudit = [...nodes]
+    .filter((node) => node.kind === 'final_audit' && reusable(node))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  let finalAuditCreated = false;
+  if (!finalAudit) {
+    finalAudit = await createWorkflowNode(kv, workflowId, {
+      title: 'Final Audit: revisão geral independente',
+      description:
+        'Auditoria read-only de qualidade, bugs, crashes, edge cases, regressões, segurança e mudanças fora do escopo.',
+      acceptanceCriteria: [
+        'Diff consolidado e objetivo foram revisados',
+        'Não há achados critical ou high sem correção',
+        'Riscos residuais e comportamentos não intencionais foram registrados',
+      ],
+      kind: 'final_audit',
+      complexity: 'm',
+      requiredCapabilities: ['code', 'tests'],
+      readScopes: ['*'],
+      writeScopes: [],
+      dependsOn: [qualityGate.id],
+    });
+    finalAuditCreated = true;
+  } else {
+    await createWorkflowEdge(
+      kv,
+      workflowId,
+      qualityGate.id,
+      finalAudit.id,
+      'blocks',
+    );
+  }
+
+  const finalEdges = await listWorkflowEdges(kv, workflowId);
+  return {
+    workflowId,
+    qualityGate,
+    finalAudit,
+    created: {
+      qualityGate: qualityGateCreated,
+      finalAudit: finalAuditCreated,
+    },
+    leafNodeIds: leafNodes.map((node) => node.id),
+    blockingEdges: finalEdges.filter((edge) =>
+      edge.kind === 'blocks' &&
+      (
+        edge.toNodeId === qualityGate.id ||
+        (
+          edge.fromNodeId === qualityGate.id &&
+          edge.toNodeId === finalAudit.id
+        )
+      )
+    ),
+  };
+};
+
 export const deleteWorkflowEdge = async (
   kv: Deno.Kv,
   workflowId: string,
@@ -958,13 +1323,15 @@ export const completeWorkflow = async (
   ) {
     throw new WorkflowConflictError('sessão não controla este workflow');
   }
-  const nodes = await listWorkflowNodes(kv, workflowId);
-  if (
-    nodes.length === 0 ||
-    nodes.some((node) => node.status !== 'done' && node.status !== 'cancelled')
-  ) {
+  const completionReadiness = await getWorkflowCompletionReadiness(
+    kv,
+    workflowId,
+  );
+  if (!completionReadiness.canComplete) {
     throw new WorkflowConflictError(
-      'workflow ainda possui nós não concluídos',
+      `workflow ainda não atende às barreiras de conclusão: ${
+        completionReadiness.missing.join(', ')
+      }`,
     );
   }
   const timestamp = now();
@@ -976,6 +1343,7 @@ export const completeWorkflow = async (
     updatedAt: timestamp,
   };
   await kv.set(workflowKey(workflowId), updated);
+  const archivedMacros = await archiveAndDeleteWorkflowMacros(kv, workflowId);
   if (workflow.orchestrationSessionId) {
     const agentEntry = await kv.get<AgentSession>(
       agentKey(workflow.orchestrationSessionId),
@@ -995,7 +1363,15 @@ export const completeWorkflow = async (
     makeEvent(
       workflowId,
       'workflow.completed',
-      { summary: updated.completionSummary },
+      {
+        summary: updated.completionSummary,
+        completionReadiness,
+        archivedWorkflowMacros: archivedMacros.map((archive) => ({
+          macroId: archive.macroId,
+          name: archive.name,
+          scriptHash: archive.scriptHash,
+        })),
+      },
       agentSessionId ? { agentSessionId } : {},
     ),
   );
@@ -1082,6 +1458,68 @@ export const getNodeExecutionPackage = async (
   return { workflow, node, dependencies, conflicts };
 };
 
+export const getNodeReviewPacket = async (
+  kv: Deno.Kv,
+  nodeId: string,
+): Promise<Record<string, unknown> | null> => {
+  const pkg = await getNodeExecutionPackage(kv, nodeId);
+  if (!pkg) return null;
+  const [runs, questions] = await Promise.all([
+    listNodeRuns(kv, nodeId),
+    listWorkflowQuestions(kv, pkg.workflow.id),
+  ]);
+  const currentRun = pkg.node.currentRunId
+    ? runs.find((run) => run.id === pkg.node.currentRunId)
+    : undefined;
+  const output = currentRun?.output;
+  return {
+    workflow: {
+      id: pkg.workflow.id,
+      title: pkg.workflow.title,
+      objective: pkg.workflow.objective,
+      status: pkg.workflow.status,
+    },
+    node: pkg.node,
+    dependencies: pkg.dependencies,
+    conflicts: pkg.conflicts,
+    currentRun: currentRun
+      ? {
+        id: currentRun.id,
+        attempt: currentRun.attempt,
+        status: currentRun.status,
+        outcome: output?.outcome,
+        summary: output?.summary,
+        result: output?.result,
+        changedFiles: output?.changedFiles ?? [],
+        tests: output?.tests ?? [],
+        artifacts: output?.artifacts ?? [],
+        logCount: output?.logs.length ?? 0,
+        diffChars: output?.diff?.length ?? 0,
+        workspace: currentRun.workspace,
+        returnedAt: currentRun.returnedAt,
+      }
+      : null,
+    openQuestions: questions.filter((question) =>
+      question.nodeId === nodeId && question.status === 'open'
+    ),
+    decisionRequest: {
+      method: 'POST',
+      url: `/workflows/nodes/${nodeId}/decision`,
+      body: {
+        agentSessionId: '{agentSessionId}',
+        decision: 'approve',
+        feedback: '',
+        acceptanceChecks: pkg.node.acceptanceCriteria.map((criterion) => ({
+          criterion,
+          status: 'pass',
+          evidence: '',
+        })),
+      },
+    },
+    fullDetailUrl: `/workflows/nodes/${nodeId}`,
+  };
+};
+
 const agentCanExecute = (
   agent: AgentSession,
   node: WorkflowNode,
@@ -1108,6 +1546,20 @@ export const listAvailableNodes = async (
     .filter((node) => !agent || agentCanExecute(agent, node));
   const packages: NodeExecutionPackage[] = [];
   for (const node of nodes) {
+    if (
+      agent && node.status === 'needs_rework' &&
+      node.claimedBySessionId &&
+      node.claimedBySessionId !== agent.id
+    ) {
+      const previousAgent = await getAgent(kv, node.claimedBySessionId);
+      if (
+        previousAgent &&
+        computedPresence(previousAgent) !== 'stale' &&
+        previousAgent.presence !== 'offline'
+      ) {
+        continue;
+      }
+    }
     const item = await getNodeExecutionPackage(kv, node.id);
     if (item) packages.push(item);
   }
@@ -1140,6 +1592,22 @@ export const claimNode = async (
   }
   if (node.status !== 'ready' && node.status !== 'needs_rework') {
     throw new WorkflowConflictError(`nó não está disponível: ${node.status}`);
+  }
+  if (
+    node.status === 'needs_rework' &&
+    node.claimedBySessionId &&
+    node.claimedBySessionId !== agentSessionId
+  ) {
+    const previousAgent = await getAgent(kv, node.claimedBySessionId);
+    if (
+      previousAgent &&
+      computedPresence(previousAgent) !== 'stale' &&
+      previousAgent.presence !== 'offline'
+    ) {
+      throw new WorkflowConflictError(
+        'retrabalho reservado ao executor anterior enquanto sua sessão está ativa',
+      );
+    }
   }
   if (!agentCanExecute(agent, node)) {
     throw new WorkflowConflictError(
@@ -1516,6 +1984,52 @@ export const reviewNode = async (
     throw new WorkflowMissingError('run ou workflow ausente');
   }
   await validateReviewer(kv, workflow, input.agentSessionId);
+  const acceptanceChecks: AcceptanceCheck[] = [];
+  const checkedCriteria = new Set<string>();
+  for (const check of input.acceptanceChecks ?? []) {
+    const criterion = check.criterion.trim();
+    const evidence = trimText(check.evidence.trim(), 4000) ?? '';
+    if (!node.acceptanceCriteria.includes(criterion)) {
+      throw new WorkflowValidationError(
+        `critério não pertence ao nó: ${criterion}`,
+      );
+    }
+    if (checkedCriteria.has(criterion)) {
+      throw new WorkflowValidationError(`critério duplicado: ${criterion}`);
+    }
+    if (!['pass', 'fail', 'insufficient'].includes(check.status)) {
+      throw new WorkflowValidationError(
+        `status inválido para critério: ${criterion}`,
+      );
+    }
+    checkedCriteria.add(criterion);
+    acceptanceChecks.push({ criterion, status: check.status, evidence });
+  }
+  if (input.decision === 'approve' || input.decision === 'expand') {
+    const checksByCriterion = new Map(
+      acceptanceChecks.map((check) => [check.criterion, check]),
+    );
+    const unresolved = node.acceptanceCriteria.filter((criterion) => {
+      const check = checksByCriterion.get(criterion);
+      return check?.status !== 'pass' || !check.evidence;
+    });
+    if (unresolved.length > 0) {
+      throw new WorkflowConflictError(
+        `aprovação exige pass com evidência em todos os critérios: ${
+          unresolved.join(' | ')
+        }`,
+      );
+    }
+  }
+  if (
+    (input.decision === 'approve' || input.decision === 'expand') &&
+    (node.kind === 'quality_gate' || node.kind === 'final_audit') &&
+    run.output?.outcome !== 'success'
+  ) {
+    throw new WorkflowConflictError(
+      `${node.kind} só pode ser aprovado com outcome=success`,
+    );
+  }
   let nextStatus: WorkflowNode['status'];
   let runStatus: WorkflowRun['status'];
   if (input.decision === 'approve' || input.decision === 'expand') {
@@ -1542,6 +2056,7 @@ export const reviewNode = async (
     ...(input.feedback !== undefined
       ? { reviewFeedback: trimText(input.feedback, 12000) }
       : {}),
+    ...(acceptanceChecks.length > 0 ? { acceptanceChecks } : {}),
     ...(input.agentSessionId
       ? { reviewedBySessionId: input.agentSessionId }
       : {}),
@@ -1579,6 +2094,7 @@ export const reviewNode = async (
         title: node.title,
         decision: input.decision,
         feedback: input.feedback ?? '',
+        acceptanceChecks,
         attempt: node.attemptCount,
         maxAttempts: node.maxAttempts,
       },
@@ -1592,6 +2108,9 @@ export const reviewNode = async (
     ),
   );
   await refreshWorkflowReadiness(kv, node.workflowId);
+  if (input.agentSessionId) {
+    await heartbeatAgent(kv, input.agentSessionId);
+  }
   return updatedNode;
 };
 
@@ -1816,38 +2335,122 @@ export const getAgentInbox = async (
     const workflowById = new Map(
       workflows.map((workflow) => [workflow.id, workflow]),
     );
+    const planning = workflows.filter((workflow) =>
+      (workflow.status === 'draft' || workflow.status === 'planning') &&
+      allowed(workflow)
+    );
+    const returned = nodes.filter((node) =>
+      node.status === 'returned' &&
+      !!workflowById.get(node.workflowId) &&
+      allowed(workflowById.get(node.workflowId)!)
+    );
+    const openQuestions = questions.filter((question) =>
+      question.status === 'open' &&
+      !!workflowById.get(question.workflowId) &&
+      allowed(workflowById.get(question.workflowId)!)
+    );
+    const completable = workflows.filter((workflow) =>
+      workflow.canComplete && workflow.status !== 'done' &&
+      allowed(workflow)
+    );
+    const nextActions = [
+      ...returned.map((node) => ({
+        type: 'review_return',
+        priority: 1,
+        workflowId: node.workflowId,
+        nodeId: node.id,
+        reviewPacketUrl: `/workflows/nodes/${node.id}?view=review`,
+      })),
+      ...openQuestions.map((question) => ({
+        type: 'answer_question',
+        priority: 2,
+        workflowId: question.workflowId,
+        nodeId: question.nodeId,
+        questionId: question.id,
+        question: question.question,
+      })),
+      ...planning.map((workflow) => ({
+        type: 'plan_workflow',
+        priority: 3,
+        workflowId: workflow.id,
+        planningPacketUrl: `/workflows/${workflow.id}?view=planning`,
+      })),
+      ...completable.map((workflow) => ({
+        type: 'complete_workflow',
+        priority: 4,
+        workflowId: workflow.id,
+        statusPacketUrl: `/workflows/${workflow.id}?view=status`,
+      })),
+    ];
     return {
       agent,
-      pollAfterSeconds: WORKFLOW_POLL_AFTER_SECONDS,
+      pollAfterSeconds: nextActions.length > 0
+        ? EXECUTOR_REVIEW_POLL_AFTER_SECONDS
+        : WORKFLOW_POLL_AFTER_SECONDS,
       role: {
         kind: agent.role,
         canExecuteNodes: false,
         reminder:
           'Orquestradores coordenam, revisam e decidem; não executam subdemandas nem alteram arquivos.',
       },
-      planning: workflows.filter((workflow) =>
-        (workflow.status === 'draft' || workflow.status === 'planning') &&
-        allowed(workflow)
-      ),
-      returned: nodes.filter((node) =>
-        node.status === 'returned' &&
-        !!workflowById.get(node.workflowId) &&
-        allowed(workflowById.get(node.workflowId)!)
-      ),
-      questions: questions.filter((question) =>
-        question.status === 'open' &&
-        !!workflowById.get(question.workflowId) &&
-        allowed(workflowById.get(question.workflowId)!)
-      ),
-      completable: workflows.filter((workflow) =>
-        workflow.canComplete && workflow.status !== 'done' &&
-        allowed(workflow)
-      ),
+      nextActions,
+      planning,
+      returned,
+      questions: openQuestions,
+      completable,
     };
   }
   const currentNode = agent.currentNodeId
     ? await getNodeExecutionPackage(kv, agent.currentNodeId)
     : null;
+  const agentRuns = await listAgentRuns(kv, agentSessionId);
+  const nodes = await listWorkflowNodes(kv);
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const awaitingReview = agentRuns
+    .filter((run) => run.status === 'returned')
+    .slice(0, 5)
+    .map((run) => ({
+      workflowId: run.workflowId,
+      nodeId: run.nodeId,
+      nodeTitle: nodeById.get(run.nodeId)?.title ?? run.nodeId,
+      runId: run.id,
+      attempt: run.attempt,
+      returnedAt: run.returnedAt,
+      reviewPacketUrl: `/workflows/nodes/${run.nodeId}?view=review`,
+    }));
+  const rework = agentRuns
+    .filter((run) =>
+      run.status === 'rework' &&
+      nodeById.get(run.nodeId)?.status === 'needs_rework' &&
+      nodeById.get(run.nodeId)?.claimedBySessionId === agentSessionId
+    )
+    .slice(0, 5)
+    .map((run) => ({
+      workflowId: run.workflowId,
+      nodeId: run.nodeId,
+      nodeTitle: nodeById.get(run.nodeId)?.title ?? run.nodeId,
+      runId: run.id,
+      attempt: run.attempt,
+      feedback: run.reviewFeedback ?? '',
+      nodeUrl: `/workflows/nodes/${run.nodeId}`,
+    }));
+  const reviewedRuns = agentRuns
+    .filter((run) =>
+      run.status === 'approved' || run.status === 'rework' ||
+      run.status === 'failed' || run.status === 'cancelled'
+    )
+    .slice(0, 5)
+    .map((run) => ({
+      workflowId: run.workflowId,
+      nodeId: run.nodeId,
+      nodeTitle: nodeById.get(run.nodeId)?.title ?? run.nodeId,
+      runId: run.id,
+      attempt: run.attempt,
+      status: run.status,
+      decision: run.reviewDecision,
+      feedback: run.reviewFeedback ?? '',
+      reviewedAt: run.reviewedAt,
+    }));
   const questions = currentNode
     ? (await listWorkflowQuestions(kv, currentNode.workflow.id)).filter(
       (question) =>
@@ -1855,12 +2458,34 @@ export const getAgentInbox = async (
         question.askedBySessionId === agentSessionId,
     )
     : [];
+  const available = await listAvailableNodes(kv, { agentSessionId });
+  const recentWorkflow = agentRuns[0]
+    ? await getWorkflow(kv, agentRuns[0].workflowId)
+    : null;
+  const nextAction = currentNode
+    ? 'execute_current'
+    : rework.length > 0
+    ? 'rework'
+    : awaitingReview.length > 0
+    ? 'await_review'
+    : available.length > 0
+    ? 'claim_next'
+    : recentWorkflow?.status === 'done' ||
+        recentWorkflow?.status === 'cancelled'
+    ? 'stop'
+    : 'wait';
   return {
     agent,
-    pollAfterSeconds: WORKFLOW_POLL_AFTER_SECONDS,
+    pollAfterSeconds: nextAction === 'await_review'
+      ? EXECUTOR_REVIEW_POLL_AFTER_SECONDS
+      : WORKFLOW_POLL_AFTER_SECONDS,
+    nextAction,
     currentNode,
+    awaitingReview,
+    rework,
+    reviewedRuns,
     questions,
-    available: await listAvailableNodes(kv, { agentSessionId }),
+    available,
   };
 };
 
