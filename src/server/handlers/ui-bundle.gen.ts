@@ -4836,12 +4836,15 @@ body::before {
 }
 
 .wf-list-objective {
+  display: -webkit-box;
   height: 28px;
   margin: 5px 0 7px;
   overflow: hidden;
   color: var(--text-3);
   font-size: 10px;
   line-height: 14px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .wf-list-tags {
