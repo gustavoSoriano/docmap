@@ -294,7 +294,22 @@ export const getWorkflowCompletionReadiness = async (
   const workNodes = nodes.filter((node) =>
     node.kind !== 'quality_gate' && node.kind !== 'final_audit'
   );
-  if (workNodes.length === 0) missing.push('work_nodes');
+  const unstarted = workflow.status === 'draft' ||
+    workflow.status === 'planning';
+  const hasQualityGate = nodes.some((node) => node.kind === 'quality_gate');
+  const hasFinalAudit = nodes.some((node) => node.kind === 'final_audit');
+
+  // Sem nós de trabalho não há nada a validar: um workflow nunca iniciado
+  // ainda precisa de tasks; um workflow já iniciado que esvaziou (nós
+  // excluídos manualmente) é concluível por si só.
+  if (workNodes.length === 0) {
+    if (unstarted) missing.push('work_nodes');
+    if (questions.some((question) => question.status === 'open')) {
+      missing.push('open_questions');
+    }
+    return { canComplete: missing.length === 0, missing };
+  }
+
   if (nodes.some((node) => node.status === 'cancelled')) {
     missing.push('cancelled_nodes');
   }
@@ -330,12 +345,15 @@ export const getWorkflowCompletionReadiness = async (
       workNodes.every((workNode) => hasBlockingPath(workNode.id, node.id))
     )
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-  if (workflow.completionPolicy.requireQualityGate && !qualityGate) {
-    missing.push(
-      nodes.some((node) => node.kind === 'quality_gate')
-        ? 'quality_gate_stale_or_incomplete'
-        : 'quality_gate',
-    );
+  if (
+    workflow.completionPolicy.requireQualityGate &&
+    !qualityGate &&
+    hasQualityGate
+  ) {
+    // Só bloqueia se o gate existe no fluxo mas não validou todo o trabalho.
+    // Se o responsável removeu os nós de barreira (validação manual), não há
+    // o que a política forçar — o workflow é concluível com os nós aprovados.
+    missing.push('quality_gate_stale_or_incomplete');
   }
 
   const finalAudit =
@@ -358,12 +376,15 @@ export const getWorkflowCompletionReadiness = async (
         )
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
       : undefined;
-  if (workflow.completionPolicy.requireFinalAudit && !finalAudit) {
-    missing.push(
-      nodes.some((node) => node.kind === 'final_audit')
-        ? 'final_audit_stale_incomplete_or_unlinked'
-        : 'final_audit',
-    );
+  if (
+    workflow.completionPolicy.requireFinalAudit &&
+    !finalAudit &&
+    hasFinalAudit
+  ) {
+    // Mesma lógica do quality gate: a auditoria só é exigida enquanto existir
+    // um nó final_audit no fluxo. Removê-lo (validação manual) libera a
+    // conclusão com os nós de trabalho aprovados.
+    missing.push('final_audit_stale_incomplete_or_unlinked');
   }
 
   return {

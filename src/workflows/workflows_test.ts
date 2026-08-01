@@ -1201,3 +1201,135 @@ Deno.test('lista de workflows pagina e busca no servidor', async () => {
     );
   });
 });
+
+Deno.test('workflow com barreiras removidas e nós aprovados é concluível', async () => {
+  await withKv(async (kv) => {
+    // Rascunho vazio continua bloqueado pela barreira work_nodes.
+    const draftRes = await request(kv, 'POST', '/workflows', {
+      title: 'Rascunho sem tasks',
+      objective: 'Validar barreira de nós de trabalho',
+    });
+    assert(draftRes.status === 201, 'workflow rascunho não foi criado');
+    const draft = await jsonBody(draftRes);
+    const draftDetail = await jsonBody(
+      await request(kv, 'GET', `/workflows/${String(draft.id)}`),
+    );
+    assert(
+      draftDetail.canComplete === false,
+      'rascunho vazio não deveria ser concluível',
+    );
+
+    // Workflow com trabalho aprovado e SEM nós de quality_gate/final_audit
+    // (removidos por validação manual) é concluível mesmo com completionPolicy
+    // padrão exigindo as barreiras — não há nós de barreira para a política
+    // forçar.
+    const wfRes = await request(kv, 'POST', '/workflows', {
+      title: 'Validado manualmente',
+      objective: 'Sem gate/auditoria',
+    });
+    assert(wfRes.status === 201, 'workflow não foi criado');
+    const wf = await jsonBody(wfRes);
+    const wfId = String(wf.id);
+
+    const nodeRes = await request(kv, 'POST', `/workflows/${wfId}/nodes`, {
+      title: 'Trabalho aprovado',
+      description: 'Única tarefa',
+      acceptanceCriteria: ['critério'],
+      complexity: 'm',
+      kind: 'code',
+      isolation: 'shared',
+    });
+    assert(nodeRes.ok, 'nó não foi criado');
+    const node = await jsonBody(nodeRes);
+    const nodeId = String(node.id);
+
+    const startRes = await request(kv, 'POST', `/workflows/${wfId}/start`, {});
+    assert(startRes.ok, 'workflow não iniciou');
+
+    const returned = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${nodeId}/human-return`,
+      { outcome: 'success', summary: 'Validado manualmente' },
+    );
+    assert(returned.ok, 'retorno humano falhou');
+    const approved = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${nodeId}/decision`,
+      {
+        decision: 'approve',
+        feedback: 'Validação manual concluída',
+        acceptanceChecks: [
+          { criterion: 'critério', status: 'pass', evidence: 'Revisão manual' },
+        ],
+      },
+    );
+    assert(approved.ok, 'aprovação falhou');
+
+    const detail = await jsonBody(
+      await request(kv, 'GET', `/workflows/${wfId}`),
+    );
+    assert(
+      detail.canComplete === true,
+      'workflow sem barreiras e com nós aprovados deveria liberar conclusão',
+    );
+
+    const completed = await request(kv, 'POST', `/workflows/${wfId}/complete`, {
+      summary: 'Validação manual',
+    });
+    assert(completed.ok, 'conclusão sem barreiras falhou');
+  });
+});
+
+Deno.test('workflow ativo sem nós de trabalho é concluível', async () => {
+  await withKv(async (kv) => {
+    // Workflow iniciado com nós, depois todos excluídos manualmente: não há
+    // mais nada a validar, então a conclusão é liberada.
+    const wfRes = await request(kv, 'POST', '/workflows', {
+      title: 'Fluxo esvaziado',
+      objective: 'Validar saída do estado preso',
+    });
+    assert(wfRes.status === 201, 'workflow não foi criado');
+    const wf = await jsonBody(wfRes);
+    const wfId = String(wf.id);
+
+    const nodeRes = await request(kv, 'POST', `/workflows/${wfId}/nodes`, {
+      title: 'Única tarefa',
+      description: 'Será excluída',
+      acceptanceCriteria: ['critério'],
+      complexity: 'm',
+      kind: 'code',
+      isolation: 'shared',
+    });
+    assert(nodeRes.ok, 'nó não foi criado');
+    const node = await jsonBody(nodeRes);
+
+    const startRes = await request(kv, 'POST', `/workflows/${wfId}/start`, {});
+    assert(startRes.ok, 'workflow não iniciou');
+
+    const deleteRes = await request(
+      kv,
+      'DELETE',
+      `/workflows/nodes/${String(node.id)}`,
+    );
+    assert(deleteRes.ok, 'nó não foi excluído');
+
+    const detail = await jsonBody(
+      await request(kv, 'GET', `/workflows/${wfId}`),
+    );
+    assert(
+      (detail.workflow as Record<string, unknown>).status === 'running',
+      'workflow deveria seguir em execução',
+    );
+    assert(
+      detail.canComplete === true,
+      'workflow ativo esvaziado deveria liberar conclusão',
+    );
+
+    const completed = await request(kv, 'POST', `/workflows/${wfId}/complete`, {
+      summary: 'Sem tasks restantes',
+    });
+    assert(completed.ok, 'conclusão de workflow esvaziado falhou');
+  });
+});

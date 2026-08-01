@@ -366,6 +366,12 @@ estão aprovados, não há cancelamento/pergunta aberta e o gate + auditoria
 válidos são posteriores ao último trabalho normal. Se uma correção for criada
 depois deles, crie um novo par de gate/auditoria.
 
+As barreiras de gate e auditoria valem enquanto esses nós EXISTIREM no fluxo.
+Se forem removidos (ex.: o humano validou manualmente), a conclusão fica
+liberada com os nós de trabalho aprovados. Workflow nunca iniciado
+(draft/planning) sem nós de trabalho continua bloqueado por `work_nodes`;
+um workflow já iniciado que esvaziou (nós excluídos) é concluível.
+
 ### Prompts prontos
 
 - `GET /workflows/prompts/connect?role=orchestrator|executor|reviewer`
