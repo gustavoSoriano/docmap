@@ -645,7 +645,7 @@
                 autocomplete="off" spellcheck="false">
             </div>
             <div id="wf-filter-row">
-              <select id="wf-status-filter" onchange="renderWorkflowList()">
+               <select id="wf-status-filter" onchange="loadWorkflows('')">
                 <option value="">Todos os estados</option>
                 <option value="draft">Rascunho</option>
                 <option value="planning">Planejamento</option>
@@ -656,6 +656,13 @@
               </select>
             </div>
             <div id="wf-list"></div>
+            <div id="wf-pagination" hidden>
+              <button id="wf-page-prev" class="wf-page-btn" type="button"
+                title="Workflows mais recentes" disabled data-icon="chevron-left"></button>
+              <span id="wf-page-label"></span>
+              <button id="wf-page-next" class="wf-page-btn" type="button"
+                title="Workflows anteriores" disabled data-icon="chevron-right"></button>
+            </div>
           </aside>
 
           <section id="wf-workspace">

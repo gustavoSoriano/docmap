@@ -47,6 +47,22 @@ const DEFAULT_COMPLETION_POLICY = {
   requireFinalAudit: true,
 } as const;
 
+export type WorkflowListItem = Workflow & {
+  readonly nodeCount: number;
+  readonly nodeCounts: Readonly<Record<string, number>>;
+  readonly canComplete: boolean;
+  readonly completionReadiness: WorkflowCompletionReadiness;
+};
+
+export type WorkflowListPage = {
+  readonly items: readonly WorkflowListItem[];
+  readonly total: number;
+  readonly limit: number;
+  readonly offset: number;
+  readonly nextCursor?: string;
+  readonly previousCursor?: string;
+};
+
 const workflowKey = (id: string) => ['workflows', id] as const;
 const nodeKey = (id: string) => ['workflow_nodes', id] as const;
 const edgeKey = (workflowId: string, id: string) =>
@@ -361,7 +377,7 @@ export const getWorkflowCompletionReadiness = async (
 export const listWorkflows = async (
   kv: Deno.Kv,
   tags?: readonly string[],
-): Promise<unknown[]> => {
+): Promise<WorkflowListItem[]> => {
   const workflows: Workflow[] = [];
   for await (
     const entry of kv.list<Workflow>({ prefix: WORKFLOW_PREFIX })
@@ -396,6 +412,43 @@ export const listWorkflows = async (
     }),
   );
   return decorated.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+};
+
+export const listWorkflowPage = async (
+  kv: Deno.Kv,
+  options: {
+    readonly tags?: readonly string[];
+    readonly query?: string;
+    readonly status?: string;
+    readonly limit: number;
+    readonly offset: number;
+  },
+): Promise<WorkflowListPage> => {
+  const workflows = await listWorkflows(kv, options.tags);
+  const query = options.query?.trim().toLocaleLowerCase() || '';
+  const filtered = workflows.filter((workflow) => {
+    if (options.status && workflow.status !== options.status) return false;
+    if (!query) return true;
+    return [
+      workflow.title,
+      workflow.objective,
+      workflow.description,
+      ...workflow.tags,
+    ]
+      .join(' ').toLocaleLowerCase().includes(query);
+  });
+  const start = Math.min(options.offset, filtered.length);
+  const end = Math.min(start + options.limit, filtered.length);
+  return {
+    items: filtered.slice(start, end),
+    total: filtered.length,
+    limit: options.limit,
+    offset: start,
+    ...(end < filtered.length ? { nextCursor: String(end) } : {}),
+    ...(start > 0
+      ? { previousCursor: String(Math.max(0, start - options.limit)) }
+      : {}),
+  };
 };
 
 export const getWorkflowDetail = async (

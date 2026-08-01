@@ -149,6 +149,50 @@
   padding: 7px;
 }
 
+#wf-pagination {
+  min-height: 38px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  border-top: 1px solid var(--border);
+  color: var(--text-3);
+  font: 9px var(--font-mono);
+}
+
+#wf-pagination[hidden] {
+  display: none;
+}
+
+.wf-page-btn {
+  width: 25px;
+  height: 25px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.wf-page-btn:hover:not(:disabled) {
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.wf-page-btn:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.wf-page-btn .ico {
+  width: 12px;
+  height: 12px;
+}
+
 .wf-list-item {
   width: 100%;
   min-height: 78px;

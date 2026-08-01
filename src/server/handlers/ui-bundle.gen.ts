@@ -4803,6 +4803,50 @@ body::before {
   padding: 7px;
 }
 
+#wf-pagination {
+  min-height: 38px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  border-top: 1px solid var(--border);
+  color: var(--text-3);
+  font: 9px var(--font-mono);
+}
+
+#wf-pagination[hidden] {
+  display: none;
+}
+
+.wf-page-btn {
+  width: 25px;
+  height: 25px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.wf-page-btn:hover:not(:disabled) {
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.wf-page-btn:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.wf-page-btn .ico {
+  width: 12px;
+  height: 12px;
+}
+
 .wf-list-item {
   width: 100%;
   min-height: 78px;
@@ -10277,7 +10321,7 @@ svg#kg-svg:active { cursor: grabbing; }
                 autocomplete="off" spellcheck="false">
             </div>
             <div id="wf-filter-row">
-              <select id="wf-status-filter" onchange="renderWorkflowList()">
+               <select id="wf-status-filter" onchange="loadWorkflows('')">
                 <option value="">Todos os estados</option>
                 <option value="draft">Rascunho</option>
                 <option value="planning">Planejamento</option>
@@ -10288,6 +10332,13 @@ svg#kg-svg:active { cursor: grabbing; }
               </select>
             </div>
             <div id="wf-list"></div>
+            <div id="wf-pagination" hidden>
+              <button id="wf-page-prev" class="wf-page-btn" type="button"
+                title="Workflows mais recentes" disabled data-icon="chevron-left"></button>
+              <span id="wf-page-label"></span>
+              <button id="wf-page-next" class="wf-page-btn" type="button"
+                title="Workflows anteriores" disabled data-icon="chevron-right"></button>
+            </div>
           </aside>
 
           <section id="wf-workspace">
@@ -13234,6 +13285,14 @@ let selectedWorkflowNodeDetail = null;
 let workflowEvents = null;
 let workflowRefreshTimer = null;
 let workflowBoardSuppressClick = false;
+const WORKFLOW_PAGE_SIZE = 25;
+let workflowPage = {
+  total: 0,
+  offset: 0,
+  nextCursor: null,
+  previousCursor: null,
+};
+let workflowLoadRevision = 0;
 
 const workflowCsv = (value) =>
   value.split(',').map((item) => item.trim()).filter(Boolean);
@@ -13250,18 +13309,55 @@ const workflowStatusLabel = (status) =>
 const workflowNodeStatusLabel = (status) =>
   WF_NODE_STATUS_LABEL[status] || status;
 
-const loadWorkflows = async () => {
+const updateWorkflowPagination = () => {
+  const controls = $('wf-pagination');
+  const previous = $('wf-page-prev');
+  const next = $('wf-page-next');
+  const label = $('wf-page-label');
+  if (!controls || !previous || !next || !label) return;
+  controls.hidden = workflowPage.total <= WORKFLOW_PAGE_SIZE;
+  previous.disabled = !workflowPage.previousCursor;
+  next.disabled = !workflowPage.nextCursor;
+  const start = workflowPage.total ? workflowPage.offset + 1 : 0;
+  const end = Math.min(
+    workflowPage.offset + allWorkflows.length,
+    workflowPage.total,
+  );
+  label.textContent = \`\${start}-\${end} de \${workflowPage.total}\`;
+};
+
+const loadWorkflows = async (cursor = '') => {
   ensureWorkflowEvents();
+  const revision = ++workflowLoadRevision;
   try {
-    const res = await fetch('/workflows');
-    allWorkflows = await res.json();
-    renderWorkflowList();
-    if (currentWorkflowDetail) {
-      const stillExists = allWorkflows.some(
-        (workflow) => workflow.id === currentWorkflowDetail.workflow.id,
-      );
-      if (!stillExists) clearCurrentWorkflow();
+    const params = new URLSearchParams({ limit: String(WORKFLOW_PAGE_SIZE) });
+    const query = ($('wf-search')?.value || '').trim();
+    const status = $('wf-status-filter')?.value || '';
+    if (query) params.set('q', query);
+    if (status) params.set('status', status);
+    if (cursor) params.set('cursor', cursor);
+    const res = await fetch(\`/workflows?\${params}\`);
+    if (!res.ok) throw new Error(await res.text());
+    const payload = await res.json();
+    if (revision !== workflowLoadRevision) return;
+    if (Array.isArray(payload)) {
+      allWorkflows = payload;
+      workflowPage = {
+        total: payload.length,
+        offset: 0,
+        nextCursor: null,
+        previousCursor: null,
+      };
+    } else {
+      allWorkflows = payload.items || [];
+      workflowPage = {
+        total: payload.total || 0,
+        offset: payload.offset || 0,
+        nextCursor: payload.nextCursor || null,
+        previousCursor: payload.previousCursor || null,
+      };
     }
+    renderWorkflowList();
   } catch (err) {
     console.error('Erro ao carregar workflows:', err);
     toast('Falha ao carregar workflows');
@@ -13271,21 +13367,14 @@ const loadWorkflows = async () => {
 const renderWorkflowList = () => {
   const list = $('wf-list');
   if (!list) return;
-  const query = ($('wf-search')?.value || '').trim().toLowerCase();
-  const status = $('wf-status-filter')?.value || '';
-  const filtered = allWorkflows.filter((workflow) => {
-    if (status && workflow.status !== status) return false;
-    if (!query) return true;
-    return \`\${workflow.title} \${workflow.objective} \${(workflow.tags || []).join(' ')}\`
-      .toLowerCase().includes(query);
-  });
+  updateWorkflowPagination();
   $('wf-sidebar-count').textContent =
-    \`\${allWorkflows.length} \${allWorkflows.length === 1 ? 'demanda' : 'demandas'}\`;
-  if (filtered.length === 0) {
+    \`\${workflowPage.total} \${workflowPage.total === 1 ? 'demanda' : 'demandas'}\`;
+  if (allWorkflows.length === 0) {
     list.innerHTML = '<div class="wf-sidebar-empty">Nenhum workflow encontrado</div>';
     return;
   }
-  list.innerHTML = filtered.map((workflow) => {
+  list.innerHTML = allWorkflows.map((workflow) => {
     const done = workflow.nodeCounts?.done || 0;
     const total = workflow.nodeCount || 0;
     const progress = total ? Math.round((done / total) * 100) : 0;
@@ -14562,7 +14651,16 @@ const bindWorkflowTimeline = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  $('wf-search')?.addEventListener('input', debounce(renderWorkflowList, 120));
+  $('wf-search')?.addEventListener(
+    'input',
+    debounce(() => loadWorkflows(''), 180),
+  );
+  $('wf-page-prev')?.addEventListener('click', () => {
+    loadWorkflows(workflowPage.previousCursor || '');
+  });
+  $('wf-page-next')?.addEventListener('click', () => {
+    loadWorkflows(workflowPage.nextCursor || '');
+  });
   bindWorkflowTimeline();
   bindWorkflowInspectorModal();
 });

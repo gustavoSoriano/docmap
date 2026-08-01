@@ -1155,3 +1155,49 @@ Deno.test('barreiras finais automáticas são estritas e idempotentes', async ()
     );
   });
 });
+
+Deno.test('lista de workflows pagina e busca no servidor', async () => {
+  await withKv(async (kv) => {
+    const first = await request(kv, 'POST', '/workflows', {
+      title: 'Workflow antigo',
+      objective: 'Objetivo comum',
+    });
+    const second = await request(kv, 'POST', '/workflows', {
+      title: 'Workflow específico',
+      objective: 'Objetivo pesquisável',
+    });
+    assert(
+      first.status === 201 && second.status === 201,
+      'workflows não foram criados',
+    );
+
+    const page = await jsonBody(
+      await request(kv, 'GET', '/workflows?limit=1'),
+    );
+    assert(Array.isArray(page.items), 'resposta paginada não possui items');
+    assert(page.total === 2, 'total paginado incorreto');
+    assert(
+      (page.items as unknown[]).length === 1,
+      'limite da página não foi aplicado',
+    );
+    assert(page.nextCursor === '1', 'cursor da próxima página incorreto');
+
+    const previousPage = await jsonBody(
+      await request(kv, 'GET', '/workflows?limit=1&cursor=1'),
+    );
+    assert(
+      previousPage.previousCursor === '0',
+      'cursor da página anterior incorreto',
+    );
+
+    const search = await jsonBody(
+      await request(kv, 'GET', '/workflows?q=pesquisável&limit=25'),
+    );
+    const results = search.items as Array<Record<string, unknown>>;
+    assert(results.length === 1, 'busca deveria retornar um workflow');
+    assert(
+      results[0].title === 'Workflow específico',
+      'busca retornou workflow incorreto',
+    );
+  });
+});

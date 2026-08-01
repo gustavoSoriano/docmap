@@ -38,6 +38,7 @@ import {
   listNodeRuns,
   listWorkflowEvents,
   listWorkflowNodes,
+  listWorkflowPage,
   listWorkflowQuestions,
   listWorkflows,
   releaseNode,
@@ -1052,6 +1053,31 @@ const handleWorkflows = async (
 
   if (req.method === 'GET' && segments.length === 1) {
     const tags = url.searchParams.getAll('tag');
+    const limitParam = url.searchParams.get('limit');
+    const cursorParam = url.searchParams.get('cursor');
+    const query = url.searchParams.get('q') ?? '';
+    const status = url.searchParams.get('status') ?? '';
+    const paginated = limitParam !== null || cursorParam !== null ||
+      url.searchParams.has('q') || url.searchParams.has('status');
+    if (paginated) {
+      const limit = limitParam === null ? 25 : Number(limitParam);
+      const offset = cursorParam === null ? 0 : Number(cursorParam);
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+        return badRequest('limit deve ser um inteiro entre 1 e 100');
+      }
+      if (!Number.isInteger(offset) || offset < 0) {
+        return badRequest('cursor deve ser um inteiro maior ou igual a zero');
+      }
+      return json(
+        await listWorkflowPage(kv, {
+          tags: tags.length > 0 ? tags : undefined,
+          query,
+          status,
+          limit,
+          offset,
+        }),
+      );
+    }
     return json(
       await listWorkflows(kv, tags.length > 0 ? tags : undefined),
     );
