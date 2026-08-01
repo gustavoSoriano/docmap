@@ -401,6 +401,61 @@ const workflowChips = (items) => {
   ).join('')}</div>`;
 };
 
+const WF_NODE_STATUS_CONTEXT = {
+  pending: ['Na fila', 'Este nó ainda depende de outras etapas do workflow.'],
+  ready: ['Pronto para execução', 'Um agente pode assumir este nó agora.'],
+  claimed: ['Agente reservado', 'Um agente assumiu o nó e está preparando a execução.'],
+  in_progress: ['Em execução', 'O agente está trabalhando neste nó.'],
+  waiting_input: ['Aguardando resposta', 'A execução está pausada até alguém responder uma pergunta.'],
+  returned: ['Retorno recebido', 'O agente devolveu evidências e o resultado aguarda revisão.'],
+  needs_rework: ['Retrabalho solicitado', 'O agente precisa executar novamente com base no feedback da revisão.'],
+  done: ['Concluído', 'Este nó foi aprovado e não possui uma próxima ação pendente.'],
+  human_intervention: ['Intervenção humana', 'O workflow precisa de uma decisão ou ação manual para continuar.'],
+  cancelled: ['Cancelado', 'Este nó não será executado novamente.'],
+};
+
+const WF_RUN_STATUS_LABEL = {
+  claimed: 'Reservada',
+  in_progress: 'Em execução',
+  waiting_input: 'Aguardando resposta',
+  returned: 'Devolvida',
+  approved: 'Aprovada',
+  rework: 'Retrabalho',
+  failed: 'Falhou',
+  abandoned: 'Abandonada',
+  cancelled: 'Cancelada',
+};
+
+const WF_RUN_OUTCOME_LABEL = {
+  success: 'Sucesso',
+  partial: 'Parcial',
+  failed: 'Falhou',
+  blocked: 'Bloqueado',
+  needs_input: 'Precisa de resposta',
+};
+
+const workflowDate = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).replace('.', '');
+};
+
+const workflowRunAgent = (run, agents) =>
+  agents.find((agent) => agent.id === run.agentSessionId);
+
+const workflowExecutionStage = (status) => {
+  if (['pending', 'ready'].includes(status)) return 0;
+  if (['claimed', 'in_progress', 'waiting_input', 'needs_rework'].includes(status)) return 1;
+  if (status === 'returned' || status === 'human_intervention') return 2;
+  return 3;
+};
+
 const closeWorkflowInspector = () => {
   selectedWorkflowNodeId = null;
   selectedWorkflowNodeDetail = null;
@@ -445,6 +500,18 @@ const renderWorkflowInspector = () => {
   const isActive = ['claimed', 'in_progress', 'waiting_input'].includes(node.status);
   const isReturned = node.status === 'returned';
   const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
+  const [statusTitle, statusDescription] = WF_NODE_STATUS_CONTEXT[node.status] || [
+    workflowNodeStatusLabel(node.status),
+    'Consulte os detalhes desta etapa para decidir a próxima ação.',
+  ];
+  const executionStage = workflowExecutionStage(node.status);
+  const sortedRuns = [...runs].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const latestRun = sortedRuns[sortedRuns.length - 1];
+  const agentLabel = agent?.name || recommendation.tool || recommendation.provider;
+  const agentDescription = agent
+    ? `${agent.tool} · ${agent.provider} · ${agent.model}`
+    : [recommendation.tool, recommendation.provider, recommendation.model]
+      .filter(Boolean).join(' · ') || 'Nenhum agente recomendado';
 
   content.innerHTML = `
     <div class="wf-inspector-head">
@@ -453,11 +520,23 @@ const renderWorkflowInspector = () => {
       </button>
       <div class="wf-inspector-kicker">
         <span class="wf-status-dot ${node.status}"></span>
-        <span>${escHtml(workflowNodeStatusLabel(node.status))}</span>
-        <span>${node.complexity.toUpperCase()}</span>
+        <span>${escHtml(statusTitle)}</span>
+        <span class="wf-inspector-kicker-separator">·</span>
+        <span>${escHtml(node.kind)}</span>
       </div>
       <div class="wf-inspector-title">${escHtml(node.title)}</div>
-      <div class="wf-inspector-sub">${escHtml(node.kind)} · tentativa ${node.attemptCount}/${node.maxAttempts}</div>
+      <div class="wf-inspector-sub">Etapa ${node.complexity.toUpperCase()} · tentativa ${node.attemptCount}/${node.maxAttempts}</div>
+      <div class="wf-inspector-state">
+        <strong>${escHtml(statusTitle)}</strong>
+        <span>${escHtml(statusDescription)}</span>
+      </div>
+    </div>
+    <div class="wf-inspector-flow" aria-label="Fluxo da execução">
+      ${['Pronto', 'Executando', 'Retorno', 'Revisão'].map((label, index) => `
+        <div class="wf-flow-step${index < executionStage ? ' complete' : ''}${index === executionStage ? ' current' : ''}">
+          <span class="wf-flow-index">${index < executionStage ? ICON('check') : index + 1}</span>
+          <span>${label}</span>
+        </div>`).join('')}
     </div>
     <div class="wf-inspector-actions">
       <button class="wf-action-btn" onclick="copyWorkflowNodePrompt('${node.id}')">
@@ -491,8 +570,15 @@ const renderWorkflowInspector = () => {
         : ''}
     </div>
     ${isReturned
-      ? `<div class="wf-inspector-section">
-           <div class="wf-inspector-label">Checklist de aceite</div>
+      ? `<div class="wf-inspector-section wf-inspector-section-attention">
+           <div class="wf-inspector-section-heading">
+             <div>
+               <div class="wf-inspector-label">Próxima ação</div>
+               <div class="wf-inspector-heading">Revisar o retorno do agente</div>
+             </div>
+             <span class="wf-inspector-badge review">Aguardando revisão</span>
+           </div>
+           <p class="wf-inspector-help">Confirme cada critério com uma evidência observável antes de aprovar.</p>
            <div class="wf-review-criteria">
              ${node.acceptanceCriteria.map((item, index) =>
                `<div class="wf-review-criterion">
@@ -507,15 +593,22 @@ const renderWorkflowInspector = () => {
              ).join('')}
            </div>
          </div>
-         <div class="wf-inspector-section">
+         <div class="wf-inspector-section wf-review-feedback-section">
            <div class="wf-inspector-label">Feedback da revisão</div>
            <textarea id="wf-review-feedback" class="wf-inspector-textarea"
              placeholder="Motivo da decisão ou instruções de retrabalho"></textarea>
          </div>`
       : ''}
     ${canHumanReturn
-      ? `<div class="wf-inspector-section wf-human-return-panel">
-           <div class="wf-inspector-label">Retorno humano</div>
+      ? `<div class="wf-inspector-section wf-inspector-section-attention wf-human-return-panel">
+           <div class="wf-inspector-section-heading">
+             <div>
+               <div class="wf-inspector-label">Próxima ação</div>
+               <div class="wf-inspector-heading">Registrar execução manual</div>
+             </div>
+             <span class="wf-inspector-badge">Enviar para revisão</span>
+           </div>
+           <p class="wf-inspector-help">Registre o que foi feito para que o orquestrador possa revisar o resultado.</p>
            <textarea id="wf-human-return-summary" class="wf-inspector-textarea"
              placeholder="Resumo do que foi feito"></textarea>
            <input id="wf-human-return-files" class="wf-inspector-input"
@@ -525,44 +618,74 @@ const renderWorkflowInspector = () => {
            </button>
          </div>`
       : ''}
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Descrição</div>
+    <div class="wf-inspector-section wf-inspector-section-primary">
+      <div class="wf-inspector-label">Objetivo desta etapa</div>
       <div class="wf-inspector-text">${escHtml(node.description)}</div>
     </div>
     <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Critérios de aceite</div>
+      <div class="wf-inspector-section-heading">
+        <div>
+          <div class="wf-inspector-label">Critérios de aceite</div>
+          <div class="wf-inspector-heading">Como saber que está pronto</div>
+        </div>
+        <span class="wf-inspector-count">${node.acceptanceCriteria.length}</span>
+      </div>
       <ol class="wf-criteria">${node.acceptanceCriteria.map((item) =>
         `<li>${escHtml(item)}</li>`
       ).join('')}</ol>
     </div>
     <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Agente</div>
-      <div class="wf-inspector-text">
-        ${agent
-          ? `<strong>${escHtml(agent.name)}</strong><br>${escHtml(agent.tool)} · ${escHtml(agent.provider)} · ${escHtml(agent.model)}`
-          : [recommendation.tool, recommendation.provider, recommendation.model].filter(Boolean).length
-          ? `Recomendado: ${escHtml([recommendation.tool, recommendation.provider, recommendation.model].filter(Boolean).join(' · '))}`
-          : 'Sem recomendação'}
+      <div class="wf-inspector-label">Operação</div>
+      <div class="wf-inspector-grid">
+        <div class="wf-inspector-card">
+          <span class="wf-inspector-card-label">Agente</span>
+          <strong>${escHtml(agentLabel || 'Sem agente')}</strong>
+          <span>${escHtml(agentDescription)}</span>
+          ${agent ? `<span class="wf-agent-inline-status"><span class="wf-agent-presence ${agent.presence}"></span>${escHtml(agent.presence)}</span>` : ''}
+        </div>
+        <div class="wf-inspector-card">
+          <span class="wf-inspector-card-label">Contrato</span>
+          <strong>${escHtml(node.kind)}</strong>
+          <span>${escHtml(node.isolation)} · ${node.writeScopes.length} escopos de escrita</span>
+        </div>
+        <div class="wf-inspector-card">
+          <span class="wf-inspector-card-label">Tentativas</span>
+          <strong>${node.attemptCount} de ${node.maxAttempts}</strong>
+          <span>${latestRun ? `Última em ${workflowDate(latestRun.createdAt)}` : 'Ainda não executado'}</span>
+        </div>
       </div>
     </div>
     <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Capacidades</div>
+      <div class="wf-inspector-label">Capacidades exigidas</div>
       ${workflowChips(node.requiredCapabilities)}
-    </div>
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Escrita · ${escHtml(node.isolation)}</div>
-      ${workflowChips(node.writeScopes)}
+      <div class="wf-inspector-subgroup">
+        <div class="wf-inspector-label">Escopos de leitura</div>
+        ${workflowChips(node.readScopes)}
+      </div>
+      <div class="wf-inspector-subgroup">
+        <div class="wf-inspector-label">Escopos de escrita · ${escHtml(node.isolation)}</div>
+        ${workflowChips(node.writeScopes)}
+      </div>
     </div>
     ${conflicts.length
       ? `<div class="wf-inspector-section">
-           <div class="wf-inspector-label">Conflitos ativos</div>
+           <div class="wf-inspector-section-heading">
+             <div class="wf-inspector-label">Conflitos ativos</div>
+             <span class="wf-inspector-badge danger">${conflicts.length}</span>
+           </div>
            ${conflicts.map((item) =>
-             `<div class="wf-conflict">${escHtml(item.title)}<br>${escHtml(item.writeScopes.join(', '))}</div>`
+             `<div class="wf-conflict"><strong>${escHtml(item.title)}</strong><span>${escHtml(item.writeScopes.join(', '))}</span></div>`
            ).join('')}
          </div>`
       : ''}
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Dependências concluídas</div>
+    <div class="wf-inspector-section wf-inspector-section-muted">
+      <div class="wf-inspector-section-heading">
+        <div>
+          <div class="wf-inspector-label">Contexto do fluxo</div>
+          <div class="wf-inspector-heading">O que veio antes</div>
+        </div>
+        <span class="wf-inspector-count">${dependencies.length}</span>
+      </div>
       ${dependencies.length
         ? dependencies.map((item) =>
           `<div class="wf-run">
@@ -570,11 +693,14 @@ const renderWorkflowInspector = () => {
              <div class="wf-run-summary">${escHtml(item.summary || 'Sem resumo')}</div>
            </div>`
         ).join('')
-        : '<div class="wf-inspector-text">Nenhuma</div>'}
+        : '<div class="wf-inspector-empty-text">Nenhuma dependência concluída.</div>'}
     </div>
     ${node.contextRefs?.length
       ? `<div class="wf-inspector-section">
-           <div class="wf-inspector-label">Contexto</div>
+           <div class="wf-inspector-section-heading">
+             <div class="wf-inspector-label">Referências fornecidas</div>
+             <span class="wf-inspector-count">${node.contextRefs.length}</span>
+           </div>
            ${node.contextRefs.map((item) =>
              `<div class="wf-run">
                <div class="wf-run-head"><span>${escHtml(item.label || item.ref)}</span><span>${escHtml(item.kind)}</span></div>
@@ -585,13 +711,20 @@ const renderWorkflowInspector = () => {
       : ''}
     ${questions.length
       ? `<div class="wf-inspector-section">
-           <div class="wf-inspector-label">Perguntas</div>
+           <div class="wf-inspector-section-heading">
+             <div>
+               <div class="wf-inspector-label">Comunicação</div>
+               <div class="wf-inspector-heading">Perguntas e respostas</div>
+             </div>
+             <span class="wf-inspector-count">${questions.length}</span>
+           </div>
            ${questions.map((question) => `
              <div class="wf-question">
+               <div class="wf-question-status ${question.status}">${escHtml(question.status === 'open' ? 'Aguardando resposta' : 'Respondida')}</div>
                <div class="wf-inspector-text">${escHtml(question.question)}</div>
                ${question.status === 'open'
                  ? `<textarea id="wf-question-answer-${question.id}" placeholder="Resposta do orquestrador"></textarea>
-                    <button class="wf-action-btn approve" style="margin-top:6px"
+                     <button class="wf-action-btn approve wf-question-answer-btn"
                       onclick="answerSelectedWorkflowQuestion('${question.id}')">${ICON('message-square')} Responder</button>`
                  : `<div class="wf-run-summary">Resposta: ${escHtml(question.answer || '')}</div>`}
              </div>`
@@ -599,15 +732,36 @@ const renderWorkflowInspector = () => {
          </div>`
       : ''}
     <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Execuções</div>
+      <div class="wf-inspector-section-heading">
+        <div>
+          <div class="wf-inspector-label">Histórico</div>
+          <div class="wf-inspector-heading">Execuções e resultados</div>
+        </div>
+        <span class="wf-inspector-count">${runs.length}</span>
+      </div>
       ${runs.length
-        ? [...runs].reverse().map((run) => `
-          <div class="wf-run">
+        ? [...sortedRuns].reverse().map((run) => `
+          <div class="wf-run wf-run-history">
             <div class="wf-run-head">
-              <span>Tentativa ${run.attempt}</span>
-              <span>${escHtml(run.status)}</span>
+              <div class="wf-run-title">
+                <span class="wf-status-dot ${run.status}"></span>
+                <strong>Tentativa ${run.attempt}</strong>
+                <span class="wf-run-status">${escHtml(WF_RUN_STATUS_LABEL[run.status] || run.status)}</span>
+              </div>
+              <time>${escHtml(workflowDate(run.createdAt))}</time>
             </div>
-            <div class="wf-run-summary">${escHtml(run.output?.summary || 'Sem retorno')}</div>
+            <div class="wf-run-summary">${escHtml(run.output?.summary || 'Sem retorno registrado')}</div>
+            <div class="wf-run-meta">
+              ${run.output?.outcome ? `<span class="wf-run-outcome ${run.output.outcome}">${escHtml(WF_RUN_OUTCOME_LABEL[run.output.outcome] || run.output.outcome)}</span>` : ''}
+              ${workflowRunAgent(run, currentWorkflowDetail.agents)?.name
+                ? `<span>${escHtml(workflowRunAgent(run, currentWorkflowDetail.agents).name)}</span>`
+                : ''}
+              ${run.output?.changedFiles?.length ? `<span>${run.output.changedFiles.length} arquivos</span>` : ''}
+              ${run.output?.tests?.length ? `<span>${run.output.tests.length} testes</span>` : ''}
+            </div>
+            ${run.reviewFeedback
+              ? `<div class="wf-run-feedback"><strong>Feedback:</strong> ${escHtml(run.reviewFeedback)}</div>`
+              : ''}
             ${run.output
               ? `<details>
                    <summary>Ver evidências</summary>
@@ -629,7 +783,7 @@ const renderWorkflowInspector = () => {
               : ''}
           </div>`
         ).join('')
-        : '<div class="wf-inspector-text">Nenhuma execução</div>'}
+        : '<div class="wf-inspector-empty-text">Nenhuma execução registrada.</div>'}
     </div>`;
   hydrateIcons(content);
 };

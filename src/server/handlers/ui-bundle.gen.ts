@@ -5591,8 +5591,9 @@ body::before {
 
 .wf-inspector-head {
   position: relative;
-  padding: 15px 15px 12px;
+  padding: 19px 20px 17px;
   border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
 }
 
 .wf-inspector-close {
@@ -5622,7 +5623,7 @@ body::before {
 }
 
 .wf-inspector-kicker {
-  padding-right: 36px;
+  padding-right: 38px;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -5630,6 +5631,10 @@ body::before {
   font-size: 10px;
   font-weight: 650;
   text-transform: uppercase;
+}
+
+.wf-inspector-kicker-separator {
+  color: var(--text-4);
 }
 
 .wf-inspector-title {
@@ -5644,12 +5649,107 @@ body::before {
   font-size: 11px;
 }
 
+.wf-inspector-state {
+  max-width: calc(100% - 38px);
+  margin-top: 14px;
+  padding: 9px 11px;
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.wf-inspector-state strong {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.wf-inspector-state span,
+.wf-inspector-help {
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.wf-inspector-flow {
+  padding: 13px 20px 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.wf-flow-step {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-4);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.wf-flow-step:not(:last-child)::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  margin: 0 8px;
+  background: var(--border);
+}
+
+.wf-flow-index {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-4);
+  font: 9px var(--font-mono);
+}
+
+.wf-flow-index .ico {
+  width: 10px;
+  height: 10px;
+}
+
+.wf-flow-step.complete,
+.wf-flow-step.current {
+  color: var(--text-2);
+}
+
+.wf-flow-step.complete .wf-flow-index {
+  border-color: color-mix(in srgb, var(--wf-done) 55%, transparent);
+  background: color-mix(in srgb, var(--wf-done) 14%, transparent);
+  color: var(--wf-done);
+}
+
+.wf-flow-step.current .wf-flow-index {
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+  color: var(--accent-2);
+}
+
+.wf-flow-step.complete:not(:last-child)::after {
+  background: color-mix(in srgb, var(--wf-done) 45%, transparent);
+}
+
 .wf-inspector-actions {
-  padding: 10px 15px;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 10px 20px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(10px);
 }
 
 .wf-action-btn,
@@ -5697,8 +5797,61 @@ body::before {
 }
 
 .wf-inspector-section {
-  padding: 12px 15px;
+  padding: 17px 20px;
   border-bottom: 1px solid var(--border);
+}
+
+.wf-inspector-section-primary {
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+
+.wf-inspector-section-attention {
+  background: color-mix(in srgb, var(--wf-review) 5%, transparent);
+}
+
+.wf-inspector-section-muted {
+  background: color-mix(in srgb, var(--surface-2) 58%, transparent);
+}
+
+.wf-inspector-section-heading {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wf-inspector-heading {
+  margin-top: -3px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.wf-inspector-count,
+.wf-inspector-badge {
+  min-width: 20px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-3);
+  font: 9px var(--font-mono);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.wf-inspector-badge.review {
+  border-color: color-mix(in srgb, var(--wf-review) 42%, transparent);
+  color: var(--wf-review);
+}
+
+.wf-inspector-badge.danger {
+  border-color: color-mix(in srgb, var(--wf-blocked) 42%, transparent);
+  color: var(--wf-blocked);
+}
+
+.wf-inspector-help {
+  margin: 7px 0 11px;
 }
 
 .wf-inspector-label {
@@ -5707,6 +5860,71 @@ body::before {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.wf-inspector-subgroup {
+  margin-top: 16px;
+}
+
+.wf-inspector-subgroup .wf-inspector-label {
+  margin-bottom: 6px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.wf-inspector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.wf-inspector-card {
+  min-width: 0;
+  min-height: 76px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.wf-inspector-card strong {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wf-inspector-card > span:not(.wf-inspector-card-label):not(.wf-agent-inline-status) {
+  color: var(--text-3);
+  font-size: 10px;
+  line-height: 14px;
+  overflow-wrap: anywhere;
+}
+
+.wf-inspector-card-label {
+  color: var(--text-4);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wf-agent-inline-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-3);
+  font: 9px var(--font-mono);
+}
+
+.wf-agent-inline-status .wf-agent-presence {
+  width: 6px;
+  height: 6px;
 }
 
 .wf-inspector-text {
@@ -5748,6 +5966,10 @@ body::before {
 
 .wf-human-return-panel .wf-action-btn {
   margin-top: 8px;
+}
+
+.wf-question-answer-btn {
+  margin-top: 6px;
 }
 
 .wf-criteria {
@@ -5804,11 +6026,23 @@ body::before {
 
 .wf-conflict {
   padding: 8px;
+  display: grid;
+  gap: 3px;
   border-left: 2px solid var(--wf-blocked);
   background: color-mix(in srgb, var(--wf-blocked) 8%, transparent);
   color: var(--text-2);
   font-size: 11px;
   line-height: 17px;
+}
+
+.wf-conflict strong {
+  font-size: 11px;
+}
+
+.wf-conflict span {
+  color: var(--text-3);
+  font: 9px/14px var(--font-mono);
+  overflow-wrap: anywhere;
 }
 
 .wf-run {
@@ -5829,9 +6063,76 @@ body::before {
   font-size: 11px;
 }
 
+.wf-run-head time {
+  flex: none;
+  color: var(--text-4);
+  font: 9px var(--font-mono);
+}
+
+.wf-run-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wf-run-title .wf-status-dot {
+  width: 6px;
+  height: 6px;
+}
+
+.wf-run-status {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-3);
+  font: 9px var(--font-mono);
+}
+
 .wf-run-summary {
   margin-top: 5px;
   color: var(--text-3);
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.wf-run-meta {
+  margin-top: 7px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: var(--text-4);
+  font: 9px var(--font-mono);
+}
+
+.wf-run-meta > span {
+  padding: 2px 5px;
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+}
+
+.wf-run-outcome.success,
+.wf-run-outcome.passed {
+  color: var(--wf-done);
+}
+
+.wf-run-outcome.failed,
+.wf-run-outcome.blocked {
+  color: var(--wf-blocked);
+}
+
+.wf-run-feedback {
+  margin-top: 8px;
+  padding: 7px 8px;
+  border-left: 2px solid var(--wf-running);
+  background: color-mix(in srgb, var(--wf-running) 7%, transparent);
+  color: var(--text-3);
+  font-size: 10px;
+  line-height: 15px;
+}
+
+.wf-inspector-empty-text {
+  color: var(--text-4);
   font-size: 11px;
   line-height: 17px;
 }
@@ -5857,6 +6158,21 @@ body::before {
 .wf-question {
   padding: 8px 0;
   border-top: 1px solid var(--border);
+}
+
+.wf-question-status {
+  margin-bottom: 5px;
+  color: var(--text-4);
+  font: 9px var(--font-mono);
+  text-transform: uppercase;
+}
+
+.wf-question-status.open {
+  color: var(--wf-running);
+}
+
+.wf-question-status.answered {
+  color: var(--wf-done);
 }
 
 .wf-question:first-of-type {
@@ -6059,6 +6375,26 @@ body::before {
   #wf-inspector-content {
     width: 100%;
     max-height: calc(100vh - 24px);
+  }
+
+  .wf-inspector-head,
+  .wf-inspector-actions,
+  .wf-inspector-section,
+  .wf-inspector-flow {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .wf-inspector-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wf-inspector-flow {
+    overflow-x: auto;
+  }
+
+  .wf-flow-step {
+    min-width: 92px;
   }
 
   #wf-toolbar {
@@ -13256,6 +13592,61 @@ const workflowChips = (items) => {
   ).join('')}</div>\`;
 };
 
+const WF_NODE_STATUS_CONTEXT = {
+  pending: ['Na fila', 'Este nó ainda depende de outras etapas do workflow.'],
+  ready: ['Pronto para execução', 'Um agente pode assumir este nó agora.'],
+  claimed: ['Agente reservado', 'Um agente assumiu o nó e está preparando a execução.'],
+  in_progress: ['Em execução', 'O agente está trabalhando neste nó.'],
+  waiting_input: ['Aguardando resposta', 'A execução está pausada até alguém responder uma pergunta.'],
+  returned: ['Retorno recebido', 'O agente devolveu evidências e o resultado aguarda revisão.'],
+  needs_rework: ['Retrabalho solicitado', 'O agente precisa executar novamente com base no feedback da revisão.'],
+  done: ['Concluído', 'Este nó foi aprovado e não possui uma próxima ação pendente.'],
+  human_intervention: ['Intervenção humana', 'O workflow precisa de uma decisão ou ação manual para continuar.'],
+  cancelled: ['Cancelado', 'Este nó não será executado novamente.'],
+};
+
+const WF_RUN_STATUS_LABEL = {
+  claimed: 'Reservada',
+  in_progress: 'Em execução',
+  waiting_input: 'Aguardando resposta',
+  returned: 'Devolvida',
+  approved: 'Aprovada',
+  rework: 'Retrabalho',
+  failed: 'Falhou',
+  abandoned: 'Abandonada',
+  cancelled: 'Cancelada',
+};
+
+const WF_RUN_OUTCOME_LABEL = {
+  success: 'Sucesso',
+  partial: 'Parcial',
+  failed: 'Falhou',
+  blocked: 'Bloqueado',
+  needs_input: 'Precisa de resposta',
+};
+
+const workflowDate = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).replace('.', '');
+};
+
+const workflowRunAgent = (run, agents) =>
+  agents.find((agent) => agent.id === run.agentSessionId);
+
+const workflowExecutionStage = (status) => {
+  if (['pending', 'ready'].includes(status)) return 0;
+  if (['claimed', 'in_progress', 'waiting_input', 'needs_rework'].includes(status)) return 1;
+  if (status === 'returned' || status === 'human_intervention') return 2;
+  return 3;
+};
+
 const closeWorkflowInspector = () => {
   selectedWorkflowNodeId = null;
   selectedWorkflowNodeDetail = null;
@@ -13300,6 +13691,18 @@ const renderWorkflowInspector = () => {
   const isActive = ['claimed', 'in_progress', 'waiting_input'].includes(node.status);
   const isReturned = node.status === 'returned';
   const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
+  const [statusTitle, statusDescription] = WF_NODE_STATUS_CONTEXT[node.status] || [
+    workflowNodeStatusLabel(node.status),
+    'Consulte os detalhes desta etapa para decidir a próxima ação.',
+  ];
+  const executionStage = workflowExecutionStage(node.status);
+  const sortedRuns = [...runs].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const latestRun = sortedRuns[sortedRuns.length - 1];
+  const agentLabel = agent?.name || recommendation.tool || recommendation.provider;
+  const agentDescription = agent
+    ? \`\${agent.tool} · \${agent.provider} · \${agent.model}\`
+    : [recommendation.tool, recommendation.provider, recommendation.model]
+      .filter(Boolean).join(' · ') || 'Nenhum agente recomendado';
 
   content.innerHTML = \`
     <div class="wf-inspector-head">
@@ -13308,11 +13711,23 @@ const renderWorkflowInspector = () => {
       </button>
       <div class="wf-inspector-kicker">
         <span class="wf-status-dot \${node.status}"></span>
-        <span>\${escHtml(workflowNodeStatusLabel(node.status))}</span>
-        <span>\${node.complexity.toUpperCase()}</span>
+        <span>\${escHtml(statusTitle)}</span>
+        <span class="wf-inspector-kicker-separator">·</span>
+        <span>\${escHtml(node.kind)}</span>
       </div>
       <div class="wf-inspector-title">\${escHtml(node.title)}</div>
-      <div class="wf-inspector-sub">\${escHtml(node.kind)} · tentativa \${node.attemptCount}/\${node.maxAttempts}</div>
+      <div class="wf-inspector-sub">Etapa \${node.complexity.toUpperCase()} · tentativa \${node.attemptCount}/\${node.maxAttempts}</div>
+      <div class="wf-inspector-state">
+        <strong>\${escHtml(statusTitle)}</strong>
+        <span>\${escHtml(statusDescription)}</span>
+      </div>
+    </div>
+    <div class="wf-inspector-flow" aria-label="Fluxo da execução">
+      \${['Pronto', 'Executando', 'Retorno', 'Revisão'].map((label, index) => \`
+        <div class="wf-flow-step\${index < executionStage ? ' complete' : ''}\${index === executionStage ? ' current' : ''}">
+          <span class="wf-flow-index">\${index < executionStage ? ICON('check') : index + 1}</span>
+          <span>\${label}</span>
+        </div>\`).join('')}
     </div>
     <div class="wf-inspector-actions">
       <button class="wf-action-btn" onclick="copyWorkflowNodePrompt('\${node.id}')">
@@ -13346,8 +13761,15 @@ const renderWorkflowInspector = () => {
         : ''}
     </div>
     \${isReturned
-      ? \`<div class="wf-inspector-section">
-           <div class="wf-inspector-label">Checklist de aceite</div>
+      ? \`<div class="wf-inspector-section wf-inspector-section-attention">
+           <div class="wf-inspector-section-heading">
+             <div>
+               <div class="wf-inspector-label">Próxima ação</div>
+               <div class="wf-inspector-heading">Revisar o retorno do agente</div>
+             </div>
+             <span class="wf-inspector-badge review">Aguardando revisão</span>
+           </div>
+           <p class="wf-inspector-help">Confirme cada critério com uma evidência observável antes de aprovar.</p>
            <div class="wf-review-criteria">
              \${node.acceptanceCriteria.map((item, index) =>
                \`<div class="wf-review-criterion">
@@ -13362,15 +13784,22 @@ const renderWorkflowInspector = () => {
              ).join('')}
            </div>
          </div>
-         <div class="wf-inspector-section">
+         <div class="wf-inspector-section wf-review-feedback-section">
            <div class="wf-inspector-label">Feedback da revisão</div>
            <textarea id="wf-review-feedback" class="wf-inspector-textarea"
              placeholder="Motivo da decisão ou instruções de retrabalho"></textarea>
          </div>\`
       : ''}
     \${canHumanReturn
-      ? \`<div class="wf-inspector-section wf-human-return-panel">
-           <div class="wf-inspector-label">Retorno humano</div>
+      ? \`<div class="wf-inspector-section wf-inspector-section-attention wf-human-return-panel">
+           <div class="wf-inspector-section-heading">
+             <div>
+               <div class="wf-inspector-label">Próxima ação</div>
+               <div class="wf-inspector-heading">Registrar execução manual</div>
+             </div>
+             <span class="wf-inspector-badge">Enviar para revisão</span>
+           </div>
+           <p class="wf-inspector-help">Registre o que foi feito para que o orquestrador possa revisar o resultado.</p>
            <textarea id="wf-human-return-summary" class="wf-inspector-textarea"
              placeholder="Resumo do que foi feito"></textarea>
            <input id="wf-human-return-files" class="wf-inspector-input"
@@ -13380,44 +13809,74 @@ const renderWorkflowInspector = () => {
            </button>
          </div>\`
       : ''}
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Descrição</div>
+    <div class="wf-inspector-section wf-inspector-section-primary">
+      <div class="wf-inspector-label">Objetivo desta etapa</div>
       <div class="wf-inspector-text">\${escHtml(node.description)}</div>
     </div>
     <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Critérios de aceite</div>
+      <div class="wf-inspector-section-heading">
+        <div>
+          <div class="wf-inspector-label">Critérios de aceite</div>
+          <div class="wf-inspector-heading">Como saber que está pronto</div>
+        </div>
+        <span class="wf-inspector-count">\${node.acceptanceCriteria.length}</span>
+      </div>
       <ol class="wf-criteria">\${node.acceptanceCriteria.map((item) =>
         \`<li>\${escHtml(item)}</li>\`
       ).join('')}</ol>
     </div>
     <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Agente</div>
-      <div class="wf-inspector-text">
-        \${agent
-          ? \`<strong>\${escHtml(agent.name)}</strong><br>\${escHtml(agent.tool)} · \${escHtml(agent.provider)} · \${escHtml(agent.model)}\`
-          : [recommendation.tool, recommendation.provider, recommendation.model].filter(Boolean).length
-          ? \`Recomendado: \${escHtml([recommendation.tool, recommendation.provider, recommendation.model].filter(Boolean).join(' · '))}\`
-          : 'Sem recomendação'}
+      <div class="wf-inspector-label">Operação</div>
+      <div class="wf-inspector-grid">
+        <div class="wf-inspector-card">
+          <span class="wf-inspector-card-label">Agente</span>
+          <strong>\${escHtml(agentLabel || 'Sem agente')}</strong>
+          <span>\${escHtml(agentDescription)}</span>
+          \${agent ? \`<span class="wf-agent-inline-status"><span class="wf-agent-presence \${agent.presence}"></span>\${escHtml(agent.presence)}</span>\` : ''}
+        </div>
+        <div class="wf-inspector-card">
+          <span class="wf-inspector-card-label">Contrato</span>
+          <strong>\${escHtml(node.kind)}</strong>
+          <span>\${escHtml(node.isolation)} · \${node.writeScopes.length} escopos de escrita</span>
+        </div>
+        <div class="wf-inspector-card">
+          <span class="wf-inspector-card-label">Tentativas</span>
+          <strong>\${node.attemptCount} de \${node.maxAttempts}</strong>
+          <span>\${latestRun ? \`Última em \${workflowDate(latestRun.createdAt)}\` : 'Ainda não executado'}</span>
+        </div>
       </div>
     </div>
     <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Capacidades</div>
+      <div class="wf-inspector-label">Capacidades exigidas</div>
       \${workflowChips(node.requiredCapabilities)}
-    </div>
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Escrita · \${escHtml(node.isolation)}</div>
-      \${workflowChips(node.writeScopes)}
+      <div class="wf-inspector-subgroup">
+        <div class="wf-inspector-label">Escopos de leitura</div>
+        \${workflowChips(node.readScopes)}
+      </div>
+      <div class="wf-inspector-subgroup">
+        <div class="wf-inspector-label">Escopos de escrita · \${escHtml(node.isolation)}</div>
+        \${workflowChips(node.writeScopes)}
+      </div>
     </div>
     \${conflicts.length
       ? \`<div class="wf-inspector-section">
-           <div class="wf-inspector-label">Conflitos ativos</div>
+           <div class="wf-inspector-section-heading">
+             <div class="wf-inspector-label">Conflitos ativos</div>
+             <span class="wf-inspector-badge danger">\${conflicts.length}</span>
+           </div>
            \${conflicts.map((item) =>
-             \`<div class="wf-conflict">\${escHtml(item.title)}<br>\${escHtml(item.writeScopes.join(', '))}</div>\`
+             \`<div class="wf-conflict"><strong>\${escHtml(item.title)}</strong><span>\${escHtml(item.writeScopes.join(', '))}</span></div>\`
            ).join('')}
          </div>\`
       : ''}
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Dependências concluídas</div>
+    <div class="wf-inspector-section wf-inspector-section-muted">
+      <div class="wf-inspector-section-heading">
+        <div>
+          <div class="wf-inspector-label">Contexto do fluxo</div>
+          <div class="wf-inspector-heading">O que veio antes</div>
+        </div>
+        <span class="wf-inspector-count">\${dependencies.length}</span>
+      </div>
       \${dependencies.length
         ? dependencies.map((item) =>
           \`<div class="wf-run">
@@ -13425,11 +13884,14 @@ const renderWorkflowInspector = () => {
              <div class="wf-run-summary">\${escHtml(item.summary || 'Sem resumo')}</div>
            </div>\`
         ).join('')
-        : '<div class="wf-inspector-text">Nenhuma</div>'}
+        : '<div class="wf-inspector-empty-text">Nenhuma dependência concluída.</div>'}
     </div>
     \${node.contextRefs?.length
       ? \`<div class="wf-inspector-section">
-           <div class="wf-inspector-label">Contexto</div>
+           <div class="wf-inspector-section-heading">
+             <div class="wf-inspector-label">Referências fornecidas</div>
+             <span class="wf-inspector-count">\${node.contextRefs.length}</span>
+           </div>
            \${node.contextRefs.map((item) =>
              \`<div class="wf-run">
                <div class="wf-run-head"><span>\${escHtml(item.label || item.ref)}</span><span>\${escHtml(item.kind)}</span></div>
@@ -13440,13 +13902,20 @@ const renderWorkflowInspector = () => {
       : ''}
     \${questions.length
       ? \`<div class="wf-inspector-section">
-           <div class="wf-inspector-label">Perguntas</div>
+           <div class="wf-inspector-section-heading">
+             <div>
+               <div class="wf-inspector-label">Comunicação</div>
+               <div class="wf-inspector-heading">Perguntas e respostas</div>
+             </div>
+             <span class="wf-inspector-count">\${questions.length}</span>
+           </div>
            \${questions.map((question) => \`
              <div class="wf-question">
+               <div class="wf-question-status \${question.status}">\${escHtml(question.status === 'open' ? 'Aguardando resposta' : 'Respondida')}</div>
                <div class="wf-inspector-text">\${escHtml(question.question)}</div>
                \${question.status === 'open'
                  ? \`<textarea id="wf-question-answer-\${question.id}" placeholder="Resposta do orquestrador"></textarea>
-                    <button class="wf-action-btn approve" style="margin-top:6px"
+                     <button class="wf-action-btn approve wf-question-answer-btn"
                       onclick="answerSelectedWorkflowQuestion('\${question.id}')">\${ICON('message-square')} Responder</button>\`
                  : \`<div class="wf-run-summary">Resposta: \${escHtml(question.answer || '')}</div>\`}
              </div>\`
@@ -13454,15 +13923,36 @@ const renderWorkflowInspector = () => {
          </div>\`
       : ''}
     <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Execuções</div>
+      <div class="wf-inspector-section-heading">
+        <div>
+          <div class="wf-inspector-label">Histórico</div>
+          <div class="wf-inspector-heading">Execuções e resultados</div>
+        </div>
+        <span class="wf-inspector-count">\${runs.length}</span>
+      </div>
       \${runs.length
-        ? [...runs].reverse().map((run) => \`
-          <div class="wf-run">
+        ? [...sortedRuns].reverse().map((run) => \`
+          <div class="wf-run wf-run-history">
             <div class="wf-run-head">
-              <span>Tentativa \${run.attempt}</span>
-              <span>\${escHtml(run.status)}</span>
+              <div class="wf-run-title">
+                <span class="wf-status-dot \${run.status}"></span>
+                <strong>Tentativa \${run.attempt}</strong>
+                <span class="wf-run-status">\${escHtml(WF_RUN_STATUS_LABEL[run.status] || run.status)}</span>
+              </div>
+              <time>\${escHtml(workflowDate(run.createdAt))}</time>
             </div>
-            <div class="wf-run-summary">\${escHtml(run.output?.summary || 'Sem retorno')}</div>
+            <div class="wf-run-summary">\${escHtml(run.output?.summary || 'Sem retorno registrado')}</div>
+            <div class="wf-run-meta">
+              \${run.output?.outcome ? \`<span class="wf-run-outcome \${run.output.outcome}">\${escHtml(WF_RUN_OUTCOME_LABEL[run.output.outcome] || run.output.outcome)}</span>\` : ''}
+              \${workflowRunAgent(run, currentWorkflowDetail.agents)?.name
+                ? \`<span>\${escHtml(workflowRunAgent(run, currentWorkflowDetail.agents).name)}</span>\`
+                : ''}
+              \${run.output?.changedFiles?.length ? \`<span>\${run.output.changedFiles.length} arquivos</span>\` : ''}
+              \${run.output?.tests?.length ? \`<span>\${run.output.tests.length} testes</span>\` : ''}
+            </div>
+            \${run.reviewFeedback
+              ? \`<div class="wf-run-feedback"><strong>Feedback:</strong> \${escHtml(run.reviewFeedback)}</div>\`
+              : ''}
             \${run.output
               ? \`<details>
                    <summary>Ver evidências</summary>
@@ -13484,7 +13974,7 @@ const renderWorkflowInspector = () => {
               : ''}
           </div>\`
         ).join('')
-        : '<div class="wf-inspector-text">Nenhuma execução</div>'}
+        : '<div class="wf-inspector-empty-text">Nenhuma execução registrada.</div>'}
     </div>\`;
   hydrateIcons(content);
 };
