@@ -1,6 +1,6 @@
 // ════ Podcasts — ouvir, buscar, organizar em pastas, apagar ════
-// A geração acontece só via IA (integrada/externa) batendo na API. Aqui na UI
-// não há botão "gerar": só consumo do que já existe.
+// A geração acontece via API, normalmente acionada por um agente externo. Aqui
+// na UI não há botão "gerar": só consumo do que já existe.
 
 let allPodcasts = [];
 let allFolders = [];

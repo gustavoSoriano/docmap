@@ -20,12 +20,12 @@
 
 ## Por que docmap?
 
-A maioria das ferramentas de documentação depende da nuvem: seus arquivos, suas ideias e seu histórico ficam em servidores que você não controla. O **docmap** inverte isso: tudo roda localmente — o grafo, as notas, os diagramas, os podcasts e a própria IA (via Ollama local ou provedores compatíveis). Sem assinaturas, sem lock-in, sem depender de uma conexão.
+A maioria das ferramentas de documentação depende da nuvem: seus arquivos, suas ideias e seu histórico ficam em servidores que você não controla. O **docmap** inverte isso: tudo roda localmente — o grafo, as notas, os diagramas e os podcasts. Sem assinaturas, sem lock-in, sem depender de uma conexão.
 
 Ideal para:
 
 - **Engenheiros e PMs** que querem mapear bases de código, RFCs e documentação de produto
-- **Estudantes e pesquisadores** que estudam com conteúdo longo e precisam de podcasts gerados por IA
+- **Estudantes e pesquisadores** que estudam com conteúdo longo e precisam de podcasts em áudio
 - **Times técnicos** que precisam de um hub local de conhecimento, mock servers, favoritos e kanban
 - **Criadores de conteúdo** que querem transformar textos em episódios de áudio com slides visuais
 
@@ -39,13 +39,13 @@ Ideal para:
 | **🧠 Markmap** | Transforma headings em mapa mental navegável |
 | **📝 Notas globais** | Knowledge base com busca full-text, categorias e tags |
 | **📊 Diagramas Mermaid** | Cria diagramas de arquitetura direto no app |
-| **🎙️ Podcasts com IA** | Gera áudio com 2+ vozes a partir de texto ou roteiro |
+| **🎙️ Podcasts em áudio** | Sintetiza roteiros prontos com 2+ vozes |
 | **🎬 Slides sincronizados** | CSS art puro animado que troca conforme o áudio avança |
 | **✅ Kanban de tarefas** | Organize tarefas e vincule a notas |
 | **🔀 Workflows multiagente** | Coordene Claude, Codex, opencode e outros agentes externos em um DAG |
 | **🔖 Favoritos** | Bookmarks inteligentes com tags, categorias e contador de acesso |
 | **🧪 Mocks HTTP** | Servidor local de mocks para testar integrações |
-| **🤖 AI API** | Endpoint local para agentes e integrações próprias |
+| **🤖 API para agentes** | Endpoint local para agentes e integrações próprias |
 | **📦 GitHub Releases** | Auto-update: o app baixa novas versões sozinho |
 
 ---
@@ -66,8 +66,6 @@ Ideal para:
   <img src="docs/assets/screenshot-mocks.png" alt="Mocks HTTP" width="49%">
   <br><br>
   <img src="docs/assets/screenshot-favorites.png" alt="Gerenciador de favoritos" width="49%">
-  &nbsp;
-  <img src="docs/assets/screenshot-assistant.png" alt="Assistente IA integrado ao grafo" width="49%">
 </div>
 
 ---
@@ -83,11 +81,8 @@ Seus dados vivem em um arquivo SQLite no seu computador:
 
 O caminho é fixo e independente do binário: atualizar o app nunca apaga suas notas.
 
-### 🤖 IA onde você escolher
-Use **Ollama** local (padrão, sem custo, sem internet) ou conecte a provedores compatíveis como DeepSeek. A chave de API nunca sai do backend.
-
 ### 🎙️ Podcasts + slides
-A única ferramenta open-source que transforma texto em episódio de áudio com **slides visuais sincronizados**, tudo em CSS art puro. Pause, acelere, volte: os slides seguem o tempo do áudio naturalmente.
+O docmap sintetiza roteiros enviados por agentes externos em episódios de áudio com **slides visuais sincronizados**, tudo em CSS art puro. Pause, acelere, volte: os slides seguem o tempo do áudio naturalmente.
 
 ### 🧩 Extensível via API
 A porta `:3334` expõe uma API REST para agentes. Integrações próprias podem criar notas, diagramas, tasks, favoritos e podcasts, ou participar de workflows persistidos declarando ferramenta, provider e modelo. O docmap coordena dependências, claims, eventos e revisões sem iniciar nenhuma CLI.

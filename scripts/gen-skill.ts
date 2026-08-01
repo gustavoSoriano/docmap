@@ -13,8 +13,8 @@ name: docmap
 version: ${VERSION}
 description: >
   API REST local do docmap desktop — notas com mapa mental anotável, diagramas
-  Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio por IA
-  (2+ vozes) e slides visuais sincronizados, canvas realtime para IA desenhar
+  Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio em 2+
+  vozes e slides visuais sincronizados, canvas realtime para agentes desenharem
   HTML ao vivo, mocks HTTP e workflows para orquestrar agentes externos de
   diferentes ferramentas, providers e modelos.
   Use quando o usuário mencionar notas, diagramas, skills, macros, tasks,

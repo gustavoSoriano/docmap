@@ -276,5 +276,5 @@ copiáveis durante todo o fluxo. Se a sessão do orquestrador ficar `stale` ou
 `offline`, a toolbar oferece uma ação explícita de liberação. Após confirmação,
 o botão de copiar um novo prompt volta a aparecer.
 
-O conteúdo servido em `GET /system/skill`, o botão global **Copiar skill** e o
-prompt de sistema da IA integrada usam a mesma fonte canônica.
+O conteúdo servido em `GET /system/skill` e o botão global **Copiar skill** usam a
+mesma fonte canônica.

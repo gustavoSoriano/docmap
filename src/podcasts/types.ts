@@ -43,8 +43,7 @@ export type Podcast = {
   readonly title: string;
   readonly folder: string;
   readonly tags: readonly string[]; // tema/assunto — eixo do grafo
-  // Roteiro com tags <Nome>…</Nome>. Vazio até a LLM gerar (quando o
-  // pedido veio com `content` em vez de roteiro pronto).
+  // Roteiro pronto com tags <Nome>…</Nome>, enviado por um agente externo.
   //
   // Quando `scriptFs === true`, o roteiro real está offloaded para o
   // filesystem (script.txt dentro do diretório do podcast) porque excedeu
@@ -69,21 +68,19 @@ export type PodcastPreview = Omit<Podcast, 'script'>;
 
 export type GeneratePodcastInput = {
   readonly title: string;
-  // XOR: `content` → docmap gera o roteiro via provider configurado;
-  // `script` → roteiro pronto com tags, docmap só sintetiza o áudio.
+  // Campo legado: o handler rejeita `content` e exige um roteiro em `script`.
   readonly content?: string;
   readonly script?: string;
   readonly folder?: string;
   readonly tags?: readonly string[];
   // Mínimo 2 personas com vozes distintas. Omitido → escolha aleatória.
   readonly voices?: readonly PodcastVoice[];
-  // True → docmap também gera slides (HTML/CSS) sincronizados com o áudio.
-  // Sem efeito se `script` vier pronto sem blocos <Slide>; o docmap
-  // apenas falha gracioso (slideMap vazio) nesse caso.
+  // True → interpreta blocos <Slide> já presentes no roteiro e sincroniza-os
+  // com o áudio. O HTML/CSS pode ser enviado em `slides`.
   readonly withSlides?: boolean;
   // Slides prontos (vindos de API externa). Ignorado se withSlides é
   // falso/ausente. Quando presentes, o docmap escreve no filesystem sem
-  // chamar a LLM.
+  // gerar conteúdo adicional.
   readonly slides?: readonly Slide[];
 };
 

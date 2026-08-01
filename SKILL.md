@@ -3,8 +3,8 @@ name: docmap
 version: 8.3.0
 description: >
   API REST local do docmap desktop — notas com mapa mental anotável, diagramas
-  Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio por IA
-  (2+ vozes) e slides visuais sincronizados, canvas realtime para IA desenhar
+  Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio em 2+
+  vozes e slides visuais sincronizados, canvas realtime para agentes desenharem
   HTML ao vivo, mocks HTTP e workflows para orquestrar agentes externos de
   diferentes ferramentas, providers e modelos.
   Use quando o usuário mencionar notas, diagramas, skills, macros, tasks,
@@ -425,14 +425,15 @@ curl -X POST http://127.0.0.1:3334/podcasts \
     "title": "Buracos negros",
     "folder": "cosmos",
     "withSlides": true,
-    "content": "<cole aqui o texto/artigo de estudo>"
+    "script": "<Slide title=\"Introdução\"><Ana>Olá!</Ana><Bruno>Vamos começar.</Bruno></Slide>"
   }'
 # → 202 { "id": "...", "deepLink": "...", "status": "generating" }
-# O docmap gera diálogo + slides via LLM e depois o áudio.
+# O docmap valida o roteiro, sincroniza os slides e sintetiza o áudio.
 ```
 
 > **ATENÇÃO:** `withSlides: true` é **obrigatório** para ter slides. Sem esse
-> campo, o docmap gera apenas o áudio comum. A palavra-chave do campo é
+> campo, o docmap gera apenas o áudio comum. O roteiro precisa conter blocos
+> `<Slide>…</Slide>` e a palavra-chave do campo é
 > exatamente `withSlides` (camelCase), não `slides`, não `hasSlides`.
 
 Pré-requisitos na máquina: `edge-tts` (pip) e `ffmpeg` (brew install ffmpeg).
@@ -455,17 +456,15 @@ Pré-requisitos na máquina: `edge-tts` (pip) e `ffmpeg` (brew install ffmpeg).
 ### POST /podcasts — body
 
 - `title` (obrigatório)
-- `content` **ou** `script` (obrigatório um dos dois):
-  - `content`: texto bruto → o docmap gera o roteiro via provider configurado
-  - `script`: roteiro pronto com tags `<Person1>…</Person1>` → só sintetiza o áudio
+- `script` (obrigatório): roteiro pronto com tags `<Person1>…</Person1>` → só sintetiza o áudio
+- `content` (legado): rejeitado; a geração automática de roteiro foi removida
 - `voices` (opcional): array de `{ name, voice }` — mínimo 2, vozes distintas.
   Omitido → o docmap sorteia 2 vozes. Use `GET /podcasts/voices` pra escolher.
 - `folder` (opcional, default "geral")
 - `tags` (opcional): array de temas/assuntos do podcast (eixo do grafo)
-- `withSlides` (opcional, default `false`): se `true`, o docmap gera slides
-  visuais sincronizados com o áudio. Aplica-se a qualquer modo:
-  - com `content`: o docmap gera diálogo + slides via LLM
-  - com `script`: o script precisa conter blocos `<Slide>` (e opcionalmente
+- `withSlides` (opcional, default `false`): se `true`, o docmap sincroniza
+  slides visuais já enviados com o áudio. O script precisa conter blocos `<Slide>`
+  (e opcionalmente
     manifesto `<Slides>` embutido) — senão o docmap falha gracioso sem slides
   - com `script` + `slides[]`: você envia tudo pronto, o docmap só sintetiza
 - `slides` (opcional): array de slides prontos `{ index, title, transition?, html, css }`.
@@ -483,8 +482,8 @@ Use as tags `<NomeDaPersona>…</NomeDaPersona>`. Cada nome deve ter uma voz em 
 
 Cerque blocos de falas com `<Slide title="…" transition="…">…</Slide>`. Cada `<Slide>`
 agrupa 1+ turnos relacionados ao mesmo tema visual. Nenhuma fala pode ficar de fora
-de um `<Slide>`. A LLM decide a quebra — pode ter 1 slide para 1 turno ou 1 slide
-para N turnos. A sincronização é automática: cada slide aparece quando o áudio chega
+de um `<Slide>`. O agente externo define a quebra — pode ter 1 slide para 1 turno
+ou 1 slide para N turnos. A sincronização é automática: cada slide aparece quando o áudio chega
 na primeira fala do bloco.
 
 ```bash
@@ -493,10 +492,10 @@ curl -X POST http://127.0.0.1:3334/podcasts \
     "title": "Buracos negros",
     "folder": "cosmos",
     "withSlides": true,
-    "content": "<cole aqui o texto/artigo>"
+    "script": "<Slide title=\"Introdução\"><Ana>Hoje vamos falar de buracos negros.</Ana></Slide>"
   }'
 # → 202 { "id": "...", "deepLink": "...", "status": "generating" }
-# docmap gera diálogo com <Slide> + manifesto visual numa única chamada de LLM.
+# docmap usa os blocos <Slide> enviados e sintetiza o áudio.
 ```
 
 ### Enviar roteiro pronto com slides (`script` + `withSlides`)

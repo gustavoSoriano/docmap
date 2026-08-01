@@ -60,7 +60,6 @@ Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100
 ```
 ["_meta",          "schemaVersion"]              → number (versão do schema)
 ["_meta",          "update"]                     → UpdateStatus
-["ai",             "config"]                     → ProviderConfig
 ["workspace",      "last"]                       → string
 ["workspace",      "recent"]                     → string[]
 ["notes",          "_global_", noteId]           → Note
@@ -90,7 +89,7 @@ Definido em `src/config.ts`. NUNCA usar `Deno.openKv()` sem caminho — o defaul
 
 **Migração de schema:** `src/kv/migrate.ts` — chave `["_meta","schemaVersion"]`. Cada migração leva de N para N+1. Adicione novas ao array `migrations`, nunca edite as antigas.
 
-**Podcasts (binários externos):** o módulo `src/podcasts/` é o único domínio que escreve arquivos fora do KV — o áudio MP3 fica em `<dataDir>/podcasts/<id>.mp3` (KV tem limite de ~64 KiB/valor, áudio é maior). A geração depende de **3 binários externos não empacotados**: `edge-tts` (Python, `pip install edge-tts`), `ffmpeg` e `ffprobe` (`brew install ffmpeg`). Paths configuráveis via env `DOCMAP_EDGE_TTS`, `DOCMAP_FFMPEG`, `DOCMAP_FFPROBE`. O endpoint `GET /podcasts/health` (função em `src/podcasts/health.ts`) verifica os três e devolve instruções de instalação; o `POST /podcasts` faz fail-fast se faltar algum. A geração é assíncrona: o POST retorna 202 e o pipeline (`src/podcasts/pipeline.ts`) roda em background, gravando `status` no KV (`generating`→`ready`/`error`) e emitindo eventos SSE. O roteiro de diálogo pode ser gerado pelo provider de IA configurado (`src/podcasts/script.ts`, reusa `src/ai/adapters`) ou enviado pronto com tags `<Person1>…</Person1>` (parser em `src/podcasts/parser.ts`). Sempre 2+ personas com vozes pt-BR distintas.
+**Podcasts (binários externos):** o módulo `src/podcasts/` é o único domínio que escreve arquivos fora do KV — o áudio MP3 fica em `<dataDir>/podcasts/<id>.mp3` (KV tem limite de ~64 KiB/valor, áudio é maior). A geração depende de **3 binários externos não empacotados**: `edge-tts` (Python, `pip install edge-tts`), `ffmpeg` e `ffprobe` (`brew install ffmpeg`). Paths configuráveis via env `DOCMAP_EDGE_TTS`, `DOCMAP_FFMPEG`, `DOCMAP_FFPROBE`. O endpoint `GET /podcasts/health` (função em `src/podcasts/health.ts`) verifica os três e devolve instruções de instalação; o `POST /podcasts` faz fail-fast se faltar algum. A geração é assíncrona: o POST retorna 202 e o pipeline (`src/podcasts/pipeline.ts`) roda em background, gravando `status` no KV (`generating`→`ready`/`error`) e emitindo eventos SSE. O roteiro pronto e os slides podem ser enviados por agentes externos; o parser em `src/podcasts/parser.ts` valida as tags `<Person1>…</Person1>`. Sempre 2+ personas com vozes pt-BR distintas.
 
 **Backup/restore:** `src/kv/backup.ts` — exporta/importa todo o KV em JSON. Endpoints `/system/backup` e `/system/restore`.
 

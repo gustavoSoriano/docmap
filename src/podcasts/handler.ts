@@ -174,7 +174,7 @@ export const podcastsHandler =
       const hasScript = input.script != null && input.script.trim().length > 0;
       if (hasContent) {
         return badRequest(
-          'geração automática de roteiro via LLM foi removida; envie o roteiro pronto no campo script com tags <Person1>…</Person1>',
+          'geração automática de roteiro foi removida; envie o roteiro pronto no campo script com tags <Person1>…</Person1>',
         );
       }
       if (!hasScript) {

@@ -1360,7 +1360,7 @@ body::before {
     left: 12px !important;
     right: 12px;
     border-radius: var(--r-md);
-    z-index: 550; /* acima do agent panel overlay (z-index:500) */
+    z-index: 550; /* acima de outros popovers da interface */
   }
   #annot-panel {
     height: 180px;
@@ -15661,8 +15661,8 @@ document.addEventListener('DOMContentLoaded', initFavorites);
 </script>
     <script>
 // ════ Podcasts — ouvir, buscar, organizar em pastas, apagar ════
-// A geração acontece só via IA (integrada/externa) batendo na API. Aqui na UI
-// não há botão "gerar": só consumo do que já existe.
+// A geração acontece via API, normalmente acionada por um agente externo. Aqui
+// na UI não há botão "gerar": só consumo do que já existe.
 
 let allPodcasts = [];
 let allFolders = [];

@@ -289,7 +289,7 @@
     left: 12px !important;
     right: 12px;
     border-radius: var(--r-md);
-    z-index: 550; /* acima do agent panel overlay (z-index:500) */
+    z-index: 550; /* acima de outros popovers da interface */
   }
   #annot-panel {
     height: 180px;
