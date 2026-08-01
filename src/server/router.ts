@@ -5,7 +5,6 @@ import { createCommentsHandler } from './handlers/comments.ts';
 import { createNotesHandler } from './handlers/notes.ts';
 import { createWorkspaceHandler } from './handlers/workspace.ts';
 import { createSystemHandler } from './handlers/system.ts';
-import { createAiHandler } from './handlers/ai.ts';
 import { createCodeSearchHandler } from './handlers/code-search.ts';
 import { createGitHandler } from './handlers/git.ts';
 import { createRunHandler } from './handlers/run.ts';
@@ -37,7 +36,6 @@ export const createRouter = (deps: HandlerDeps) => {
   const notes = createNotesHandler(deps);
   const workspace = createWorkspaceHandler(deps);
   const system = createSystemHandler(deps);
-  const ai = createAiHandler(deps);
   const codeSearch = createCodeSearchHandler(deps);
   const git = createGitHandler(deps);
   const run = createRunHandler(deps);
@@ -73,7 +71,6 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/notes')) return notes(req, url);
     if (pathname.startsWith('/workspace')) return workspace(req, url);
     if (pathname.startsWith('/system')) return system(req, url);
-    if (pathname.startsWith('/ai')) return ai(req, url);
     if (pathname.startsWith('/diagrams')) return diagrams(req, url);
     if (pathname.startsWith('/skills')) return skills(req, url);
     if (pathname.startsWith('/macros')) return macros(req, url);

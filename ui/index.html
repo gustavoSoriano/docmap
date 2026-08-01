@@ -48,7 +48,6 @@
     <link rel="stylesheet" href="/styles/markmap.css">
     <link rel="stylesheet" href="/styles/annotations.css">
     <link rel="stylesheet" href="/styles/notes.css">
-    <link rel="stylesheet" href="/styles/ai-chat.css">
     <link rel="stylesheet" href="/styles/macros.css">
     <link rel="stylesheet" href="/styles/skills.css">
     <link rel="stylesheet" href="/styles/diagrams.css">
@@ -1359,46 +1358,6 @@
         </div>
       </div>
 
-      <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
-      <aside id="agent-panel">
-        <!-- Estado recolhido: rail fino vertical -->
-        <button id="agent-collapsed" onclick="toggleAgent()"
-          title="Abrir assistente">
-          <span class="agent-orb"><span data-icon="bot"></span></span>
-          <span class="agent-collapsed-label">Assistente</span>
-        </button>
-
-        <!-- Estado expandido: sidebar completa -->
-        <div class="agent-body">
-          <header id="chat-header">
-            <span id="chat-title">
-            <span class="agent-chip"><span data-icon="bot"></span></span>
-            Assistente<span class="agent-presence" title="Disponível"></span>
-          </span>
-            <select id="chat-provider" title="Provedor de IA">
-              <option value="ollama">Ollama (local)</option>
-              <option value="deepseek">DeepSeek</option>
-            </select>
-            <div id="chat-header-actions">
-              <button class="ghost-btn" onclick="clearChat()"
-                title="Limpar conversa">limpar</button>
-              <button class="ghost-btn" id="agent-collapse"
-                onclick="toggleAgent()" title="Recolher">
-                <span data-icon="panel-right"></span>
-              </button>
-            </div>
-          </header>
-          <div id="chat-feed"></div>
-          <div id="chat-composer">
-            <button id="chat-stop" onclick="stopChat()"
-              style="display:none"><span data-icon="x"></span> Parar</button>
-            <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
-              rows="1"></textarea>
-            <button id="chat-send" onclick="sendChatMessage()"
-              data-icon="sparkles"></button>
-          </div>
-        </div>
-      </aside>
     </div>
     <!-- /#body-main -->
 
@@ -1438,7 +1397,6 @@
     <script src="/scripts/podcasts.js"></script>
     <script src="/scripts/graph.js"></script>
     <script src="/scripts/system.js"></script>
-    <script src="/scripts/ai-chat.js"></script>
     <script src="/scripts/terminal.js"></script>
   </body>
 </html>

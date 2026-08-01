@@ -103,7 +103,7 @@ const renderPodcastsList = () => {
   if (!items.length) {
     list.innerHTML = allPodcasts.length
       ? `<div class="pod-empty">Nenhum podcast para este filtro.</div>`
-      : `<div class="pod-empty">Nenhum podcast ainda.<br>Peça à IA integrada ou externa para gerar um via <code>POST /podcasts</code>.</div>`;
+      : `<div class="pod-empty">Nenhum podcast ainda.<br>Peça à IA externa para gerar um via <code>POST /podcasts</code>.</div>`;
     return;
   }
 
@@ -304,8 +304,7 @@ const connectPodcastEvents = () => {
     item.status = 'generating';
     renderPodcastsList();
     if (currentPodcast?.id === id) {
-      const label = stage === 'script' ? 'escrevendo roteiro…'
-        : stage === 'slides' ? `compondo slides ${detail || ''}`
+      const label = stage === 'slides' ? `compondo slides ${detail || ''}`
         : stage === 'tts' ? `sintetizando vozes ${detail || ''}`
         : stage === 'concat' ? 'montando áudio…' : 'processando…';
       $('pod-meta').innerHTML = `<span class="pod-status gen">${ICON('refresh-cw')} ${label}</span>`;

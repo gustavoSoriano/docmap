@@ -31,17 +31,6 @@ export const dataDir = (): string => {
 
 export const kvPath = (): string => `${dataDir()}/data.sqlite3`;
 
-// ════ AI providers ════
-// Ollama roda localmente (default). DeepSeek é OpenAI-compatible na nuvem.
-
-export const OLLAMA_URL = 'http://localhost:11434/api/chat';
-export const OLLAMA_MODEL = Deno.env.get('DOCMAP_OLLAMA_MODEL') ?? 'gemma4:12b';
-export const DEEPSEEK_URL = 'https://api.deepseek.com/chat/completions';
-export const DEEPSEEK_MODEL = Deno.env.get('DOCMAP_DEEPSEEK_MODEL') ??
-  'deepseek-v4-flash';
-// A chave NUNCA vai para o frontend — só o adapter do backend a lê.
-export const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY') ?? '';
-
 // ════ Podcasts ════
 // Áudio MP3 fica fora do KV (limite de tamanho por valor), junto do data dir.
 export const podcastsDir = (): string => `${dataDir()}/podcasts`;

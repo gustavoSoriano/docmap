@@ -81,6 +81,16 @@ const migrations: Migration[] = [
   // v7 — workflows de agentes externos. As entidades usam prefixos novos no
   // KV, então não há dados antigos para transformar.
   async (_kv) => {},
+
+  // v8 — o agente integrado (e seu provider LLM) foi removido do app. Deleta a
+  // chave ["ai","config"] se existir. Idempotente: se a chave não existir (ou
+  // já tiver sido deletada), não faz nada.
+  async (kv) => {
+    const entry = await kv.get<{ provider?: string }>(['ai', 'config']);
+    if (entry.value) {
+      await kv.delete(['ai', 'config']);
+    }
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

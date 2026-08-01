@@ -23,7 +23,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Wrapper: rail + stage + agent-panel na horizontal */
+/* Wrapper: rail + stage na horizontal */
 #body-main {
   flex: 1;
   min-height: 0;

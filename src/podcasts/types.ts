@@ -51,8 +51,6 @@ export type Podcast = {
   // o limite de ~64 KiB do KV. Use readScript() para abstrair.
   readonly script: string;
   readonly scriptFs?: boolean;
-  // Texto-fonte enviado pela IA (quando o roteiro é gerado pelo docmap).
-  readonly sourceContent?: string;
   readonly voices: readonly PodcastVoice[];
   readonly status: PodcastStatus;
   readonly error?: string;
@@ -65,9 +63,9 @@ export type Podcast = {
   readonly updatedAt: string;
 };
 
-// Lista sem os campos pesados (script, sourceContent) — padrão dos demais
-// módulos. Mantém slideMap porque é leve e a UI precisa para sincronizar.
-export type PodcastPreview = Omit<Podcast, 'script' | 'sourceContent'>;
+// Lista sem os campos pesados (script) — padrão dos demais módulos.
+// Mantém slideMap porque é leve e a UI precisa para sincronizar.
+export type PodcastPreview = Omit<Podcast, 'script'>;
 
 export type GeneratePodcastInput = {
   readonly title: string;

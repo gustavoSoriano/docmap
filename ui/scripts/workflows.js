@@ -138,6 +138,11 @@ const renderWorkflowList = () => {
     const progress = total ? Math.round((done / total) * 100) : 0;
     const active = currentWorkflowDetail?.workflow.id === workflow.id;
     const tagsHtml = renderWorkflowTags(workflow.tags);
+    const doneElapsed = workflow.status === 'done' && workflow.completedAt
+      ? workflowElapsedMarkup(workflow.createdAt, workflow.completedAt)
+      : (['draft', 'planning', 'running', 'reviewing', 'blocked'].includes(workflow.status)
+          ? workflowElapsedMarkup(workflow.createdAt)
+          : '');
     return `<button class="wf-list-item${active ? ' active' : ''}" data-workflow-id="${workflow.id}">
       <span class="wf-list-title">${escHtml(workflow.title)}</span>
       <span class="wf-list-objective">${escHtml(workflow.objective)}</span>
@@ -147,6 +152,7 @@ const renderWorkflowList = () => {
         <span>${escHtml(workflowStatusLabel(workflow.status))}</span>
         <span class="wf-list-progress"><span style="width:${progress}%"></span></span>
         <span>${done}/${total}</span>
+        ${doneElapsed ? `<span class="wf-list-elapsed">${doneElapsed}</span>` : ''}
       </span>
     </button>`;
   }).join('');
@@ -214,9 +220,15 @@ const renderCurrentWorkflow = () => {
   $('wf-active').classList.add('visible');
   $('wf-toolbar-title').textContent = workflow.title;
   const tagsHtml = renderWorkflowTags(workflow.tags);
+  const totalElapsed = workflow.status === 'done' && workflow.completedAt
+    ? `<span>Levou ${workflowElapsedMarkup(workflow.createdAt, workflow.completedAt)}</span>`
+    : (['draft', 'planning', 'running', 'reviewing', 'blocked'].includes(workflow.status)
+        ? `<span>Há ${workflowElapsedMarkup(workflow.createdAt)}</span>`
+        : '');
   $('wf-toolbar-meta').innerHTML = `
     <span class="wf-status-dot ${workflow.status}"></span>
     <span>${escHtml(workflowStatusLabel(workflow.status))}</span>
+    ${totalElapsed}
     <span>${nodes.length} ${nodes.length === 1 ? 'nó' : 'nós'}</span>
     <span>${workflow.conflictPolicy === 'block' ? 'conflitos bloqueiam' : 'conflitos avisam'}</span>
     ${tagsHtml ? `<span class="wf-toolbar-tags">${tagsHtml}</span>` : ''}`;
@@ -338,6 +350,29 @@ const renderWorkflowTimeline = () => {
   bindWorkflowNodes();
 };
 
+const workflowNodeElapsed = (node) => {
+  const runs = currentWorkflowDetail?.runs || [];
+  if (node.status === 'done') {
+    const approved = [...runs]
+      .filter((run) => run.nodeId === node.id && run.status === 'approved')
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    if (approved?.startedAt && approved?.returnedAt) {
+      return { from: approved.startedAt, to: approved.returnedAt };
+    }
+    return null;
+  }
+  if (['claimed', 'in_progress', 'waiting_input'].includes(node.status)) {
+    const activeRun = [...runs]
+      .filter((run) =>
+        run.nodeId === node.id &&
+        ['claimed', 'in_progress', 'waiting_input'].includes(run.status)
+      )
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    if (activeRun?.startedAt) return { from: activeRun.startedAt };
+  }
+  return null;
+};
+
 const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => {
   const agent = node.claimedBySessionId
     ? agentById.get(node.claimedBySessionId)
@@ -350,6 +385,10 @@ const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => 
   const selected = node.id === selectedWorkflowNodeId;
   const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
   const dependencyText = dependencies.map((item) => item.title).join(', ');
+  const nodeElapsed = workflowNodeElapsed(node);
+  const nodeElapsedHtml = nodeElapsed
+    ? `<span>${workflowElapsedMarkup(nodeElapsed.from, nodeElapsed.to)}</span>`
+    : '';
   return `<article class="wf-node${selected ? ' selected' : ''}"
     data-node-id="${node.id}" data-status="${node.status}">
     <div class="wf-node-head">
@@ -368,6 +407,7 @@ const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => 
     <div class="wf-node-meta">
       <span class="wf-node-kind">${escHtml(node.kind)}</span>
       <span>${node.attemptCount}/${node.maxAttempts} tent.</span>
+      ${nodeElapsedHtml}
       <span>${dependencies.length} dep.</span>
       <span>libera ${blocking.length}</span>
     </div>
@@ -482,6 +522,44 @@ const workflowDate = (value) => {
     hour: '2-digit',
     minute: '2-digit',
   }).replace('.', '');
+};
+
+const formatWorkflowDuration = (ms) => {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const minutes = Math.floor(totalSeconds / 60);
+  if (minutes < 60) return `${minutes}min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    const rem = minutes % 60;
+    return rem ? `${hours}h ${rem}min` : `${hours}h`;
+  }
+  const days = Math.floor(hours / 24);
+  return `${days}d ${hours % 24}h`;
+};
+
+const workflowElapsedMarkup = (from, to) => {
+  if (!from) return '';
+  const start = new Date(from).getTime();
+  if (Number.isNaN(start)) return '';
+  if (to) {
+    const end = new Date(to).getTime();
+    if (Number.isNaN(end)) return '';
+    return `<span class="wf-elapsed">${formatWorkflowDuration(end - start)}</span>`;
+  }
+  return `<span class="wf-elapsed" data-elapsed-from="${from}">${formatWorkflowDuration(Date.now() - start)}</span>`;
+};
+
+let workflowClockTimer = null;
+const startWorkflowClock = () => {
+  if (workflowClockTimer) return;
+  workflowClockTimer = setInterval(() => {
+    document.querySelectorAll('[data-elapsed-from]').forEach((el) => {
+      el.textContent = formatWorkflowDuration(
+        Math.max(0, Date.now() - new Date(el.dataset.elapsedFrom).getTime()),
+      );
+    });
+  }, 1000);
 };
 
 const workflowRunAgent = (run, agents) =>
@@ -690,6 +768,11 @@ const renderWorkflowInspector = () => {
           <span class="wf-inspector-card-label">Tentativas</span>
           <strong>${node.attemptCount} de ${node.maxAttempts}</strong>
           <span>${latestRun ? `Última em ${workflowDate(latestRun.createdAt)}` : 'Ainda não executado'}</span>
+          ${latestRun?.startedAt
+            ? `<span>${latestRun.returnedAt
+                ? `Levou ${formatWorkflowDuration(new Date(latestRun.returnedAt) - new Date(latestRun.startedAt))}`
+                : workflowElapsedMarkup(latestRun.startedAt)}</span>`
+            : ''}
         </div>
       </div>
     </div>
@@ -791,6 +874,11 @@ const renderWorkflowInspector = () => {
             <div class="wf-run-summary">${escHtml(run.output?.summary || 'Sem retorno registrado')}</div>
             <div class="wf-run-meta">
               ${run.output?.outcome ? `<span class="wf-run-outcome ${run.output.outcome}">${escHtml(WF_RUN_OUTCOME_LABEL[run.output.outcome] || run.output.outcome)}</span>` : ''}
+              ${run.startedAt
+                ? `<span>${run.returnedAt
+                    ? `Levou ${formatWorkflowDuration(new Date(run.returnedAt) - new Date(run.startedAt))}`
+                    : workflowElapsedMarkup(run.startedAt)}</span>`
+                : ''}
               ${workflowRunAgent(run, currentWorkflowDetail.agents)?.name
                 ? `<span>${escHtml(workflowRunAgent(run, currentWorkflowDetail.agents).name)}</span>`
                 : ''}
@@ -1285,6 +1373,7 @@ const createNodeFromModal = async (event) => {
 
 const ensureWorkflowEvents = () => {
   if (workflowEvents) return;
+  startWorkflowClock();
   workflowEvents = new EventSource('/workflows/events');
   const eventNames = [
     'workflow.created',

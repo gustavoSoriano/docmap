@@ -3,24 +3,21 @@
 // emite eventos SSE em cada etapa.
 
 import { audioPath, deleteAudio, ensureAudioDir } from './audio.ts';
-import { deleteSlides, writeSlides } from './slides.ts';
+import { deleteSlides } from './slides.ts';
 import {
-  extractSlidesManifest,
   parseScript,
   parseScriptWithSlides,
-  stripSlidesManifest,
   validateSegments,
   voiceIdOf,
 } from './parser.ts';
 import { broadcast } from './sse.ts';
-import { generateScript, generateScriptWithSlides } from './script.ts';
 import { concatAudio, probeDurationMs, synthesizeSegment } from './tts.ts';
 import { getPodcastById, patchGeneration, toPreview } from './store.ts';
 import type { Podcast, SlideMapEntry } from './types.ts';
 
 const emitProgress = (
   id: string,
-  stage: 'script' | 'slides' | 'tts' | 'concat',
+  stage: 'slides' | 'tts' | 'concat',
   detail?: string,
 ) => broadcast({ type: 'progress', id, stage, detail });
 
@@ -67,27 +64,9 @@ export const runPodcastPipeline = async (
   const tmpDir = await Deno.makeTempDir({ prefix: 'docmap-pod-' });
 
   try {
-    // 1. Roteiro — se vier de content, gera agora via LLM.
-    let { script } = podcast;
+    // 1. Roteiro — vem pronto do handler (IAs externas enviam via POST).
+    const { script } = podcast;
     const wantSlides = podcast.withSlides === true;
-    // Preserva o bruto com <Slides> para extrair o manifesto visual antes
-    // de salvarmos a versão limpa no KV.
-    let scriptWithManifest: string | null = null;
-    if (!script && podcast.sourceContent) {
-      emitProgress(id, 'script');
-      if (wantSlides) {
-        const raw = await generateScriptWithSlides(
-          kv,
-          podcast.sourceContent,
-          podcast.voices,
-        );
-        scriptWithManifest = raw;
-        script = stripSlidesManifest(raw);
-      } else {
-        script = await generateScript(kv, podcast.sourceContent, podcast.voices);
-      }
-      await patchGeneration(kv, id, { script });
-    }
 
     // 2. Parse + validação contra as personas.
     const parsed = wantSlides
@@ -97,24 +76,13 @@ export const runPodcastPipeline = async (
     const invalid = validateSegments(segments, podcast.voices);
     if (invalid) throw new Error(invalid);
 
-    // 3. Slides — extrai manifesto e escreve no filesystem.
-    //    Tolerante: se a LLM promiseu slides mas não entregou, slideMap
-    //    fica vazio e o podcast segue só em áudio (falha graciosa).
+    // 3. Slides — o manifesto visual já foi escrito pelo handler quando o
+    //    roteiro veio pronto com <Slides> (ou via input.slides). Não
+    //    reextraímos aqui; apenas zeramos o slideMap quando o roteiro tem
+    //    blocos <Slide> de diálogo mas nenhum manifesto visual.
     if (wantSlides) {
       emitProgress(id, 'slides', `${slideMap.length} slides`);
-      // Fonte do manifesto: apenas o bruto gerado pela LLM (scriptWithManifest).
-      // Quando o script veio pronto (not scriptWithManifest), o handler já
-      // extraiu o manifesto e escreveu slides.html antes de disparar o pipeline.
-      // Usar o script limpo (sem <Slides>) como fallback causaria extractSlidesManifest
-      // a encontrar os blocos <Slide> do diálogo (sem <HTML>/<CSS>) e sobrescrever
-      // o slides.html correto com seções vazias.
-      const manifestSrc = scriptWithManifest ?? '';
-      const slides = extractSlidesManifest(manifestSrc);
-      if (slides.length > 0) {
-        await writeSlides(id, slides);
-      } else if (slideMap.length > 0) {
-        // LLM cercou falas com <Slide> mas não produziu manifesto visual;
-        // zera o mapa para a UI não esperar slides inexistentes.
+      if (slideMap.length > 0) {
         await patchGeneration(kv, id, { slideMap: [] });
       }
     }

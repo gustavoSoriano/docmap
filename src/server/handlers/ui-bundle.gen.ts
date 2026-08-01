@@ -173,7 +173,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Wrapper: rail + stage + agent-panel na horizontal */
+/* Wrapper: rail + stage na horizontal */
 #body-main {
   flex: 1;
   min-height: 0;
@@ -2006,473 +2006,6 @@ body::before {
   }
 }
 
-
-</style>
-    <style>
-/* ════ AI Sidebar — dockada à direita, colapsável, persistente ════ */
-
-:root {
-  --agent-w: 384px;
-  --agent-rail-w: 56px;
-}
-
-#agent-panel {
-  flex-shrink: 0;
-  position: relative;
-  width: var(--agent-rail-w);
-  border-left: 1px solid var(--border);
-  background: var(--surface);
-  overflow: hidden;
-  z-index: 5;
-  transition: width .3s cubic-bezier(.2,.8,.2,1);
-}
-#agent-panel.open {
-  width: var(--agent-w);
-}
-
-/* ── Estado recolhido: rail fino vertical ── */
-#agent-collapsed {
-  position: absolute;
-  inset: 0;
-  width: var(--agent-rail-w);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  color: var(--text-2);
-  transition: opacity .16s ease;
-}
-.agent-orb {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--accent-dim);
-  color: var(--accent);
-  box-shadow: var(--glow);
-  transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s,
-    background .2s;
-}
-.agent-orb .ico {
-  width: 20px;
-  height: 20px;
-}
-#agent-collapsed:hover .agent-orb {
-  transform: scale(1.09);
-  background: rgba(55,217,154,.22);
-  box-shadow: 0 0 0 1px var(--accent-line), 0 6px 26px rgba(55,217,154,.32);
-}
-.agent-collapsed-label {
-  writing-mode: vertical-rl;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-#agent-panel.open #agent-collapsed {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* ── Estado expandido: corpo da sidebar ── */
-.agent-body {
-  width: var(--agent-w);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity .16s ease;
-}
-#agent-panel.open .agent-body {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition: opacity .22s ease .1s;
-}
-
-/* ── Header ── */
-#chat-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px 14px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-#chat-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-}
-.agent-chip {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: var(--accent-dim);
-  color: var(--accent);
-  flex-shrink: 0;
-}
-.agent-chip .ico {
-  width: 15px;
-  height: 15px;
-}
-.agent-presence {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 6px var(--accent);
-  flex-shrink: 0;
-}
-#chat-provider {
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  outline: none;
-  padding: 3px 6px;
-  border-radius: var(--r-sm);
-  transition: background .12s, border .12s;
-  max-width: 130px;
-  min-width: 0;
-  margin-left: 2px;
-}
-#chat-provider:hover {
-  background: var(--surface-3);
-}
-#chat-provider:focus-visible {
-  border-color: var(--accent-line);
-}
-#chat-provider option {
-  background: var(--surface-2);
-  color: var(--text);
-}
-#chat-provider:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-#chat-header-actions {
-  margin-left: auto;
-  display: flex;
-  gap: 4px;
-}
-#chat-header-actions .ghost-btn {
-  padding: 4px 8px;
-  font-size: 11px;
-  cursor: pointer;
-}
-#chat-header-actions .ico {
-  width: 14px;
-  height: 14px;
-}
-
-/* ── Feed ── */
-#chat-feed {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.chat-bubble {
-  max-width: 88%;
-  padding: 10px 14px;
-  border-radius: var(--r-md);
-  font-size: 13px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.chat-user {
-  align-self: flex-end;
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-line);
-  color: var(--text);
-}
-.chat-assistant {
-  align-self: flex-start;
-  background: var(--surface-3);
-  color: var(--text);
-}
-.chat-error {
-  align-self: flex-start;
-  background: rgba(251,113,133,.1);
-  border: 1px solid rgba(251,113,133,.25);
-  color: var(--cat-security);
-}
-
-/* ── Tool call badge ── */
-.chat-tool-call {
-  align-self: flex-start;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-2);
-  border-radius: var(--r-sm);
-  padding: 6px 10px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  max-width: 92%;
-  word-break: break-all;
-}
-.tool-summary-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.tool-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-3);
-  font-size: 10px;
-  padding: 0 2px;
-  line-height: 1;
-  opacity: 0.6;
-  flex-shrink: 0;
-}
-.tool-toggle:hover {
-  opacity: 1;
-}
-.tool-name {
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 4px;
-  font-size: 10px;
-  background: rgba(55,217,154,.12);
-  color: var(--accent);
-}
-.tool-summary {
-  color: var(--text-2);
-}
-.tool-details {
-  display: none;
-  margin-top: 6px;
-  border-top: 1px solid var(--border-soft);
-  padding-top: 5px;
-}
-.tool-details.open {
-  display: block;
-}
-.tool-body {
-  color: var(--text-3);
-  margin-bottom: 4px;
-  white-space: pre-wrap;
-}
-.tool-result {
-  color: var(--text-3);
-  white-space: pre-wrap;
-}
-
-/* ── Composer ── */
-#chat-composer {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 12px 14px;
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-#chat-stop {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-3);
-  color: var(--text-2);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all .12s;
-}
-#chat-stop:hover {
-  border-color: var(--cat-security);
-  color: var(--cat-security);
-}
-#chat-stop .ico {
-  width: 13px;
-  height: 13px;
-}
-
-#chat-input {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 13px;
-  padding: 8px 12px;
-  outline: none;
-  resize: none;
-  line-height: 1.5;
-  max-height: 140px;
-  overflow-y: hidden;
-  box-sizing: border-box;
-  transition: border .12s;
-}
-#chat-input:focus {
-  border-color: var(--accent-line);
-}
-#chat-input::placeholder {
-  color: var(--text-3);
-}
-
-#chat-send {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  border: none;
-  border-radius: var(--r-sm);
-  background: var(--accent);
-  color: var(--on-accent);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: all .13s;
-  box-shadow: 0 2px 8px rgba(55,217,154,.25);
-}
-#chat-send .ico {
-  width: 16px;
-  height: 16px;
-}
-#chat-send:hover {
-  background: var(--accent-2);
-}
-#chat-send:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-/* ════════ Responsivo ════════ */
-@media (max-width: 900px) {
-  :root {
-    --agent-w: 340px;
-  }
-}
-
-@media (max-width: 600px) {
-  :root {
-    --agent-w: 100vw;
-    --agent-rail-w: auto;
-  }
-
-  /* FAB (floating action button) no canto inferior direito do mobile.
-     ALT-6: restaurado — o rail inferior não tem botão de IA, então o FAB
-     é o único ponto de acesso ao assistente no mobile. */
-  #agent-panel:not(.open) {
-    position: fixed;
-    bottom: 20px;
-    right: 16px;
-    width: auto;
-    height: auto;
-    border-left: none;
-    background: transparent;
-    z-index: 450;
-  }
-  #agent-panel:not(.open) #agent-collapsed {
-    position: static;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--on-accent);
-    box-shadow: 0 4px 20px rgba(55,217,154,.4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-  }
-  #agent-panel:not(.open) .agent-orb {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: transparent;
-    box-shadow: none;
-    display: grid;
-    place-items: center;
-    color: var(--on-accent);
-  }
-  #agent-panel:not(.open) .agent-orb .ico {
-    width: 18px;
-    height: 18px;
-  }
-  #agent-panel:not(.open) .agent-collapsed-label {
-    display: none; /* só o ícone no floating button */
-  }
-  #agent-panel:not(.open) .agent-body {
-    display: none;
-  }
-
-  /* Estado expandido: overlay full-screen */
-  #agent-panel.open {
-    position: fixed;
-    inset: 0;
-    z-index: 500;
-    width: 100vw;
-    border-left: none;
-    border-radius: 0;
-  }
-  #agent-panel.open .agent-body {
-    width: 100vw;
-  }
-
-  /* Header compacto */
-  #chat-header {
-    padding: 10px 12px;
-    gap: 6px;
-  }
-  #chat-provider {
-    max-width: 100px;
-    font-size: 12px;
-  }
-  /* Feed e composer */
-  #chat-feed {
-    padding: 10px 12px;
-    gap: 8px;
-  }
-  #chat-composer {
-    padding: 8px 10px;
-    gap: 6px;
-  }
-  #chat-input {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-  #chat-send {
-    width: 32px;
-    height: 32px;
-  }
-  .chat-bubble {
-    font-size: 12px;
-    padding: 8px 12px;
-  }
-}
 
 </style>
     <style>
@@ -4911,6 +4444,16 @@ body::before {
   gap: 6px;
   color: var(--text-3);
   font-size: 9px;
+}
+
+.wf-elapsed {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.wf-list-elapsed {
+  color: var(--accent);
 }
 
 .wf-status-dot {
@@ -11035,46 +10578,6 @@ svg#kg-svg:active { cursor: grabbing; }
         </div>
       </div>
 
-      <!-- ════ AI Sidebar — dockada à direita, colapsável, persistente ════ -->
-      <aside id="agent-panel">
-        <!-- Estado recolhido: rail fino vertical -->
-        <button id="agent-collapsed" onclick="toggleAgent()"
-          title="Abrir assistente">
-          <span class="agent-orb"><span data-icon="bot"></span></span>
-          <span class="agent-collapsed-label">Assistente</span>
-        </button>
-
-        <!-- Estado expandido: sidebar completa -->
-        <div class="agent-body">
-          <header id="chat-header">
-            <span id="chat-title">
-            <span class="agent-chip"><span data-icon="bot"></span></span>
-            Assistente<span class="agent-presence" title="Disponível"></span>
-          </span>
-            <select id="chat-provider" title="Provedor de IA">
-              <option value="ollama">Ollama (local)</option>
-              <option value="deepseek">DeepSeek</option>
-            </select>
-            <div id="chat-header-actions">
-              <button class="ghost-btn" onclick="clearChat()"
-                title="Limpar conversa">limpar</button>
-              <button class="ghost-btn" id="agent-collapse"
-                onclick="toggleAgent()" title="Recolher">
-                <span data-icon="panel-right"></span>
-              </button>
-            </div>
-          </header>
-          <div id="chat-feed"></div>
-          <div id="chat-composer">
-            <button id="chat-stop" onclick="stopChat()"
-              style="display:none"><span data-icon="x"></span> Parar</button>
-            <textarea id="chat-input" placeholder="Pergunte qualquer coisa… "
-              rows="1"></textarea>
-            <button id="chat-send" onclick="sendChatMessage()"
-              data-icon="sparkles"></button>
-          </div>
-        </div>
-      </aside>
     </div>
     <!-- /#body-main -->
 
@@ -13380,6 +12883,11 @@ const renderWorkflowList = () => {
     const progress = total ? Math.round((done / total) * 100) : 0;
     const active = currentWorkflowDetail?.workflow.id === workflow.id;
     const tagsHtml = renderWorkflowTags(workflow.tags);
+    const doneElapsed = workflow.status === 'done' && workflow.completedAt
+      ? workflowElapsedMarkup(workflow.createdAt, workflow.completedAt)
+      : (['draft', 'planning', 'running', 'reviewing', 'blocked'].includes(workflow.status)
+          ? workflowElapsedMarkup(workflow.createdAt)
+          : '');
     return \`<button class="wf-list-item\${active ? ' active' : ''}" data-workflow-id="\${workflow.id}">
       <span class="wf-list-title">\${escHtml(workflow.title)}</span>
       <span class="wf-list-objective">\${escHtml(workflow.objective)}</span>
@@ -13389,6 +12897,7 @@ const renderWorkflowList = () => {
         <span>\${escHtml(workflowStatusLabel(workflow.status))}</span>
         <span class="wf-list-progress"><span style="width:\${progress}%"></span></span>
         <span>\${done}/\${total}</span>
+        \${doneElapsed ? \`<span class="wf-list-elapsed">\${doneElapsed}</span>\` : ''}
       </span>
     </button>\`;
   }).join('');
@@ -13456,9 +12965,15 @@ const renderCurrentWorkflow = () => {
   $('wf-active').classList.add('visible');
   $('wf-toolbar-title').textContent = workflow.title;
   const tagsHtml = renderWorkflowTags(workflow.tags);
+  const totalElapsed = workflow.status === 'done' && workflow.completedAt
+    ? \`<span>Levou \${workflowElapsedMarkup(workflow.createdAt, workflow.completedAt)}</span>\`
+    : (['draft', 'planning', 'running', 'reviewing', 'blocked'].includes(workflow.status)
+        ? \`<span>Há \${workflowElapsedMarkup(workflow.createdAt)}</span>\`
+        : '');
   $('wf-toolbar-meta').innerHTML = \`
     <span class="wf-status-dot \${workflow.status}"></span>
     <span>\${escHtml(workflowStatusLabel(workflow.status))}</span>
+    \${totalElapsed}
     <span>\${nodes.length} \${nodes.length === 1 ? 'nó' : 'nós'}</span>
     <span>\${workflow.conflictPolicy === 'block' ? 'conflitos bloqueiam' : 'conflitos avisam'}</span>
     \${tagsHtml ? \`<span class="wf-toolbar-tags">\${tagsHtml}</span>\` : ''}\`;
@@ -13580,6 +13095,29 @@ const renderWorkflowTimeline = () => {
   bindWorkflowNodes();
 };
 
+const workflowNodeElapsed = (node) => {
+  const runs = currentWorkflowDetail?.runs || [];
+  if (node.status === 'done') {
+    const approved = [...runs]
+      .filter((run) => run.nodeId === node.id && run.status === 'approved')
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    if (approved?.startedAt && approved?.returnedAt) {
+      return { from: approved.startedAt, to: approved.returnedAt };
+    }
+    return null;
+  }
+  if (['claimed', 'in_progress', 'waiting_input'].includes(node.status)) {
+    const activeRun = [...runs]
+      .filter((run) =>
+        run.nodeId === node.id &&
+        ['claimed', 'in_progress', 'waiting_input'].includes(run.status)
+      )
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    if (activeRun?.startedAt) return { from: activeRun.startedAt };
+  }
+  return null;
+};
+
 const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => {
   const agent = node.claimedBySessionId
     ? agentById.get(node.claimedBySessionId)
@@ -13592,6 +13130,10 @@ const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => 
   const selected = node.id === selectedWorkflowNodeId;
   const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
   const dependencyText = dependencies.map((item) => item.title).join(', ');
+  const nodeElapsed = workflowNodeElapsed(node);
+  const nodeElapsedHtml = nodeElapsed
+    ? \`<span>\${workflowElapsedMarkup(nodeElapsed.from, nodeElapsed.to)}</span>\`
+    : '';
   return \`<article class="wf-node\${selected ? ' selected' : ''}"
     data-node-id="\${node.id}" data-status="\${node.status}">
     <div class="wf-node-head">
@@ -13610,6 +13152,7 @@ const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => 
     <div class="wf-node-meta">
       <span class="wf-node-kind">\${escHtml(node.kind)}</span>
       <span>\${node.attemptCount}/\${node.maxAttempts} tent.</span>
+      \${nodeElapsedHtml}
       <span>\${dependencies.length} dep.</span>
       <span>libera \${blocking.length}</span>
     </div>
@@ -13724,6 +13267,44 @@ const workflowDate = (value) => {
     hour: '2-digit',
     minute: '2-digit',
   }).replace('.', '');
+};
+
+const formatWorkflowDuration = (ms) => {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  if (totalSeconds < 60) return \`\${totalSeconds}s\`;
+  const minutes = Math.floor(totalSeconds / 60);
+  if (minutes < 60) return \`\${minutes}min\`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    const rem = minutes % 60;
+    return rem ? \`\${hours}h \${rem}min\` : \`\${hours}h\`;
+  }
+  const days = Math.floor(hours / 24);
+  return \`\${days}d \${hours % 24}h\`;
+};
+
+const workflowElapsedMarkup = (from, to) => {
+  if (!from) return '';
+  const start = new Date(from).getTime();
+  if (Number.isNaN(start)) return '';
+  if (to) {
+    const end = new Date(to).getTime();
+    if (Number.isNaN(end)) return '';
+    return \`<span class="wf-elapsed">\${formatWorkflowDuration(end - start)}</span>\`;
+  }
+  return \`<span class="wf-elapsed" data-elapsed-from="\${from}">\${formatWorkflowDuration(Date.now() - start)}</span>\`;
+};
+
+let workflowClockTimer = null;
+const startWorkflowClock = () => {
+  if (workflowClockTimer) return;
+  workflowClockTimer = setInterval(() => {
+    document.querySelectorAll('[data-elapsed-from]').forEach((el) => {
+      el.textContent = formatWorkflowDuration(
+        Math.max(0, Date.now() - new Date(el.dataset.elapsedFrom).getTime()),
+      );
+    });
+  }, 1000);
 };
 
 const workflowRunAgent = (run, agents) =>
@@ -13932,6 +13513,11 @@ const renderWorkflowInspector = () => {
           <span class="wf-inspector-card-label">Tentativas</span>
           <strong>\${node.attemptCount} de \${node.maxAttempts}</strong>
           <span>\${latestRun ? \`Última em \${workflowDate(latestRun.createdAt)}\` : 'Ainda não executado'}</span>
+          \${latestRun?.startedAt
+            ? \`<span>\${latestRun.returnedAt
+                ? \`Levou \${formatWorkflowDuration(new Date(latestRun.returnedAt) - new Date(latestRun.startedAt))}\`
+                : workflowElapsedMarkup(latestRun.startedAt)}</span>\`
+            : ''}
         </div>
       </div>
     </div>
@@ -14033,6 +13619,11 @@ const renderWorkflowInspector = () => {
             <div class="wf-run-summary">\${escHtml(run.output?.summary || 'Sem retorno registrado')}</div>
             <div class="wf-run-meta">
               \${run.output?.outcome ? \`<span class="wf-run-outcome \${run.output.outcome}">\${escHtml(WF_RUN_OUTCOME_LABEL[run.output.outcome] || run.output.outcome)}</span>\` : ''}
+              \${run.startedAt
+                ? \`<span>\${run.returnedAt
+                    ? \`Levou \${formatWorkflowDuration(new Date(run.returnedAt) - new Date(run.startedAt))}\`
+                    : workflowElapsedMarkup(run.startedAt)}</span>\`
+                : ''}
               \${workflowRunAgent(run, currentWorkflowDetail.agents)?.name
                 ? \`<span>\${escHtml(workflowRunAgent(run, currentWorkflowDetail.agents).name)}</span>\`
                 : ''}
@@ -14527,6 +14118,7 @@ const createNodeFromModal = async (event) => {
 
 const ensureWorkflowEvents = () => {
   if (workflowEvents) return;
+  startWorkflowClock();
   workflowEvents = new EventSource('/workflows/events');
   const eventNames = [
     'workflow.created',
@@ -16173,7 +15765,7 @@ const renderPodcastsList = () => {
   if (!items.length) {
     list.innerHTML = allPodcasts.length
       ? \`<div class="pod-empty">Nenhum podcast para este filtro.</div>\`
-      : \`<div class="pod-empty">Nenhum podcast ainda.<br>Peça à IA integrada ou externa para gerar um via <code>POST /podcasts</code>.</div>\`;
+      : \`<div class="pod-empty">Nenhum podcast ainda.<br>Peça à IA externa para gerar um via <code>POST /podcasts</code>.</div>\`;
     return;
   }
 
@@ -16374,8 +15966,7 @@ const connectPodcastEvents = () => {
     item.status = 'generating';
     renderPodcastsList();
     if (currentPodcast?.id === id) {
-      const label = stage === 'script' ? 'escrevendo roteiro…'
-        : stage === 'slides' ? \`compondo slides \${detail || ''}\`
+      const label = stage === 'slides' ? \`compondo slides \${detail || ''}\`
         : stage === 'tts' ? \`sintetizando vozes \${detail || ''}\`
         : stage === 'concat' ? 'montando áudio…' : 'processando…';
       $('pod-meta').innerHTML = \`<span class="pod-status gen">\${ICON('refresh-cw')} \${label}</span>\`;
@@ -16967,540 +16558,6 @@ const copyNetworkIp = () => {
   const ips = networkIps.map((i) => \`\${i.address}\`).join(', ');
   copyToClipboard(ips, 'IP copiado');
 };
-
-</script>
-    <script>
-// ════ AI Chat — provider-agnostic via proxy /ai/chat ════
-// Backend escolhe adapter (ollama | deepseek) e devolve NDJSON normalizado.
-// A chave da DeepSeek nunca chega ao webview.
-
-const DOCMAP_API = 'http://127.0.0.1:3333';
-
-// DELETE bloqueado em http_request — proteção contra ações destrutivas acidentais
-const BLOCKED_METHODS = ['DELETE'];
-
-const TOOLS = [
-  {
-    type: 'function',
-    function: {
-      name: 'http_request',
-      description: 'Faz uma requisição HTTP para a API do docmap. Use para notas, diagramas, skills, macros, podcasts, workflows de agentes (/workflows, /agents, /orchestrator) e canvas realtime.',
-      parameters: {
-        type: 'object',
-        required: ['method', 'path'],
-        properties: {
-          method: { type: 'string', enum: ['GET', 'POST', 'PUT'], description: 'Método HTTP. DELETE não é permitido.' },
-          path:   { type: 'string', description: 'Caminho da API. Ex: /notes, /skills/nome, /workflows, /orchestrator/inbox' },
-          body:   { type: 'object', description: 'Body JSON para POST e PUT (opcional)', properties: {}, additionalProperties: true },
-        },
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'read_file',
-      description: 'Lê o conteúdo bruto de um arquivo no workspace atual.',
-      parameters: {
-        type: 'object',
-        required: ['file'],
-        properties: {
-          file: { type: 'string', description: 'Caminho relativo do arquivo no workspace. Ex: src/main.ts' },
-        },
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'list_files',
-      description: 'Lista todos os arquivos do workspace atual, opcionalmente filtrados por padrão.',
-      parameters: {
-        type: 'object',
-        properties: {
-          pattern: { type: 'string', description: 'Regex opcional para filtrar caminhos. Ex: \\\\.md$, src/.*\\\\.ts' },
-        },
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'search_code',
-      description: 'Busca texto em qualquer arquivo do workspace (não só markdown).',
-      parameters: {
-        type: 'object',
-        required: ['q'],
-        properties: {
-          q:     { type: 'string', description: 'Termo de busca' },
-          glob:  { type: 'string', description: 'Filtro de caminho estilo glob. Ex: src/**/*.ts' },
-          regex: { type: 'boolean', description: 'Se true, trata q como regex' },
-        },
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'git_status',
-      description: 'Retorna git status --porcelain do workspace.',
-      parameters: { type: 'object', properties: {} },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'git_diff',
-      description: 'Retorna git diff do workspace (alterações não commitadas).',
-      parameters: { type: 'object', properties: {} },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'git_log',
-      description: 'Retorna git log --oneline recente.',
-      parameters: {
-        type: 'object',
-        properties: {
-          limit: { type: 'number', description: 'Quantidade de commits (default 20)' },
-        },
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'run_command',
-      description: 'Executa um comando no terminal dentro do workspace. SEMPRE peça aprovação do usuário antes de usar. Use apenas para linters ou comandos de análise (ex: deno lint, eslint).',
-      parameters: {
-        type: 'object',
-        required: ['command'],
-        properties: {
-          command: { type: 'string', description: 'Comando principal. Ex: deno' },
-          args:    { type: 'array', items: { type: 'string' }, description: 'Argumentos. Ex: ["lint", "src/"]' },
-        },
-      },
-    },
-  },
-];
-
-// system prompt normal vem do endpoint /system/skill
-let systemPrompt = null;
-const getSystemPrompt = async () => {
-  if (systemPrompt) return systemPrompt;
-  try {
-    const res = await fetch('/system/skill');
-    systemPrompt = await res.text();
-  } catch {
-    systemPrompt = 'Você é um assistente do docmap. Use as ferramentas disponíveis para interagir com o workspace, notas e diagramas.';
-  }
-  return systemPrompt;
-};
-
-// ── Estado ──
-let chatMessages  = [];
-let chatStreaming = false;
-let chatAbort     = null;
-let chatProvider  = 'ollama';  // default; sobrescrito no boot por /ai/config
-let agentOpen     = false;
-
-const AGENT_OPEN_KEY = 'docmap-agent-open';
-
-// ── Provider config (persiste no KV) ──
-const loadProvider = async () => {
-  try {
-    const res = await fetch('/ai/config');
-    if (!res.ok) return;
-    const cfg = await res.json();
-    chatProvider = cfg.provider ?? 'ollama';
-    const sel = $('chat-provider');
-    if (sel) sel.value = chatProvider;
-    if (cfg.deepseekKey === false) {
-      const opt = sel?.querySelector('option[value="deepseek"]');
-      if (opt) opt.disabled = true;
-    }
-  } catch { /* ignora — fica no default */ }
-};
-
-const changeProvider = async (provider) => {
-  if (provider === chatProvider) return;
-  if (chatStreaming) return;
-  try {
-    const res = await fetch('/ai/config', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider }),
-    });
-    if (!res.ok) {
-      const sel = $('chat-provider');
-      if (sel) sel.value = chatProvider;
-      return;
-    }
-    chatProvider = provider;
-    chatMessages = [];
-    $('chat-feed').innerHTML = '';
-    appendChatBubble('assistant', \`Provider trocado para \${provider}. Histórico limpo. Como posso ajudar?\`);
-  } catch { /* ignora */ }
-};
-
-// ── Executar tool ──
-const executeTool = async (toolCall) => {
-  const args = toolCall.function.arguments;
-  const params = typeof args === 'string' ? JSON.parse(args) : args;
-  const name = toolCall.function.name;
-
-  if (name === 'http_request') {
-    const method = (params.method || 'GET').toUpperCase();
-    const path   = params.path || '/';
-    const body   = params.body;
-
-    if (BLOCKED_METHODS.includes(method)) {
-      return { error: \`Método \${method} bloqueado por segurança.\` };
-    }
-
-    try {
-      const res = await fetch(\`\${DOCMAP_API}\${path}\`, {
-        method,
-        headers: body ? { 'Content-Type': 'application/json' } : {},
-        body: body ? JSON.stringify(body) : undefined,
-      });
-      const text = await res.text();
-      try { return JSON.parse(text); } catch { return { response: text }; }
-    } catch (err) {
-      return { error: err.message };
-    }
-  }
-
-  if (name === 'read_file') {
-    const file = params.file;
-    if (!file) return { error: 'file é obrigatório' };
-    try {
-      const res = await fetch(\`\${DOCMAP_API}/content?file=\${encodeURIComponent(file)}\`);
-      return await res.json();
-    } catch (err) {
-      return { error: err.message };
-    }
-  }
-
-  if (name === 'list_files') {
-    const qs = params.pattern ? \`?pattern=\${encodeURIComponent(params.pattern)}\` : '';
-    try {
-      const res = await fetch(\`\${DOCMAP_API}/workspace/files\${qs}\`);
-      return await res.json();
-    } catch (err) {
-      return { error: err.message };
-    }
-  }
-
-  if (name === 'search_code') {
-    const q = params.q;
-    if (!q) return { error: 'q é obrigatório' };
-    const qp = new URLSearchParams({ q });
-    if (params.glob) qp.set('glob', params.glob);
-    if (params.regex) qp.set('regex', 'true');
-    try {
-      const res = await fetch(\`\${DOCMAP_API}/code/search?\${qp.toString()}\`);
-      return await res.json();
-    } catch (err) {
-      return { error: err.message };
-    }
-  }
-
-  if (name === 'git_status') {
-    try {
-      const res = await fetch(\`\${DOCMAP_API}/git/status\`);
-      return await res.json();
-    } catch (err) {
-      return { error: err.message };
-    }
-  }
-
-  if (name === 'git_diff') {
-    try {
-      const res = await fetch(\`\${DOCMAP_API}/git/diff\`);
-      return await res.json();
-    } catch (err) {
-      return { error: err.message };
-    }
-  }
-
-  if (name === 'git_log') {
-    const limit = params.limit ?? 20;
-    try {
-      const res = await fetch(\`\${DOCMAP_API}/git/log?limit=\${limit}\`);
-      return await res.json();
-    } catch (err) {
-      return { error: err.message };
-    }
-  }
-
-  if (name === 'run_command') {
-    const command = params.command;
-    const args    = params.args || [];
-    if (!command) return { error: 'command é obrigatório' };
-
-    const fullCmd = [command, ...args].join(' ');
-    const ok = await confirmDialog(\`Permitir execução do comando?\\n\\n\${fullCmd}\`, { okLabel: 'Executar' });
-    if (!ok) return { blocked: true, reason: 'Usuário cancelou a execução.' };
-
-    try {
-      const res = await fetch(\`\${DOCMAP_API}/run\`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command, args }),
-      });
-      return await res.json();
-    } catch (err) {
-      return { error: err.message };
-    }
-  }
-
-  return { error: \`Tool desconhecida: \${name}\` };
-};
-
-// ── Chamar o proxy /ai/chat (provider-agnostic, stream NDJSON) ──
-const callProvider = async (messages) => {
-  const controller = new AbortController();
-  chatAbort = controller;
-
-  // timeout de 5 minutos — evita travamento com modelos pesados
-  let timedOut = false;
-  const timeoutId = setTimeout(() => { timedOut = true; controller.abort(); }, 300000);
-
-  const res = await fetch('/ai/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    signal: controller.signal,
-    body: JSON.stringify({
-      messages,
-      tools: TOOLS,
-      provider: chatProvider,
-    }),
-  });
-
-  if (!res.ok) throw new Error(\`proxy /ai/chat \${res.status}: \${await res.text()}\`);
-
-  const reader = res.body.getReader();
-  const dec    = new TextDecoder();
-  let buf = '';
-  let fullContent = '';
-  let toolCalls = [];
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    const lines = buf.split('\\n');
-    buf = lines.pop() ?? '';
-
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      try {
-        const chunk = JSON.parse(line);
-        if (chunk.error) throw new Error(chunk.error);
-        if (chunk.content) {
-          fullContent += chunk.content;
-          streamToChat(chunk.content);
-        }
-        if (chunk.toolCalls?.length) {
-          toolCalls = toolCalls.concat(chunk.toolCalls);
-        }
-      } catch (err) {
-        if (err.message && err.message !== 'Unexpected end of JSON input') throw err;
-      }
-    }
-  }
-
-  clearTimeout(timeoutId);
-  if (timedOut) throw new Error('Timeout: o modelo demorou mais de 5 minutos para responder.');
-  return { content: fullContent, toolCalls };
-};
-
-// ── Enviar mensagem (com tool loop) ──
-const sendChatMessage = async () => {
-  if (chatStreaming) return;
-  const input = $('chat-input');
-  const text  = input.value.trim();
-  if (!text) return;
-
-  input.value = '';
-  input.style.height = '';
-
-  const prompt = await getSystemPrompt();
-  if (!chatMessages.length) {
-    chatMessages.push({ role: 'system', content: prompt });
-  }
-
-  chatMessages.push({ role: 'user', content: text });
-  appendChatBubble('user', text);
-
-  setChatStreaming(true);
-  const assistantEl = appendChatBubble('assistant', '');
-
-  try {
-    let messages = [...chatMessages];
-
-    while (true) {
-      const { content, toolCalls } = await callProvider(messages);
-
-      if (!toolCalls.length) {
-        chatMessages.push({ role: 'assistant', content });
-        break;
-      }
-
-      messages.push({ role: 'assistant', content, tool_calls: toolCalls });
-      chatMessages.push({ role: 'assistant', content, tool_calls: toolCalls });
-
-      for (const tc of toolCalls) {
-        const result = await executeTool(tc);
-        appendToolCall(tc.function.name, tc.function.arguments, result);
-        messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
-        chatMessages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
-      }
-
-      // reseta o stream element para o próximo ciclo criar um novo bubble
-      currentStreamEl = appendChatBubble('assistant', '');
-    }
-  } catch (err) {
-    if (err.name !== 'AbortError') {
-      appendChatBubble('error', \`Erro: \${err.message}\`);
-    }
-  } finally {
-    chatAbort = null;
-    setChatStreaming(false);
-  }
-};
-
-// ── UI helpers ──
-let currentStreamEl = null;
-
-const appendChatBubble = (role, text) => {
-  const feed = $('chat-feed');
-  const div  = document.createElement('div');
-  div.className = \`chat-bubble chat-\${role}\`;
-  if (text) div.textContent = text;
-  feed.appendChild(div);
-  feed.scrollTop = feed.scrollHeight;
-  currentStreamEl = role === 'assistant' ? div : null;
-  return div;
-};
-
-const streamToChat = (chunk) => {
-  if (!currentStreamEl) return;
-  currentStreamEl.textContent += chunk;
-  $('chat-feed').scrollTop = $('chat-feed').scrollHeight;
-};
-
-const appendToolCall = (name, args, result) => {
-  const feed = $('chat-feed');
-  const div = document.createElement('div');
-  div.className = 'chat-tool-call';
-  const argsObj = typeof args === 'string' ? JSON.parse(args) : args;
-  const summary = toolCallSummary(name, argsObj);
-  const resultStr = JSON.stringify(result);
-  const bodyStr = argsObj.body ? JSON.stringify(argsObj.body, null, 2) : null;
-
-  div.innerHTML =
-    \`<div class="tool-summary-row">\` +
-      \`<button class="tool-toggle" title="Ver detalhes">▶</button>\` +
-      \`<span class="tool-name">\${escHtml(name)}</span> \` +
-      \`<span class="tool-summary">\${escHtml(summary)}</span>\` +
-    \`</div>\` +
-    \`<div class="tool-details">\` +
-      (bodyStr ? \`<div class="tool-body">\${escHtml(bodyStr)}</div>\` : '') +
-      \`<div class="tool-result">\${escHtml(resultStr.slice(0, 500))}\${resultStr.length > 500 ? '…' : ''}</div>\` +
-    \`</div>\`;
-
-  div.querySelector('.tool-toggle').addEventListener('click', (e) => {
-    const open = div.querySelector('.tool-details').classList.toggle('open');
-    e.currentTarget.textContent = open ? '▼' : '▶';
-  });
-
-  feed.appendChild(div);
-  feed.scrollTop = feed.scrollHeight;
-};
-
-const toolCallSummary = (name, args) => {
-  if (name === 'http_request') return \`\${args.method || 'GET'} \${args.path || '/'}\`;
-  if (name === 'read_file')    return args.file;
-  if (name === 'list_files')   return args.pattern || 'todos';
-  if (name === 'search_code')  return \`\${args.q}\${args.glob ? \` glob:\${args.glob}\` : ''}\`;
-  if (name === 'git_status')   return 'git status';
-  if (name === 'git_diff')     return 'git diff';
-  if (name === 'git_log')      return \`git log -n\${args.limit || 20}\`;
-  if (name === 'run_command')  return \`\${args.command} \${(args.args || []).join(' ')}\`;
-  return JSON.stringify(args);
-};
-
-const setChatStreaming = (on) => {
-  chatStreaming = on;
-  const btn  = $('chat-send');
-  const stop = $('chat-stop');
-  btn.disabled    = on;
-  stop.style.display = on ? 'flex' : 'none';
-};
-
-// ── Sidebar: abrir / recolher (persiste no localStorage) ──
-const setAgentOpen = (open, persist = true) => {
-  agentOpen = open;
-  const panel = $('agent-panel');
-  if (!panel) return;
-  panel.classList.toggle('open', open);
-  if (persist) saveAgentState();
-  if (open) {
-    if (!chatMessages.length) {
-      appendChatBubble('assistant', 'Olá! Posso acessar suas notas, diagramas, skills e macros. Como posso ajudar?');
-    }
-    setTimeout(() => $('chat-input')?.focus(), 180);
-  }
-};
-
-const toggleAgent = () => setAgentOpen(!agentOpen);
-
-const loadAgentState = () => {
-  let open = false;
-  try { open = localStorage.getItem(AGENT_OPEN_KEY) === '1'; } catch { /* ignora */ }
-  setAgentOpen(open, false);
-};
-
-const saveAgentState = () => {
-  try { localStorage.setItem(AGENT_OPEN_KEY, agentOpen ? '1' : '0'); } catch { /* ignora quota */ }
-};
-
-const stopChat = () => {
-  chatAbort?.abort();
-  chatAbort = null;
-  setChatStreaming(false);
-};
-
-const clearChat = async () => {
-  const ok = await confirmDialog('Limpar o histórico da conversa?', { okLabel: 'Limpar' });
-  if (!ok) return;
-  chatMessages = [];
-  $('chat-feed').innerHTML = '';
-  appendChatBubble('assistant', 'Histórico limpo. Como posso ajudar?');
-};
-
-// ── Event listeners ──
-document.addEventListener('DOMContentLoaded', () => {
-  loadProvider();
-  loadAgentState();
-
-  const sel = $('chat-provider');
-  if (sel) sel.addEventListener('change', (e) => changeProvider(e.target.value));
-
-  $('chat-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
-  });
-  $('chat-input').addEventListener('input', function() {
-    this.style.height = '';
-    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && agentOpen) toggleAgent();
-  });
-});
 
 </script>
     <script>

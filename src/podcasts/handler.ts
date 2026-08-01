@@ -30,7 +30,6 @@ import {
 } from './types.ts';
 import { normalizeTags } from '../tags/normalize.ts';
 
-const MAX_CONTENT = 20000;
 const MAX_TITLE = 120;
 
 const withLink = (p: Record<string, unknown>) => ({
@@ -173,14 +172,13 @@ export const podcastsHandler =
 
       const hasContent = input.content != null && input.content.trim().length > 0;
       const hasScript = input.script != null && input.script.trim().length > 0;
-      if (hasContent && hasScript) {
-        return badRequest('envie content OU script, não ambos');
+      if (hasContent) {
+        return badRequest(
+          'geração automática de roteiro via LLM foi removida; envie o roteiro pronto no campo script com tags <Person1>…</Person1>',
+        );
       }
-      if (!hasContent && !hasScript) {
-        return badRequest('content ou script é obrigatório');
-      }
-      if (hasContent && input.content!.length > MAX_CONTENT) {
-        return badRequest(`content: máx ${MAX_CONTENT} chars`);
+      if (!hasScript) {
+        return badRequest('script é obrigatório');
       }
 
       // Vozes — enviadas ou sorteadas (sempre 2+).
@@ -235,7 +233,6 @@ export const podcastsHandler =
         folder,
         tags: normalizeTags(input.tags),
         script,
-        ...(hasContent ? { sourceContent: input.content!.trim() } : {}),
         voices,
         status: 'generating',
         ...(wantSlides ? { withSlides: true } : {}),
@@ -243,8 +240,7 @@ export const podcastsHandler =
       });
 
       // Slides prontos ou manifesto no próprio script: escreve no FS agora.
-      // O pipeline (branch sourceContent) faz isso sozinho quando gera.
-      if (wantSlides && !hasContent) {
+      if (wantSlides) {
         const manifest = input.slides && input.slides.length > 0
           ? input.slides
           : extractSlidesManifest(scriptWithManifest ?? script);

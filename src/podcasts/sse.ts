@@ -11,7 +11,7 @@ export type PodcastEvent =
   | {
     type: 'progress';
     id: string;
-    stage: 'script' | 'slides' | 'tts' | 'concat';
+    stage: 'slides' | 'tts' | 'concat';
     detail?: string;
   }
   | { type: 'ready'; podcast: PodcastPreview }
