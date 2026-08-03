@@ -54,7 +54,7 @@ Fonte da verdade: a API local ${API}. Não dependa da memória da conversa para
 retomar trabalho. Não invente IDs nem pule estados. Consultar a inbox renova sua
 presença; durante operações longas, envie heartbeat. Busque payloads compactos
 primeiro; use views completas somente quando faltar evidência. Para esperar
-trabalho, prefira a inbox bloqueante com wait=55: ela retorna imediatamente
+trabalho, prefira a inbox bloqueante com wait=180: ela retorna imediatamente
 quando há ação e, caso contrário, aguarda um evento sem consumir tokens do
 modelo. Em timeout, repita a chamada imediatamente, sem sleep. Use
 pollAfterSeconds somente como fallback se sua ferramenta não suportar uma
@@ -65,7 +65,7 @@ requisição HTTP bloqueante.`;
 
 ## Loop obrigatório
 
-1. consultar /orchestrator/inbox?compact=true&wait=55;
+1. consultar /orchestrator/inbox?compact=true&wait=180;
 2. processar nextActions em ordem de priority, sem pular review_return;
 3. revisar cada critério como pass|fail|insufficient e registrar evidência;
 4. usar o decisionRequest do pacote de revisão, preenchendo seus campos;
@@ -105,7 +105,7 @@ primeiro /workflows/nodes/{id}?view=review e abra o detalhe completo sob demanda
 
 ## Loop obrigatório do worker
 
-1. consultar /agents/{agentSessionId}/inbox?wait=55;
+1. consultar /agents/{agentSessionId}/inbox?wait=180;
 2. seguir nextAction;
 3. claim -> start -> executar -> validar -> return;
 4. em await_review, manter a inbox bloqueante até chegar a decisão;
@@ -144,11 +144,11 @@ Guarde o \`agentSessionId\` retornado.
 ${
     role === 'orchestrator'
       ? `Consulte:
-GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}&compact=true&wait=55`
+GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}&compact=true&wait=180`
       : `Consulte:
 GET ${API}/agents/{agentSessionId}/inbox?${
         workflowId ? `workflowId=${workflowId}&` : ''
-      }wait=55`
+      }wait=180`
   }`;
 
 export const buildWorkflowPrompt = (
@@ -185,7 +185,7 @@ pois a API usa correspondência estrita para distribuir trabalho.
 
 Trabalhe somente neste workflow. Consulte a inbox e filtre trabalho por:
 
-GET ${API}/agents/{agentSessionId}/inbox?workflowId=${workflow.id}&wait=55
+GET ${API}/agents/{agentSessionId}/inbox?workflowId=${workflow.id}&wait=180
 
 Para inspeção sem espera:
 GET ${API}/workflows/available?workflowId=${workflow.id}&agentSessionId={agentSessionId}
@@ -260,7 +260,7 @@ O servidor arquiva o script/hash e remove a macro ao concluir.
 
 ## Loop de decisão
 
-1. GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}&compact=true&wait=55
+1. GET ${API}/orchestrator/inbox?agentSessionId={agentSessionId}&compact=true&wait=180
 2. Execute nextActions em ordem de priority. Drene review_return antes de criar
    ou expandir qualquer nó.
 3. Para cada review_return, abra:
@@ -391,7 +391,7 @@ Tentativas: ${pkg.node.attemptCount}/${pkg.node.maxAttempts}
 
 Não encerre e não marque done. Consulte:
 
-GET ${API}/agents/{agentSessionId}/inbox?wait=55
+GET ${API}/agents/{agentSessionId}/inbox?wait=180
 
 - await_review: repita a inbox bloqueante até chegar a decisão;
 - rework: leia feedback, faça claim do mesmo nó e execute nova tentativa;

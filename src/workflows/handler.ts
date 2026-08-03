@@ -407,11 +407,11 @@ const handleAgents = async (
       agentSessionId: agent.id,
       heartbeatUrl: `/agents/${agent.id}/heartbeat`,
       inboxUrl: `/agents/${agent.id}/inbox`,
-      blockingInboxUrl: `/agents/${agent.id}/inbox?wait=55`,
+      blockingInboxUrl: `/agents/${agent.id}/inbox?wait=180`,
       availableWorkUrl: `/workflows/available?agentSessionId=${agent.id}`,
       orchestratorInboxUrl: `/orchestrator/inbox?agentSessionId=${agent.id}`,
       orchestratorBlockingInboxUrl:
-        `/orchestrator/inbox?agentSessionId=${agent.id}&compact=true&wait=55`,
+        `/orchestrator/inbox?agentSessionId=${agent.id}&compact=true&wait=180`,
       protocolVersion: WORKFLOW_PROTOCOL_VERSION,
       protocolUrl: `/workflows/protocol?role=${agent.role}`,
     }, 201);

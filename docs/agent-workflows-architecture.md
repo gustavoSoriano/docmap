@@ -89,11 +89,11 @@ stateDiagram-v2
 
 O executor nunca marca o nó como concluído. `POST .../return` produz o estado
 `returned` e o evento persistido `node.returned`. O orquestrador consulta
-`GET /orchestrator/inbox?agentSessionId=...&wait=55` ou recebe o evento por SSE
+`GET /orchestrator/inbox?agentSessionId=...&wait=180` ou recebe o evento por SSE
 e registra a decisão.
 
 Depois do retorno, o executor continua conectado pela inbox bloqueante
-`GET /agents/:id/inbox?workflowId=...&wait=55`. O campo `nextAction` direciona
+`GET /agents/:id/inbox?workflowId=...&wait=180`. O campo `nextAction` direciona
 `await_review`, `rework`, `claim_next`, `capability_mismatch`, `wait` ou `stop`.
 Retrabalho fica reservado ao executor original enquanto sua sessão estiver
 ativa; após desconexão ou staleness volta ao pool compatível.
@@ -189,10 +189,10 @@ ferramenta realmente possui.
 ### Espera dirigida por eventos
 
 As duas inboxes aceitam `wait=<segundos>`, limitado pelo servidor a 120
-segundos. O padrão recomendado para agentes é 55 segundos:
+segundos. O padrão recomendado para agentes é 180 segundos:
 
-- `GET /agents/:id/inbox?workflowId=...&wait=55`;
-- `GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=55`.
+- `GET /agents/:id/inbox?workflowId=...&wait=180`;
+- `GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=180`.
 
 Se já houver uma ação, a resposta é imediata. Caso contrário, o servidor mantém
 a requisição aberta e desperta quando um evento pode alterar a inbox. Após
@@ -248,7 +248,7 @@ arquivos e não registra retorno de execução. Quando precisar de validação
 prática, ele cria uma nova subdemanda de revisão ou pede retrabalho.
 
 A forma determinística de saber que algo terminou é consultar
-`GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=55`. A própria
+`GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=180`. A própria
 consulta renova a presença e espera no servidor quando não há ação. O
 orquestrador deve processar `nextActions` por prioridade, drenando revisões
 antes de expandir o plano, e manter o ciclo
