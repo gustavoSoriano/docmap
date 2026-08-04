@@ -234,11 +234,14 @@ const renderCurrentWorkflow = () => {
     ${tagsHtml ? `<span class="wf-toolbar-tags">${tagsHtml}</span>` : ''}`;
   $('wf-start-btn').disabled =
     workflow.status === 'running' || workflow.status === 'reviewing' ||
-    workflow.status === 'done';
-  $('wf-complete-btn').disabled = !canComplete || workflow.status === 'done';
+    workflow.status === 'done' || workflow.status === 'cancelled';
+  $('wf-complete-btn').disabled =
+    !canComplete || workflow.status === 'done' || workflow.status === 'cancelled';
   $('wf-complete-btn').title = canComplete
     ? 'Concluir workflow'
     : `Aguardando: ${(currentWorkflowDetail.completionReadiness?.missing || []).join(', ')}`;
+  $('wf-cancel-btn').disabled =
+    workflow.status === 'done' || workflow.status === 'cancelled';
   const hasOrchestrator = Boolean(workflow.orchestrationSessionId);
   $('wf-copy-orchestrator-btn').hidden = hasOrchestrator;
   const orchestrator = currentWorkflowDetail.agents.find(
@@ -382,6 +385,9 @@ const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => 
   const agentModel = agent
     ? `${agent.provider} · ${agent.model}`
     : [recommended.provider, recommended.model].filter(Boolean).join(' · ');
+  const agentInactive = agent &&
+    ['claimed', 'in_progress', 'waiting_input'].includes(node.status) &&
+    ['stale', 'offline'].includes(agent.presence);
   const selected = node.id === selectedWorkflowNodeId;
   const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
   const dependencyText = dependencies.map((item) => item.title).join(', ');
@@ -389,7 +395,7 @@ const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => 
   const nodeElapsedHtml = nodeElapsed
     ? `<span>${workflowElapsedMarkup(nodeElapsed.from, nodeElapsed.to)}</span>`
     : '';
-  return `<article class="wf-node${selected ? ' selected' : ''}"
+  return `<article class="wf-node${selected ? ' selected' : ''}${agentInactive ? ' inactive-agent' : ''}"
     data-node-id="${node.id}" data-status="${node.status}">
     <div class="wf-node-head">
       <span class="wf-node-state">
@@ -421,7 +427,7 @@ const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => 
         ? `<span class="wf-node-agent-avatar">${ICON(agent ? 'bot' : 'sparkles')}</span>
            <span class="wf-node-agent-text">
              <div class="wf-node-agent-name">${escHtml(agentName)}</div>
-             <div class="wf-node-agent-model">${escHtml(agentModel || 'modelo não definido')}</div>
+             <div class="wf-node-agent-model">${escHtml(agentInactive ? 'executor inativo' : agentModel || 'modelo não definido')}</div>
            </span>`
         : '<span class="wf-node-unassigned">Sem agente recomendado ou conectado</span>'}
     </div>
@@ -616,6 +622,10 @@ const renderWorkflowInspector = () => {
   const isActive = ['claimed', 'in_progress', 'waiting_input'].includes(node.status);
   const isReturned = node.status === 'returned';
   const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
+  const canEdit = ['pending', 'ready', 'needs_rework', 'human_intervention'].includes(node.status);
+  const canCancel = !['done', 'cancelled'].includes(node.status);
+  const agentInactive = isActive && agent &&
+    ['stale', 'offline'].includes(agent.presence);
   const [statusTitle, statusDescription] = WF_NODE_STATUS_CONTEXT[node.status] || [
     workflowNodeStatusLabel(node.status),
     'Consulte os detalhes desta etapa para decidir a próxima ação.',
@@ -658,12 +668,17 @@ const renderWorkflowInspector = () => {
       <button class="wf-action-btn" onclick="copyWorkflowNodePrompt('${node.id}')">
         ${ICON('copy')} Prompt
       </button>
+      ${canEdit
+        ? `<button class="wf-action-btn" onclick="openEditNodeModal()">
+             ${ICON('pencil')} Editar
+           </button>`
+        : ''}
       ${canHumanReturn
         ? `<button class="wf-action-btn approve" onclick="focusWorkflowHumanReturn()">
              ${ICON('check')} Fiz, revisar
            </button>`
         : ''}
-      ${isActive
+      ${isActive && !agentInactive
         ? `<button class="wf-action-btn rework" onclick="releaseSelectedWorkflowNode()">
              ${ICON('rotate-ccw')} Liberar
            </button>`
@@ -677,6 +692,14 @@ const renderWorkflowInspector = () => {
            </button>
            <button class="wf-action-btn danger" onclick="reviewSelectedWorkflowNode('human_intervention')">
              ${ICON('alert-triangle')} Humano
+           </button>
+           <button class="wf-action-btn danger" onclick="cancelSelectedWorkflowNode()">
+             ${ICON('x')} Cancelar
+           </button>`
+        : ''}
+      ${canCancel && !isReturned && !agentInactive
+        ? `<button class="wf-action-btn danger" onclick="cancelSelectedWorkflowNode()">
+             ${ICON('x')} Cancelar
            </button>`
         : ''}
       ${!isActive
@@ -685,6 +708,26 @@ const renderWorkflowInspector = () => {
            </button>`
         : ''}
     </div>
+    ${agentInactive
+      ? `<div class="wf-inspector-section wf-inspector-section-danger">
+           <div class="wf-inspector-section-heading">
+             <div>
+               <div class="wf-inspector-label">Executor inativo</div>
+               <div class="wf-inspector-heading">Decida como continuar este nó</div>
+             </div>
+             <span class="wf-inspector-badge danger">${escHtml(agent.presence)}</span>
+           </div>
+           <p class="wf-inspector-help">O agente não envia heartbeat desde ${escHtml(workflowDate(agent.lastHeartbeatAt))}. Libere para retrabalho ou cancele o nó.</p>
+           <div class="wf-inline-actions">
+             <button class="wf-action-btn rework" onclick="releaseSelectedWorkflowNode()">
+               ${ICON('rotate-ccw')} Liberar tentativa
+             </button>
+             <button class="wf-action-btn danger" onclick="cancelSelectedWorkflowNode()">
+               ${ICON('x')} Cancelar nó
+             </button>
+           </div>
+         </div>`
+      : ''}
     ${isReturned
       ? `<div class="wf-inspector-section wf-inspector-section-attention">
            <div class="wf-inspector-section-heading">
@@ -1098,6 +1141,32 @@ const completeCurrentWorkflow = async () => {
   }
 };
 
+const cancelCurrentWorkflow = async () => {
+  if (!currentWorkflowDetail) return;
+  const workflow = currentWorkflowDetail.workflow;
+  if (['done', 'cancelled'].includes(workflow.status)) return;
+  const ok = await confirmDialog(
+    `Cancelar o workflow "${workflow.title}"? O histórico será preservado e nós pendentes/ativos serão marcados como cancelados.`,
+    { danger: true, okLabel: 'Cancelar workflow' },
+  );
+  if (!ok) return;
+  try {
+    const res = await fetch(`/workflows/${workflow.id}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reason: 'Cancelado manualmente pela UI do Docmap',
+      }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    toast('Workflow cancelado');
+    await refreshCurrentWorkflow();
+    await loadWorkflows();
+  } catch (err) {
+    toast(err.message || 'Falha ao cancelar workflow');
+  }
+};
+
 const deleteCurrentWorkflow = async () => {
   if (!currentWorkflowDetail) return;
   const workflow = currentWorkflowDetail.workflow;
@@ -1114,6 +1183,34 @@ const deleteCurrentWorkflow = async () => {
   clearCurrentWorkflow();
   await loadWorkflows();
   toast('Workflow excluído');
+};
+
+const cancelSelectedWorkflowNode = async () => {
+  if (!selectedWorkflowNodeId) return;
+  const node = currentWorkflowDetail.nodes.find(
+    (item) => item.id === selectedWorkflowNodeId,
+  );
+  if (!node || ['done', 'cancelled'].includes(node.status)) return;
+  const ok = await confirmDialog(
+    `Cancelar o nó "${node.title}"? O histórico será preservado e este nó deixará de ser exigido para concluir o workflow.`,
+    { danger: true, okLabel: 'Cancelar nó' },
+  );
+  if (!ok) return;
+  try {
+    const res = await fetch(`/workflows/nodes/${selectedWorkflowNodeId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reason: 'Cancelado manualmente pela UI do Docmap',
+      }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    toast('Nó cancelado');
+    await refreshCurrentWorkflow();
+    await loadWorkflows();
+  } catch (err) {
+    toast(err.message || 'Falha ao cancelar nó');
+  }
 };
 
 const reviewSelectedWorkflowNode = async (decision) => {
@@ -1304,16 +1401,60 @@ const createWorkflowFromModal = async (event) => {
   }
 };
 
+const workflowNodeDependencyIds = (nodeId) =>
+  (currentWorkflowDetail?.edges || [])
+    .filter((edge) => edge.kind === 'blocks' && edge.toNodeId === nodeId)
+    .map((edge) => edge.fromNodeId);
+
+const fillWorkflowNodeDependencyOptions = (editingNodeId = '', selectedIds = []) => {
+  const selected = new Set(selectedIds);
+  $('wf-node-dependencies').innerHTML =
+    currentWorkflowDetail.nodes
+      .filter((node) => node.id !== editingNodeId)
+      .map((node) =>
+        `<option value="${node.id}"${selected.has(node.id) ? ' selected' : ''}>${escHtml(node.title)} · ${escHtml(workflowNodeStatusLabel(node.status))}</option>`
+      ).join('');
+};
+
 const openNodeModal = () => {
   if (!currentWorkflowDetail) return;
   $('wf-node-modal-form').reset();
+  $('wf-node-edit-id').value = '';
   $('wf-node-kind').value = 'code';
   $('wf-node-complexity').value = 'm';
   $('wf-node-isolation').value = 'shared';
-  $('wf-node-dependencies').innerHTML =
-    currentWorkflowDetail.nodes.map((node) =>
-      `<option value="${node.id}">${escHtml(node.title)} · ${escHtml(workflowNodeStatusLabel(node.status))}</option>`
-    ).join('');
+  fillWorkflowNodeDependencyOptions();
+  $('wf-node-modal-title-label').textContent = 'Novo nó';
+  $('wf-node-modal-submit-label').textContent = 'Criar nó';
+  $('wf-node-modal-submit-icon').innerHTML = ICON('plus');
+  $('wf-node-modal-overlay').classList.add('visible');
+  $('wf-node-title').focus();
+};
+
+const openEditNodeModal = () => {
+  if (!currentWorkflowDetail || !selectedWorkflowNodeId) return;
+  const node = currentWorkflowDetail.nodes.find(
+    (item) => item.id === selectedWorkflowNodeId,
+  );
+  if (!node) return;
+  $('wf-node-modal-form').reset();
+  $('wf-node-edit-id').value = node.id;
+  $('wf-node-title').value = node.title;
+  $('wf-node-description').value = node.description || '';
+  $('wf-node-criteria').value = (node.acceptanceCriteria || []).join('\n');
+  $('wf-node-complexity').value = node.complexity;
+  $('wf-node-kind').value = node.kind;
+  $('wf-node-isolation').value = node.isolation;
+  $('wf-node-tool').value = node.recommendedAgent?.tool || '';
+  $('wf-node-provider').value = node.recommendedAgent?.provider || '';
+  $('wf-node-model').value = node.recommendedAgent?.model || '';
+  $('wf-node-capabilities').value = (node.requiredCapabilities || []).join(', ');
+  $('wf-node-read-scopes').value = (node.readScopes || []).join(', ');
+  $('wf-node-write-scopes').value = (node.writeScopes || []).join(', ');
+  fillWorkflowNodeDependencyOptions(node.id, workflowNodeDependencyIds(node.id));
+  $('wf-node-modal-title-label').textContent = 'Editar nó';
+  $('wf-node-modal-submit-label').textContent = 'Salvar nó';
+  $('wf-node-modal-submit-icon').innerHTML = ICON('save');
   $('wf-node-modal-overlay').classList.add('visible');
   $('wf-node-title').focus();
 };
@@ -1326,6 +1467,7 @@ const closeNodeModal = (event) => {
 const createNodeFromModal = async (event) => {
   event.preventDefault();
   if (!currentWorkflowDetail) return;
+  const editId = $('wf-node-edit-id').value.trim();
   const dependencySelect = $('wf-node-dependencies');
   const dependsOn = [...dependencySelect.selectedOptions].map((option) => option.value);
   const recommendation = {
@@ -1353,9 +1495,11 @@ const createNodeFromModal = async (event) => {
   };
   try {
     const res = await fetch(
-      `/workflows/${currentWorkflowDetail.workflow.id}/nodes`,
+      editId
+        ? `/workflows/nodes/${editId}`
+        : `/workflows/${currentWorkflowDetail.workflow.id}/nodes`,
       {
-        method: 'POST',
+        method: editId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       },
@@ -1365,9 +1509,9 @@ const createNodeFromModal = async (event) => {
     closeNodeModal();
     await refreshCurrentWorkflow();
     await selectWorkflowNode(node.id);
-    toast('Nó criado');
+    toast(editId ? 'Nó atualizado' : 'Nó criado');
   } catch (err) {
-    toast(err.message || 'Falha ao criar nó');
+    toast(err.message || 'Falha ao salvar nó');
   }
 };
 
@@ -1380,6 +1524,7 @@ const ensureWorkflowEvents = () => {
     'workflow.updated',
     'workflow.started',
     'workflow.completed',
+    'workflow.cancelled',
     'workflow.deleted',
     'workflow.orchestrator_claimed',
     'workflow.orchestrator_released',

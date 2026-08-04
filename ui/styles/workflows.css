@@ -749,6 +749,11 @@
   opacity: .7;
 }
 
+.wf-node.inactive-agent {
+  border-left-color: var(--wf-blocked);
+  background: color-mix(in srgb, var(--wf-blocked) 6%, var(--surface));
+}
+
 .wf-node-head {
   min-height: 40px;
   padding: 8px 10px 5px 12px;
@@ -1207,6 +1212,16 @@
 
 .wf-inspector-section-attention {
   background: color-mix(in srgb, var(--wf-review) 5%, transparent);
+}
+
+.wf-inspector-section-danger {
+  background: color-mix(in srgb, var(--wf-blocked) 7%, transparent);
+}
+
+.wf-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
 }
 
 .wf-inspector-section-muted {

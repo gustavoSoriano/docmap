@@ -10,6 +10,8 @@ import {
 import {
   answerWorkflowQuestion,
   askWorkflowQuestion,
+  cancelWorkflow,
+  cancelWorkflowNode,
   claimNode,
   claimOrchestration,
   completeWorkflow,
@@ -124,6 +126,12 @@ const stringArray = (
     return item.trim();
   });
 };
+
+const optionalStringArray = (
+  body: Record<string, unknown>,
+  field: string,
+): string[] | undefined =>
+  body[field] === undefined ? undefined : stringArray(body, field);
 
 const parseCompletionPolicy = (
   value: unknown,
@@ -498,6 +506,8 @@ const handleOrchestrator = async (
     counts: {
       planning: (inbox.planning as unknown[] | undefined)?.length ?? 0,
       returned: (inbox.returned as unknown[] | undefined)?.length ?? 0,
+      inactiveExecutions:
+        (inbox.inactiveExecutions as unknown[] | undefined)?.length ?? 0,
       questions: (inbox.questions as unknown[] | undefined)?.length ?? 0,
       completable: (inbox.completable as unknown[] | undefined)?.length ?? 0,
     },
@@ -555,7 +565,7 @@ const handleNodeRoute = async (
     const updated = await updateWorkflowNode(
       kv,
       nodeId,
-      body as UpdateWorkflowNodeInput,
+      validateUpdateNode(body),
     );
     return updated ? json(updated) : notFound();
   }
@@ -676,6 +686,18 @@ const handleNodeRoute = async (
       await releaseNode(
         kv,
         nodeId,
+        optionalString(body, 'agentSessionId'),
+      ),
+    );
+  }
+
+  if (req.method === 'POST' && action === 'cancel') {
+    const body = await readJson(req);
+    return json(
+      await cancelWorkflowNode(
+        kv,
+        nodeId,
+        optionalString(body, 'reason') ?? '',
         optionalString(body, 'agentSessionId'),
       ),
     );
@@ -805,14 +827,145 @@ const validateCreateNode = (
       ? { maxAttempts: body.maxAttempts }
       : {}),
     dependsOn: stringArray(body, 'dependsOn'),
-    ...(body.position && typeof body.position === 'object' &&
-        !Array.isArray(body.position)
+    ...(body.position !== undefined
+      ? { position: parseNodePosition(body.position) }
+      : {}),
+  };
+};
+
+const parseNodeRecommendation = (
+  value: unknown,
+): CreateWorkflowNodeInput['recommendedAgent'] | undefined => {
+  if (value === undefined) return undefined;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new WorkflowValidationError('recommendedAgent deve ser um objeto');
+  }
+  const recommendation = value as Record<string, unknown>;
+  return {
+    ...(typeof recommendation.tool === 'string'
+      ? { tool: recommendation.tool }
+      : {}),
+    ...(typeof recommendation.provider === 'string'
+      ? { provider: recommendation.provider }
+      : {}),
+    ...(typeof recommendation.model === 'string'
+      ? { model: recommendation.model }
+      : {}),
+  };
+};
+
+const parseContextRefs = (value: unknown): ContextRef[] | undefined => {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) {
+    throw new WorkflowValidationError('contextRefs deve ser um array');
+  }
+  return value.map((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      throw new WorkflowValidationError('contextRefs contém item inválido');
+    }
+    const ref = item as Record<string, unknown>;
+    const validKinds = ['note', 'file', 'skill', 'url', 'text', 'other'];
+    if (!validKinds.includes(String(ref.kind))) {
+      throw new WorkflowValidationError('contextRefs.kind inválido');
+    }
+    return {
+      kind: ref.kind as ContextRef['kind'],
+      ref: requiredString(ref, 'ref'),
+      ...(typeof ref.label === 'string' ? { label: ref.label } : {}),
+      ...(typeof ref.excerpt === 'string' ? { excerpt: ref.excerpt } : {}),
+    };
+  });
+};
+
+const parseNodePosition = (
+  value: unknown,
+): { readonly x: number; readonly y: number } | undefined => {
+  if (value === undefined) return undefined;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new WorkflowValidationError('position deve ser um objeto');
+  }
+  const position = value as Record<string, unknown>;
+  const x = Number(position.x);
+  const y = Number(position.y);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    throw new WorkflowValidationError(
+      'position.x e position.y devem ser números',
+    );
+  }
+  return { x, y };
+};
+
+const validateUpdateNode = (
+  body: Record<string, unknown>,
+): UpdateWorkflowNodeInput => {
+  const validComplexities = ['xs', 's', 'm', 'l', 'xl'];
+  if (
+    body.complexity !== undefined &&
+    !validComplexities.includes(String(body.complexity))
+  ) {
+    throw new WorkflowValidationError('complexity inválida');
+  }
+  const validIsolation = ['shared', 'branch', 'worktree'];
+  if (
+    body.isolation !== undefined &&
+    !validIsolation.includes(String(body.isolation))
+  ) {
+    throw new WorkflowValidationError('isolation inválido');
+  }
+  if (
+    body.acceptanceCriteria !== undefined &&
+    (!Array.isArray(body.acceptanceCriteria) ||
+      body.acceptanceCriteria.length === 0)
+  ) {
+    throw new WorkflowValidationError(
+      'acceptanceCriteria deve ter ao menos um item',
+    );
+  }
+  return {
+    ...(body.title !== undefined
+      ? { title: requiredString(body, 'title') }
+      : {}),
+    ...(body.description !== undefined
+      ? { description: requiredString(body, 'description') }
+      : {}),
+    ...(body.acceptanceCriteria !== undefined
+      ? { acceptanceCriteria: stringArray(body, 'acceptanceCriteria') }
+      : {}),
+    ...(body.contextRefs !== undefined
+      ? { contextRefs: parseContextRefs(body.contextRefs) }
+      : {}),
+    ...(body.complexity !== undefined
+      ? { complexity: body.complexity as UpdateWorkflowNodeInput['complexity'] }
+      : {}),
+    ...(typeof body.kind === 'string' ? { kind: body.kind } : {}),
+    ...(optionalStringArray(body, 'requiredCapabilities') !== undefined
       ? {
-        position: {
-          x: Number((body.position as Record<string, unknown>).x),
-          y: Number((body.position as Record<string, unknown>).y),
-        },
+        requiredCapabilities: optionalStringArray(
+          body,
+          'requiredCapabilities',
+        ),
       }
+      : {}),
+    ...(body.recommendedAgent !== undefined
+      ? { recommendedAgent: parseNodeRecommendation(body.recommendedAgent) }
+      : {}),
+    ...(optionalStringArray(body, 'readScopes') !== undefined
+      ? { readScopes: optionalStringArray(body, 'readScopes') }
+      : {}),
+    ...(optionalStringArray(body, 'writeScopes') !== undefined
+      ? { writeScopes: optionalStringArray(body, 'writeScopes') }
+      : {}),
+    ...(body.isolation !== undefined
+      ? { isolation: body.isolation as UpdateWorkflowNodeInput['isolation'] }
+      : {}),
+    ...(typeof body.maxAttempts === 'number'
+      ? { maxAttempts: body.maxAttempts }
+      : {}),
+    ...(body.dependsOn !== undefined
+      ? { dependsOn: stringArray(body, 'dependsOn') }
+      : {}),
+    ...(body.position !== undefined
+      ? { position: parseNodePosition(body.position) }
       : {}),
   };
 };
@@ -943,6 +1096,18 @@ const handleWorkflowById = async (
         kv,
         workflowId,
         requiredString(body, 'summary'),
+        optionalString(body, 'agentSessionId'),
+      ),
+    );
+  }
+
+  if (req.method === 'POST' && action === 'cancel') {
+    const body = await readJson(req);
+    return json(
+      await cancelWorkflow(
+        kv,
+        workflowId,
+        optionalString(body, 'reason') ?? '',
         optionalString(body, 'agentSessionId'),
       ),
     );

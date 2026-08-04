@@ -163,6 +163,20 @@ const withComputedPresence = (agent: AgentSession): AgentSession => ({
   presence: computedPresence(agent),
 });
 
+const releasedAgentPresence = (
+  agent: AgentSession,
+  timestamp: string,
+): Pick<AgentSession, 'presence' | 'lastHeartbeatAt'> => {
+  const presence = computedPresence(agent);
+  if (presence === 'offline') {
+    return { presence: 'offline', lastHeartbeatAt: agent.lastHeartbeatAt };
+  }
+  if (presence === 'stale') {
+    return { presence: 'stale', lastHeartbeatAt: agent.lastHeartbeatAt };
+  }
+  return { presence: 'idle', lastHeartbeatAt: timestamp };
+};
+
 const normalizeWorkflow = (workflow: Workflow): Workflow => ({
   ...workflow,
   completionPolicy: {
@@ -292,7 +306,8 @@ export const getWorkflowCompletionReadiness = async (
   ]);
   const missing: string[] = [];
   const workNodes = nodes.filter((node) =>
-    node.kind !== 'quality_gate' && node.kind !== 'final_audit'
+    node.kind !== 'quality_gate' && node.kind !== 'final_audit' &&
+    node.status !== 'cancelled'
   );
   const unstarted = workflow.status === 'draft' ||
     workflow.status === 'planning';
@@ -310,10 +325,9 @@ export const getWorkflowCompletionReadiness = async (
     return { canComplete: missing.length === 0, missing };
   }
 
-  if (nodes.some((node) => node.status === 'cancelled')) {
-    missing.push('cancelled_nodes');
-  }
-  if (nodes.some((node) => node.status !== 'done')) {
+  if (
+    nodes.some((node) => node.status !== 'done' && node.status !== 'cancelled')
+  ) {
     missing.push('unfinished_nodes');
   }
   if (questions.some((question) => question.status === 'open')) {
@@ -837,6 +851,40 @@ export const updateWorkflowNode = async (
 ): Promise<WorkflowNode | null> => {
   const existing = await getWorkflowNode(kv, id);
   if (!existing) return null;
+  if (input.dependsOn !== undefined) {
+    const dependencyIds = uniqueStrings(input.dependsOn);
+    for (const dependencyId of dependencyIds) {
+      if (dependencyId === id) {
+        throw new WorkflowValidationError(
+          'um nó não pode depender dele mesmo',
+        );
+      }
+      const dependency = await getWorkflowNode(kv, dependencyId);
+      if (!dependency || dependency.workflowId !== existing.workflowId) {
+        throw new WorkflowValidationError(
+          `dependência ${dependencyId} não pertence ao workflow`,
+        );
+      }
+    }
+    const edges = await listWorkflowEdges(kv, existing.workflowId);
+    const retainedEdges = edges.filter((edge) =>
+      !(edge.toNodeId === id && edge.kind === 'blocks')
+    );
+    const projected = [...retainedEdges];
+    for (const dependencyId of dependencyIds) {
+      if (createsCycle(projected, dependencyId, id)) {
+        throw new WorkflowConflictError('a dependência criaria um ciclo');
+      }
+      projected.push({
+        id: crypto.randomUUID(),
+        workflowId: existing.workflowId,
+        fromNodeId: dependencyId,
+        toNodeId: id,
+        kind: 'blocks',
+        createdAt: now(),
+      });
+    }
+  }
   const updated: WorkflowNode = {
     ...existing,
     ...(input.title !== undefined ? { title: input.title.trim() } : {}),
@@ -882,6 +930,26 @@ export const updateWorkflowNode = async (
       { nodeId: id },
     ),
   );
+  if (input.dependsOn !== undefined) {
+    const dependencyIds = uniqueStrings(input.dependsOn);
+    const desired = new Set(dependencyIds);
+    const edges = await listWorkflowEdges(kv, existing.workflowId);
+    const incoming = edges.filter((edge) =>
+      edge.toNodeId === id && edge.kind === 'blocks'
+    );
+    for (const edge of incoming) {
+      if (!desired.has(edge.fromNodeId)) {
+        await deleteWorkflowEdge(kv, existing.workflowId, edge.id);
+      }
+    }
+    const existingSources = new Set(incoming.map((edge) => edge.fromNodeId));
+    for (const dependencyId of dependencyIds) {
+      if (!existingSources.has(dependencyId)) {
+        await createWorkflowEdge(kv, existing.workflowId, dependencyId, id);
+      }
+    }
+  }
+  await refreshWorkflowReadiness(kv, existing.workflowId);
   return updated;
 };
 
@@ -1010,7 +1078,8 @@ export const ensureWorkflowFinalBarriers = async (
 
   let nodes = await listWorkflowNodes(kv, workflowId);
   const workNodes = nodes.filter((node) =>
-    node.kind !== 'quality_gate' && node.kind !== 'final_audit'
+    node.kind !== 'quality_gate' && node.kind !== 'final_audit' &&
+    node.status !== 'cancelled'
   );
   if (workNodes.length === 0) {
     throw new WorkflowValidationError(
@@ -1334,8 +1403,7 @@ export const releaseOrchestration = async (
       delete agentBase.currentWorkflowId;
       await kv.set(agentKey(previousAgentId), {
         ...agentBase,
-        presence: 'idle',
-        lastHeartbeatAt: now(),
+        ...releasedAgentPresence(agentEntry.value, now()),
       } as AgentSession);
     }
   }
@@ -1446,6 +1514,91 @@ export const completeWorkflow = async (
           scriptHash: archive.scriptHash,
         })),
       },
+      agentSessionId ? { agentSessionId } : {},
+    ),
+  );
+  return updated;
+};
+
+export const cancelWorkflow = async (
+  kv: Deno.Kv,
+  workflowId: string,
+  reason = '',
+  agentSessionId?: string,
+): Promise<Workflow> => {
+  const workflow = await getWorkflow(kv, workflowId);
+  if (!workflow) throw new WorkflowMissingError('workflow não encontrado');
+  if (workflow.status === 'done' || workflow.status === 'cancelled') {
+    throw new WorkflowConflictError(`workflow está ${workflow.status}`);
+  }
+  if (
+    agentSessionId && workflow.orchestrationSessionId &&
+    workflow.orchestrationSessionId !== agentSessionId
+  ) {
+    throw new WorkflowConflictError('sessão não controla este workflow');
+  }
+  const timestamp = now();
+  const nodes = await listWorkflowNodes(kv, workflowId);
+  const agentsToRelease = new Set<string>();
+  for (const node of nodes) {
+    if (node.status === 'done' || node.status === 'cancelled') continue;
+    const base = { ...node } as Record<string, unknown>;
+    delete base.currentRunId;
+    delete base.claimedBySessionId;
+    await kv.set(nodeKey(node.id), {
+      ...base,
+      status: 'cancelled',
+      updatedAt: timestamp,
+    } as WorkflowNode);
+    if (node.currentRunId) {
+      const run = await getRun(kv, node.id, node.currentRunId);
+      if (run) {
+        await kv.set(runKey(node.id, run.id), {
+          ...run,
+          status: 'cancelled',
+          reviewDecision: 'cancel',
+          reviewFeedback: trimText(reason, 12000) ?? '',
+          reviewedAt: timestamp,
+          updatedAt: timestamp,
+        } as WorkflowRun);
+      }
+    }
+    if (node.claimedBySessionId) agentsToRelease.add(node.claimedBySessionId);
+  }
+  if (workflow.orchestrationSessionId) {
+    agentsToRelease.add(workflow.orchestrationSessionId);
+  }
+  for (const id of agentsToRelease) {
+    const agent = await getAgent(kv, id);
+    if (!agent) continue;
+    const base = { ...agent } as Record<string, unknown>;
+    if (agent.currentWorkflowId === workflowId) {
+      delete base.currentWorkflowId;
+    }
+    if (
+      agent.currentWorkflowId === workflowId ||
+      nodes.some((node) => node.id === agent.currentNodeId)
+    ) {
+      delete base.currentNodeId;
+    }
+    await kv.set(agentKey(id), {
+      ...base,
+      ...releasedAgentPresence(agent, timestamp),
+    } as AgentSession);
+  }
+  const updated: Workflow = {
+    ...workflow,
+    status: 'cancelled',
+    stopReason: trimText(reason, 12000) ?? '',
+    updatedAt: timestamp,
+  };
+  await kv.set(workflowKey(workflowId), updated);
+  await recordEvent(
+    kv,
+    makeEvent(
+      workflowId,
+      'workflow.cancelled',
+      { reason: updated.stopReason },
       agentSessionId ? { agentSessionId } : {},
     ),
   );
@@ -2237,8 +2390,7 @@ export const releaseNode = async (
       delete agentBase.currentWorkflowId;
       await kv.set(agentKey(agent.id), {
         ...agentBase,
-        presence: 'idle',
-        lastHeartbeatAt: timestamp,
+        ...releasedAgentPresence(agent, timestamp),
       } as AgentSession);
     }
   }
@@ -2256,6 +2408,82 @@ export const releaseNode = async (
       },
     ),
   );
+  return updatedNode;
+};
+
+export const cancelWorkflowNode = async (
+  kv: Deno.Kv,
+  nodeId: string,
+  reason = '',
+  agentSessionId?: string,
+): Promise<WorkflowNode> => {
+  const node = await getWorkflowNode(kv, nodeId);
+  if (!node) throw new WorkflowMissingError('nó não encontrado');
+  if (node.status === 'done' || node.status === 'cancelled') {
+    throw new WorkflowConflictError(`nó está ${node.status}`);
+  }
+  const workflow = await getWorkflow(kv, node.workflowId);
+  if (!workflow) throw new WorkflowMissingError('workflow não encontrado');
+  if (workflow.status === 'done' || workflow.status === 'cancelled') {
+    throw new WorkflowConflictError(`workflow está ${workflow.status}`);
+  }
+  if (
+    agentSessionId && workflow.orchestrationSessionId &&
+    workflow.orchestrationSessionId !== agentSessionId
+  ) {
+    throw new WorkflowConflictError('sessão não controla este workflow');
+  }
+  const timestamp = now();
+  const base = { ...node } as Record<string, unknown>;
+  delete base.currentRunId;
+  delete base.claimedBySessionId;
+  const updatedNode = {
+    ...base,
+    status: 'cancelled',
+    updatedAt: timestamp,
+  } as WorkflowNode;
+  if (node.currentRunId) {
+    const run = await getRun(kv, nodeId, node.currentRunId);
+    if (run) {
+      await kv.set(runKey(nodeId, run.id), {
+        ...run,
+        status: 'cancelled',
+        reviewDecision: 'cancel',
+        reviewFeedback: trimText(reason, 12000) ?? '',
+        reviewedAt: timestamp,
+        updatedAt: timestamp,
+      } as WorkflowRun);
+    }
+  }
+  if (node.claimedBySessionId) {
+    const agent = await getAgent(kv, node.claimedBySessionId);
+    if (agent) {
+      const agentBase = { ...agent } as Record<string, unknown>;
+      delete agentBase.currentNodeId;
+      if (agent.currentWorkflowId === node.workflowId) {
+        delete agentBase.currentWorkflowId;
+      }
+      await kv.set(agentKey(agent.id), {
+        ...agentBase,
+        ...releasedAgentPresence(agent, timestamp),
+      } as AgentSession);
+    }
+  }
+  await kv.set(nodeKey(nodeId), updatedNode);
+  await recordEvent(
+    kv,
+    makeEvent(
+      node.workflowId,
+      'node.cancelled',
+      { title: node.title, reason: trimText(reason, 12000) ?? '' },
+      {
+        nodeId,
+        ...(node.currentRunId ? { runId: node.currentRunId } : {}),
+        ...(agentSessionId ? { agentSessionId } : {}),
+      },
+    ),
+  );
+  await refreshWorkflowReadiness(kv, node.workflowId);
   return updatedNode;
 };
 
@@ -2419,6 +2647,39 @@ export const getAgentInbox = async (
       !!workflowById.get(node.workflowId) &&
       allowed(workflowById.get(node.workflowId)!)
     );
+    const agents = await listAgents(kv);
+    const agentById = new Map(agents.map((item) => [item.id, item]));
+    const inactiveExecutions = nodes
+      .filter((node) =>
+        (
+          node.status === 'claimed' || node.status === 'in_progress' ||
+          node.status === 'waiting_input'
+        ) &&
+        !!node.claimedBySessionId &&
+        !!workflowById.get(node.workflowId) &&
+        allowed(workflowById.get(node.workflowId)!)
+      )
+      .map((node) => ({
+        workflowId: node.workflowId,
+        nodeId: node.id,
+        nodeTitle: node.title,
+        agent: agentById.get(node.claimedBySessionId!),
+      }))
+      .filter((item) =>
+        !item.agent ||
+        item.agent.presence === 'stale' ||
+        item.agent.presence === 'offline'
+      )
+      .map((item) => ({
+        workflowId: item.workflowId,
+        nodeId: item.nodeId,
+        nodeTitle: item.nodeTitle,
+        agentId: item.agent?.id,
+        agentName: item.agent?.name,
+        presence: item.agent?.presence ?? 'offline',
+        lastHeartbeatAt: item.agent?.lastHeartbeatAt,
+        decisionOptions: ['release', 'cancel_node'],
+      }));
     const openQuestions = questions.filter((question) =>
       question.status === 'open' &&
       !!workflowById.get(question.workflowId) &&
@@ -2429,6 +2690,13 @@ export const getAgentInbox = async (
       allowed(workflow)
     );
     const nextActions = [
+      ...inactiveExecutions.map((item) => ({
+        type: 'resolve_inactive_executor',
+        priority: 1,
+        workflowId: item.workflowId,
+        nodeId: item.nodeId,
+        agentId: item.agentId,
+      })),
       ...returned.map((node) => ({
         type: 'review_return',
         priority: 1,
@@ -2471,6 +2739,7 @@ export const getAgentInbox = async (
       nextActions,
       planning,
       returned,
+      inactiveExecutions,
       questions: openQuestions,
       completable,
     };

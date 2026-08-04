@@ -919,10 +919,222 @@ Deno.test('protocolos e views compactas evitam contexto global', async () => {
       'executor deveria receber loop pós-return',
     );
     assert(
+      !executorPrompt.includes('"executor-1"') &&
+        executorPrompt.includes('name` deve ser único'),
+      'prompt do executor deveria evitar identidade duplicada',
+    );
+    assert(
+      executorPrompt.includes('Workflows v8.4'),
+      'mudança no protocolo deveria refletir versão nova',
+    );
+    assert(
       executorPrompt.includes(
         'Você executa nós, valida resultados e devolve evidências.',
       ) && !executorPrompt.includes('Você é SOMENTE orquestrador.'),
       'prompt do executor não deveria conter instruções do orquestrador',
+    );
+  });
+});
+
+Deno.test('orquestrador edita nó, detecta executor inativo e cancela com histórico', async () => {
+  await withKv(async (kv) => {
+    const workflow = await jsonBody(
+      await request(kv, 'POST', '/workflows', {
+        title: 'Gestão de execução',
+        objective: 'Editar e cancelar nós com segurança',
+        defaultMaxAttempts: 3,
+      }),
+    );
+    const workflowId = String(workflow.id);
+    const orchestrator = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'orquestrador-ui',
+        tool: 'codex-cli',
+        provider: 'openai',
+        model: 'gpt-5-codex',
+        role: 'orchestrator',
+      }),
+    );
+    const orchestratorId = String(orchestrator.agentSessionId);
+    await request(
+      kv,
+      'POST',
+      `/workflows/${workflowId}/claim-orchestration`,
+      { agentSessionId: orchestratorId },
+    );
+    const first = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Implementar base',
+        description: 'Criar fundação',
+        acceptanceCriteria: ['base pronta'],
+        requiredCapabilities: ['code'],
+      }),
+    );
+    const firstId = String(first.id);
+    const second = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Integrar',
+        description: 'Consumir fundação',
+        acceptanceCriteria: ['integração pronta'],
+        requiredCapabilities: ['code'],
+      }),
+    );
+    const secondId = String(second.id);
+    const updatedSecond = await jsonBody(
+      await request(kv, 'PUT', `/workflows/nodes/${secondId}`, {
+        title: 'Integrar serviço',
+        description: 'Consumir fundação revisada',
+        acceptanceCriteria: ['integração pronta', 'logs revisados'],
+        requiredCapabilities: ['code', 'tests'],
+        dependsOn: [firstId],
+      }),
+    );
+    assert(
+      updatedSecond.title === 'Integrar serviço',
+      'update deveria alterar metadados do nó',
+    );
+    const detailAfterEdit = await jsonBody(
+      await request(kv, 'GET', `/workflows/${workflowId}`),
+    );
+    const edgesAfterEdit = detailAfterEdit.edges as Array<
+      Record<string, unknown>
+    >;
+    assert(
+      edgesAfterEdit.some((edge) =>
+        edge.fromNodeId === firstId && edge.toNodeId === secondId &&
+        edge.kind === 'blocks'
+      ),
+      'update deveria sincronizar dependência blocks',
+    );
+
+    await request(kv, 'POST', `/workflows/${workflowId}/start`, {
+      agentSessionId: orchestratorId,
+    });
+    const executor = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'codex-openai-test-executor-a1',
+        tool: 'codex-cli',
+        provider: 'openai',
+        model: 'gpt-5-codex',
+        role: 'executor',
+        capabilities: ['code', 'tests'],
+      }),
+    );
+    const executorId = String(executor.agentSessionId);
+    await request(kv, 'POST', `/workflows/nodes/${firstId}/claim`, {
+      agentSessionId: executorId,
+    });
+    await request(kv, 'POST', `/workflows/nodes/${firstId}/start`, {
+      agentSessionId: executorId,
+    });
+    const agentEntry = await kv.get<Record<string, unknown>>([
+      'agent_sessions',
+      executorId,
+    ]);
+    assert(agentEntry.value, 'agente deveria existir no KV');
+    await kv.set(['agent_sessions', executorId], {
+      ...agentEntry.value,
+      lastHeartbeatAt: '2000-01-01T00:00:00.000Z',
+    });
+    const inbox = await jsonBody(
+      await request(
+        kv,
+        'GET',
+        `/orchestrator/inbox?agentSessionId=${orchestratorId}`,
+      ),
+    );
+    assert(
+      (inbox.inactiveExecutions as Array<Record<string, unknown>>).some(
+        (item) => item.nodeId === firstId && item.agentId === executorId,
+      ),
+      'orquestrador deveria ver executor inativo segurando nó',
+    );
+
+    const cancelledNode = await jsonBody(
+      await request(kv, 'POST', `/workflows/nodes/${firstId}/cancel`, {
+        reason: 'executor inativo',
+      }),
+    );
+    assert(cancelledNode.status === 'cancelled', 'nó deveria cancelar');
+    const agentAfterCancel = await jsonBody(
+      await request(kv, 'GET', `/agents/${executorId}`),
+    );
+    assert(
+      !('currentNodeId' in agentAfterCancel) &&
+        !('currentWorkflowId' in agentAfterCancel),
+      'cancelamento do nó deveria liberar sessão do executor',
+    );
+    const detailAfterCancel = await jsonBody(
+      await request(kv, 'GET', `/workflows/${workflowId}`),
+    );
+    const runs = detailAfterCancel.runs as Array<Record<string, unknown>>;
+    assert(
+      runs.some((run) => run.nodeId === firstId && run.status === 'cancelled'),
+      'run ativa deveria ficar cancelada, não apagada',
+    );
+
+    const cancelledWorkflow = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/cancel`, {
+        reason: 'cancelamento geral',
+      }),
+    );
+    assert(
+      cancelledWorkflow.status === 'cancelled',
+      'workflow deveria ficar cancelado',
+    );
+    const finalDetail = await jsonBody(
+      await request(kv, 'GET', `/workflows/${workflowId}`),
+    );
+    const nodes = finalDetail.nodes as Array<Record<string, unknown>>;
+    assert(
+      nodes.every((node) =>
+        node.status === 'cancelled' || node.status === 'done'
+      ),
+      'workflow cancelado deveria encerrar nós não concluídos',
+    );
+  });
+});
+
+Deno.test('update de nó valida campos e cancelado não bloqueia conclusão', async () => {
+  await withKv(async (kv) => {
+    const workflow = await jsonBody(
+      await request(kv, 'POST', '/workflows', {
+        title: 'Cancelamento simples',
+        objective: 'Cancelar trabalho dispensado',
+      }),
+    );
+    const workflowId = String(workflow.id);
+    const node = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Tarefa opcional',
+        description: 'Pode ser dispensada',
+        acceptanceCriteria: ['decisão registrada'],
+      }),
+    );
+    const nodeId = String(node.id);
+    assert(
+      (await request(kv, 'PUT', `/workflows/nodes/${nodeId}`, {
+        title: '',
+      })).status === 400,
+      'update não deveria aceitar título vazio',
+    );
+    assert(
+      (await request(kv, 'PUT', `/workflows/nodes/${nodeId}`, {
+        position: {},
+      })).status === 400,
+      'update não deveria aceitar position inválida',
+    );
+    await request(kv, 'POST', `/workflows/${workflowId}/start`, {});
+    await request(kv, 'POST', `/workflows/nodes/${nodeId}/cancel`, {
+      reason: 'fora do escopo',
+    });
+    const detail = await jsonBody(
+      await request(kv, 'GET', `/workflows/${workflowId}`),
+    );
+    assert(
+      (detail.completionReadiness as Record<string, unknown>).canComplete ===
+        true,
+      'nó cancelado deveria deixar workflow iniciado concluível',
     );
   });
 });

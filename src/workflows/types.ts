@@ -265,24 +265,28 @@ export type CreateWorkflowNodeInput = {
   readonly position?: { readonly x: number; readonly y: number };
 };
 
-export type UpdateWorkflowNodeInput = Partial<
-  Pick<
-    WorkflowNode,
-    | 'title'
-    | 'description'
-    | 'acceptanceCriteria'
-    | 'contextRefs'
-    | 'complexity'
-    | 'kind'
-    | 'requiredCapabilities'
-    | 'recommendedAgent'
-    | 'readScopes'
-    | 'writeScopes'
-    | 'isolation'
-    | 'maxAttempts'
-    | 'position'
+export type UpdateWorkflowNodeInput =
+  & Partial<
+    Pick<
+      WorkflowNode,
+      | 'title'
+      | 'description'
+      | 'acceptanceCriteria'
+      | 'contextRefs'
+      | 'complexity'
+      | 'kind'
+      | 'requiredCapabilities'
+      | 'recommendedAgent'
+      | 'readScopes'
+      | 'writeScopes'
+      | 'isolation'
+      | 'maxAttempts'
+      | 'position'
+    >
   >
->;
+  & {
+    readonly dependsOn?: readonly string[];
+  };
 
 export type ConnectAgentInput = {
   readonly name: string;

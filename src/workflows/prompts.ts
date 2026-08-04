@@ -6,7 +6,7 @@ import type {
 } from './types.ts';
 
 const API = 'http://127.0.0.1:3334';
-export const WORKFLOW_PROTOCOL_VERSION = '8.3';
+export const WORKFLOW_PROTOCOL_VERSION = '8.4';
 
 const identityExample = (
   role: AgentRole,
@@ -18,7 +18,7 @@ const identityExample = (
         ? 'orquestrador-principal'
         : role === 'reviewer'
         ? 'revisor-1'
-        : 'executor-1',
+        : '<tool>-<provider>-<modelo>-executor-<curto>',
       tool: '<claude-code|codex-cli|opencode|outro>',
       provider: '<anthropic|openai|google|outro>',
       model: '<modelo exato>',
@@ -133,6 +133,9 @@ GET ${API}/workflows/protocol?role=${role} apenas ao retomar uma sessão ou se a
 versão local for diferente de ${WORKFLOW_PROTOCOL_VERSION}.
 
 Conecte-se informando sua identidade real:
+
+- \`name\` deve ser único e identificável, sem copiar literalmente o exemplo.
+- \`tool\`, \`provider\` e \`model\` devem refletir a ferramenta e modelo reais.
 
 POST ${API}/agents/connect
 Content-Type: application/json

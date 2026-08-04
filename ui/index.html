@@ -652,6 +652,7 @@
                 <option value="reviewing">Em revisão</option>
                 <option value="blocked">Bloqueado</option>
                 <option value="done">Concluído</option>
+                <option value="cancelled">Cancelado</option>
               </select>
             </div>
             <div id="wf-list"></div>
@@ -727,6 +728,10 @@
                     onclick="completeCurrentWorkflow()"
                     title="Concluir workflow"
                     data-icon="check"></button>
+                  <button class="wf-icon-btn danger" id="wf-cancel-btn"
+                    onclick="cancelCurrentWorkflow()"
+                    title="Cancelar workflow"
+                    data-icon="x"></button>
                   <button class="wf-icon-btn" onclick="refreshCurrentWorkflow()"
                     title="Recarregar" data-icon="refresh-cw"></button>
                   <button class="wf-icon-btn danger"
@@ -1024,8 +1029,9 @@
         onclick="closeNodeModal(event)">
         <form class="wf-modal wf-node-modal" id="wf-node-modal-form"
           onsubmit="createNodeFromModal(event)">
+          <input id="wf-node-edit-id" type="hidden">
           <div class="wf-modal-head">
-            <span>Novo nó</span>
+            <span id="wf-node-modal-title-label">Novo nó</span>
             <button type="button" onclick="closeNodeModal()"
               title="Fechar" data-icon="x"></button>
           </div>
@@ -1108,7 +1114,8 @@
             <button type="button" class="wf-secondary-btn"
               onclick="closeNodeModal()">Cancelar</button>
             <button type="submit" class="wf-primary-btn">
-            <span data-icon="plus"></span> Criar nó
+            <span id="wf-node-modal-submit-icon" data-icon="plus"></span>
+            <span id="wf-node-modal-submit-label">Criar nó</span>
           </button>
           </div>
         </form>
