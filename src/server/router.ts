@@ -24,6 +24,7 @@ import { createCanvasHandler } from '../canvas/handler.ts';
 import { createTerminalHandler } from '../terminal/handler.ts';
 import { workflowsHandler } from '../workflows/handler.ts';
 import { createDebugHandler } from '../debug/handler.ts';
+import { headlessHandler } from '../headless/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
 import { notFound } from './response.ts';
 import type { HandlerDeps } from './types.ts';
@@ -58,7 +59,10 @@ export const createRouter = (deps: HandlerDeps) => {
     const { pathname } = url;
 
     if (pathname === '/') return serveIndex();
-    if (pathname === '/debug' || pathname.startsWith('/debug/')) return debug(req, url);
+    if (pathname === '/debug' || pathname.startsWith('/debug/')) {
+      return debug(req, url);
+    }
+    if (pathname.startsWith('/headless')) return headlessHandler(req, url);
     if (pathname === '/graph') return graph(req, url);
     if (pathname === '/content') return content(req, url);
     if (pathname === '/search') return search(req, url);

@@ -1,12 +1,137 @@
-// ════ Fonte canônica do conteúdo da skill ════
-// Este é o corpo markdown servido em GET /system/skill (botão "Copiar skill" da
-// UI). O SKILL.md (raiz) e o global ~/.claude/skills/docmap/SKILL.md são GERADOS
-// a partir daqui. Edite ESTE arquivo e rode `deno task gen-skill` para propagar.
-export const skillMarkdown = (): string =>
-  `# docmap — API local (para IA)
+// ════ Headless API — manual para agentes externos ════
+// Fonte canônica das instruções que Claude Code, Codex, opencode e outros
+// agentes usam para operar o docmap pela API local sem depender da UI.
+export const HEADLESS_MANUAL_VERSION = '9.0.0';
+
+export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
+
+export type HeadlessManualFeature = {
+  readonly id: string;
+  readonly title: string;
+  readonly heading: string;
+  readonly summary: string;
+  readonly tags: readonly string[];
+  readonly roles?: readonly HeadlessManualRole[];
+};
+
+export const HEADLESS_ROLES: readonly HeadlessManualRole[] = [
+  'orchestrator',
+  'executor',
+  'reviewer',
+];
+
+export type HeadlessManualOptions = {
+  readonly features?: readonly string[];
+  readonly role?: string | null;
+};
+
+export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
+  {
+    id: 'graph',
+    title: 'Grafo de conhecimento',
+    heading: 'Grafo de conhecimento',
+    summary: 'Grafo read-only de entidades conectadas por tags/tema.',
+    tags: ['graph', 'knowledge-base', 'tags'],
+  },
+  {
+    id: 'workspace',
+    title: 'Workspace',
+    heading: 'Workspace (arquivos `.md`)',
+    summary: 'Leitura e busca em arquivos markdown do workspace aberto.',
+    tags: ['workspace', 'markdown', 'docs'],
+  },
+  {
+    id: 'notes',
+    title: 'Notas',
+    heading: 'Notas (knowledge base global)',
+    summary: 'CRUD de notas globais em markdown.',
+    tags: ['notes', 'knowledge-base'],
+  },
+  {
+    id: 'diagrams',
+    title: 'Diagramas Mermaid',
+    heading: 'Diagramas Mermaid',
+    summary: 'CRUD de diagramas Mermaid com deep links para a UI.',
+    tags: ['diagrams', 'mermaid'],
+  },
+  {
+    id: 'skills',
+    title: 'Skills de usuario',
+    heading: 'Skills (read-only)',
+    summary: 'Skills salvas pelo usuario no KV; separadas do Headless Manual.',
+    tags: ['skills', 'user-content'],
+  },
+  {
+    id: 'macros',
+    title: 'Macros',
+    heading: 'Macros',
+    summary: 'Macros bash/deno persistentes ou temporarias de workflow.',
+    tags: ['macros', 'automation'],
+  },
+  {
+    id: 'workflows',
+    title: 'Workflows',
+    heading: 'Workflows — orquestração de agentes externos',
+    summary: 'Orquestracao de agentes externos, claims, inbox e revisao.',
+    tags: ['workflows', 'agents', 'orchestration'],
+    roles: ['orchestrator', 'executor', 'reviewer'],
+  },
+  {
+    id: 'tasks',
+    title: 'Tasks',
+    heading: 'Tasks — Kanban global',
+    summary: 'Kanban global com todo, in-progress e done.',
+    tags: ['tasks', 'kanban'],
+  },
+  {
+    id: 'podcasts',
+    title: 'Podcasts',
+    heading:
+      'Podcasts — áudio gerado por IA (2+ vozes) + slides visuais opcionais',
+    summary: 'Geracao assincrona de podcasts com audio e slides sincronizados.',
+    tags: ['podcasts', 'audio', 'slides'],
+  },
+  {
+    id: 'mocks',
+    title: 'Mocks',
+    heading: 'Mocks — Servidor HTTP em :3335',
+    summary: 'Servidor local de mocks HTTP com scripts JS e banco in-memory.',
+    tags: ['mocks', 'http'],
+  },
+  {
+    id: 'favorites',
+    title: 'Favoritos',
+    heading: 'Favoritos',
+    summary: 'CRUD e busca de favoritos por tipo, categoria, tags e acesso.',
+    tags: ['favorites', 'links'],
+  },
+  {
+    id: 'canvas',
+    title: 'Canvas',
+    heading: 'Canvas — tela realtime para IA desenhar HTML/CSS/JS ao vivo',
+    summary: 'Canvas realtime para agentes desenharem HTML visual pela API.',
+    tags: ['canvas', 'realtime', 'html'],
+  },
+  {
+    id: 'debug',
+    title: 'Debug Audit',
+    heading: 'Debug Audit — log efemero para agentes',
+    summary: 'Buffer efemero de debug para agentes instrumentarem execucoes.',
+    tags: ['debug', 'audit'],
+  },
+];
+
+export const headlessManualMarkdown = (): string =>
+  `# docmap — Headless API para agentes
 
 Base URL: \`http://127.0.0.1:3334\`
 Formato: JSON. App precisa estar rodando.
+
+Use \`GET /headless/capabilities\` para descobrir as funcionalidades
+disponiveis. Use \`GET /headless/manual?feature=<id>\` para buscar instrucoes
+focadas e \`GET /headless/manual?feature=workflows&role=executor\` para
+protocolos especificos de papel.
+
 
 > **Tags = tema.** Notas, tarefas, workflows, diagramas, macros, podcasts e favoritos
 > aceitam \`tags?: string[]\` (opcional) — o ASSUNTO da entidade, eixo pelo qual
@@ -890,4 +1015,160 @@ Abra pelo app no botao **Debug** do rail lateral. A pagina mostra:
 
 ---
 
+`;
+
+const INTRO_END = '\n---\n\n## ';
+
+const normalize = (value: string): string => value.trim().toLowerCase();
+
+const splitFeatureParam = (value: string | null): readonly string[] =>
+  value?.split(',').map((part) => part.trim()).filter(Boolean) ?? [];
+
+const introMarkdown = (manual: string): string => {
+  const end = manual.indexOf(INTRO_END);
+  return end === -1 ? manual : manual.slice(0, end + '\n---\n'.length);
+};
+
+const sectionMarkdown = (
+  manual: string,
+  feature: HeadlessManualFeature,
+): string => {
+  const marker = `## ${feature.heading}`;
+  const start = manual.indexOf(marker);
+  if (start === -1) return '';
+  const next = manual.indexOf('\n## ', start + marker.length);
+  return manual.slice(start, next === -1 ? undefined : next).trim();
+};
+
+export const parseHeadlessManualOptions = (
+  url: URL,
+): HeadlessManualOptions => {
+  const features = [
+    ...url.searchParams.getAll('feature'),
+    ...splitFeatureParam(url.searchParams.get('features')),
+  ].flatMap((value) => splitFeatureParam(value));
+  return {
+    features,
+    role: url.searchParams.get('role'),
+  };
+};
+
+export const selectHeadlessFeatures = (
+  options: HeadlessManualOptions = {},
+): readonly HeadlessManualFeature[] => {
+  const requested = new Set((options.features ?? []).map(normalize));
+  const role = options.role ? normalize(options.role) : '';
+
+  if (!requested.size && !role) return HEADLESS_FEATURES;
+
+  return HEADLESS_FEATURES.filter((feature) => {
+    const featureMatches = requested.has(feature.id) ||
+      requested.has(normalize(feature.title)) ||
+      requested.has(normalize(feature.heading));
+    if (requested.size) return featureMatches;
+    return feature.roles?.includes(role as HeadlessManualRole) ?? false;
+  });
+};
+
+export const unknownHeadlessFeatures = (
+  options: HeadlessManualOptions = {},
+): readonly string[] => {
+  const known = new Set(
+    HEADLESS_FEATURES.flatMap((feature) => [
+      feature.id,
+      normalize(feature.title),
+      normalize(feature.heading),
+    ]),
+  );
+  return (options.features ?? [])
+    .map(normalize)
+    .filter((feature) => !known.has(feature));
+};
+
+export const renderHeadlessManual = (
+  options: HeadlessManualOptions = {},
+): string => {
+  const manual = headlessManualMarkdown();
+  const selected = selectHeadlessFeatures(options);
+  const allSelected = selected.length === HEADLESS_FEATURES.length &&
+    !options.role &&
+    !(options.features?.length);
+  if (allSelected) return manual;
+
+  const chunks = [
+    introMarkdown(manual),
+    selected.map((feature) => sectionMarkdown(manual, feature)).filter(Boolean)
+      .join('\n\n---\n\n'),
+  ].filter(Boolean);
+
+  return `${chunks.join('\n\n')}\n`;
+};
+
+export const headlessCapabilities = () => ({
+  name: 'docmap-headless-api',
+  version: HEADLESS_MANUAL_VERSION,
+  baseUrl: 'http://127.0.0.1:3334',
+  endpoints: {
+    capabilities: '/headless/capabilities',
+    bootstrap: '/headless/bootstrap',
+    manual: '/headless/manual',
+  },
+  filters: {
+    feature: HEADLESS_FEATURES.map((feature) => feature.id),
+    role: HEADLESS_ROLES,
+    format: ['markdown', 'json'],
+  },
+  features: HEADLESS_FEATURES.map((feature) => ({
+    id: feature.id,
+    title: feature.title,
+    summary: feature.summary,
+    tags: feature.tags,
+    ...(feature.roles ? { roles: feature.roles } : {}),
+    manualUrl: `/headless/manual?feature=${feature.id}`,
+  })),
+});
+
+export const headlessManualDocument = (
+  options: HeadlessManualOptions = {},
+) => {
+  const selected = selectHeadlessFeatures(options);
+  return {
+    ...headlessCapabilities(),
+    selectedFeatures: selected.map((feature) => feature.id),
+    role: options.role ?? null,
+    markdown: renderHeadlessManual(options),
+  };
+};
+
+export const headlessBootstrapMarkdown = (): string =>
+  `# docmap — Headless API
+
+Base URL: \`http://127.0.0.1:3334\`
+
+O docmap expõe uma Headless API local para agentes externos operarem notas,
+tasks, workflows, macros, podcasts, mocks, canvas e demais recursos sem depender
+da UI.
+
+Antes de agir, descubra as capacidades atuais:
+
+\`\`\`bash
+curl http://127.0.0.1:3334/headless/capabilities
+\`\`\`
+
+Para carregar instruções completas:
+
+\`\`\`bash
+curl http://127.0.0.1:3334/headless/manual
+\`\`\`
+
+Para reduzir contexto, busque apenas a funcionalidade necessária:
+
+\`\`\`bash
+curl 'http://127.0.0.1:3334/headless/manual?feature=workflows&role=executor'
+curl 'http://127.0.0.1:3334/headless/manual?feature=podcasts'
+curl 'http://127.0.0.1:3334/headless/manual?feature=canvas'
+\`\`\`
+
+Use \`/skills\` somente para skills salvas pelo usuário no docmap. As instruções
+do próprio docmap vivem em \`/headless/manual\`.
 `;

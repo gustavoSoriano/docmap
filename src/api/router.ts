@@ -13,7 +13,7 @@ import { projectsHandler } from '../projects/handler.ts';
 import { mocksHandler } from '../mocks/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
 import { workflowsHandler } from '../workflows/handler.ts';
-import { skillMarkdown } from '../skill.ts';
+import { headlessHandler } from '../headless/handler.ts';
 import { notFound } from '../server/response.ts';
 import type { HandlerDeps } from '../server/types.ts';
 
@@ -55,8 +55,11 @@ export const createApiRouter = (deps: HandlerDeps) => {
     const { pathname } = url;
 
     let res: Response;
-    if (pathname === '/debug' || pathname.startsWith('/debug/')) res = await debug(req, url);
-    else if (pathname.startsWith('/notes')) res = await notes(req, url);
+    if (pathname === '/debug' || pathname.startsWith('/debug/')) {
+      res = await debug(req, url);
+    } else if (pathname.startsWith('/headless')) {
+      res = headlessHandler(req, url);
+    } else if (pathname.startsWith('/notes')) res = await notes(req, url);
     else if (pathname.startsWith('/macros')) res = await macros(req, url);
     else if (pathname.startsWith('/diagrams')) res = await diagrams(req, url);
     else if (pathname.startsWith('/skills')) res = await skills(req, url);
@@ -74,11 +77,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
       pathname.startsWith('/agents') ||
       pathname.startsWith('/orchestrator')
     ) res = await workflows(req, url);
-    else if (pathname === '/system/skill') {
-      res = new Response(skillMarkdown(), {
-        headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
-      });
-    } else res = notFound();
+    else res = notFound();
 
     return withCors(res);
   };

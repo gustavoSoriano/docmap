@@ -49,7 +49,7 @@ const setMode = (mode) => {
 };
 
 // ── Settings modal ──
-// depends on: theme.js (getStoredTheme, toggleTheme), system.js (copySkill, downloadBackup, triggerRestore)
+// depends on: theme.js (getStoredTheme, toggleTheme), system.js (copyHeadlessBootstrap, downloadBackup, triggerRestore)
 const openSettings = () => {
   const label = $('settings-theme-label');
   if (label && typeof getStoredTheme === 'function') {

@@ -66,13 +66,13 @@ const downloadBackup = async () => {
   } catch { toast('Falha no backup'); }
 };
 
-// ── Copiar skill para IA ──
-const copySkill = async () => {
+// ── Copiar bootstrap da Headless API para agentes ──
+const copyHeadlessBootstrap = async () => {
   try {
-    const res = await fetch('/system/skill');
+    const res = await fetch('/headless/bootstrap');
     const md = await res.text();
-    copyToClipboard(md, 'Skill copiada — cole numa IA');
-  } catch { toast('Falha ao copiar skill'); }
+    copyToClipboard(md, 'Headless bootstrap copiado');
+  } catch { toast('Falha ao copiar bootstrap'); }
 };
 
 const triggerRestore = async () => {

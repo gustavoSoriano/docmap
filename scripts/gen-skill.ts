@@ -1,22 +1,26 @@
 // ════ Gerador da skill ════
-// Gera o SKILL.md (raiz do projeto) e as skills globais dos agentes
-// a partir de skillMarkdown() — a fonte
-// canônica única do conteúdo (src/skill.ts). Rode após editar src/skill.ts:
+// Gera o SKILL.md (raiz do projeto) e as skills globais dos agentes como um
+// bootstrap curto para a Headless API. O manual completo vive no endpoint:
+//   GET /headless/manual
+//
+// Rode após editar src/headless/manual.ts:
 //   deno task gen-skill
 
-import { skillMarkdown } from '../src/skill.ts';
+import {
+  HEADLESS_MANUAL_VERSION,
+  headlessBootstrapMarkdown,
+} from '../src/headless/manual.ts';
 
-const VERSION = '8.3.0';
+const VERSION = HEADLESS_MANUAL_VERSION;
 
 const frontMatter = `---
 name: docmap
 version: ${VERSION}
 description: >
-  API REST local do docmap desktop — notas com mapa mental anotável, diagramas
-  Mermaid, skills, macros, kanban de tasks, favoritos, podcasts com áudio em 2+
-  vozes e slides visuais sincronizados, canvas realtime para agentes desenharem
-  HTML ao vivo, mocks HTTP e workflows para orquestrar agentes externos de
-  diferentes ferramentas, providers e modelos.
+  Bootstrap da Headless API local do docmap desktop. Use para descobrir as
+  instruções atualizadas via GET /headless/capabilities e /headless/manual,
+  incluindo notas, diagramas, skills de usuário, macros, tasks, workflows,
+  podcasts, mocks, favoritos, canvas e debug.
   Use quando o usuário mencionar notas, diagramas, skills, macros, tasks,
   kanban, agentes, orquestração, workflows, favoritos, podcasts, slides, mocks,
   canvas, canva, ou compartilhar um ID/link do docmap. O app precisa estar rodando.
@@ -27,7 +31,7 @@ metadata:
 
 `;
 
-const doc = frontMatter + skillMarkdown() + '\n';
+const doc = frontMatter + headlessBootstrapMarkdown() + '\n';
 
 // 1) SKILL.md na raiz do projeto.
 await Deno.writeTextFile(new URL('../SKILL.md', import.meta.url), doc);

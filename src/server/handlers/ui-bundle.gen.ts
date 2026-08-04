@@ -9879,7 +9879,7 @@ svg#kg-svg:active { cursor: grabbing; }
                 autocomplete="off" spellcheck="false">
             </div>
             <div id="wf-filter-row">
-               <select id="wf-status-filter" onchange="loadWorkflows('')">
+              <select id="wf-status-filter" onchange="loadWorkflows('')">
                 <option value="">Todos os estados</option>
                 <option value="draft">Rascunho</option>
                 <option value="planning">Planejamento</option>
@@ -9893,10 +9893,12 @@ svg#kg-svg:active { cursor: grabbing; }
             <div id="wf-list"></div>
             <div id="wf-pagination" hidden>
               <button id="wf-page-prev" class="wf-page-btn" type="button"
-                title="Workflows mais recentes" disabled data-icon="chevron-left"></button>
+                title="Workflows mais recentes" disabled
+                data-icon="chevron-left"></button>
               <span id="wf-page-label"></span>
               <button id="wf-page-next" class="wf-page-btn" type="button"
-                title="Workflows anteriores" disabled data-icon="chevron-right"></button>
+                title="Workflows anteriores" disabled
+                data-icon="chevron-right"></button>
             </div>
           </aside>
 
@@ -10349,9 +10351,9 @@ svg#kg-svg:active { cursor: grabbing; }
             <button type="button" class="wf-secondary-btn"
               onclick="closeNodeModal()">Cancelar</button>
             <button type="submit" class="wf-primary-btn">
-            <span id="wf-node-modal-submit-icon" data-icon="plus"></span>
-            <span id="wf-node-modal-submit-label">Criar nó</span>
-          </button>
+              <span id="wf-node-modal-submit-icon" data-icon="plus"></span>
+              <span id="wf-node-modal-submit-label">Criar nó</span>
+            </button>
           </div>
         </form>
       </div>
@@ -10583,10 +10585,10 @@ svg#kg-svg:active { cursor: grabbing; }
               <span class="settings-row-label">Tema</span>
               <span class="settings-row-value" id="settings-theme-label"></span>
             </div>
-            <div class="settings-row" onclick="copySkill()">
-              <span class="settings-row-label">Copiar skill para IA</span>
+            <div class="settings-row" onclick="copyHeadlessBootstrap()">
+              <span class="settings-row-label">Copiar Headless Bootstrap</span>
               <span
-                class="settings-row-hint">Endpoints, agentes e workflows</span>
+                class="settings-row-hint">Entrada curta para agentes externos</span>
             </div>
             <div class="settings-row" onclick="downloadBackup()">
               <span class="settings-row-label">Fazer backup</span>
@@ -10599,7 +10601,6 @@ svg#kg-svg:active { cursor: grabbing; }
           </div>
         </div>
       </div>
-
     </div>
     <!-- /#body-main -->
 
@@ -10867,7 +10868,7 @@ const setMode = (mode) => {
 };
 
 // ── Settings modal ──
-// depends on: theme.js (getStoredTheme, toggleTheme), system.js (copySkill, downloadBackup, triggerRestore)
+// depends on: theme.js (getStoredTheme, toggleTheme), system.js (copyHeadlessBootstrap, downloadBackup, triggerRestore)
 const openSettings = () => {
   const label = $('settings-theme-label');
   if (label && typeof getStoredTheme === 'function') {
@@ -16672,13 +16673,13 @@ const downloadBackup = async () => {
   } catch { toast('Falha no backup'); }
 };
 
-// ── Copiar skill para IA ──
-const copySkill = async () => {
+// ── Copiar bootstrap da Headless API para agentes ──
+const copyHeadlessBootstrap = async () => {
   try {
-    const res = await fetch('/system/skill');
+    const res = await fetch('/headless/bootstrap');
     const md = await res.text();
-    copyToClipboard(md, 'Skill copiada — cole numa IA');
-  } catch { toast('Falha ao copiar skill'); }
+    copyToClipboard(md, 'Headless bootstrap copiado');
+  } catch { toast('Falha ao copiar bootstrap'); }
 };
 
 const triggerRestore = async () => {

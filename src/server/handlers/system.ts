@@ -1,5 +1,4 @@
 import { APP_VERSION } from '../../config.ts';
-import { skillMarkdown } from '../../skill.ts';
 import { exportKv, importKv } from '../../kv/backup.ts';
 import { applyUpdate } from '../../update/apply.ts';
 import { openFileDialog } from '../../window/dialog.ts';
@@ -18,13 +17,6 @@ async (
   if (req.method === 'GET' && url.pathname === '/system') {
     const upd = await kv.get<UpdateStatus>(UPDATE_KEY);
     return json({ version: APP_VERSION, update: upd.value ?? null });
-  }
-
-  // GET /system/skill — instruções da API de notas para colar numa IA
-  if (req.method === 'GET' && url.pathname === '/system/skill') {
-    return new Response(skillMarkdown(), {
-      headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
-    });
   }
 
   // POST /system/backup — salva o backup em ~/Downloads/ e retorna o caminho
@@ -119,7 +111,9 @@ async (
     try {
       const interfaces = Deno.networkInterfaces();
       const ips = interfaces
-        .filter((iface) => iface.family === 'IPv4' && !iface.address.startsWith('127.'))
+        .filter((iface) =>
+          iface.family === 'IPv4' && !iface.address.startsWith('127.')
+        )
         .map((iface) => ({
           name: iface.name,
           address: iface.address,
