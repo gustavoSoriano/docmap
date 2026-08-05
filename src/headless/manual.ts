@@ -34,13 +34,6 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     tags: ['graph', 'knowledge-base', 'tags'],
   },
   {
-    id: 'workspace',
-    title: 'Workspace',
-    heading: 'Workspace (arquivos `.md`)',
-    summary: 'Leitura e busca em arquivos markdown do workspace aberto.',
-    tags: ['workspace', 'markdown', 'docs'],
-  },
-  {
     id: 'notes',
     title: 'Notas',
     heading: 'Notas (knowledge base global)',
@@ -157,20 +150,6 @@ protocolos especificos de papel.
     \`reference\` (task→nota via \`noteId\`).
   - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por
     isso vale usar tags consistentes — são o que conecta o grafo.
-
-## Workspace (arquivos \`.md\`)
-
-Estes endpoints leem a pasta de trabalho que o usuário abriu no docmap.
-Retornam erro se nenhum workspace estiver selecionado.
-
-- \`GET /content?file=<caminho/relativo.md>\` — conteúdo bruto do arquivo
-  - Resposta: \`{ path, raw }\` com markdown completo
-- \`GET /docs/search?q=termo\` — busca full-text nos \`.md\` do workspace
-  - Resposta: array de \`{ file, line, heading, snippet }\`
-
-> Se o usuário pedir para alterar um arquivo, você já tem o caminho relativo nos endpoints acima. A edição em si deve ser feita pelo canal de escrita que o usuário indicar (o docmap não expõe escrita de arquivos por esta API).
-
----
 
 ## Notas (knowledge base global)
 

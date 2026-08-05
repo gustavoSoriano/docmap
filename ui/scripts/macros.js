@@ -89,7 +89,7 @@ const renderMacrosList = (macros) => {
 const seedDefaultMacros = async () => {
   const defaults = [
     {
-      title: 'Briefing do workspace',
+      title: 'Briefing do DocMap',
       name: 'briefing',
       description: 'Lista notas recentes e skills — contexto pra colar numa IA',
       script: `#!/usr/bin/env -S deno run --allow-net\nconst api = Deno.env.get('DOCMAP_API')\n\nconst notes = await fetch(\`\${api}/notes\`).then(r=>r.json())\nconst skills = await fetch(\`\${api}/skills\`).then(r=>r.json())\n\nconsole.log('# Briefing docmap\\n')\nconsole.log(\`## Notas recentes (\\${notes.length} total)\\n\`)\nnotes.slice(0,8).forEach(n => console.log(\`- **\\${n.title}** (\\${n.category}) — \\${n.preview?.slice(0,80)}...\`))\nconsole.log(\`\\n## Skills disponíveis\\n\`)\nskills.forEach(s => console.log(\`- @\\${s.name} — \\${s.description}\`))\nconsole.log('\\n---\\nCole este briefing no início de qualquer sessão com IA.')`,
@@ -124,7 +124,7 @@ const newMacro = () => {
   $('macro-title-input').value = '';
   $('macro-desc-input').value  = '';
   $('macro-tags-input').value  = '';
-  macroSet('#!/bin/bash\n# Seu script aqui\n# $DOCMAP_API       → http://127.0.0.1:3334\n# $DOCMAP_WORKSPACE → pasta aberta\n\necho "Olá do docmap!"');
+  macroSet('#!/bin/bash\n# Seu script aqui\n# $DOCMAP_API       → http://127.0.0.1:3334\n\necho "Olá do docmap!"');
   $('macro-interp-badge').textContent = 'bash';
   $('macro-interp-badge').className   = 'macro-badge bash';
   setMacroMode('bash');

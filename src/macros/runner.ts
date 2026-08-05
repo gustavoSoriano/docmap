@@ -27,7 +27,6 @@ const checkBlocklist = (script: string): string | null => {
 
 export const runMacro = async (
   macro: Macro,
-  workspace: string | null,
 ): Promise<BlockedResult | RunResult> => {
   const blocked = checkBlocklist(macro.script);
   if (blocked) return { blocked: true, reason: blocked };
@@ -49,7 +48,6 @@ export const runMacro = async (
       ),
     ),
     DOCMAP_API: 'http://127.0.0.1:3334',
-    DOCMAP_WORKSPACE: workspace ?? '',
     DOCMAP_KV: `${
       Deno.env.get('HOME')
     }/Library/Application Support/docmap/data.sqlite3`,

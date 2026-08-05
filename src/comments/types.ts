@@ -7,11 +7,6 @@ export type Comment = {
   readonly updatedAt: string;
 };
 
-export type FileComments = {
-  readonly fileId: string;
-  readonly comments: readonly Comment[];
-};
-
 export type UpsertCommentInput = {
   readonly quote: string;
   readonly note: string;

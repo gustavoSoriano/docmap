@@ -91,6 +91,21 @@ const migrations: Migration[] = [
       await kv.delete(['ai', 'config']);
     }
   },
+
+  // v9 — remove estado de pasta e comentários vinculados a arquivos externos.
+  // Comentários de notas usam escopo global e são preservados.
+  async (kv) => {
+    await kv.delete(['workspace', 'last']);
+    await kv.delete(['workspace', 'recent']);
+
+    for await (const entry of kv.list<unknown>({ prefix: ['comments'] })) {
+      const fileId = entry.key[2];
+      if (typeof fileId === 'string' && fileId.startsWith('note:')) {
+        await kv.set(['comments', '_global_', fileId], entry.value);
+      }
+      await kv.delete(entry.key);
+    }
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

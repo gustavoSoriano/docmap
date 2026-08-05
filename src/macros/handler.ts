@@ -8,10 +8,8 @@ import {
 import { runMacro } from './runner.ts';
 import { badRequest, json, notFound } from '../server/response.ts';
 import type { CreateMacroInput, UpdateMacroInput } from './types.ts';
-import type { WorkspaceRef } from '../workspace/types.ts';
-
 export const macrosHandler =
-  (kv: Deno.Kv, workspace: WorkspaceRef) =>
+  (kv: Deno.Kv) =>
   async (req: Request, url: URL): Promise<Response> => {
     const parts = url.pathname.replace(/^\/macros\/?/, '').split('/').filter(
       Boolean,
@@ -26,7 +24,7 @@ export const macrosHandler =
       const macro = await getMacroById(kv, id);
       if (!macro) return notFound();
 
-      const result = await runMacro(macro, workspace.root);
+      const result = await runMacro(macro);
       if (result.blocked) {
         return json({ error: 'blocked', reason: result.reason }, 403);
       }

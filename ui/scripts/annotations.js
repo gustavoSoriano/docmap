@@ -4,7 +4,7 @@
 let annotations = [];
 let popQuote = null;
 let popType  = 'note';
-let currentAnnotationContext = null; // 'note:<id>' ou caminho de arquivo
+let currentAnnotationContext = null; // 'note:<id>'
 let currentAnnotationLabel   = '';   // título legível para o cabeçalho ao copiar
 
 const setAnnotationContext = (ctx, label) => {
@@ -21,6 +21,7 @@ const TYPE_LABEL = {
 };
 
 const loadAnnotations = async (fileId) => {
+  if (!fileId.startsWith('note:')) return;
   try {
     const res = await fetch('/comments?file=' + encodeURIComponent(fileId));
     annotations = await res.json();
