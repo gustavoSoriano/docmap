@@ -20,12 +20,10 @@
 src/
   main.ts              ← entry: inicializa KV, sobe servidores, abre janela
   kv.ts                ← singleton Deno KV (única exceção ao estado global)
-  workspace/           ← tipos e ref mutável do workspace atual
   notes/               ← tipos, store KV, busca, exportação
   comments/            ← tipos, store KV (comentários nos nós do markmap)
   fs/                  ← walker e extração de links (funções puras)
   graph/               ← construção do grafo (função pura)
-  search/              ← busca full-text nos .md (função pura)
   podcasts/            ← tipos, store KV, pipeline de geração (edge-tts + ffmpeg), TTS
   server/              ← servidor :3333 (handlers da UI)
   api/                 ← servidor :3334 (handlers da AI API)
@@ -42,7 +40,7 @@ ui/
 - **Funções puras** para toda transformação de dados: `fs/`, `graph/`, `search/`, `notes/search.ts`, `notes/export.ts`
 - **Side effects isolados** em: `notes/store.ts`, `comments/store.ts`, `server/handlers/`, `api/handlers/`, `window/`
 - **Sem classes** — objetos simples + funções
-- **Sem mutação** fora dos módulos de store e do `workspace/ref.ts`
+- **Sem mutação** fora dos módulos de store e do estado local de runtime
 
 ### Isolamento de responsabilidade
 
@@ -60,8 +58,6 @@ Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100
 ```
 ["_meta",          "schemaVersion"]              → number (versão do schema)
 ["_meta",          "update"]                     → UpdateStatus
-["workspace",      "last"]                       → string
-["workspace",      "recent"]                     → string[]
 ["notes",          "_global_", noteId]           → Note
 ["tasks",          "_global_", taskId]           → Task
 ["projects",       "_global_", projectId]        → Project
@@ -69,13 +65,13 @@ Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100
 ["diagrams",       "_global_", diagramId]        → Diagram
 ["macros",         "_global_", macroId]          → Macro
 ["skills",         "_global_", skillId]          → Skill
-["comments",       workspacePath, fileId]        → Comment[]
+["comments",       "_global_", fileId]          → Comment[]
 ["podcasts",       "_global_", podcastId]        → Podcast (metadados; áudio MP3 vai no filesystem)
 ["mock_collections", id]                         → MockCollection
 ["mocks_data",     collectionId, mockId]         → Mock
 ```
 
-> Notes são escopo global (`_global_`), não workspace-scoped. Apenas `comments` permanece vinculado ao workspace.
+> Notes e comments são escopo global (`_global_`).
 
 ## Persistência e atualização
 
@@ -99,7 +95,7 @@ Definido em `src/config.ts`. NUNCA usar `Deno.openKv()` sem caminho — o defaul
 
 ## Segurança
 
-- **Path traversal**: todo caminho de arquivo DEVE ser validado com `isPathSafe(root, resolved)` antes de ler
+- **Path traversal**: qualquer caminho de arquivo externo deve ser validado antes de ler
 - **Permissões Deno mínimas**: `--allow-read=<ROOT>` em produção, não `--allow-read` global
 - **AI API** (`:3334`) bind exclusivo em `127.0.0.1` — nunca em `0.0.0.0`
 - **Sem eval()** em qualquer módulo — especialmente nos handlers HTTP
@@ -107,7 +103,7 @@ Definido em `src/config.ts`. NUNCA usar `Deno.openKv()` sem caminho — o defaul
 
 ## Antipatterns — não faça isso
 
-- ❌ Estado global mutável fora de `kv.ts` e `workspace/ref.ts`
+- ❌ Estado global mutável fora de `kv.ts`
 - ❌ Escrever qualquer arquivo na pasta do projeto monitorado (read-only)
 - ❌ Funções com mais de 30 linhas que fazem múltiplas coisas
 - ❌ `default export` — use named exports para rastreabilidade
@@ -123,9 +119,7 @@ Definido em `src/config.ts`. NUNCA usar `Deno.openKv()` sem caminho — o defaul
 // Separar: lógica de domínio fica no store/engine, handler só orquestra
 export const createNotesHandler = (deps: HandlerDeps) =>
   async (req: Request): Promise<Response> => {
-    const { kv, getWorkspace } = deps;
-    const workspace = getWorkspace();
-    if (!workspace) return json({ error: 'no workspace' }, 400);
+    const { kv } = deps;
     // ...
   };
 ```

@@ -1,8 +1,6 @@
 import { createApiNotesHandler } from './handlers/notes.ts';
 import { createApiMacrosHandler } from './handlers/macros.ts';
 import { createApiSearchHandler } from './handlers/search.ts';
-import { createApiContentHandler } from './handlers/content.ts';
-import { createApiSearchDocsHandler } from './handlers/search-docs.ts';
 import { createApiFavoritesHandler } from './handlers/favorites.ts';
 import { createDebugApiHandler } from '../debug/api.ts';
 import { graphHandler } from '../graph/handler.ts';
@@ -34,8 +32,6 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const macros = createApiMacrosHandler(deps);
   const search = createApiSearchHandler(deps);
   const graph = graphHandler(deps.kv);
-  const content = createApiContentHandler(deps);
-  const searchDocs = createApiSearchDocsHandler(deps);
   const favorites = createApiFavoritesHandler(deps);
   const diagrams = diagramsHandler(deps.kv);
   const skills = skillsApiHandler(deps.kv);
@@ -67,8 +63,6 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/projects')) res = await projects(req, url);
     else if (pathname === '/search') res = await search(req, url);
     else if (pathname === '/graph') res = await graph(req, url);
-    else if (pathname === '/content') res = await content(req, url);
-    else if (pathname === '/docs/search') res = await searchDocs(req, url);
     else if (pathname.startsWith('/favorites')) res = await favorites(req, url);
     else if (pathname.startsWith('/mocks')) res = await mocks(req, url);
     else if (pathname.startsWith('/podcasts')) res = await podcasts(req, url);

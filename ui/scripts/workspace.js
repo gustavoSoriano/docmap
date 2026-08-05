@@ -31,6 +31,7 @@ const handleDeepLink = () => {
   }
   // Sem deep link → abre no grafo por padrão.
   setMode('graph');
+  loadGraph();
 };
 
 document.addEventListener('DOMContentLoaded', handleDeepLink);

@@ -8,7 +8,7 @@ export type Backup = {
   readonly entries: readonly BackupEntry[];
 };
 
-// Exporta TODO o KV (notas, anotações, workspaces, meta) num objeto serializável.
+// Exporta TODO o KV em um objeto serializável.
 export const exportKv = async (kv: Deno.Kv): Promise<Backup> => {
   const entries: BackupEntry[] = [];
   for await (const entry of kv.list({ prefix: [] })) {

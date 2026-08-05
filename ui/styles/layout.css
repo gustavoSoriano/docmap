@@ -73,11 +73,6 @@ body::before {
   width: 19px;
   height: 19px;
 }
-#no-workspace-mark .ico {
-  width: 30px;
-  height: 30px;
-}
-#map-empty-mark .ico,
 #notes-editor-empty-mark .ico {
   width: 28px;
   height: 28px;

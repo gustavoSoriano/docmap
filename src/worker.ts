@@ -6,10 +6,6 @@ import './env.ts';
 import { startUiServer, UI_PORT } from './server/server.ts';
 import { API_PORT, startApiServer } from './api/server.ts';
 import { MOCK_PORT, startMockServer } from './mocks/server.ts';
-import {
-  createWorkspaceRef,
-  restoreLastWorkspace,
-} from './workspace/manager.ts';
 import { openAppKv } from './kv/path.ts';
 import { runMigrations } from './kv/migrate.ts';
 import { checkForUpdate } from './update/github.ts';
@@ -49,12 +45,9 @@ const boot = async (): Promise<void> => {
   const kv = await openAppKv();
   await runMigrations(kv);
 
-  const workspace = createWorkspaceRef();
-  await restoreLastWorkspace(kv, workspace);
+  await startWithRetry({ kv });
 
-  await startWithRetry({ kv, workspace });
-
-  post({ type: 'ready', workspace: workspace.root });
+  post({ type: 'ready' });
 
   checkForUpdate()
     .then((status) => kv.set(['_meta', 'update'], status))

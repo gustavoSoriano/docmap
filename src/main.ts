@@ -12,13 +12,7 @@ const startServerWorker = (): Promise<Worker> =>
     });
     worker.onmessage = (e) => {
       if (e.data?.type === 'ready') {
-        const ws = e.data.workspace;
-        console.log(`\n  ⬡  docmap desktop`);
-        console.log(
-          ws
-            ? `     Workspace: ${ws}\n`
-            : `     Nenhum workspace — selecione uma pasta.\n`,
-        );
+        console.log(`\n  ⬡  docmap desktop\n`);
         resolve(worker);
       }
     };

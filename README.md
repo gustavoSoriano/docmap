@@ -3,7 +3,7 @@
   <h1>docmap desktop</h1>
   <p>
     <strong>Atlas de documentação local com IA.</strong><br>
-    Conecte seus arquivos <code>.md</code>, capture ideias, ilustre com diagramas,
+    Capture ideias, ilustre com diagramas,
     organize tarefas e transforme qualquer conteúdo em podcasts com slides —
     <strong>100% offline, 100% sob seu controle</strong>.
   </p>
@@ -35,7 +35,7 @@ Ideal para:
 
 | Módulo | O que resolve |
 |--------|---------------|
-| **🕸️ Grafo de arquivos** | Visualiza automaticamente os links entre seus arquivos `.md` do workspace |
+| **🕸️ Grafo de conhecimento** | Conecta entidades do DocMap por tags e referências |
 | **🧠 Markmap** | Transforma headings em mapa mental navegável |
 | **📝 Notas globais** | Knowledge base com busca full-text, categorias e tags |
 | **📊 Diagramas Mermaid** | Cria diagramas de arquitetura direto no app |

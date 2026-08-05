@@ -15,9 +15,3 @@ export const badRequest = (msg: string): Response =>
 
 export const conflict = (msg: string): Response =>
   new Response(msg, { status: 409 });
-
-export const noWorkspace = (): Response =>
-  json(
-    { error: 'no_workspace', message: 'Nenhum workspace selecionado.' },
-    400,
-  );

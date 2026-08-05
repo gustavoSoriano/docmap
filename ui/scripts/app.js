@@ -48,6 +48,8 @@ const setMode = (mode) => {
   else if (mode === 'graph')     loadGraph();
 };
 
+document.addEventListener('DOMContentLoaded', () => loadGraph());
+
 // ── Settings modal ──
 // depends on: theme.js (getStoredTheme, toggleTheme), system.js (copyHeadlessBootstrap, downloadBackup, triggerRestore)
 const openSettings = () => {
