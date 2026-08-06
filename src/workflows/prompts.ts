@@ -294,10 +294,46 @@ Se criar uma macro agregadora no Docmap, use lifecycle=workflow e
 workflowId=${pkg.workflow.id}; não a apague manualmente.`;
   }
   if (pkg.node.kind === 'final_audit') {
+    const isolatedDeps = pkg.dependencies.filter((dep) =>
+      dep.workspace &&
+      (dep.workspace.kind === 'worktree' || dep.workspace.kind === 'branch')
+    );
+    const workspaceAudit = isolatedDeps.length > 0
+      ? `
+
+
+Critérios de integridade de workspaces isolados — ${
+        isolatedDeps.length
+      } nó(s) rodaram em isolamento:
+
+${
+        isolatedDeps.map((dep, i) =>
+          `${i + 1}. Nó "${dep.title}" (${dep.nodeId}):
+   - Isolamento: ${dep.workspace!.kind}
+   - Path: ${dep.workspace!.path ?? 'não reportado'}
+   - Branch: ${dep.workspace!.branch ?? 'não reportado'}
+   - Base commit: ${dep.workspace!.baseCommit ?? 'não reportado'}`
+        ).join('\n')
+      }
+
+Verifique:
+1. Cada branch/worktree acima foi mergeada na branch base? Se alguma não foi,
+   o diff consolidado está incompleto.
+2. Há conflitos de merge não resolvidos?
+3. O diff final contém contribuições de todos os nós isolados?
+4. Alguma worktree ficou órfã (sem merge e sem descarte documentado)?
+
+Se qualquer verificação falhar, verdict=changes_required e descreva exatamente
+quais branches/worktrees estão pendentes. Se todos os nós usaram shared,
+marque esta seção como N/A.`
+      : '';
+
     return `Esta é uma AUDITORIA FINAL independente e read-only. Não altere
 código. Revise objetivo, diff consolidado, arquitetura, legibilidade, erros,
 edge cases, crashes, concorrência, segurança, regressões, efeitos fora do
-escopo e cobertura. No result, informe verdict=pass|changes_required|blocked,
+escopo e cobertura.${workspaceAudit}
+
+No result, informe verdict=pass|changes_required|blocked,
 findings com severity/category/evidence/expectedFix e residualRisks.
 outcome=success somente com verdict=pass e sem achados critical/high.`;
   }

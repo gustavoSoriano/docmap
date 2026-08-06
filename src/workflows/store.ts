@@ -1665,6 +1665,7 @@ const dependencyResults = async (
       ...(run?.output?.result ? { result: run.output.result } : {}),
       changedFiles: run?.output?.changedFiles ?? [],
       artifacts: run?.output?.artifacts ?? [],
+      ...(run?.workspace ? { workspace: run.workspace } : {}),
     });
   }
   return results;

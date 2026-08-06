@@ -333,6 +333,7 @@ export type DependencyResult = {
   readonly result?: string;
   readonly changedFiles: readonly string[];
   readonly artifacts: readonly RunArtifact[];
+  readonly workspace?: RunWorkspace;
 };
 
 export type NodeExecutionPackage = {
