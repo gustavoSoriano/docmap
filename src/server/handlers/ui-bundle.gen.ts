@@ -10920,6 +10920,18 @@ const loadDebug = () => {
   }
 };
 
+// ── Global external link handler ──
+// Webview não suporta window.open — redireciona links http/https para o navegador padrão
+document.addEventListener('click', (e) => {
+  if (e.defaultPrevented) return;
+  const link = e.target.closest('a[href]');
+  if (!link) return;
+  const href = link.getAttribute('href');
+  if (!href || !/^(https?:)?\\/\\//i.test(href)) return;
+  e.preventDefault();
+  openExternalUrl(href);
+});
+
 </script>
     <script>
 // ════ Deep links — abre entidades direto pela URL ════
@@ -15482,11 +15494,7 @@ const buildFavCard = (b, index) => {
 
 const openFavLink = async (id, url) => {
   // Webview não suporta window.open — usa endpoint do servidor para abrir no browser padrão
-  fetch('/system/open-url', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
-  }).catch(() => {});
+  openExternalUrl(url);
 
   try {
     const res     = await fetch(\`/favorites/\${id}/access\`, { method: 'PUT' });
@@ -16606,6 +16614,15 @@ const hideKgTip = () => { $('tooltip').style.opacity = '0'; };
 // ════ Sistema — update, backup, restore ════
 
 let updateInfo = null;
+
+// Abre URL externa no navegador padrão do SO
+// (webview não suporta window.open — endpoint do servidor faz \`open\`/\`xdg-open\`/\`start\`)
+const openExternalUrl = (url) =>
+  fetch('/system/open-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  }).catch((err) => console.error('open-url failed:', err));
 
 const initSystem = async () => {
   try {

@@ -2,6 +2,15 @@
 
 let updateInfo = null;
 
+// Abre URL externa no navegador padrão do SO
+// (webview não suporta window.open — endpoint do servidor faz `open`/`xdg-open`/`start`)
+const openExternalUrl = (url) =>
+  fetch('/system/open-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  }).catch((err) => console.error('open-url failed:', err));
+
 const initSystem = async () => {
   try {
     const res = await fetch('/system');

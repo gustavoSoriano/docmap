@@ -380,11 +380,7 @@ const buildFavCard = (b, index) => {
 
 const openFavLink = async (id, url) => {
   // Webview não suporta window.open — usa endpoint do servidor para abrir no browser padrão
-  fetch('/system/open-url', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
-  }).catch(() => {});
+  openExternalUrl(url);
 
   try {
     const res     = await fetch(`/favorites/${id}/access`, { method: 'PUT' });

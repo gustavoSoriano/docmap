@@ -105,3 +105,15 @@ const loadDebug = () => {
     iframe.setAttribute('src', '/debug');
   }
 };
+
+// ── Global external link handler ──
+// Webview não suporta window.open — redireciona links http/https para o navegador padrão
+document.addEventListener('click', (e) => {
+  if (e.defaultPrevented) return;
+  const link = e.target.closest('a[href]');
+  if (!link) return;
+  const href = link.getAttribute('href');
+  if (!href || !/^(https?:)?\/\//i.test(href)) return;
+  e.preventDefault();
+  openExternalUrl(href);
+});
