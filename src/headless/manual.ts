@@ -231,7 +231,7 @@ retorno pela inbox persistida e decide se aprova, solicita retrabalho, expande
 o fluxo ou pede intervenção humana.
 
 O \`POST .../return\` **não encerra o executor**. Depois de devolver, ele
-consulta \`GET /agents/:id/inbox?workflowId=...&wait=180\` e segue
+consulta \`GET /agents/:id/inbox?workflowId=...&wait=600\` e segue
 \`nextAction\`: \`await_review | rework | claim_next | capability_mismatch |
 wait | stop\`. Em \`await_review\`, mantém a inbox bloqueante conectada; em
 \`rework\`, relê o feedback e assume novamente o mesmo nó; somente depois de
@@ -263,7 +263,7 @@ deve chamar endpoints de execução de nó como \`/workflows/nodes/:id/claim\`,
 - concluir o workflow quando a inbox indicar que ele está concluível.
 
 Para saber se uma tarefa terminou, o orquestrador deve consultar
-\`GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=180\`. A view
+\`GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=600\`. A view
 compacta retorna \`nextActions\`, contagens e URLs dos pacotes necessários sem
 repetir todo o estado. Com \`wait\`, a chamada retorna imediatamente quando já
 há uma ação; caso contrário, fica aberta até um evento relevante ou timeout.
@@ -307,9 +307,9 @@ ferramenta, provider, modelo, papel, presença e nó atual.
 | GET | \`/agents\` | Sessões e presença dos agentes |
 | POST | \`/agents/connect\` | Conecta e declara identidade |
 | POST | \`/agents/:id/heartbeat\` | Mantém a sessão ativa |
-| GET | \`/agents/:id/inbox?workflowId=...&wait=180\` | Trabalho filtrado pelo workflow; espera bloqueante opcional |
+| GET | \`/agents/:id/inbox?workflowId=...&wait=600\` | Trabalho filtrado pelo workflow; espera bloqueante opcional |
 | POST | \`/agents/:id/disconnect\` | Encerra sessão sem trabalho ativo |
-| GET | \`/orchestrator/inbox?agentSessionId=...&compact=true&wait=180\` | Próximas ações compactas com espera bloqueante opcional |
+| GET | \`/orchestrator/inbox?agentSessionId=...&compact=true&wait=600\` | Próximas ações compactas com espera bloqueante opcional |
 
 ### Endpoints de workflows
 

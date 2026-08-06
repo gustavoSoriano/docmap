@@ -1235,7 +1235,7 @@ Deno.test('prompt e inbox explicam capacidades ausentes', async () => {
       'prompt do workflow deveria declarar capabilities dos nós',
     );
     assert(
-      prompt.includes(`inbox?workflowId=${workflowId}&wait=180`),
+      prompt.includes(`inbox?workflowId=${workflowId}&wait=600`),
       'prompt deveria manter a inbox limitada ao workflow alvo',
     );
 

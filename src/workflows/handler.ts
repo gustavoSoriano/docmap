@@ -270,7 +270,7 @@ const validateAgentRole = (value: unknown): AgentRole => {
   return value;
 };
 
-const MAX_INBOX_WAIT_SECONDS = 120;
+const MAX_INBOX_WAIT_SECONDS = 600;
 
 const parseInboxWaitMs = (url: URL): number | null => {
   if (!url.searchParams.has('wait')) return null;
@@ -415,11 +415,11 @@ const handleAgents = async (
       agentSessionId: agent.id,
       heartbeatUrl: `/agents/${agent.id}/heartbeat`,
       inboxUrl: `/agents/${agent.id}/inbox`,
-      blockingInboxUrl: `/agents/${agent.id}/inbox?wait=180`,
+      blockingInboxUrl: `/agents/${agent.id}/inbox?wait=600`,
       availableWorkUrl: `/workflows/available?agentSessionId=${agent.id}`,
       orchestratorInboxUrl: `/orchestrator/inbox?agentSessionId=${agent.id}`,
       orchestratorBlockingInboxUrl:
-        `/orchestrator/inbox?agentSessionId=${agent.id}&compact=true&wait=180`,
+        `/orchestrator/inbox?agentSessionId=${agent.id}&compact=true&wait=600`,
       protocolVersion: WORKFLOW_PROTOCOL_VERSION,
       protocolUrl: `/workflows/protocol?role=${agent.role}`,
     }, 201);
