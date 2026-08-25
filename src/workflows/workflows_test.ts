@@ -661,6 +661,119 @@ Deno.test('retrabalho permanece com executor original enquanto sessão está ati
   });
 });
 
+Deno.test('retrabalho de retorno humano não fica preso à sessão sintética', async () => {
+  await withKv(async (kv) => {
+    const workflow = await jsonBody(
+      await request(kv, 'POST', '/workflows', {
+        title: 'Retrabalho humano',
+        objective: 'Liberar retrabalho para executores reais',
+        defaultMaxAttempts: 2,
+      }),
+    );
+    const workflowId = String(workflow.id);
+    const orchestrator = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'orquestrador',
+        tool: 'codex-cli',
+        provider: 'openai',
+        model: 'modelo',
+        role: 'orchestrator',
+      }),
+    );
+    const orchestratorId = String(orchestrator.agentSessionId);
+    await request(
+      kv,
+      'POST',
+      `/workflows/${workflowId}/claim-orchestration`,
+      { agentSessionId: orchestratorId },
+    );
+    const node = await jsonBody(
+      await request(kv, 'POST', `/workflows/${workflowId}/nodes`, {
+        title: 'Tarefa mista',
+        description: 'Retorno manual que precisa de rework de agente',
+        acceptanceCriteria: ['resultado corrigido'],
+        requiredCapabilities: ['code'],
+      }),
+    );
+    const nodeId = String(node.id);
+    await request(kv, 'POST', `/workflows/${workflowId}/start`, {
+      agentSessionId: orchestratorId,
+    });
+
+    const humanReturn = await jsonBody(
+      await request(
+        kv,
+        'POST',
+        `/workflows/nodes/${nodeId}/human-return`,
+        { outcome: 'partial', summary: 'Fiz parte manualmente' },
+      ),
+    );
+    const humanAgentId = String(humanReturn.agentSessionId);
+
+    await request(kv, 'POST', `/workflows/nodes/${nodeId}/decision`, {
+      agentSessionId: orchestratorId,
+      decision: 'rework',
+      feedback: 'Corrigir o restante',
+    });
+
+    const detailAfterRework = await jsonBody(
+      await request(kv, 'GET', `/workflows/${workflowId}`),
+    );
+    const reworkedNode = (
+      detailAfterRework.nodes as Array<Record<string, unknown>>
+    ).find((item) => item.id === nodeId);
+    assert(
+      reworkedNode?.status === 'needs_rework',
+      'retorno humano deveria ir para retrabalho',
+    );
+    assert(
+      !('claimedBySessionId' in (reworkedNode ?? {})),
+      'retrabalho de retorno humano não deveria ficar reservado à sessão sintética',
+    );
+
+    // A sessão humana continua viva; mesmo assim outro executor deve assumir.
+    const humanAlive = await jsonBody(
+      await request(kv, 'GET', `/agents/${humanAgentId}`),
+    );
+    assert(
+      humanAlive.presence !== 'offline',
+      'sessão humana deveria permanecer viva no cenário do teste',
+    );
+
+    const executor = await jsonBody(
+      await request(kv, 'POST', '/agents/connect', {
+        name: 'executor-real',
+        tool: 'opencode',
+        provider: 'openai',
+        model: 'modelo',
+        role: 'executor',
+        capabilities: ['code'],
+      }),
+    );
+    const executorId = String(executor.agentSessionId);
+    const inbox = await jsonBody(
+      await request(kv, 'GET', `/agents/${executorId}/inbox`),
+    );
+    assert(
+      (inbox.available as Array<Record<string, unknown>>).some(
+        (item) =>
+          (item.node as Record<string, unknown> | undefined)?.id === nodeId,
+      ),
+      'executor real deveria ver o retrabalho humano disponível',
+    );
+    const claim = await request(
+      kv,
+      'POST',
+      `/workflows/nodes/${nodeId}/claim`,
+      { agentSessionId: executorId },
+    );
+    assert(
+      claim.ok,
+      'executor real deveria assumir retrabalho de retorno humano',
+    );
+  });
+});
+
 Deno.test('barreiras finais, macro efêmera e conclusão verificável', async () => {
   await withKv(async (kv) => {
     const workflow = await jsonBody(

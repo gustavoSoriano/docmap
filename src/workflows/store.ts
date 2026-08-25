@@ -1756,6 +1756,11 @@ const agentCanExecute = (
     agent.capabilities.includes(capability)
   );
 
+// Sessões sintéticas criadas por retorno humano (`humanReturnNode`) não são
+// executores de verdade: não podem assumir retrabalho, logo nunca reservam.
+const isHumanAgent = (agent: AgentSession | null): boolean =>
+  agent?.provider === 'human';
+
 export const listAvailableNodes = async (
   kv: Deno.Kv,
   filter: {
@@ -1782,6 +1787,7 @@ export const listAvailableNodes = async (
       const previousAgent = await getAgent(kv, node.claimedBySessionId);
       if (
         previousAgent &&
+        !isHumanAgent(previousAgent) &&
         computedPresence(previousAgent) !== 'stale' &&
         previousAgent.presence !== 'offline'
       ) {
@@ -1829,6 +1835,7 @@ export const claimNode = async (
     const previousAgent = await getAgent(kv, node.claimedBySessionId);
     if (
       previousAgent &&
+      !isHumanAgent(previousAgent) &&
       computedPresence(previousAgent) !== 'stale' &&
       previousAgent.presence !== 'offline'
     ) {
@@ -2291,11 +2298,24 @@ export const reviewNode = async (
     reviewedAt: timestamp,
     updatedAt: timestamp,
   };
-  const updatedNode: WorkflowNode = {
+  let updatedNode: WorkflowNode = {
     ...node,
     status: nextStatus,
     updatedAt: timestamp,
   };
+  // Retrabalho de run retornado por humano não fica reservado à sessão
+  // sintética "Usuário": ela não executa, e a reserva deixaria o nó preso até
+  // o heartbeat expirar. Outro executor pode assumir imediatamente.
+  if (nextStatus === 'needs_rework') {
+    const runAgent = run.agentSessionId
+      ? await getAgent(kv, run.agentSessionId)
+      : null;
+    if (isHumanAgent(runAgent)) {
+      const base = { ...updatedNode } as Record<string, unknown>;
+      delete base.claimedBySessionId;
+      updatedNode = { ...base } as WorkflowNode;
+    }
+  }
   await kv.set(runKey(nodeId, run.id), updatedRun);
   await kv.set(nodeKey(nodeId), updatedNode);
   const workflowStatus = nextStatus === 'human_intervention'

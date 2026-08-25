@@ -237,7 +237,9 @@ wait | stop\`. Em \`await_review\`, mantém a inbox bloqueante conectada; em
 \`rework\`, relê o feedback e assume novamente o mesmo nó; somente depois de
 aprovação pode compactar/resetar contexto e pegar o próximo trabalho.
 Retrabalho fica reservado ao executor original enquanto sua sessão estiver
-ativa.
+ativa. Exceção: retrabalho de \`human-return\` (sessão sintética "Usuário",
+\`provider=human\`) não reserva — a sessão humana não executa, então o nó fica
+imediatamente disponível para qualquer executor com as capabilities exigidas.
 
 Capacidades são filtros estritos: o executor só recebe um nó quando declarou
 todas as \`requiredCapabilities\`. Prompts de workflow derivam automaticamente
