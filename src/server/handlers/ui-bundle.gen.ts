@@ -250,17 +250,21 @@ body::before {
   height: 34px;
   display: grid;
   place-items: center;
-  font-size: 18px;
-  color: var(--on-accent);
-  background: var(--accent);
-  border-radius: 9px;
   margin-bottom: 16px;
-  box-shadow: 0 4px 14px rgba(55,217,154,.3);
   cursor: pointer;
-  transition: all .2s;
+  transition: transform .2s;
+}
+#rail-logo svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 4px 14px rgba(55,217,154,.35));
+  transition: filter .2s;
+}
+#rail-logo:hover svg {
+  filter: drop-shadow(0 4px 20px rgba(55,217,154,.5));
 }
 #rail-logo:hover {
-  box-shadow: 0 4px 20px rgba(55,217,154,.45);
   transform: scale(1.06);
 }
 .rail-btn {
@@ -755,8 +759,6 @@ body::before {
     margin-right: 6px;
     width: 28px;
     height: 28px;
-    font-size: 14px;
-    border-radius: 7px;
     flex-shrink: 0;
   }
   .rail-btn {
@@ -9294,7 +9296,24 @@ svg#kg-svg:active { cursor: grabbing; }
       <!-- ════ Left rail — mode switcher ════ -->
       <nav id="rail">
         <div id="rail-logo" title="Recolher sidebar"
-          onclick="toggleSidebar()">◆</div>
+          onclick="toggleSidebar()">
+          <svg viewBox="0 0 1024 1024" aria-hidden="true">
+            <defs>
+              <linearGradient id="dm-logo-bg" x1="0" y1="0" x2="1024" y2="1024"
+                gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#1a1e26"/>
+                <stop offset="1" stop-color="#0b0c0e"/>
+              </linearGradient>
+            </defs>
+            <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#dm-logo-bg)"/>
+            <ellipse cx="512" cy="512" rx="300" ry="205" fill="none"
+              stroke="#37d99a" stroke-width="34" stroke-opacity="0.9"
+              transform="rotate(-18 512 512)"/>
+            <circle cx="512" cy="512" r="128" fill="#37d99a"/>
+            <circle cx="797" cy="419" r="52" fill="#37d99a" fill-opacity="0.95"/>
+            <circle cx="227" cy="605" r="26" fill="#37d99a" fill-opacity="0.5"/>
+          </svg>
+        </div>
         <button class="rail-btn active" id="rail-graph"
           onclick="setMode('graph')"
           title="Grafo de conhecimento">

@@ -182,3 +182,8 @@ Use, modifique e venda sem burocracia. O código é seu.
 <p align="center">
   Feito com carinho por <a href="https://github.com/gustavosoriano">@gustavosoriano</a>
 </p>
+
+
+sudo touch "/Applications/DocMap.app"
+killall Dock
+

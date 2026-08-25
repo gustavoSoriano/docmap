@@ -50,6 +50,8 @@ deno compile \
 echo "3/4  Criando ${APP_NAME}.app..."
 sudo mkdir -p "${APP_DIR}/Contents/MacOS"
 sudo mkdir -p "${APP_DIR}/Contents/Resources"
+# Ícone do Dock — o macOS lê o .icns referenciado pelo CFBundleIconFile
+sudo cp "${SCRIPT_DIR}/resources/AppIcon.icns" "${APP_DIR}/Contents/Resources/AppIcon.icns"
 sudo mv /tmp/docmap-build "$BINARY_DEST"
 sudo chmod +x "$BINARY_DEST"
 xattr -d com.apple.quarantine "$BINARY_DEST" 2>/dev/null || true
@@ -70,6 +72,8 @@ sudo tee "${APP_DIR}/Contents/Info.plist" > /dev/null << 'PLIST'
     <string>1.0.0</string>
     <key>CFBundleExecutable</key>
     <string>docmap</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>NSHighResolutionCapable</key>

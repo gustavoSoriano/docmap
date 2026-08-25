@@ -100,17 +100,21 @@ body::before {
   height: 34px;
   display: grid;
   place-items: center;
-  font-size: 18px;
-  color: var(--on-accent);
-  background: var(--accent);
-  border-radius: 9px;
   margin-bottom: 16px;
-  box-shadow: 0 4px 14px rgba(55,217,154,.3);
   cursor: pointer;
-  transition: all .2s;
+  transition: transform .2s;
+}
+#rail-logo svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 4px 14px rgba(55,217,154,.35));
+  transition: filter .2s;
+}
+#rail-logo:hover svg {
+  filter: drop-shadow(0 4px 20px rgba(55,217,154,.5));
 }
 #rail-logo:hover {
-  box-shadow: 0 4px 20px rgba(55,217,154,.45);
   transform: scale(1.06);
 }
 .rail-btn {
@@ -605,8 +609,6 @@ body::before {
     margin-right: 6px;
     width: 28px;
     height: 28px;
-    font-size: 14px;
-    border-radius: 7px;
     flex-shrink: 0;
   }
   .rail-btn {
