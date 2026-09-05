@@ -152,6 +152,7 @@ const closeNoteDropdown = (e) => {
 const COLUMNS = [
   { status: 'todo',        label: 'A Fazer'      },
   { status: 'in-progress', label: 'Em Andamento' },
+  { status: 'review',      label: 'Revisão'      },
   { status: 'done',        label: 'Concluído'    },
 ];
 

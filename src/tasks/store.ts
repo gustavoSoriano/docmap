@@ -13,7 +13,8 @@ const PREFIX = ['tasks', GLOBAL] as const;
 const STATUS_ORDER: Record<string, number> = {
   'todo': 0,
   'in-progress': 1,
-  'done': 2,
+  'review': 2,
+  'done': 3,
 };
 
 export const listTasks = async (

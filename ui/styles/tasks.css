@@ -131,6 +131,9 @@
 .kanban-col-dot[data-col="in-progress"] {
   background: var(--cat-entry);
 }
+.kanban-col-dot[data-col="review"] {
+  background: var(--type-warning);
+}
 .kanban-col-dot[data-col="done"] {
   background: var(--accent);
 }

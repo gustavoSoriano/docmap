@@ -3581,6 +3581,9 @@ body::before {
 .kanban-col-dot[data-col="in-progress"] {
   background: var(--cat-entry);
 }
+.kanban-col-dot[data-col="review"] {
+  background: var(--type-warning);
+}
 .kanban-col-dot[data-col="done"] {
   background: var(--accent);
 }
@@ -9861,6 +9864,21 @@ svg#kg-svg:active { cursor: grabbing; }
               <div class="kanban-cards" id="kanban-cards-in-progress"></div>
             </div>
 
+            <div class="kanban-col" id="kanban-col-review"
+              data-status="review">
+              <div class="kanban-col-head">
+                <span class="kanban-col-dot" data-col="review"></span>
+                <span class="kanban-col-title">Revisão</span>
+                <span class="kanban-col-count"
+                  id="kanban-count-review">0</span>
+                <button class="kanban-col-add"
+                  onclick="openNewTask('review')" title="Adicionar task">
+                  <span data-icon="plus"></span>
+                </button>
+              </div>
+              <div class="kanban-cards" id="kanban-cards-review"></div>
+            </div>
+
             <div class="kanban-col" id="kanban-col-done" data-status="done">
               <div class="kanban-col-head">
                 <span class="kanban-col-dot" data-col="done"></span>
@@ -10448,6 +10466,7 @@ svg#kg-svg:active { cursor: grabbing; }
             <select id="task-status-select">
               <option value="todo">A Fazer</option>
               <option value="in-progress">Em Andamento</option>
+              <option value="review">Revisão</option>
               <option value="done">Concluído</option>
             </select>
             <button class="kanban-modal-close" id="task-modal-close"
@@ -12385,6 +12404,7 @@ const closeNoteDropdown = (e) => {
 const COLUMNS = [
   { status: 'todo',        label: 'A Fazer'      },
   { status: 'in-progress', label: 'Em Andamento' },
+  { status: 'review',      label: 'Revisão'      },
   { status: 'done',        label: 'Concluído'    },
 ];
 

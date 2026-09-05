@@ -73,7 +73,7 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     id: 'tasks',
     title: 'Tasks',
     heading: 'Tasks — Kanban global',
-    summary: 'Kanban global com todo, in-progress e done.',
+    summary: 'Kanban global com todo, in-progress, review e done.',
     tags: ['tasks', 'kanban'],
   },
   {
@@ -483,7 +483,7 @@ depois disso o botão de copiar o novo prompt volta a aparecer.
 
 ## Tasks — Kanban global
 
-Colunas fixas: \`todo\` (A Fazer) · \`in-progress\` (Em Andamento) · \`done\` (Concluído).  
+Colunas fixas: \`todo\` (A Fazer) · \`in-progress\` (Em Andamento) · \`review\` (Revisão) · \`done\` (Concluído).  
 Ordem dentro da coluna = prioridade (menor \`order\` = mais prioritário).
 
 | Método | Endpoint | Descrição |
@@ -498,7 +498,7 @@ Ordem dentro da coluna = prioridade (menor \`order\` = mais prioritário).
 **Campos:**
 - \`title\` (string, obrigatório)
 - \`description\` (markdown, opcional)
-- \`status\`: \`"todo"\` | \`"in-progress"\` | \`"done"\`
+- \`status\`: \`"todo"\` | \`"in-progress"\` | \`"review"\` | \`"done"\`
 - \`order\` (número, definido automaticamente na criação)
 - \`dueDate\` (YYYY-MM-DD, opcional)
 - \`noteId\` (UUID de uma nota vinculada, opcional)
