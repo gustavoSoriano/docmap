@@ -42,6 +42,22 @@ Deno.test('headless manual can be filtered by feature', () => {
   );
 });
 
+Deno.test('macro manual documents collections and composed execution', () => {
+  const manual = renderHeadlessManual({ features: ['macros'] });
+  assert(
+    manual.includes('/macros/collections'),
+    'manual de macros deveria documentar collections',
+  );
+  assert(
+    manual.includes('run_macro') && manual.includes('runMacro'),
+    'manual de macros deveria documentar helpers de composição',
+  );
+  assert(
+    manual.includes('macro_not_found'),
+    'manual de macros deveria documentar erro de referência ausente',
+  );
+});
+
 Deno.test('headless role selection resolves workflow protocol', () => {
   const selected = selectHeadlessFeatures({ role: 'executor' });
   assert(

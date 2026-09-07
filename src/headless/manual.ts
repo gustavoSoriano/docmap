@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '9.0.0';
+export const HEADLESS_MANUAL_VERSION = '10.0.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -58,7 +58,8 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     id: 'macros',
     title: 'Macros',
     heading: 'Macros',
-    summary: 'Macros bash/deno persistentes ou temporarias de workflow.',
+    summary:
+      'Macros bash/deno organizadas em collections e com composição entre macros.',
     tags: ['macros', 'automation'],
   },
   {
@@ -196,15 +197,51 @@ Tipos Mermaid: \`flowchart\`, \`sequenceDiagram\`, \`classDiagram\`, \`stateDiag
 
 ## Macros
 
+### Collections
+
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| GET | \`/macros\` | Lista macros (id, name, title, description, interpreter, tags) |
-| GET | \`/macros/:id\` | Macro completa com \`script\` e \`interpreter\` |
-| POST | \`/macros\` | Cria \`{ name, title, description?, script, tags?, lifecycle?, workflowId? }\` |
+| GET | \`/macros/collections\` | Lista collections de macros |
+| GET | \`/macros/collections/:id\` | Collection + suas macros |
+| POST | \`/macros/collections\` | Cria \`{ name }\` |
+| PUT | \`/macros/collections/:id\` | Renomeia \`{ name }\` |
+| DELETE | \`/macros/collections/:id\` | Remove a collection e preserva suas macros sem collection |
+
+### Macros e execução
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/macros\` | Lista macros; aceite \`?collectionId=<id>\` para filtrar |
+| GET | \`/macros/:idOrName\` | Macro completa por UUID ou slug \`name\` |
+| POST | \`/macros\` | Cria \`{ name, title, description?, script, tags?, collectionId?, lifecycle?, workflowId? }\` |
 | PUT | \`/macros/:id\` | Edita (campos parciais) |
+| DELETE | \`/macros/:id\` | Remove uma macro |
+| POST | \`/macros/:idOrName/run\` | Executa com output SSE em tempo real |
+| POST | \`/macros/:idOrName/invoke\` | Executa aguardando o fim; ideal para composição |
 
 O \`interpreter\` (\`bash\` ou \`deno\`) é detectado automaticamente pelo shebang.
-Execução continua sendo manual pelo usuário dentro do app.
+O \`name\` é um slug global e único, para que chamadas entre collections sejam
+determinísticas. \`collectionId: null\` remove uma macro da collection atual.
+
+Toda macro pode executar outra por UUID ou slug:
+
+\`\`\`bash
+#!/bin/bash
+set -e
+run_macro "preparar-dados"
+\`\`\`
+
+\`\`\`ts
+#!/usr/bin/env -S deno run --allow-all
+await runMacro('preparar-dados')
+\`\`\`
+
+\`run_macro\` (Bash) retorna status diferente de zero e \`runMacro\` (Deno)
+lança \`Error\` quando a macro não existe, é bloqueada ou termina com falha.
+Chamadas circulares (A → B → A) também são rejeitadas. Para integrações sem os
+helpers, \`POST /macros/:idOrName/invoke\` retorna \`404\` com
+\`{ "error": "macro_not_found" }\` quando a referência não existe, \`422\`
+quando o script termina com erro e \`200\` quando conclui com sucesso.
 
 Macros temporárias de quality gate usam \`lifecycle: "workflow"\` e o
 \`workflowId\` correspondente. Quando o workflow é concluído, o Docmap arquiva

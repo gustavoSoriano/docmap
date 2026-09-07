@@ -249,9 +249,15 @@
         <main id="mode-macros" class="mode">
           <section id="macros-col">
             <div id="macros-col-head">
-              <div id="macros-col-title">Macros</div>
-              <button id="macros-new-btn" title="Nova macro"
-                onclick="newMacro()"
+              <span class="macros-section-label">Collections</span>
+              <button class="macros-hd-btn" title="Nova collection"
+                onclick="newMacroCollection()" data-icon="plus"></button>
+            </div>
+            <div id="macros-collections-list"></div>
+            <div id="macros-list-head">
+              <span id="macros-list-heading">Sem collection</span>
+              <button id="macros-new-btn" class="macros-hd-btn"
+                title="Nova macro" onclick="newMacro()"
                 data-icon="plus"></button>
             </div>
             <div id="macros-list"></div>
@@ -266,7 +272,7 @@
 
             <div id="macro-path-hint">
             <span data-icon="info"></span>
-            Apps GUI não herdam o PATH do terminal. Prefira caminhos absolutos ou source seu perfil no script.
+            Use <code>run_macro "slug"</code> no Bash ou <code>await runMacro("slug")</code> no Deno para executar outra macro.
           </div>
 
             <div id="macros-editor-form">
@@ -289,6 +295,8 @@
               </div>
 
               <div id="macro-desc-row">
+                <select id="macro-collection-select"
+                  title="Collection da macro"></select>
                 <input id="macro-desc-input" type="text"
                   placeholder="Descrição curta…" />
                 <input id="macro-tags-input" type="text"

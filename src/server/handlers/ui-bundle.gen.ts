@@ -2023,41 +2023,176 @@ body::before {
 #macros-col-head {
   display: flex;
   align-items: center;
-  padding: 18px 18px 14px;
-  gap: 10px;
+  padding: 9px 10px 9px 14px;
+  gap: 6px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+#macros-list-head {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px 8px 14px;
+  gap: 6px;
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
-#macros-col-title {
-  font-size: 18px;
+.macros-section-label {
+  font-size: .65rem;
   font-weight: 700;
-  letter-spacing: -.02em;
-  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-4);
   flex: 1;
 }
-#macros-new-btn {
-  width: 30px;
-  height: 30px;
+#macros-list-heading {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--text-3);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.macros-hd-btn {
+  width: 22px;
+  height: 22px;
   border: none;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-xs);
+  background: transparent;
+  color: var(--text-4);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .12s, color .12s;
+}
+.macros-hd-btn:hover {
   background: var(--accent);
   color: var(--on-accent);
-  font-size: 19px;
-  line-height: 1;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  transition: all .15s;
-  box-shadow: 0 2px 10px rgba(55,217,154,.28);
 }
-#macros-new-btn:hover {
-  background: var(--accent-2);
-  transform: scale(1.08);
+
+#macros-collections-list {
+  padding: 5px;
+  flex-shrink: 0;
+  max-height: 210px;
+  overflow-y: auto;
+}
+.macros-col-empty {
+  font-size: .75rem;
+  color: var(--text-4);
+  text-align: center;
+  padding: 18px 10px;
+  line-height: 1.6;
+}
+.macros-col-item {
+  display: flex;
+  align-items: center;
+  border-radius: var(--r-sm);
+  transition: background .1s;
+}
+.macros-col-item:hover { background: var(--surface-3); }
+.macros-col-item.active { background: var(--accent-dim); }
+.macros-col-item-inner {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 7px 8px;
+  cursor: pointer;
+  gap: 8px;
+  min-width: 0;
+}
+.macros-col-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-4);
+  flex-shrink: 0;
+}
+.macros-col-item.active .macros-col-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.macros-col-name {
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--text-2);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.macros-col-item.active .macros-col-name { color: var(--accent); }
+.macros-col-count {
+  font-size: .65rem;
+  color: var(--text-4);
+  background: var(--surface-4);
+  border-radius: 10px;
+  padding: 1px 6px;
+}
+.macros-col-actions {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding-right: 5px;
+}
+.macros-col-item:hover .macros-col-actions { display: flex; }
+.macros-col-action-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-4);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.macros-col-action-btn:hover {
+  color: var(--text-2);
+  background: var(--surface-4);
+}
+.macros-col-action-btn.danger:hover { color: #fb7185; }
+.macros-col-new-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 6px;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  margin-bottom: 4px;
+}
+.macros-col-new-input,
+.macros-col-rename-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: .8125rem;
+  font-family: var(--font-ui);
+  padding: 2px 4px;
+  min-width: 0;
+}
+.macros-col-rename-input { border-bottom: 1px solid var(--accent-line); }
+.macros-col-new-ok {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #macros-list {
   flex: 1;
   overflow-y: auto;
+  padding: 4px 5px;
 }
 .macros-empty {
   padding: 34px 22px;
@@ -2068,8 +2203,8 @@ body::before {
 }
 
 .macro-item {
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border-soft);
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   transition: background .1s;
   border-left: 2px solid transparent;
@@ -2080,6 +2215,15 @@ body::before {
 .macro-item.active {
   background: var(--surface-2);
   border-left-color: var(--accent);
+}
+.macro-item-collection {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  color: var(--text-4);
+  font-size: .6rem;
 }
 .macro-item-top {
   display: flex;
@@ -2235,6 +2379,19 @@ body::before {
   padding: 0 10px;
   outline: none;
 }
+#macro-collection-select {
+  height: 30px;
+  max-width: 170px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  padding: 0 8px;
+  outline: none;
+}
+#macro-collection-select:focus { border-color: var(--accent-line); }
 #macro-desc-input:focus {
   border-color: var(--accent-line);
 }
@@ -2262,6 +2419,10 @@ body::before {
   flex-shrink: 0;
   margin-top: 1px;
   color: var(--text-3);
+}
+#macro-path-hint code {
+  font-family: var(--font-mono);
+  color: var(--text-2);
 }
 
 #macro-body {
@@ -9484,9 +9645,15 @@ svg#kg-svg:active { cursor: grabbing; }
         <main id="mode-macros" class="mode">
           <section id="macros-col">
             <div id="macros-col-head">
-              <div id="macros-col-title">Macros</div>
-              <button id="macros-new-btn" title="Nova macro"
-                onclick="newMacro()"
+              <span class="macros-section-label">Collections</span>
+              <button class="macros-hd-btn" title="Nova collection"
+                onclick="newMacroCollection()" data-icon="plus"></button>
+            </div>
+            <div id="macros-collections-list"></div>
+            <div id="macros-list-head">
+              <span id="macros-list-heading">Sem collection</span>
+              <button id="macros-new-btn" class="macros-hd-btn"
+                title="Nova macro" onclick="newMacro()"
                 data-icon="plus"></button>
             </div>
             <div id="macros-list"></div>
@@ -9501,7 +9668,7 @@ svg#kg-svg:active { cursor: grabbing; }
 
             <div id="macro-path-hint">
             <span data-icon="info"></span>
-            Apps GUI não herdam o PATH do terminal. Prefira caminhos absolutos ou source seu perfil no script.
+            Use <code>run_macro "slug"</code> no Bash ou <code>await runMacro("slug")</code> no Deno para executar outra macro.
           </div>
 
             <div id="macros-editor-form">
@@ -9524,6 +9691,8 @@ svg#kg-svg:active { cursor: grabbing; }
               </div>
 
               <div id="macro-desc-row">
+                <select id="macro-collection-select"
+                  title="Collection da macro"></select>
                 <input id="macro-desc-input" type="text"
                   placeholder="Descrição curta…" />
                 <input id="macro-tags-input" type="text"
@@ -11517,6 +11686,8 @@ document.addEventListener('keydown', (e) => {
 // ════ Macros — runner de scripts bash/deno com output em tempo real ════
 
 let allMacros    = [];
+let macroCollections = [];
+let activeMacroCollectionId = null;
 let currentMacro = null;
 let runReader    = null; // leitor SSE ativo
 let macroEditor  = null; // instância CodeMirror (lazy init)
@@ -11576,38 +11747,184 @@ const macroFocus = () => {
 // ── Lista ──
 const loadMacrosList = async () => {
   try {
-    const res = await fetch('/macros');
-    allMacros  = await res.json();
+    const [res, collectionsRes] = await Promise.all([
+      fetch('/macros'),
+      fetch('/macros/collections'),
+    ]);
+    allMacros = await res.json();
+    macroCollections = await collectionsRes.json();
+    if (activeMacroCollectionId && !macroCollections.some((c) => c.id === activeMacroCollectionId)) {
+      activeMacroCollectionId = null;
+    }
     if (!allMacros.length) await seedDefaultMacros();
-    else renderMacrosList(allMacros);
+    else {
+      renderMacroCollections();
+      renderMacrosList();
+    }
   } catch (err) { console.error('Erro ao carregar macros:', err); }
 };
 
-const renderMacrosList = (macros) => {
+const renderMacrosList = () => {
   const list = $('macros-list');
+  const macros = activeMacroCollectionId
+    ? allMacros.filter((m) => m.collectionId === activeMacroCollectionId)
+    : allMacros.filter((m) => !m.collectionId);
+  const collection = macroCollections.find((c) => c.id === activeMacroCollectionId);
+  $('macros-list-heading').textContent = collection?.name ?? 'Sem collection';
   if (!macros.length) {
-    list.innerHTML = \`<div class="macros-empty">Nenhuma macro ainda.<br>Clique em <strong>+</strong> para criar.</div>\`;
+    const emptyLabel = activeMacroCollectionId ? 'Nenhuma macro nesta collection ainda.' : 'Nenhuma macro sem collection ainda.';
+    list.innerHTML = \`<div class="macros-empty">\${emptyLabel}<br>Clique em <strong>+</strong> para criar.</div>\`;
     return;
   }
-  list.innerHTML = macros.map((m) =>
-    \`<div class="macro-item\${currentMacro?.id === m.id ? ' active' : ''}" onclick="openMacro('\${m.id}')">
+  list.innerHTML = macros.map((m) => {
+    return \`<div class="macro-item\${currentMacro?.id === m.id ? ' active' : ''}" onclick="openMacro('\${m.id}')">
       <div class="macro-item-top">
         <span class="macro-interp-dot \${m.interpreter}">\${m.interpreter === 'deno' ? '🦕' : '⬡'}</span>
         <span class="macro-item-title">\${escHtml(m.title)}</span>
       </div>
       <div class="macro-item-desc">\${escHtml(m.description || '')}</div>
       \${(m.tags||[]).length ? \`<div class="macro-item-tags">\${m.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\` : ''}
-    </div>\`
-  ).join('');
+    </div>\`;
+  }).join('');
+};
+
+const renderMacroCollections = () => {
+  const list = $('macros-collections-list');
+  if (!macroCollections.length) {
+    list.innerHTML = \`<div class="macros-col-empty">Nenhuma collection ainda.<br>Crie a primeira.</div>\`;
+    return;
+  }
+  list.innerHTML = macroCollections.map((collection) => {
+    const count = allMacros.filter((macro) => macro.collectionId === collection.id).length;
+    const active = activeMacroCollectionId === collection.id ? ' active' : '';
+    return \`<div class="macros-col-item\${active}" data-macro-collection-id="\${collection.id}">
+      <div class="macros-col-item-inner" onclick="selectMacroCollection('\${collection.id}')">
+        <span class="macros-col-dot"></span>
+        <span class="macros-col-name">\${escHtml(collection.name)}</span>
+        <span class="macros-col-count">\${count}</span>
+      </div>
+      <div class="macros-col-actions">
+        <button class="macros-col-action-btn" onclick="renameMacroCollection('\${collection.id}')" title="Renomear">
+          <span data-icon="pencil"></span>
+        </button>
+        <button class="macros-col-action-btn danger" onclick="removeMacroCollection('\${collection.id}')" title="Remover collection">
+          <span data-icon="trash"></span>
+        </button>
+      </div>
+    </div>\`;
+  }).join('');
+  hydrateIcons(list);
+};
+
+const selectMacroCollection = (id) => {
+  activeMacroCollectionId = activeMacroCollectionId === id ? null : id;
+  renderMacroCollections();
+  renderMacrosList();
+};
+
+const newMacroCollection = () => {
+  if ($('new-macro-col-row')) return;
+  const list = $('macros-collections-list');
+  const row = document.createElement('div');
+  row.id = 'new-macro-col-row';
+  row.className = 'macros-col-new-row';
+  row.innerHTML = \`<input id="new-macro-col-input" class="macros-col-new-input"
+    placeholder="Nome da collection…" autocomplete="off" spellcheck="false" />
+    <button class="macros-col-new-ok" onclick="confirmNewMacroCollection()" title="Criar">
+      <span data-icon="plus"></span>
+    </button>\`;
+  list.prepend(row);
+  hydrateIcons(row);
+  const input = $('new-macro-col-input');
+  input.focus();
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { event.preventDefault(); confirmNewMacroCollection(); }
+    if (event.key === 'Escape') row.remove();
+  });
+};
+
+const confirmNewMacroCollection = async () => {
+  const input = $('new-macro-col-input');
+  const name = input?.value.trim();
+  $('new-macro-col-row')?.remove();
+  if (!name) return;
+  const res = await fetch('/macros/collections', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) return toast(await res.text() || 'Erro ao criar collection');
+  const collection = await res.json();
+  activeMacroCollectionId = collection.id;
+  await loadMacrosList();
+};
+
+const renameMacroCollection = (id) => {
+  const collection = macroCollections.find((item) => item.id === id);
+  const nameEl = document.querySelector(\`[data-macro-collection-id="\${id}"] .macros-col-name\`);
+  if (!collection || !nameEl) return;
+  const input = document.createElement('input');
+  input.className = 'macros-col-rename-input';
+  input.value = collection.name;
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const commit = async () => {
+    if (done) return;
+    done = true;
+    const name = input.value.trim();
+    if (name && name !== collection.name) {
+      await fetch(\`/macros/collections/\${id}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+    }
+    await loadMacrosList();
+  };
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { event.preventDefault(); commit(); }
+    if (event.key === 'Escape') { done = true; loadMacrosList(); }
+  });
+  input.addEventListener('blur', commit);
+};
+
+const removeMacroCollection = async (id) => {
+  const collection = macroCollections.find((item) => item.id === id);
+  if (!collection) return;
+  const count = allMacros.filter((macro) => macro.collectionId === id).length;
+  const suffix = count ? \` As \${count} macro(s) serão preservadas sem collection.\` : '';
+  const ok = await confirmDialog(\`Remover collection "\${collection.name}"?\${suffix}\`, {
+    okLabel: 'Remover', danger: true,
+  });
+  if (!ok) return;
+  const res = await fetch(\`/macros/collections/\${id}\`, { method: 'DELETE' });
+  if (!res.ok) return toast('Erro ao remover collection');
+  if (activeMacroCollectionId === id) activeMacroCollectionId = null;
+  if (currentMacro?.collectionId === id) currentMacro = { ...currentMacro, collectionId: undefined };
+  await loadMacrosList();
+  if (currentMacro) fillMacroEditor(currentMacro);
 };
 
 // ── Seed macro padrão ──
 const seedDefaultMacros = async () => {
+  let defaultCollection = macroCollections[0];
+  if (!defaultCollection) {
+    const collectionRes = await fetch('/macros/collections', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Geral' }),
+    });
+    defaultCollection = await collectionRes.json();
+    macroCollections = [defaultCollection];
+  }
   const defaults = [
     {
       title: 'Briefing do DocMap',
       name: 'briefing',
       description: 'Lista notas recentes e skills — contexto pra colar numa IA',
+      collectionId: defaultCollection.id,
       script: \`#!/usr/bin/env -S deno run --allow-net\\nconst api = Deno.env.get('DOCMAP_API')\\n\\nconst notes = await fetch(\\\`\\\${api}/notes\\\`).then(r=>r.json())\\nconst skills = await fetch(\\\`\\\${api}/skills\\\`).then(r=>r.json())\\n\\nconsole.log('# Briefing docmap\\\\n')\\nconsole.log(\\\`## Notas recentes (\\\\\${notes.length} total)\\\\n\\\`)\\nnotes.slice(0,8).forEach(n => console.log(\\\`- **\\\\\${n.title}** (\\\\\${n.category}) — \\\\\${n.preview?.slice(0,80)}...\\\`))\\nconsole.log(\\\`\\\\n## Skills disponíveis\\\\n\\\`)\\nskills.forEach(s => console.log(\\\`- @\\\\\${s.name} — \\\\\${s.description}\\\`))\\nconsole.log('\\\\n---\\\\nCole este briefing no início de qualquer sessão com IA.')\`,
     },
   ];
@@ -11619,9 +11936,7 @@ const seedDefaultMacros = async () => {
       body: JSON.stringify(d),
     });
   }
-  const res = await fetch('/macros');
-  allMacros = await res.json();
-  renderMacrosList(allMacros);
+  await loadMacrosList();
 };
 
 // ── Abrir / Novo ──
@@ -11631,7 +11946,7 @@ const openMacro = async (id) => {
     const res = await fetch('/macros/' + id);
     currentMacro = await res.json();
     fillMacroEditor(currentMacro);
-    renderMacrosList(allMacros);
+    renderMacrosList();
   } catch (err) { console.error('Erro ao abrir macro:', err); }
 };
 
@@ -11640,6 +11955,7 @@ const newMacro = () => {
   $('macro-title-input').value = '';
   $('macro-desc-input').value  = '';
   $('macro-tags-input').value  = '';
+  populateMacroCollectionSelect(activeMacroCollectionId);
   macroSet('#!/bin/bash\\n# Seu script aqui\\n# $DOCMAP_API       → http://127.0.0.1:3334\\n\\necho "Olá do docmap!"');
   $('macro-interp-badge').textContent = 'bash';
   $('macro-interp-badge').className   = 'macro-badge bash';
@@ -11654,6 +11970,7 @@ const fillMacroEditor = (m) => {
   $('macro-title-input').value       = m.title;
   $('macro-desc-input').value        = m.description || '';
   $('macro-tags-input').value        = (m.tags || []).join(', ');
+  populateMacroCollectionSelect(m.collectionId);
   macroSet(m.script);
   $('macro-interp-badge').textContent = m.interpreter;
   $('macro-interp-badge').className   = \`macro-badge \${m.interpreter}\`;
@@ -11669,6 +11986,14 @@ const showMacroEditor = () => {
   initMacroEditor();
 };
 
+const populateMacroCollectionSelect = (selectedId) => {
+  const select = $('macro-collection-select');
+  select.innerHTML = \`<option value="">— sem collection —</option>\` +
+    macroCollections.map((collection) =>
+      \`<option value="\${collection.id}"\${collection.id === selectedId ? ' selected' : ''}>\${escHtml(collection.name)}</option>\`
+    ).join('');
+};
+
 // auto-detect é feita no evento 'change' do CodeMirror dentro de initMacroEditor
 
 // ── Salvar / Excluir ──
@@ -11680,19 +12005,22 @@ const saveCurrentMacro = async () => {
   if (!script) { macroFocus();                   return toast('Script vazio'); }
 
   const tags   = $('macro-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
+  const collectionId = $('macro-collection-select').value || null;
   const url    = currentMacro ? '/macros/' + currentMacro.id : '/macros';
   const method = currentMacro ? 'PUT' : 'POST';
   try {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, name: title, description: desc, script, tags }),
+      body: JSON.stringify({ title, name: title, description: desc, script, tags, collectionId }),
     });
+    if (!res.ok) return toast(await res.text() || 'Erro ao salvar');
     currentMacro = await res.json();
     fillMacroEditor(currentMacro);
     const listRes = await fetch('/macros');
     allMacros = await listRes.json();
-    renderMacrosList(allMacros);
+    renderMacroCollections();
+    renderMacrosList();
     toast('Macro salva');
   } catch { toast('Erro ao salvar'); }
 };
@@ -11708,7 +12036,8 @@ const deleteCurrentMacro = async () => {
   clearOutput();
   const listRes = await fetch('/macros');
   allMacros = await listRes.json();
-  renderMacrosList(allMacros);
+  renderMacroCollections();
+  renderMacrosList();
   toast('Macro excluída');
 };
 
