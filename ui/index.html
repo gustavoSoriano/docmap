@@ -281,6 +281,13 @@
                   placeholder="Nome da macro…" />
                 <span id="macro-interp-badge"
                   title="Interpretador detectado pelo shebang"></span>
+                <button id="macro-slug-copy-btn" class="macro-slug-chip"
+                  style="display:none" onclick="copyCurrentMacroSlug()"
+                  title="Copiar slug da macro" aria-label="Copiar slug da macro">
+                  <span class="macro-slug-label">slug</span>
+                  <code id="macro-slug-value"></code>
+                  <span data-icon="copy"></span>
+                </button>
                 <div id="macro-head-actions">
                   <button class="tool-btn" id="btn-macro-delete"
                     style="display:none"

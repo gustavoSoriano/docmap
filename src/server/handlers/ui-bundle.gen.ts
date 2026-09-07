@@ -2319,6 +2319,57 @@ body::before {
   color: var(--text-4);
 }
 
+.macro-slug-chip {
+  appearance: none;
+  min-width: 0;
+  max-width: 220px;
+  height: 28px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0)),
+    var(--surface-2);
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  padding: 0 8px 0 9px;
+  flex-shrink: 1;
+  white-space: nowrap;
+  transition: border-color .12s, background .12s, color .12s;
+}
+.macro-slug-chip:hover {
+  border-color: var(--accent-line);
+  background: var(--surface-3);
+  color: var(--text);
+}
+.macro-slug-chip:focus-visible {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 2px;
+}
+.macro-slug-label {
+  color: var(--text-4);
+  font-size: 10px;
+  font-weight: 600;
+}
+#macro-slug-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+}
+.macro-slug-chip .ico {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
 .macro-badge {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -9677,6 +9728,13 @@ svg#kg-svg:active { cursor: grabbing; }
                   placeholder="Nome da macro…" />
                 <span id="macro-interp-badge"
                   title="Interpretador detectado pelo shebang"></span>
+                <button id="macro-slug-copy-btn" class="macro-slug-chip"
+                  style="display:none" onclick="copyCurrentMacroSlug()"
+                  title="Copiar slug da macro" aria-label="Copiar slug da macro">
+                  <span class="macro-slug-label">slug</span>
+                  <code id="macro-slug-value"></code>
+                  <span data-icon="copy"></span>
+                </button>
                 <div id="macro-head-actions">
                   <button class="tool-btn" id="btn-macro-delete"
                     style="display:none"
@@ -11955,6 +12013,8 @@ const newMacro = () => {
   $('macro-title-input').value = '';
   $('macro-desc-input').value  = '';
   $('macro-tags-input').value  = '';
+  $('macro-slug-value').textContent = '';
+  $('macro-slug-copy-btn').style.display = 'none';
   populateMacroCollectionSelect(activeMacroCollectionId);
   macroSet('#!/bin/bash\\n# Seu script aqui\\n# $DOCMAP_API       → http://127.0.0.1:3334\\n\\necho "Olá do docmap!"');
   $('macro-interp-badge').textContent = 'bash';
@@ -11974,6 +12034,8 @@ const fillMacroEditor = (m) => {
   macroSet(m.script);
   $('macro-interp-badge').textContent = m.interpreter;
   $('macro-interp-badge').className   = \`macro-badge \${m.interpreter}\`;
+  $('macro-slug-value').textContent = m.name || '';
+  $('macro-slug-copy-btn').style.display = m.name ? 'inline-flex' : 'none';
   setMacroMode(m.interpreter);
   $('btn-macro-delete').style.display = 'inline-flex';
   clearOutput();
@@ -11992,6 +12054,12 @@ const populateMacroCollectionSelect = (selectedId) => {
     macroCollections.map((collection) =>
       \`<option value="\${collection.id}"\${collection.id === selectedId ? ' selected' : ''}>\${escHtml(collection.name)}</option>\`
     ).join('');
+};
+
+const copyCurrentMacroSlug = () => {
+  const slug = currentMacro?.name;
+  if (!slug) return toast('Salve a macro para gerar o slug');
+  copyToClipboard(slug, 'Slug copiado');
 };
 
 // auto-detect é feita no evento 'change' do CodeMirror dentro de initMacroEditor

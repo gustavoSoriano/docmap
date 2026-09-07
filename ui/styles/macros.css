@@ -311,6 +311,57 @@
   color: var(--text-4);
 }
 
+.macro-slug-chip {
+  appearance: none;
+  min-width: 0;
+  max-width: 220px;
+  height: 28px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0)),
+    var(--surface-2);
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  padding: 0 8px 0 9px;
+  flex-shrink: 1;
+  white-space: nowrap;
+  transition: border-color .12s, background .12s, color .12s;
+}
+.macro-slug-chip:hover {
+  border-color: var(--accent-line);
+  background: var(--surface-3);
+  color: var(--text);
+}
+.macro-slug-chip:focus-visible {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 2px;
+}
+.macro-slug-label {
+  color: var(--text-4);
+  font-size: 10px;
+  font-weight: 600;
+}
+#macro-slug-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+}
+.macro-slug-chip .ico {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
 .macro-badge {
   font-family: var(--font-mono);
   font-size: 10px;
