@@ -30,6 +30,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .btn-danger:hover{background:rgba(244,67,54,.15);border-color:#f44336}
 #board{flex:1;position:relative;touch-action:none}
 #board .qd-watermark{display:none}
+html[data-theme='light']{--bg:#f6f7f9;--border:#d4d8e0;--text:#1a1d23;--text-dim:#828b9a;--accent:#0e9f6e;--hover:rgba(0,0,0,.06)}
+html[data-theme='light'] #header{background:#ffffff}
+html[data-theme='light'] #conn-count{background:rgba(0,0,0,.06)}
+html[data-theme='light'] #toast{background:#ffffff}
 #toast{position:fixed;bottom:16px;right:16px;background:#1a1a2e;border:1px solid var(--border);padding:6px 14px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
 #toast.show{opacity:1}
 </style>
@@ -45,6 +49,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
     <span id="conn-count" title="pessoas no board"></span>
   </div>
   <div id="actions">
+    <button class="btn" onclick="toggleBoardTheme()" title="Alternar tema claro/escuro">◐ Tema</button>
     <button class="btn btn-danger" onclick="clearBoard()" title="Apagar tudo (para todos)">✕ Limpar</button>
   </div>
 </div>
@@ -68,11 +73,57 @@ var fittedOnce = false;
 
 var board = createQuickdraw({
   container: boardEl,
-  theme: 'dark',
+  theme: docmapTheme(),
   grid: 'dots',
   watermark: false,
 });
 var store = board.editor.store;
+document.documentElement.dataset.theme = board.editor.theme.id;
+
+// ── Temas casados com o docmap ──
+// A lib só traz light/dark fixos; aqui sobrescrevemos papel, grid e seleção
+// com os tokens do docmap (ui/styles/tokens.css). O theme é objeto mutável
+// compartilhado, então o patch vale até trocar de tema — por isso reaplicamos
+// no evento 'theme' (menu ⋮ também troca).
+function patchTheme(t){
+  if (!t) return;
+  if (t.id === 'dark') {
+    t.background = '#0b0c0e';
+    t.grid = {
+      line: { minor: 'rgba(255,255,255,0.07)', major: 'rgba(255,255,255,0.14)' },
+      dot: { minor: 'rgba(255,255,255,0.16)', major: 'rgba(255,255,255,0.30)' },
+    };
+    t.selection = '#37d99a';
+    t.selectionFill = 'rgba(55,217,154,0.10)';
+    t.handleFill = '#1e222a';
+  } else {
+    t.background = '#f6f7f9';
+    t.grid = {
+      line: { minor: 'rgba(20,25,35,0.08)', major: 'rgba(20,25,35,0.16)' },
+      dot: { minor: 'rgba(20,25,35,0.18)', major: 'rgba(20,25,35,0.34)' },
+    };
+    t.selection = '#0e9f6e';
+    t.selectionFill = 'rgba(14,159,110,0.10)';
+    t.handleFill = '#ffffff';
+  }
+  if (board.editor.requestRender) board.editor.requestRender();
+}
+
+function docmapTheme(){
+  try {
+    return localStorage.getItem('docmap-theme') === 'light' ? 'light' : 'dark';
+  } catch (e) { return 'dark'; }
+}
+
+patchTheme(board.editor.theme);
+board.editor.on('theme', function(){
+  patchTheme(board.editor.theme);
+  document.documentElement.dataset.theme = board.editor.theme.id;
+});
+
+window.toggleBoardTheme = function(){
+  board.editor.setTheme(board.editor.theme.id === 'light' ? 'dark' : 'light');
+};
 
 function showToast(msg){
   if (!toastEl) return;

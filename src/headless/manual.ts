@@ -894,6 +894,8 @@ hand-drawn, setas com curva arrastavel, linha, texto, sticky notes, imagens
 salva), selecao (mover/redimensionar/rotacionar/duplicar), pan + zoom
 (scroll/pinch), palm rejection (com stylus, o dedo move a camera e a caneta
 desenha), undo/redo por gesto, export PNG (menu ⋮ → "Export as PNG").
+Tema claro/escuro casado com o docmap (papel, grid e seleção nos tokens da
+UI; botão Tema no topo, acompanha a preferência salva).
 
 ### Endpoints (porta :3333)
 
