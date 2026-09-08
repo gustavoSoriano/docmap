@@ -40,4 +40,27 @@ export interface CanvasInfoResponse {
   readonly vendor: string;
   readonly peers: number;
   readonly shapes: number;
+  readonly updatedAt: string | null;
+  readonly hasFrame: boolean;
+}
+
+export interface SnapshotText {
+  readonly id: string;
+  readonly kind: 'text' | 'note' | 'label';
+  readonly text: string;
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface CanvasSnapshotResponse {
+  readonly snapshot: BoardSnapshot;
+  readonly texts: readonly SnapshotText[];
+  readonly shapes: number;
+  readonly updatedAt: string | null;
+}
+
+export interface CanvasFrameResponse {
+  readonly ok: boolean;
+  readonly bytes: number;
+  readonly updatedAt: string;
 }

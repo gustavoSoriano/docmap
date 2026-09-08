@@ -9,10 +9,17 @@ import type {
   BoardRecord,
   BoardSnapshot,
   ServerMessage,
+  SnapshotText,
 } from './types.ts';
 
 /** Tamanho máximo de um diff aceito (imagens vão embutidas no documento). */
 const MAX_DIFF_BYTES = 5 * 1024 * 1024;
+
+/** Tamanho máximo do frame PNG aceito (cliente já envia downscaled). */
+const MAX_FRAME_BYTES = 8 * 1024 * 1024;
+
+/** Magic bytes de PNG: 89 50 4E 47 0D 0A 1A 0A. */
+const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
 const isRecord = (v: unknown): v is BoardRecord => {
   if (v === null || typeof v !== 'object' || Array.isArray(v)) return false;
@@ -62,9 +69,80 @@ export const validateDiff = (v: unknown): string | null => {
 
 export const emptySnapshot = (): BoardSnapshot => ({ document: { store: {} } });
 
+const round1 = (n: unknown): number =>
+  typeof n === 'number' && Number.isFinite(n) ? Math.round(n * 10) / 10 : 0;
+
+/**
+ * Extrai textos legíveis dos records (função pura, best-effort).
+ * text/note → props.text; geo → props.label. Traços e imagens não têm texto.
+ */
+export const extractTexts = (
+  records:
+    | ReadonlyMap<string, BoardRecord>
+    | Readonly<Record<string, BoardRecord>>,
+): SnapshotText[] => {
+  const entries = records instanceof Map
+    ? records.values()
+    : Object.values(records);
+  const out: SnapshotText[] = [];
+  for (const rec of entries) {
+    if (rec.typeName !== 'shape' || typeof rec.type !== 'string') continue;
+    const props =
+      rec.props && typeof rec.props === 'object' && !Array.isArray(rec.props)
+        ? (rec.props as Record<string, unknown>)
+        : null;
+    if (!props) continue;
+    if (
+      (rec.type === 'text' || rec.type === 'note') &&
+      typeof props.text === 'string'
+    ) {
+      const text = props.text.trim();
+      if (text) {
+        out.push({
+          id: rec.id,
+          kind: rec.type,
+          text,
+          x: round1(rec.x),
+          y: round1(rec.y),
+        });
+      }
+    } else if (rec.type === 'geo' && typeof props.label === 'string') {
+      const text = props.label.trim();
+      if (text) {
+        out.push({
+          id: rec.id,
+          kind: 'label',
+          text,
+          x: round1(rec.x),
+          y: round1(rec.y),
+        });
+      }
+    }
+  }
+  return out;
+};
+
+/** Valida bytes de frame PNG. Retorna null se válido, senão o motivo. */
+export const validateFrame = (bytes: Uint8Array): string | null => {
+  if (bytes.length === 0) return 'frame vazio';
+  if (bytes.length > MAX_FRAME_BYTES) return 'frame excede 8MB';
+  if (
+    bytes.length < PNG_MAGIC.length ||
+    !PNG_MAGIC.every((b, i) => bytes[i] === b)
+  ) {
+    return 'frame não é PNG';
+  }
+  return null;
+};
+
 class BoardHub {
   readonly #connections = new Set<WebSocket>();
   readonly #records = new Map<string, BoardRecord>();
+  #updatedAt: string | null = null;
+  #frame: {
+    readonly bytes: Uint8Array<ArrayBuffer>;
+    readonly updatedAt: string;
+  } | null = null;
 
   /** Número de clientes (desenhistas + espectadores) conectados. */
   get connectionCount(): number {
@@ -74,6 +152,24 @@ class BoardHub {
   /** Quantidade de shapes no board. */
   get shapeCount(): number {
     return this.#records.size;
+  }
+
+  /** ISO da última mutação (diff aplicado ou clear). Null se intocado. */
+  get updatedAt(): string | null {
+    return this.#updatedAt;
+  }
+
+  /** Último frame PNG enviado por um viewer. Null se nenhum. */
+  get frame(): {
+    readonly bytes: Uint8Array<ArrayBuffer>;
+    readonly updatedAt: string;
+  } | null {
+    return this.#frame;
+  }
+
+  /** Textos extraídos dos records (text/note/label). */
+  get texts(): SnapshotText[] {
+    return extractTexts(this.#records);
   }
 
   /** Snapshot atual — enviado a late joiners. */
@@ -112,12 +208,23 @@ class BoardHub {
       this.#records.set(to.id, to);
     }
     for (const id of Object.keys(diff.removed ?? {})) this.#records.delete(id);
+    this.#updatedAt = new Date().toISOString();
     this.#broadcast({ type: 'diff', diff }, sender);
   }
 
-  /** Limpa o board (botão Limpar / POST /canvas/clear). */
+  /** Guarda o frame PNG enviado por um viewer (last-write-wins). */
+  setFrame(bytes: Uint8Array): string {
+    const updatedAt = new Date().toISOString();
+    // Cópia normalizada: o Response exige Uint8Array<ArrayBuffer>.
+    this.#frame = { bytes: new Uint8Array(bytes), updatedAt };
+    return updatedAt;
+  }
+
+  /** Limpa o board (botão Limpar / POST /canvas/clear). Invalida o frame. */
   clearBoard(): void {
     this.#records.clear();
+    this.#frame = null;
+    this.#updatedAt = new Date().toISOString();
     this.#broadcast({ type: 'snapshot', snapshot: emptySnapshot() });
   }
 

@@ -1,10 +1,11 @@
 // AUTO-GENERATED — não edite. Rode: deno task vendor-quickdraw
 // @quickdrawjs/core@0.2.0 (MIT — ver https://github.com/quickdrawjs/quickdraw/blob/main/LICENSE)
 // Servido em /canvas/vendor/quickdraw/* (offline, da memória).
-export const QUICKDRAW_VERSION = "0.2.0";
+export const QUICKDRAW_VERSION = '0.2.0';
 
 export const QUICKDRAW_FILES: Readonly<Record<string, string>> = {
-  "index.js": `// Public face of the Quickdraw engine. The React and React Native SDKs build
+  'index.js':
+    `// Public face of the Quickdraw engine. The React and React Native SDKs build
 // boards through here — same editor, same UI, same feel — and so can any
 // plain web page: every module is dependency-free ESM.
 
@@ -65,7 +66,8 @@ export function createQuickdraw(opts) {
   }
 }
 `,
-  "editor.js": `// The Quickdraw editor: camera, tools, selection, input and rendering over a
+  'editor.js':
+    `// The Quickdraw editor: camera, tools, selection, input and rendering over a
 // Store. Framework-free — the React and React Native SDKs wrap it, plain
 // pages use it bare, and every host gets the identical feel.
 // Dependency-free ESM: runs in any modern browser as-is, no build step.
@@ -1943,7 +1945,8 @@ async function readImage(blob) {
   }
 }
 `,
-  "store.js": `// The Quickdraw document: a flat map of records (shapes and image assets)
+  'store.js':
+    `// The Quickdraw document: a flat map of records (shapes and image assets)
 // that emits diffs — { added, removed, updated: {id: [from, to]} } — after
 // every transaction. The diff IS the wire format: sync relays, op logs and
 // undo history all speak it. Records are treated as immutable; an update
@@ -2191,7 +2194,8 @@ export class Store {
   }
 }
 `,
-  "ui.js": `// The board's chrome: a floating dock of tools, a styles popover, and the
+  'ui.js':
+    `// The board's chrome: a floating dock of tools, a styles popover, and the
 // board menu — plain DOM, one implementation for every host framework.
 // The dock is responsive: tools overflow into a "more" flyout as the frame
 // narrows, and a very small frame folds the whole kit into one button.
@@ -2719,7 +2723,8 @@ const el = (tag, cls) => {
   return e
 }
 `,
-  "palette.js": `// Quickdraw's visual constants — colors, stroke sizes, dash styles, fonts.
+  'palette.js':
+    `// Quickdraw's visual constants — colors, stroke sizes, dash styles, fonts.
 // Dependency-free ESM: this file (like the whole engine) can be bundled or
 // served raw, so it must run in any modern browser as-is.
 
@@ -2837,7 +2842,8 @@ export const GEO_IDS = ['rectangle', 'ellipse', 'triangle', 'diamond', 'hexagon'
 export const HIGHLIGHT_ALPHA = 0.55
 export const HIGHLIGHT_SCALE = 4.5 // band width = SIZES[size] * this
 `,
-  "shapes.js": `// Shape definitions: bounds, canvas rendering and hit-testing for every
+  'shapes.js':
+    `// Shape definitions: bounds, canvas rendering and hit-testing for every
 // board shape type. Records are immutable, so per-shape caches (freehand
 // outlines, wobbled geo paths, text layout) key off the props object in
 // WeakMaps and invalidate themselves by replacement.
@@ -3439,7 +3445,8 @@ export function scaleShape(shape, sx, sy) {
   }
 }
 `,
-  "geometry.js": `// Small geometry kit for the board: bounds, hit-tests, polygon builders and
+  'geometry.js':
+    `// Small geometry kit for the board: bounds, hit-tests, polygon builders and
 // the seeded wobble that gives 'draw'-style outlines their hand-drawn set.
 // Dependency-free ESM (see palette.js).
 
@@ -3651,7 +3658,8 @@ export const traceSmooth = (ctx, pts, closed = false) => {
   if (closed) ctx.closePath()
 }
 `,
-  "freehand.js": `// The pencil's ink: turns a raw pointer trail into a filled outline whose
+  'freehand.js':
+    `// The pencil's ink: turns a raw pointer trail into a filled outline whose
 // width breathes with pressure (or, for mice, with speed). A compact take on
 // the perfect-freehand idea — streamline the input, give every point a
 // radius, walk the spine offsetting perpendicular both ways, cap the ends.
@@ -3755,7 +3763,8 @@ function dotOutline(x, y, r) {
   return out
 }
 `,
-  "quickdraw.css": `/* Quickdraw styles — self-contained, no preprocessor, importable raw.
+  'quickdraw.css':
+    `/* Quickdraw styles — self-contained, no preprocessor, importable raw.
    The dock is dark glass so it reads on either theme's paper. */
 
 .qd-root {

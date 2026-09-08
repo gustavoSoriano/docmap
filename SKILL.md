@@ -1,6 +1,6 @@
 ---
 name: docmap
-version: 11.0.0
+version: 11.1.0
 description: >
   Bootstrap da Headless API local do docmap desktop. Use para descobrir as
   instruções atualizadas via GET /headless/capabilities e /headless/manual,

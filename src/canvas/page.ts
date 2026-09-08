@@ -92,6 +92,54 @@ store.listen(function(diff){
   // não ressuscitar records que outros apagaram nesse meio-tempo.
 }, { source: 'user' });
 
+// ── Frame para a IA ──
+// Todo viewer exporta o board (debounce) e envia ao servidor, que guarda o
+// último como GET /canvas/frame.png. Usa o próprio export do board, então o
+// PNG é idêntico à tela. Downscale p/ 1568px: legível pro modelo, leve.
+var uploading = false;
+var uploadTimer = 0;
+
+function downscale(blob, maxSide, done){
+  if (typeof createImageBitmap !== 'function') { done(blob); return; }
+  createImageBitmap(blob).then(function(bmp){
+    var s = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+    if (s >= 1) { if (bmp.close) bmp.close(); done(blob); return; }
+    var c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * s);
+    c.height = Math.round(bmp.height * s);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    if (bmp.close) bmp.close();
+    c.toBlob(function(b){ done(b || blob); }, 'image/png');
+  }).catch(function(){ done(blob); });
+}
+
+function uploadFrame(){
+  if (uploading) { scheduleFrameUpload(); return; }
+  if (store.size === 0) return;
+  uploading = true;
+  board.editor.exportImage({ background: true, scale: 1, margin: 48 }).then(function(blob){
+    if (!blob) { uploading = false; return; }
+    downscale(blob, 1568, function(final){
+      fetch('/canvas/frame', {
+        method: 'POST',
+        headers: { 'Content-Type': 'image/png' },
+        body: final,
+      }).catch(function(){}).finally(function(){ uploading = false; });
+    });
+  }).catch(function(){ uploading = false; });
+}
+
+function scheduleFrameUpload(){
+  if (uploadTimer) return;
+  uploadTimer = setTimeout(function(){
+    uploadTimer = 0;
+    uploadFrame();
+  }, 3000);
+}
+
+// Qualquer mudança (local ou remota) agenda um novo frame.
+store.listen(function(){ scheduleFrameUpload(); });
+
 window.clearBoard = function(){
   fetch('/canvas/clear', { method: 'POST' })
     .then(function(){ showToast('Board limpo para todos'); })
@@ -112,6 +160,8 @@ function applySnapshot(snapshot){
       if (Object.keys(recs).length > 0) board.editor.fitContent();
     } catch (e) { /* board vazio — ignora */ }
   }
+  // Viewer recém-chegado com conteúdo garante um frame fresco pra IA.
+  scheduleFrameUpload();
 }
 
 function connect(){

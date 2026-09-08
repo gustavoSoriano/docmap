@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '11.0.0';
+export const HEADLESS_MANUAL_VERSION = '11.1.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -901,7 +901,10 @@ desenha), undo/redo por gesto, export PNG (menu ⋮ → "Export as PNG").
 |--------|----------|-----------|
 | GET | \`/canvas\` | Pagina standalone da lousa |
 | GET | \`/canvas/ws\` | WebSocket do sync realtime |
-| GET | \`/canvas/info\` | \`{ vendor, peers, shapes }\` |
+| GET | \`/canvas/info\` | \`{ vendor, peers, shapes, updatedAt, hasFrame }\` |
+| GET | \`/canvas/snapshot\` | Documento + textos extraídos (leitura precisa p/ IA) |
+| GET | \`/canvas/frame.png\` | PNG atual do board (visão p/ IA) |
+| POST | \`/canvas/frame\` | Viewers enviam o frame (body = PNG) |
 | POST | \`/canvas/clear\` | Apaga o board para todos |
 
 ### Protocolo WS \`/canvas/ws\`
@@ -924,6 +927,27 @@ conflito resolve por last-writer-wins por record (cada traço tem id unico);
 diffs sao validados (forma + ate 5MB, imagens embutem dataURL) e inválidos
 sao descartados. O board é **efemero** (memoria; restart limpa).
 
+### IA vendo o board (visão + dados)
+
+Dois endpoints complementares, sem precisar de WebSocket:
+
+- \`GET /canvas/frame.png\` — **os olhos**: PNG atual do board, downscaled
+  p/ ~1568px no lado maior. Headers \`X-Canvas-Updated-At\` (ISO) e
+  \`X-Canvas-Shapes\`. Retorna \`404 { error: 'no_frame_yet' }\` se nenhum
+  viewer enviou frame ainda (ex.: board vazio). Use quando perguntarem
+  "o que tem desenhado aí?" — diagramas, sketches, layout.
+- \`GET /canvas/snapshot\` — **a precisão**: \`{ snapshot, texts, shapes,
+  updatedAt }\`, onde \`texts\` = \`[{ id, kind, text, x, y }]\` com
+  \`kind\` em \`text|note|label\` (extraído no servidor, sempre fresco).
+  Use para "quais textos há no board?" — exato onde a visão tropeça em
+  letra pequena.
+
+Como o frame é produzido: todo viewer conectado exporta o board (debounce
+~3s após mudanças) via \`POST /canvas/frame\` (body PNG, max 8MB, validação
+de magic bytes; 415 se não for PNG). Servidor guarda o último
+(last-write-wins); \`POST /canvas/clear\` invalida o frame. Viewers não
+enviam frame de board vazio.
+
 ### Quick start
 
 \`\`\`bash
@@ -932,6 +956,12 @@ open http://127.0.0.1:3333/canvas
 
 # Ver quem está desenhando + tamanho do board
 curl http://127.0.0.1:3333/canvas/info
+
+# Ver o board (visão): salva o PNG atual
+curl -o board.png http://127.0.0.1:3333/canvas/frame.png
+
+# Ler textos do board (dados)
+curl http://127.0.0.1:3333/canvas/snapshot | head -c 2000
 
 # Apagar tudo
 curl -X POST http://127.0.0.1:3333/canvas/clear
