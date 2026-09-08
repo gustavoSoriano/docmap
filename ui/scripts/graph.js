@@ -11,9 +11,9 @@ let kgLinks = [];
 let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'diagram', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'tag'];
+const KG_KINDS = ['note', 'task', 'drawing', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'tag'];
 const KG_LABELS = {
-  note: 'Notas', task: 'Tasks', diagram: 'Diagramas', macro: 'Macros',
+  note: 'Notas', task: 'Tasks', drawing: 'Desenhos', macro: 'Macros',
   podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
   workflow: 'Workflows', tag: 'Tags',
 };
@@ -27,7 +27,7 @@ const kgCss = (name) => {
 // Duplo-clique numa entidade → abre no modo dela.
 const OPEN_BY_KIND = {
   note: (id) => openNote(id),
-  diagram: (id) => openDiagram(id),
+  drawing: (id) => openDrawing(id),
   macro: (id) => openMacro(id),
   podcast: (id) => openPodcast(id),
   skill: (id) => openSkill(id),

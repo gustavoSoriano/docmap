@@ -19,14 +19,14 @@ version: ${VERSION}
 description: >
   Bootstrap da Headless API local do docmap desktop. Use para descobrir as
   instruções atualizadas via GET /headless/capabilities e /headless/manual,
-  incluindo notas, diagramas, skills de usuário, macros, tasks, workflows,
+  incluindo notas, desenhos, skills de usuário, macros, tasks, workflows,
   podcasts, mocks, favoritos, canvas e debug.
-  Use quando o usuário mencionar notas, diagramas, skills, macros, tasks,
+  Use quando o usuário mencionar notas, desenhos, diagramas, skills, macros, tasks,
   kanban, agentes, orquestração, workflows, favoritos, podcasts, slides, mocks,
   canvas, canva, ou compartilhar um ID/link do docmap. O app precisa estar rodando.
 metadata:
   category: productivity
-  tags: [notes, diagrams, skills, tasks, agents, orchestration, workflows, podcasts, mocks, canvas, knowledge-base]
+  tags: [notes, skills, tasks, agents, orchestration, workflows, podcasts, mocks, canvas, knowledge-base]
 ---
 
 `;

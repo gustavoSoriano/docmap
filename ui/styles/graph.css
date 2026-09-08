@@ -5,7 +5,7 @@
   /* cor por tipo de nó — lidas pelo graph.js via getComputedStyle */
   --kg-note: #6ea8fe;
   --kg-task: #f6a06a;
-  --kg-diagram: #a78bfa;
+  --kg-drawing: #a78bfa;
   --kg-macro: #4ade80;
   --kg-podcast: #f472b6;
   --kg-favorite: #fbbf24;
@@ -31,7 +31,10 @@
   align-items: center;
   gap: 7px;
 }
-.kg-title .ico { width: 15px; height: 15px; }
+.kg-title .ico {
+  width: 15px;
+  height: 15px;
+}
 #kg-count {
   color: var(--text-3);
   font-size: 12px;
@@ -68,24 +71,49 @@
   user-select: none;
   transition: opacity .12s, color .12s;
 }
-.kg-leg:hover { color: var(--text); }
-.kg-leg.off { opacity: .38; text-decoration: line-through; }
+.kg-leg:hover {
+  color: var(--text);
+}
+.kg-leg.off {
+  opacity: .38;
+  text-decoration: line-through;
+}
 .kg-leg i {
   width: 9px;
   height: 9px;
   border-radius: 50%;
   display: inline-block;
 }
-.kg-leg-note i { background: var(--kg-note); }
-.kg-leg-task i { background: var(--kg-task); }
-.kg-leg-diagram i { background: var(--kg-diagram); }
-.kg-leg-macro i { background: var(--kg-macro); }
-.kg-leg-podcast i { background: var(--kg-podcast); }
-.kg-leg-favorite i { background: var(--kg-favorite); }
-.kg-leg-skill i { background: var(--kg-skill); }
-.kg-leg-mock i { background: var(--kg-mock); }
-.kg-leg-workflow i { background: var(--kg-workflow); }
-.kg-leg-tag i { background: var(--kg-tag); }
+.kg-leg-note i {
+  background: var(--kg-note);
+}
+.kg-leg-task i {
+  background: var(--kg-task);
+}
+.kg-leg-drawing i {
+  background: var(--kg-drawing);
+}
+.kg-leg-macro i {
+  background: var(--kg-macro);
+}
+.kg-leg-podcast i {
+  background: var(--kg-podcast);
+}
+.kg-leg-favorite i {
+  background: var(--kg-favorite);
+}
+.kg-leg-skill i {
+  background: var(--kg-skill);
+}
+.kg-leg-mock i {
+  background: var(--kg-mock);
+}
+.kg-leg-workflow i {
+  background: var(--kg-workflow);
+}
+.kg-leg-tag i {
+  background: var(--kg-tag);
+}
 
 #kg-canvas {
   flex: 1;
@@ -101,21 +129,43 @@ svg#kg-svg {
   display: block;
   cursor: grab;
 }
-svg#kg-svg:active { cursor: grabbing; }
+svg#kg-svg:active {
+  cursor: grabbing;
+}
 
-.kg-link { stroke: var(--border-hi); stroke-width: 1.2; stroke-opacity: .6; }
-.kg-link-reference { stroke: var(--kg-task); stroke-width: 2; stroke-opacity: .85; }
-.kg-link.kg-hi { stroke: var(--accent); stroke-width: 2.4; stroke-opacity: 1; }
-.kg-link.kg-dim { opacity: .06; }
+.kg-link {
+  stroke: var(--border-hi);
+  stroke-width: 1.2;
+  stroke-opacity: .6;
+}
+.kg-link-reference {
+  stroke: var(--kg-task);
+  stroke-width: 2;
+  stroke-opacity: .85;
+}
+.kg-link.kg-hi {
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-opacity: 1;
+}
+.kg-link.kg-dim {
+  opacity: .06;
+}
 
-.kg-node { cursor: pointer; }
-.kg-halo { pointer-events: none; }
+.kg-node {
+  cursor: pointer;
+}
+.kg-halo {
+  pointer-events: none;
+}
 .kg-core {
   stroke: var(--bg);
   stroke-width: 2;
   transition: transform .16s ease;
 }
-.kg-node:hover .kg-core { transform: scale(1.15); }
+.kg-node:hover .kg-core {
+  transform: scale(1.15);
+}
 .kg-label {
   font-family: var(--font-ui);
   font-size: 11px;
@@ -126,11 +176,24 @@ svg#kg-svg:active { cursor: grabbing; }
   stroke-width: 3.5px;
   stroke-linejoin: round;
 }
-.kg-node-tag .kg-label { fill: var(--text-3); font-style: italic; }
-.kg-node.kg-selected .kg-core { stroke: var(--text); stroke-width: 3; }
-.kg-node.kg-selected .kg-label { fill: var(--text); font-weight: 600; }
-.kg-node.kg-dim { opacity: .15; }
-.kg-node.kg-dim .kg-label { opacity: 0; }
+.kg-node-tag .kg-label {
+  fill: var(--text-3);
+  font-style: italic;
+}
+.kg-node.kg-selected .kg-core {
+  stroke: var(--text);
+  stroke-width: 3;
+}
+.kg-node.kg-selected .kg-label {
+  fill: var(--text);
+  font-weight: 600;
+}
+.kg-node.kg-dim {
+  opacity: .15;
+}
+.kg-node.kg-dim .kg-label {
+  opacity: 0;
+}
 
 #kg-empty {
   position: absolute;
@@ -144,9 +207,19 @@ svg#kg-svg:active { cursor: grabbing; }
   text-align: center;
   padding: 40px;
 }
-#kg-empty[data-show="1"] { display: flex; }
-.kg-empty-mark { width: 44px; height: 44px; opacity: .4; }
-.kg-empty-hint { font-size: 13px; max-width: 340px; line-height: 1.55; }
+#kg-empty[data-show="1"] {
+  display: flex;
+}
+.kg-empty-mark {
+  width: 44px;
+  height: 44px;
+  opacity: .4;
+}
+.kg-empty-hint {
+  font-size: 13px;
+  max-width: 340px;
+  line-height: 1.55;
+}
 
 /* ════════ Responsivo ════════ */
 @media (max-width: 600px) {

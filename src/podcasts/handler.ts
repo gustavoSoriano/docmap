@@ -2,7 +2,12 @@
 
 import { audioPath, audioStat, deleteAudio } from './audio.ts';
 import { deleteScriptFile } from './scriptfile.ts';
-import { deleteSlides, readSlides, slidesExists, writeSlides } from './slides.ts';
+import {
+  deleteSlides,
+  readSlides,
+  slidesExists,
+  writeSlides,
+} from './slides.ts';
 import {
   createPodcast,
   deletePodcast,
@@ -24,10 +29,7 @@ import {
 } from './parser.ts';
 import { badRequest, html, json, notFound } from '../server/response.ts';
 import { checkDeps } from './health.ts';
-import {
-  type GeneratePodcastInput,
-  type UpdatePodcastInput,
-} from './types.ts';
+import { type GeneratePodcastInput, type UpdatePodcastInput } from './types.ts';
 import { normalizeTags } from '../tags/normalize.ts';
 
 const MAX_TITLE = 120;
@@ -49,21 +51,27 @@ const streamRange = (
       const remaining = end - start + 1;
       if (remaining <= 0) {
         controller.close();
-        try { await file.close(); } catch { /* noop */ }
+        try {
+          await file.close();
+        } catch { /* noop */ }
         return;
       }
       const buf = new Uint8Array(Math.min(chunkSize, remaining));
       const n = await file.read(buf);
       if (!n || n === 0) {
         controller.close();
-        try { await file.close(); } catch { /* noop */ }
+        try {
+          await file.close();
+        } catch { /* noop */ }
         return;
       }
       controller.enqueue(buf.subarray(0, n));
       start += n;
     },
     cancel() {
-      try { file.close(); } catch { /* noop */ }
+      try {
+        file.close();
+      } catch { /* noop */ }
     },
   });
 };
@@ -145,10 +153,12 @@ export const podcastsHandler =
 
     // ── GET /podcasts — lista com ?q=&folder= ──
     if (req.method === 'GET' && !id) {
-      return json(await listPodcasts(kv, {
-        q: url.searchParams.get('q') ?? undefined,
-        folder: url.searchParams.get('folder') ?? undefined,
-      }));
+      return json(
+        await listPodcasts(kv, {
+          q: url.searchParams.get('q') ?? undefined,
+          folder: url.searchParams.get('folder') ?? undefined,
+        }),
+      );
     }
 
     // ── POST /podcasts — gera podcast ──
@@ -163,14 +173,21 @@ export const podcastsHandler =
       }
 
       let body: unknown;
-      try { body = await req.json(); } catch { return badRequest('JSON inválido'); }
+      try {
+        body = await req.json();
+      } catch {
+        return badRequest('JSON inválido');
+      }
       const input = body as GeneratePodcastInput;
 
       const title = input.title?.trim();
       if (!title) return badRequest('title é obrigatório');
-      if (title.length > MAX_TITLE) return badRequest(`title: máx ${MAX_TITLE} chars`);
+      if (title.length > MAX_TITLE) {
+        return badRequest(`title: máx ${MAX_TITLE} chars`);
+      }
 
-      const hasContent = input.content != null && input.content.trim().length > 0;
+      const hasContent = input.content != null &&
+        input.content.trim().length > 0;
       const hasScript = input.script != null && input.script.trim().length > 0;
       if (hasContent) {
         return badRequest(
@@ -212,7 +229,7 @@ export const podcastsHandler =
         }
       }
 
-      const folder = (input.folder?.trim() || 'geral');
+      const folder = input.folder?.trim() || 'geral';
 
       // Slides prontos (API externa): escreve direto no filesystem; o
       // pipeline apenas computa enterMs depois do TTS. Se vier slides sem
@@ -252,7 +269,9 @@ export const podcastsHandler =
       // Dispara o pipeline em background — não aguardamos.
       runPodcastPipeline(kv, podcast.id);
 
-      const payload = withLink(toPreview(podcast) as unknown as Record<string, unknown>);
+      const payload = withLink(
+        toPreview(podcast) as unknown as Record<string, unknown>,
+      );
       broadcast({ type: 'created', podcast: toPreview(podcast) });
       return json(payload, 202);
     }
@@ -271,7 +290,9 @@ export const podcastsHandler =
     if (req.method === 'GET' && sub === 'audio') {
       const p = await getPodcastById(kv, id);
       if (!p) return notFound();
-      if (p.status !== 'ready') return badRequest('podcast ainda não está pronto');
+      if (p.status !== 'ready') {
+        return badRequest('podcast ainda não está pronto');
+      }
       return serveAudio(id, req);
     }
 
@@ -290,10 +311,16 @@ export const podcastsHandler =
     // ── PUT /podcasts/:id — renomear / mover de pasta ──
     if (req.method === 'PUT' && !sub) {
       let body: unknown;
-      try { body = await req.json(); } catch { return badRequest('JSON inválido'); }
+      try {
+        body = await req.json();
+      } catch {
+        return badRequest('JSON inválido');
+      }
       const updated = await updatePodcast(kv, id, body as UpdatePodcastInput);
       if (!updated) return notFound();
-      const payload = withLink(toPreview(updated) as unknown as Record<string, unknown>);
+      const payload = withLink(
+        toPreview(updated) as unknown as Record<string, unknown>,
+      );
       broadcast({ type: 'updated', podcast: toPreview(updated) });
       return json(payload);
     }

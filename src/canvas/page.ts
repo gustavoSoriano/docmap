@@ -606,22 +606,14 @@ window.saveDrawing = function(){
 };
 
 function openDrawing(id){
-  function doOpen(){
-    apiSend('POST', '/canvas/drawings/' + encodeURIComponent(id) + '/open').then(function(res){
-      currentDrawing = { id: res.drawing.id, name: res.drawing.name };
-      dirty = false;
-      applySnapshot(res.snapshot);
-      try { board.editor.fitContent(); } catch(e){}
-      updateDrawingLabel(); renderDrawings();
-      if (drawerEl) drawerEl.classList.remove('open');
-      showToast('Desenho aberto');
-    }).catch(function(e){ showToast(e.message || 'Falha ao abrir'); });
-  }
-  if (dirty && currentDrawing) {
-    askConfirm('Abrir outro desenho descarta as alterações não salvas. Continuar?', 'Abrir').then(function(ok){
-      if (ok) doOpen();
-    });
-  } else doOpen();
+  apiSend('POST', '/canvas/drawings/' + encodeURIComponent(id) + '/open').then(function(res){
+    currentDrawing = { id: res.drawing.id, name: res.drawing.name };
+    dirty = false;
+    applySnapshot(res.snapshot);
+    try { board.editor.fitContent(); } catch(e){}
+    updateDrawingLabel(); renderDrawings();
+    showToast('Desenho aberto');
+  }).catch(function(e){ showToast(e.message || 'Falha ao abrir'); });
 }
 
 function overwriteDrawing(id){
@@ -654,6 +646,20 @@ function refreshLibraryCounts(){
     renderCols();
   }).catch(function(){});
 }
+
+// Deep link #drawing/<id> → abre direto via ?open= (mesma origem).
+try {
+  var openId = new URLSearchParams(location.search).get('open');
+  if (openId && /^[0-9a-f-]{36}$/i.test(openId)) {
+    apiSend('POST', '/canvas/drawings/' + openId + '/open').then(function(res){
+      currentDrawing = { id: res.drawing.id, name: res.drawing.name };
+      dirty = false;
+      applySnapshot(res.snapshot);
+      try { board.editor.fitContent(); } catch(e){}
+      updateDrawingLabel();
+    }).catch(function(){ showToast('Desenho não encontrado'); });
+  }
+} catch(e){}
 
 loadTabletUrl();
 connect();

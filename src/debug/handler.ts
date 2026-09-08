@@ -4,9 +4,9 @@
 import { json } from '../server/response.ts';
 import { serveDebugPage } from './page.ts';
 import {
-  getDebugSessions,
-  getDebugSessionEntries,
   deleteDebugSession,
+  getDebugSessionEntries,
+  getDebugSessions,
 } from './store.ts';
 
 export const createDebugHandler = () => {

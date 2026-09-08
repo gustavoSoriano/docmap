@@ -247,7 +247,8 @@ export const resizeShell = async (
 
   // Fallback: escreve no stdin (eco breve, sem \033[2J\033[H\033[3J)
   try {
-    const cmd = `stty -echo rows ${rows} cols ${cols} 2>/dev/null; stty echo 2>/dev/null\n`;
+    const cmd =
+      `stty -echo rows ${rows} cols ${cols} 2>/dev/null; stty echo 2>/dev/null\n`;
     shell.write(new TextEncoder().encode(cmd));
   } catch {
     // stdin fechado — sem ação

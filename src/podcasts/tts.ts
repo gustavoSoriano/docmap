@@ -27,10 +27,14 @@ export const synthesizeSegment = async (
   outFile: string,
 ): Promise<void> => {
   const r = await run(EDGE_TTS_BIN, [
-    '--voice', voice,
-    '--text', text,
-    '--rate', '+8%',
-    '--write-media', outFile,
+    '--voice',
+    voice,
+    '--text',
+    text,
+    '--rate',
+    '+8%',
+    '--write-media',
+    outFile,
   ]);
   if (!r.ok) {
     throw new Error(
@@ -50,10 +54,14 @@ export const concatAudio = async (
   );
 
   const r = await run(FFMPEG_BIN, [
-    '-f', 'concat',
-    '-safe', '0',
-    '-i', filelist,
-    '-c', 'copy',
+    '-f',
+    'concat',
+    '-safe',
+    '0',
+    '-i',
+    filelist,
+    '-c',
+    'copy',
     outFile,
     '-y',
   ]);
@@ -68,9 +76,12 @@ export const probeDurationMs = async (
   file: string,
 ): Promise<number | undefined> => {
   const r = await run(FFPROBE_BIN, [
-    '-v', 'error',
-    '-show_entries', 'format=duration',
-    '-of', 'csv=p=0',
+    '-v',
+    'error',
+    '-show_entries',
+    'format=duration',
+    '-of',
+    'csv=p=0',
     file,
   ]);
   const seconds = parseFloat(r.stdout);

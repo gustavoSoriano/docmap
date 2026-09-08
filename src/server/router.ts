@@ -2,7 +2,6 @@ import { graphHandler } from '../graph/handler.ts';
 import { createNotesHandler } from './handlers/notes.ts';
 import { createCommentsHandler } from './handlers/comments.ts';
 import { createSystemHandler } from './handlers/system.ts';
-import { diagramsHandler } from '../diagrams/handler.ts';
 import { skillsUiHandler } from '../skills/handler.ts';
 import { macrosHandler } from '../macros/handler.ts';
 import { projectsHandler } from '../projects/handler.ts';
@@ -24,7 +23,6 @@ export const createRouter = (deps: HandlerDeps) => {
   const notes = createNotesHandler(deps);
   const comments = createCommentsHandler(deps);
   const system = createSystemHandler(deps);
-  const diagrams = diagramsHandler(deps.kv);
   const skills = skillsUiHandler(deps.kv);
   const macros = macrosHandler(deps.kv);
   const projects = projectsHandler(deps.kv);
@@ -49,7 +47,6 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/notes')) return notes(req, url);
     if (pathname === '/comments') return comments(req, url);
     if (pathname.startsWith('/system')) return system(req, url);
-    if (pathname.startsWith('/diagrams')) return diagrams(req, url);
     if (pathname.startsWith('/skills')) return skills(req, url);
     if (pathname.startsWith('/macros')) return macros(req, url);
     if (pathname.startsWith('/projects')) return projects(req, url);

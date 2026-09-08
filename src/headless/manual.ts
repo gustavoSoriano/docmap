@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '11.3.0';
+export const HEADLESS_MANUAL_VERSION = '12.0.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -39,13 +39,6 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     heading: 'Notas (knowledge base global)',
     summary: 'CRUD de notas globais em markdown.',
     tags: ['notes', 'knowledge-base'],
-  },
-  {
-    id: 'diagrams',
-    title: 'Diagramas Mermaid',
-    heading: 'Diagramas Mermaid',
-    summary: 'CRUD de diagramas Mermaid com deep links para a UI.',
-    tags: ['diagrams', 'mermaid'],
   },
   {
     id: 'skills',
@@ -103,7 +96,8 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     id: 'canvas',
     title: 'Canvas',
     heading: 'Canvas — lousa realtime compartilhada na rede',
-    summary: 'Lousa infinita realtime: tablet na mesma rede desenha, todos veem.',
+    summary:
+      'Lousa infinita realtime: tablet na mesma rede desenha, todos veem.',
     tags: ['canvas', 'realtime', 'whiteboard', 'library'],
   },
   {
@@ -127,7 +121,7 @@ focadas e \`GET /headless/manual?feature=workflows&role=executor\` para
 protocolos especificos de papel.
 
 
-> **Tags = tema.** Notas, tarefas, workflows, diagramas, macros, podcasts e favoritos
+> **Tags = tema.** Notas, tarefas, workflows, desenhos, macros, podcasts e favoritos
 > aceitam \`tags?: string[]\` (opcional) — o ASSUNTO da entidade, eixo pelo qual
 > o docmap conecta itens do mesmo tema. São normalizadas ao salvar: minúsculas,
 > sem acento, slug ("Machine Learning" → \`machine-learning\`; "Programação" →
@@ -142,11 +136,11 @@ protocolos especificos de papel.
 
 ## Grafo de conhecimento
 
-- \`GET /graph\` — grafo de TODAS as entidades do docmap (notas, tasks, diagramas,
+- \`GET /graph\` — grafo de TODAS as entidades do docmap (notas, tasks, desenhos,
   macros, podcasts, favoritos, skills, mocks, workflows) conectadas por TEMA. Read-only; reflete o
   estado atual do KV.
   - \`nodes\`: \`{ id, label, kind }\` — \`id\` = \`"<tipo>:<uuid>"\` (entidade) ou
-    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|diagram|macro|podcast|favorite|skill|mock|workflow|tag\`.
+    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|drawing|macro|podcast|favorite|skill|mock|workflow|tag\`.
   - \`links\`: \`{ source, target, kind }\` — \`kind\` = \`tagged\` (entidade→tag) ou
     \`reference\` (task→nota via \`noteId\`).
   - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por
@@ -164,23 +158,6 @@ protocolos especificos de papel.
 | GET | \`/search?q=termo\` | Busca full-text nas notas |
 
 Categoria: texto livre (\`general\`, \`ai\`, etc.).
-
----
-
-## Diagramas Mermaid
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | \`/diagrams\` | Lista (id, title, tags, preview) |
-| GET | \`/diagrams/:id\` | Diagrama completo + \`deepLink\` |
-| POST | \`/diagrams\` | Cria \`{ title, source, tags? }\` |
-| PUT | \`/diagrams/:id\` | Edita |
-| DELETE | \`/diagrams/:id\` | Remove |
-
-**Deep link**: \`GET /diagrams/:id\` retorna \`{ deepLink: "http://127.0.0.1:3333/#diagram/<id>" }\`.  
-Mande o \`deepLink\` ao usuário para abrir direto no app.
-
-Tipos Mermaid: \`flowchart\`, \`sequenceDiagram\`, \`classDiagram\`, \`stateDiagram-v2\`, \`erDiagram\`, \`gantt\`, \`pie\`, \`gitGraph\`.
 
 ---
 
@@ -1007,12 +984,17 @@ página — aberta por padrão, a logo abre/fecha — ou API abaixo). Metadados 
 filesystem (\`<dataDir>/drawings/<collectionId>/<drawingId>.json\`, pois
 podem passar de 64 KiB com imagens embutidas).
 
-- Salvar (\`POST /canvas/drawings { name, collectionId? }\`) fotografa o
-  board atual do servidor; sem \`collectionId\` usa/cria a "Geral".
+- Salvar (\`POST /canvas/drawings { name, collectionId?, tags? }\`) fotografa o
+  board atual do servidor; sem \`collectionId\` usa/cria a "Geral". Sem
+  \`tags\`, herda as da collection. Desenhos entram no \`/graph\` como
+  \`kind: 'drawing'\` (conectados por tag, igual às outras entidades).
 - Abrir (\`POST /canvas/drawings/:id/open\`) substitui o board ao vivo
   para TODOS e retorna \`{ drawing, snapshot }\`.
 - Sobrescrever (\`POST /canvas/drawings/:id/save\`) atualiza com o board atual.
-- Renomear/mover via \`PUT\`; excluir collection apaga os desenhos junto.
+- Renomear/mover/retaguear via \`PUT { name?, collectionId?, tags? }\`;
+  excluir collection apaga os desenhos junto.
+- Deep link: \`http://127.0.0.1:3333/#drawing/<id>\` abre o desenho direto
+  no app (modo canvas carrega com \`?open=<id>\`).
 
 \`\`\`bash
 # Salvar o board atual
@@ -1049,6 +1031,15 @@ curl -X POST http://127.0.0.1:3333/canvas/clear
   Feche com \`DOCMAP_HOST=127.0.0.1\` se quiser só local.
 - A AI API (\`:3334\`) continua exclusiva em \`127.0.0.1\` (loopback).
 - \`GET /system/network\` lista os IPv4 da maquina (usado pela pagina e settings).
+
+### Breaking change (v12)
+
+O módulo de diagramas Mermaid foi removido (endpoints \`/diagrams*\`,
+modo Diagramas na UI, deep links \`#diagram/<id>\`). Os diagramas foram
+migrados para desenhos do canvas (collection "Estudos", tags preservadas).
+No \`/graph\`, o kind \`diagram\` virou \`drawing\`; deep link agora é
+\`#drawing/<id>\`. Chaves órfãs \`["diagrams", ...]\` são purgadas pela
+migração de schema v10.
 
 ### Breaking change (v11)
 

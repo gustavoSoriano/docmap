@@ -4,7 +4,7 @@
 
 import { listNotes } from '../notes/store.ts';
 import { listTasks } from '../tasks/store.ts';
-import { listDiagrams } from '../diagrams/store.ts';
+import { listDrawings } from '../canvas/store.ts';
 import { listMacros } from '../macros/store.ts';
 import { listPodcasts } from '../podcasts/store.ts';
 import { listFavorites } from '../favorites/store.ts';
@@ -18,18 +18,27 @@ import type { GraphEntity } from './types.ts';
 
 export const graphHandler =
   (kv: Deno.Kv) => async (_req: Request, _url: URL): Promise<Response> => {
-    const [notes, tasks, diagrams, macros, podcasts, favorites, skills, mocks,
-      workflows] = await Promise.all([
-        listNotes(kv),
-        listTasks(kv),
-        listDiagrams(kv),
-        listMacros(kv),
-        listPodcasts(kv),
-        listFavorites(kv),
-        listSkills(kv),
-        listMocks(kv),
-        listWorkflows(kv) as Promise<Workflow[]>,
-      ]);
+    const [
+      notes,
+      tasks,
+      drawings,
+      macros,
+      podcasts,
+      favorites,
+      skills,
+      mocks,
+      workflows,
+    ] = await Promise.all([
+      listNotes(kv),
+      listTasks(kv),
+      listDrawings(kv),
+      listMacros(kv),
+      listPodcasts(kv),
+      listFavorites(kv),
+      listSkills(kv),
+      listMocks(kv),
+      listWorkflows(kv) as Promise<Workflow[]>,
+    ]);
 
     const entities: GraphEntity[] = [
       ...notes.map((n) => ({
@@ -45,10 +54,10 @@ export const graphHandler =
         tags: t.tags,
         ...(t.noteId ? { noteId: t.noteId } : {}),
       })),
-      ...diagrams.map((d) => ({
+      ...drawings.map((d) => ({
         id: d.id,
-        kind: 'diagram' as const,
-        label: d.title,
+        kind: 'drawing' as const,
+        label: d.name,
         tags: d.tags,
       })),
       ...macros.map((m) => ({

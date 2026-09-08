@@ -20,7 +20,7 @@
 
 ## Por que docmap?
 
-A maioria das ferramentas de documentação depende da nuvem: seus arquivos, suas ideias e seu histórico ficam em servidores que você não controla. O **docmap** inverte isso: tudo roda localmente — o grafo, as notas, os diagramas e os podcasts. Sem assinaturas, sem lock-in, sem depender de uma conexão.
+A maioria das ferramentas de documentação depende da nuvem: seus arquivos, suas ideias e seu histórico ficam em servidores que você não controla. O **docmap** inverte isso: tudo roda localmente — o grafo, as notas, os desenhos e os podcasts. Sem assinaturas, sem lock-in, sem depender de uma conexão.
 
 Ideal para:
 
@@ -38,7 +38,7 @@ Ideal para:
 | **🕸️ Grafo de conhecimento** | Conecta entidades do DocMap por tags e referências |
 | **🧠 Markmap** | Transforma headings em mapa mental navegável |
 | **📝 Notas globais** | Knowledge base com busca full-text, categorias e tags |
-| **📊 Diagramas Mermaid** | Cria diagramas de arquitetura direto no app |
+| **🎨 Lousa Canvas** | Desenhe no tablet e veja em tempo real, com biblioteca de desenhos |
 | **🎙️ Podcasts em áudio** | Sintetiza roteiros prontos com 2+ vozes |
 | **🎬 Slides sincronizados** | CSS art puro animado que troca conforme o áudio avança |
 | **✅ Kanban de tarefas** | Organize tarefas e vincule a notas |
@@ -85,7 +85,7 @@ O caminho é fixo e independente do binário: atualizar o app nunca apaga suas n
 O docmap sintetiza roteiros enviados por agentes externos em episódios de áudio com **slides visuais sincronizados**, tudo em CSS art puro. Pause, acelere, volte: os slides seguem o tempo do áudio naturalmente.
 
 ### 🧩 Extensível via API
-A porta `:3334` expõe uma API REST para agentes. Integrações próprias podem criar notas, diagramas, tasks, favoritos e podcasts, ou participar de workflows persistidos declarando ferramenta, provider e modelo. O docmap coordena dependências, claims, eventos e revisões sem iniciar nenhuma CLI.
+A porta `:3334` expõe uma API REST para agentes. Integrações próprias podem criar notas, desenhos, tasks, favoritos e podcasts, ou participar de workflows persistidos declarando ferramenta, provider e modelo. O docmap coordena dependências, claims, eventos e revisões sem iniciar nenhuma CLI.
 
 ### 🚀 Auto-update transparente
 Binários são distribuídos via GitHub Releases. O app detecta novas versões e atualiza sozinho — sem loja, sem gatekeeper.

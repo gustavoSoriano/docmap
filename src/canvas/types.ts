@@ -85,6 +85,7 @@ export interface DrawingMeta {
   readonly id: string;
   readonly collectionId: string;
   readonly name: string;
+  readonly tags: readonly string[];
   readonly shapes: number;
   readonly createdAt: string;
   readonly updatedAt: string;

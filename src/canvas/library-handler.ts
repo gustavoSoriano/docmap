@@ -115,7 +115,7 @@ export const createLibraryHandler = (deps: HandlerDeps) => {
       return json(await listDrawings(kv, colId));
     }
 
-    // POST /canvas/drawings { collectionId?, name } — salva o board atual.
+    // POST /canvas/drawings { collectionId?, name, tags? } — salva o board.
     if (req.method === 'POST' && !id) {
       const body = await readJson(req);
       if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -131,6 +131,7 @@ export const createLibraryHandler = (deps: HandlerDeps) => {
       const saved = await createDrawing(kv, {
         collectionId: col.id,
         name,
+        tags: Array.isArray(rec.tags) ? rec.tags.map(String) : undefined,
         snapshot: boardHub.getSnapshot(),
         shapes: boardHub.shapeCount,
       });
@@ -177,11 +178,16 @@ export const createLibraryHandler = (deps: HandlerDeps) => {
         return badRequest('invalid_json');
       }
       const rec = body as Record<string, unknown>;
-      const input: { name?: string; collectionId?: string } = {};
+      const input: { name?: string; collectionId?: string; tags?: string[] } =
+        {};
       if (rec.name !== undefined) {
         const name = cleanName(rec.name);
         if (!name) return badRequest('name inválido (1-120 chars)');
         input.name = name;
+      }
+      if (rec.tags !== undefined) {
+        if (!Array.isArray(rec.tags)) return badRequest('tags inválidas');
+        input.tags = rec.tags.map(String);
       }
       if (rec.collectionId !== undefined) {
         if (typeof rec.collectionId !== 'string' || !rec.collectionId) {

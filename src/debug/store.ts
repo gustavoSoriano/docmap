@@ -59,7 +59,10 @@ export const getDebugSessionEntries = (sessionId: string): DebugEntry[] =>
     .sort((a, b) => a.seq - b.seq);
 
 export const getDebugSessions = (): DebugSessionSummary[] => {
-  const map = new Map<string, DebugSessionSummary & { lastCreatedAt: number }>();
+  const map = new Map<
+    string,
+    DebugSessionSummary & { lastCreatedAt: number }
+  >();
   for (const entry of buffer) {
     if (isExpired(entry)) continue;
     const current = map.get(entry.sessionId);

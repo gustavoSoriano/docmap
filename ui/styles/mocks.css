@@ -1004,7 +1004,8 @@
   #mocks-col-list {
     max-height: 120px;
   }
-  #mocks-col-head, #mocks-list-head {
+  #mocks-col-head,
+  #mocks-list-head {
     padding: 6px 8px;
   }
   .mocks-section-label {

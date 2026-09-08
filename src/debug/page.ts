@@ -634,4 +634,5 @@ body{
 </body>
 </html>`;
 
-export const serveDebugPage = (): Promise<Response> => Promise.resolve(html(PAGE));
+export const serveDebugPage = (): Promise<Response> =>
+  Promise.resolve(html(PAGE));

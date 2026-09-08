@@ -10,7 +10,7 @@
 export type EntityKind =
   | 'note'
   | 'task'
-  | 'diagram'
+  | 'drawing'
   | 'macro'
   | 'podcast'
   | 'favorite'

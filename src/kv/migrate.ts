@@ -106,6 +106,15 @@ const migrations: Migration[] = [
       await kv.delete(entry.key);
     }
   },
+
+  // v10 — módulo de diagramas Mermaid removido (substituído pela lousa).
+  // Purga chaves órfãs ["diagrams", ...]. Idempotente.
+  // (Os desenhos migrados vivem em ["canvas_drawings", ...] + disco.)
+  async (kv) => {
+    for await (const entry of kv.list<unknown>({ prefix: ['diagrams'] })) {
+      await kv.delete(entry.key);
+    }
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

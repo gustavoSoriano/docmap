@@ -58,7 +58,10 @@ export const mocksHandler =
         }
         const { name, tags } = body as CreateCollectionInput;
         if (!name?.trim()) return badRequest('name required');
-        return json(await createCollection(kv, { name: name.trim(), tags }), 201);
+        return json(
+          await createCollection(kv, { name: name.trim(), tags }),
+          201,
+        );
       }
 
       if (req.method === 'PUT' && colId) {
@@ -70,7 +73,10 @@ export const mocksHandler =
         }
         const { name, tags } = body as CreateCollectionInput;
         if (!name?.trim()) return badRequest('name required');
-        const updated = await updateCollection(kv, colId, { name: name.trim(), tags });
+        const updated = await updateCollection(kv, colId, {
+          name: name.trim(),
+          tags,
+        });
         if (!updated) return notFound();
         return json(updated);
       }

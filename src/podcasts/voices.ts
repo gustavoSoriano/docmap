@@ -16,7 +16,8 @@ export type EdgeVoice = {
 let cachedVoices: EdgeVoice[] | null = null;
 
 // Regex de validação: pt-BR, es-* e en-* (ex.: en-US-AriaNeural, es-MX-DaliaNeural)
-const VOICE_ID_RE = /^(pt-BR|es-[A-Z]{2}|en-[A-Z]{2})-[A-Za-z]+(Multilingual)?Neural$/;
+const VOICE_ID_RE =
+  /^(pt-BR|es-[A-Z]{2}|en-[A-Z]{2})-[A-Za-z]+(Multilingual)?Neural$/;
 
 export const DEFAULT_FOLDER = 'geral';
 
@@ -26,7 +27,8 @@ export const DEFAULT_FOLDER = 'geral';
 //   ---------------------------------  --------  ---------------------  --------------------------------------
 //   pt-BR-AntonioNeural                Male      General                Friendly, Positive
 
-const VOICE_LINE_RE = /^((?:pt-BR|es-[A-Z]{2}|en-[A-Z]{2})-\S+Neural)\s+(Male|Female)\s+\S+\s+(.+?)\s*$/;
+const VOICE_LINE_RE =
+  /^((?:pt-BR|es-[A-Z]{2}|en-[A-Z]{2})-\S+Neural)\s+(Male|Female)\s+\S+\s+(.+?)\s*$/;
 
 const parseVoiceList = (stdout: string): EdgeVoice[] => {
   const voices: EdgeVoice[] = [];
@@ -71,8 +73,10 @@ export const refreshVoices = async (): Promise<readonly EdgeVoice[]> => {
 // Inicializa o cache no boot (não bloqueia — se falhar, tenta de novo na primeira request).
 export const warmVoicesCache = (): void => {
   fetchFromEdgeTts()
-    .then((v) => { cachedVoices = v; })
-    .catch(() => { /* silencioso — getVoices tentará de novo depois */ });
+    .then((v) => {
+      cachedVoices = v;
+    })
+    .catch(() => {/* silencioso — getVoices tentará de novo depois */});
 };
 
 // ── Seleção e validação ──

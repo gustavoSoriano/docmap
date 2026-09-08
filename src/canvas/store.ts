@@ -139,6 +139,7 @@ export const createDrawing = async (
   input: {
     collectionId: string;
     name: string;
+    tags?: readonly string[];
     snapshot: BoardSnapshot;
     shapes: number;
   },
@@ -150,6 +151,8 @@ export const createDrawing = async (
     id: crypto.randomUUID(),
     collectionId: input.collectionId,
     name: input.name,
+    // Sem tags explícitas, herda as da collection (eixo do grafo).
+    tags: normalizeTags(input.tags ?? col.tags),
     shapes: input.shapes,
     createdAt: now(),
     updatedAt: now(),
@@ -180,7 +183,7 @@ export const overwriteDrawing = async (
 export const renameDrawing = async (
   kv: Deno.Kv,
   id: string,
-  input: { name?: string; collectionId?: string },
+  input: { name?: string; collectionId?: string; tags?: readonly string[] },
 ): Promise<DrawingMeta | null> => {
   const existing = await getDrawing(kv, id);
   if (!existing) return null;
@@ -198,6 +201,7 @@ export const renameDrawing = async (
     ...existing,
     collectionId: nextCollectionId,
     ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     updatedAt: now(),
   };
   await kv.set(metaKey(nextCollectionId, id), updated);

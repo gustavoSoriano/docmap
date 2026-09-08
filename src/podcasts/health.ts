@@ -4,7 +4,10 @@
 
 import { EDGE_TTS_BIN, FFMPEG_BIN, FFPROBE_BIN } from '../config.ts';
 
-const binExists = async (bin: string, args: readonly string[]): Promise<boolean> => {
+const binExists = async (
+  bin: string,
+  args: readonly string[],
+): Promise<boolean> => {
   try {
     const cmd = new Deno.Command(bin, {
       args: [...args],
@@ -31,7 +34,10 @@ export type HealthReport = DepStatus & {
     readonly ffmpeg: string;
     readonly ffprobe: string;
   };
-  readonly instructions: readonly { readonly dep: string; readonly cmd: string }[];
+  readonly instructions: readonly {
+    readonly dep: string;
+    readonly cmd: string;
+  }[];
 };
 
 export const checkDeps = async (): Promise<HealthReport> => {

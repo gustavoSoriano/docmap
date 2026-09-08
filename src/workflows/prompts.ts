@@ -302,9 +302,7 @@ workflowId=${pkg.workflow.id}; não a apague manualmente.`;
       ? `
 
 
-Critérios de integridade de workspaces isolados — ${
-        isolatedDeps.length
-      } nó(s) rodaram em isolamento:
+Critérios de integridade de workspaces isolados — ${isolatedDeps.length} nó(s) rodaram em isolamento:
 
 ${
         isolatedDeps.map((dep, i) =>

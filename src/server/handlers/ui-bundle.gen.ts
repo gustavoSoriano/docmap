@@ -16,10 +16,9 @@ export const UI_HTML = `<!DOCTYPE html>
     <link
       href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet">
-    <script
-      src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-    <script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/markmap-lib/dist/browser/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -113,7 +112,6 @@ export const UI_HTML = `<!DOCTYPE html>
   --sh-md: 0 8px 24px rgba(0,0,0,.45);
   --sh-lg: 0 20px 60px rgba(0,0,0,.6);
   --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
-
 }
 
 /* ════════ Light theme ════════ */
@@ -319,8 +317,15 @@ body::before {
 }
 
 /* ── Sidebar panel collapse (logo toggle) ── */
-#notes-col, #macros-col, #skills-col, #diag-col, #mocks-col, #fav-sidebar, #pod-col {
-  transition: width .25s cubic-bezier(.3,0,.2,1), opacity .2s, padding .25s, border-right-width .25s;
+#notes-col,
+#macros-col,
+#skills-col,
+#diag-col,
+#mocks-col,
+#fav-sidebar,
+#pod-col {
+  transition: width .25s cubic-bezier(.3,0,.2,1), opacity .2s, padding .25s,
+    border-right-width .25s;
 }
 /* Compound selectors vencem especificidade de ID sem !important */
 .col-collapsed#notes-col,
@@ -623,8 +628,14 @@ body::before {
   animation: settingsIn .18s ease-out;
 }
 @keyframes settingsIn {
-  from { opacity: 0; transform: scale(.94) translateY(6px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(.94) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 #settings-header {
   display: flex;
@@ -741,7 +752,7 @@ body::before {
 
   /* Rail lateral vira barra horizontal inferior */
   #rail {
-    order: 2;             /* rail vai DEPOIS do stage */
+    order: 2; /* rail vai DEPOIS do stage */
     flex-direction: row;
     width: 100%;
     height: auto;
@@ -2003,7 +2014,6 @@ body::before {
   }
 }
 
-
 </style>
     <style>
 /* ════ Macros mode ════ */
@@ -2091,8 +2101,12 @@ body::before {
   border-radius: var(--r-sm);
   transition: background .1s;
 }
-.macros-col-item:hover { background: var(--surface-3); }
-.macros-col-item.active { background: var(--accent-dim); }
+.macros-col-item:hover {
+  background: var(--surface-3);
+}
+.macros-col-item.active {
+  background: var(--accent-dim);
+}
 .macros-col-item-inner {
   display: flex;
   align-items: center;
@@ -2122,7 +2136,9 @@ body::before {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.macros-col-item.active .macros-col-name { color: var(--accent); }
+.macros-col-item.active .macros-col-name {
+  color: var(--accent);
+}
 .macros-col-count {
   font-size: .65rem;
   color: var(--text-4);
@@ -2136,7 +2152,9 @@ body::before {
   gap: 2px;
   padding-right: 5px;
 }
-.macros-col-item:hover .macros-col-actions { display: flex; }
+.macros-col-item:hover .macros-col-actions {
+  display: flex;
+}
 .macros-col-action-btn {
   width: 20px;
   height: 20px;
@@ -2153,7 +2171,9 @@ body::before {
   color: var(--text-2);
   background: var(--surface-4);
 }
-.macros-col-action-btn.danger:hover { color: #fb7185; }
+.macros-col-action-btn.danger:hover {
+  color: #fb7185;
+}
 .macros-col-new-row {
   display: flex;
   align-items: center;
@@ -2175,7 +2195,9 @@ body::before {
   padding: 2px 4px;
   min-width: 0;
 }
-.macros-col-rename-input { border-bottom: 1px solid var(--accent-line); }
+.macros-col-rename-input {
+  border-bottom: 1px solid var(--accent-line);
+}
 .macros-col-new-ok {
   width: 22px;
   height: 22px;
@@ -2442,7 +2464,9 @@ body::before {
   padding: 0 8px;
   outline: none;
 }
-#macro-collection-select:focus { border-color: var(--accent-line); }
+#macro-collection-select:focus {
+  border-color: var(--accent-line);
+}
 #macro-desc-input:focus {
   border-color: var(--accent-line);
 }
@@ -3206,455 +3230,6 @@ body::before {
   }
   #skill-preview {
     padding: 14px 16px;
-  }
-}
-
-</style>
-    <style>
-/* ════ Diagrams mode ════ */
-#mode-diagrams {
-  background: var(--bg);
-}
-
-/* ── List column ── */
-#diag-col {
-  width: 280px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-}
-#diag-col-head {
-  display: flex;
-  align-items: center;
-  padding: 18px 18px 14px;
-  gap: 10px;
-  flex-shrink: 0;
-}
-#diag-col-title {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -.02em;
-  color: var(--text);
-  flex: 1;
-}
-#diag-new-btn {
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 19px;
-  line-height: 1;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  transition: all .15s;
-  box-shadow: 0 2px 10px rgba(55,217,154,.28);
-}
-#diag-new-btn:hover {
-  background: var(--accent-2);
-  transform: scale(1.08);
-}
-
-#diag-list {
-  flex: 1;
-  overflow-y: auto;
-}
-.diag-empty {
-  padding: 34px 22px;
-  text-align: center;
-  color: var(--text-3);
-  font-size: 12.5px;
-  line-height: 1.7;
-}
-.diag-empty strong {
-  color: var(--accent);
-}
-
-.diag-item {
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border-soft);
-  cursor: pointer;
-  transition: background .1s;
-  border-left: 2px solid transparent;
-}
-.diag-item:hover {
-  background: var(--surface-2);
-}
-.diag-item.active {
-  background: var(--surface-2);
-  border-left-color: var(--accent);
-}
-.diag-item.active .diag-item-title {
-  color: var(--accent);
-}
-.diag-item-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.diag-item-preview {
-  font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--text-3);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ── Editor column ── */
-#diag-editor {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-#diag-editor-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  color: var(--text-3);
-}
-#diag-editor-empty-mark {
-  width: 66px;
-  height: 66px;
-  display: grid;
-  place-items: center;
-  font-size: 28px;
-  color: var(--text-4);
-  border: 1px dashed var(--border-mid);
-  border-radius: 18px;
-}
-#diag-editor-empty-text {
-  font-size: 14px;
-}
-
-#diag-editor-form {
-  display: none;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-}
-#diag-editor-form.visible {
-  display: flex;
-}
-
-#diag-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-#diag-title-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 20px;
-  letter-spacing: -.02em;
-  color: var(--text);
-}
-#diag-title-input::placeholder {
-  color: var(--text-4);
-}
-#diag-id-badge {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-3);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  padding: 3px 8px;
-  border-radius: var(--r-sm);
-  flex-shrink: 0;
-}
-#diag-head-actions {
-  display: flex;
-  gap: 7px;
-  flex-shrink: 0;
-}
-
-#diag-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* ── Preview — tela cheia por padrão ── */
-#diag-preview-col {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  background: var(--surface-2);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 28px;
-}
-#diag-preview {
-  width: 100%;
-}
-#diag-preview svg {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-
-/* ── Source — colapsável, fechado por padrão ── */
-#diag-source-col {
-  flex-shrink: 0;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  max-height: 38px; /* header only when collapsed */
-  overflow: hidden;
-  transition: max-height .25s ease;
-}
-#diag-source-col.open {
-  max-height: 260px;
-}
-
-#diag-source-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 16px;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .04em;
-  color: var(--text-3);
-  flex-shrink: 0;
-  user-select: none;
-}
-#diag-source-header:hover {
-  color: var(--text-2);
-  background: var(--surface-3);
-}
-#diag-source-toggle {
-  font-size: 10px;
-  transition: transform .2s;
-}
-#diag-source-col.open #diag-source-toggle {
-  transform: rotate(90deg);
-}
-#diag-docs-link {
-  margin-left: auto;
-  color: var(--accent-2);
-  text-decoration: none;
-  font-size: 11px;
-}
-#diag-docs-link:hover {
-  text-decoration: underline;
-}
-
-#diag-source {
-  flex: 1;
-  border: none;
-  outline: none;
-  resize: none;
-  padding: 14px 18px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--text);
-  background: var(--surface);
-  tab-size: 2;
-}
-#diag-source::placeholder {
-  color: var(--text-3);
-}
-
-.diag-error {
-  padding: 16px;
-  background: rgba(251,113,133,.08);
-  border: 1px solid rgba(251,113,133,.25);
-  border-radius: var(--r-sm);
-  color: var(--cat-security);
-  font-size: 12px;
-  line-height: 1.6;
-}
-.diag-error code {
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-/* ── Zoom bar ── */
-#diag-preview-col {
-  position: relative;
-}
-
-#diag-zoom-bar {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 4px 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.25);
-}
-#diag-zoom-label {
-  font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--text-3);
-  min-width: 36px;
-  text-align: center;
-}
-.diag-zoom-btn {
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--text-2);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  transition: background .1s, color .1s;
-}
-.diag-zoom-btn:hover {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-/* ── Tags ── */
-.diag-item-tags {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  margin-top: 5px;
-}
-
-#diag-tags-input {
-  height: 30px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--text);
-  padding: 0 9px;
-  outline: none;
-  flex: 1;
-  max-width: 260px;
-}
-#diag-tags-input:focus {
-  border-color: var(--accent-line);
-}
-#diag-tags-input::placeholder {
-  color: var(--text-3);
-}
-
-/* ════════ Responsivo ════════ */
-@media (max-width: 900px) {
-  #diag-col {
-    width: 200px;
-  }
-  #diag-head {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px 14px 10px;
-  }
-  #diag-title-input {
-    font-size: 18px;
-  }
-  #diag-tags-input {
-    max-width: 180px;
-  }
-}
-
-@media (max-width: 600px) {
-  #mode-diagrams {
-    flex-direction: column;
-  }
-  /* Sidebar escondida por padrão — clique no ◆ para abrir */
-  #diag-col {
-    width: 100%;
-    max-height: 0;
-    overflow: hidden;
-    flex-shrink: 0;
-    border-right: none;
-    border-bottom: none;
-    transition: max-height 0.25s ease;
-  }
-  #diag-col.col-collapsed {
-    max-height: 60vh;
-    overflow-y: auto;
-    border-bottom: 1px solid var(--border);
-    opacity: 1;
-    pointer-events: auto;
-    width: 100%;
-    min-width: 0;
-    flex-shrink: 0;
-  }
-  #diag-col-head {
-    padding: 8px 12px 6px;
-  }
-  #diag-col-title {
-    font-size: 14px;
-  }
-  .diag-item {
-    padding: 7px 12px;
-  }
-  .diag-item-title {
-    font-size: 11.5px;
-  }
-  .diag-item-preview {
-    font-size: 10px;
-  }
-  #diag-editor {
-    flex: 1;
-    min-height: 0;
-  }
-  #diag-head {
-    padding: 10px 12px 8px;
-    gap: 6px;
-  }
-  #diag-title-input {
-    font-size: 16px;
-    min-width: 0;
-  }
-  #diag-tags-input {
-    max-width: 140px;
-  }
-  #diag-head-actions {
-    gap: 4px;
-  }
-  #diag-head-actions .tool-btn {
-    padding: 0 8px;
-    font-size: 11px;
-    height: 28px;
-  }
-  #diag-preview-col {
-    padding: 16px;
-  }
-  #diag-zoom-bar {
-    top: 6px;
-    right: 6px;
   }
 }
 
@@ -7235,7 +6810,8 @@ body::before {
   #mocks-col-list {
     max-height: 120px;
   }
-  #mocks-col-head, #mocks-list-head {
+  #mocks-col-head,
+  #mocks-list-head {
     padding: 6px 8px;
   }
   .mocks-section-label {
@@ -8580,7 +8156,11 @@ mark.fav-hl {
   align-items: center;
   gap: 8px;
 }
-#pod-col-title .ico { width: 18px; height: 18px; color: var(--accent); }
+#pod-col-title .ico {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+}
 
 /* ── Health badge ── */
 #pod-health {
@@ -8601,11 +8181,26 @@ mark.fav-hl {
   font-family: var(--font-ui);
   transition: all .12s;
 }
-#pod-health .ico { width: 12px; height: 12px; }
-#pod-health:hover { background: var(--surface-3); }
-.pod-health-checking { color: var(--text-4); }
-.pod-health-ok { color: var(--accent); border-color: var(--accent-line); background: var(--accent-dim); }
-.pod-health-bad { color: #fbbf24; border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.1); }
+#pod-health .ico {
+  width: 12px;
+  height: 12px;
+}
+#pod-health:hover {
+  background: var(--surface-3);
+}
+.pod-health-checking {
+  color: var(--text-4);
+}
+.pod-health-ok {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+}
+.pod-health-bad {
+  color: #fbbf24;
+  border-color: rgba(251,191,36,.35);
+  background: rgba(251,191,36,.1);
+}
 
 .pod-health-panel {
   max-height: 0;
@@ -8613,7 +8208,11 @@ mark.fav-hl {
   transition: max-height .2s ease;
   flex-shrink: 0;
 }
-.pod-health-panel.open { max-height: 240px; padding: 0 18px 12px; overflow-y: auto; }
+.pod-health-panel.open {
+  max-height: 240px;
+  padding: 0 18px 12px;
+  overflow-y: auto;
+}
 .pod-health-row {
   font-size: 12px;
   padding: 8px 0;
@@ -8621,10 +8220,21 @@ mark.fav-hl {
   align-items: center;
   gap: 8px;
 }
-.pod-health-row.ok { color: var(--accent); }
-.pod-health-row.bad { color: #fbbf24; }
-.pod-health-row .ico { width: 13px; height: 13px; }
-.pod-health-row code { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); }
+.pod-health-row.ok {
+  color: var(--accent);
+}
+.pod-health-row.bad {
+  color: #fbbf24;
+}
+.pod-health-row .ico {
+  width: 13px;
+  height: 13px;
+}
+.pod-health-row code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-2);
+}
 .pod-health-cmd {
   display: flex;
   flex-direction: column;
@@ -8634,7 +8244,11 @@ mark.fav-hl {
   background: var(--surface-3);
   border-radius: var(--r-sm);
 }
-.pod-health-dep { font-size: 11px; font-weight: 700; color: var(--accent); }
+.pod-health-dep {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
 .pod-health-cmd code {
   font-family: var(--font-mono);
   font-size: 11.5px;
@@ -8647,7 +8261,13 @@ mark.fav-hl {
   line-height: 1.6;
   padding-top: 8px;
 }
-.pod-health-note code { font-family: var(--font-mono); color: var(--accent); background: var(--surface-2); padding: 1px 4px; border-radius: 3px; }
+.pod-health-note code {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  background: var(--surface-2);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
 
 #pod-filters {
   padding: 0 14px 12px;
@@ -8667,7 +8287,10 @@ mark.fav-hl {
   font-size: 12.5px;
   font-family: var(--font-ui);
 }
-#pod-search:focus { outline: none; border-color: var(--accent-line); }
+#pod-search:focus {
+  outline: none;
+  border-color: var(--accent-line);
+}
 #pod-folder-filter {
   width: 100%;
   box-sizing: border-box;
@@ -8707,12 +8330,16 @@ mark.fav-hl {
   transition: background .1s;
   border-left: 2px solid transparent;
 }
-.pod-item:hover { background: var(--surface-2); }
+.pod-item:hover {
+  background: var(--surface-2);
+}
 .pod-item.active {
   background: var(--surface-2);
   border-left-color: var(--accent);
 }
-.pod-item.active .pod-item-title { color: var(--accent); }
+.pod-item.active .pod-item-title {
+  color: var(--accent);
+}
 .pod-item-top {
   display: flex;
   align-items: center;
@@ -8731,7 +8358,11 @@ mark.fav-hl {
   gap: 6px;
   flex: 1;
 }
-.pod-item-title .ico { width: 14px; height: 14px; flex-shrink: 0; }
+.pod-item-title .ico {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
 .pod-item-meta {
   display: flex;
   align-items: center;
@@ -8745,7 +8376,9 @@ mark.fav-hl {
   color: var(--accent);
   font-weight: 500;
 }
-.pod-dot { color: var(--text-4); }
+.pod-dot {
+  color: var(--text-4);
+}
 
 .pod-status {
   font-size: 10.5px;
@@ -8761,8 +8394,16 @@ mark.fav-hl {
   background: rgba(96, 165, 250, .14);
   color: #60a5fa;
 }
-.pod-status.gen .ico { width: 11px; height: 11px; animation: pod-spin 1s linear infinite; }
-@keyframes pod-spin { to { transform: rotate(360deg); } }
+.pod-status.gen .ico {
+  width: 11px;
+  height: 11px;
+  animation: pod-spin 1s linear infinite;
+}
+@keyframes pod-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .pod-status.err {
   background: rgba(251, 113, 133, .14);
   color: #fb7185;
@@ -8794,7 +8435,11 @@ mark.fav-hl {
   display: grid;
   place-items: center;
 }
-#pod-empty-mark .ico { width: 22px; height: 22px; color: var(--text-4); }
+#pod-empty-mark .ico {
+  width: 22px;
+  height: 22px;
+  color: var(--text-4);
+}
 
 #pod-detail {
   flex: 1;
@@ -8824,8 +8469,14 @@ mark.fav-hl {
   padding: 6px 9px;
   font-family: var(--font-ui);
 }
-#pod-title-input:hover { border-color: var(--border); }
-#pod-title-input:focus { outline: none; border-color: var(--accent-line); background: var(--surface); }
+#pod-title-input:hover {
+  border-color: var(--border);
+}
+#pod-title-input:focus {
+  outline: none;
+  border-color: var(--accent-line);
+  background: var(--surface);
+}
 
 #pod-folder-input {
   width: 150px;
@@ -8837,7 +8488,10 @@ mark.fav-hl {
   padding: 6px 10px;
   font-family: var(--font-ui);
 }
-#pod-folder-input:focus { outline: none; border-color: var(--accent-line); }
+#pod-folder-input:focus {
+  outline: none;
+  border-color: var(--accent-line);
+}
 
 #pod-id-badge {
   font-size: 11px;
@@ -8868,9 +8522,19 @@ mark.fav-hl {
   font-family: var(--font-ui);
   transition: all .12s;
 }
-.tool-btn:hover { background: var(--surface-3); color: var(--text); }
-.tool-btn.danger:hover { background: rgba(251, 113, 133, .14); color: #fb7185; border-color: rgba(251, 113, 133, .35); }
-.tool-btn .ico { width: 14px; height: 14px; }
+.tool-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.tool-btn.danger:hover {
+  background: rgba(251, 113, 133, .14);
+  color: #fb7185;
+  border-color: rgba(251, 113, 133, .35);
+}
+.tool-btn .ico {
+  width: 14px;
+  height: 14px;
+}
 
 #pod-audio-wrap {
   padding: 16px 24px;
@@ -8895,8 +8559,16 @@ mark.fav-hl {
   border-bottom: 1px solid var(--border-soft);
   flex-wrap: wrap;
 }
-#pod-meta .ico { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
-#pod-meta span { display: inline-flex; align-items: center; }
+#pod-meta .ico {
+  width: 13px;
+  height: 13px;
+  vertical-align: -2px;
+  margin-right: 3px;
+}
+#pod-meta span {
+  display: inline-flex;
+  align-items: center;
+}
 
 /* ── Script (roteiro) ── */
 #pod-script {
@@ -8945,7 +8617,10 @@ mark.fav-hl {
   position: relative;
   overflow: hidden;
 }
-#pod-slides-host:fullscreen { width: 100vw; height: 100vh; }
+#pod-slides-host:fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
 #pod-slides-bar {
   flex-shrink: 0;
   display: flex;
@@ -9124,7 +8799,7 @@ mark.fav-hl {
   /* cor por tipo de nó — lidas pelo graph.js via getComputedStyle */
   --kg-note: #6ea8fe;
   --kg-task: #f6a06a;
-  --kg-diagram: #a78bfa;
+  --kg-drawing: #a78bfa;
   --kg-macro: #4ade80;
   --kg-podcast: #f472b6;
   --kg-favorite: #fbbf24;
@@ -9150,7 +8825,10 @@ mark.fav-hl {
   align-items: center;
   gap: 7px;
 }
-.kg-title .ico { width: 15px; height: 15px; }
+.kg-title .ico {
+  width: 15px;
+  height: 15px;
+}
 #kg-count {
   color: var(--text-3);
   font-size: 12px;
@@ -9187,24 +8865,49 @@ mark.fav-hl {
   user-select: none;
   transition: opacity .12s, color .12s;
 }
-.kg-leg:hover { color: var(--text); }
-.kg-leg.off { opacity: .38; text-decoration: line-through; }
+.kg-leg:hover {
+  color: var(--text);
+}
+.kg-leg.off {
+  opacity: .38;
+  text-decoration: line-through;
+}
 .kg-leg i {
   width: 9px;
   height: 9px;
   border-radius: 50%;
   display: inline-block;
 }
-.kg-leg-note i { background: var(--kg-note); }
-.kg-leg-task i { background: var(--kg-task); }
-.kg-leg-diagram i { background: var(--kg-diagram); }
-.kg-leg-macro i { background: var(--kg-macro); }
-.kg-leg-podcast i { background: var(--kg-podcast); }
-.kg-leg-favorite i { background: var(--kg-favorite); }
-.kg-leg-skill i { background: var(--kg-skill); }
-.kg-leg-mock i { background: var(--kg-mock); }
-.kg-leg-workflow i { background: var(--kg-workflow); }
-.kg-leg-tag i { background: var(--kg-tag); }
+.kg-leg-note i {
+  background: var(--kg-note);
+}
+.kg-leg-task i {
+  background: var(--kg-task);
+}
+.kg-leg-drawing i {
+  background: var(--kg-drawing);
+}
+.kg-leg-macro i {
+  background: var(--kg-macro);
+}
+.kg-leg-podcast i {
+  background: var(--kg-podcast);
+}
+.kg-leg-favorite i {
+  background: var(--kg-favorite);
+}
+.kg-leg-skill i {
+  background: var(--kg-skill);
+}
+.kg-leg-mock i {
+  background: var(--kg-mock);
+}
+.kg-leg-workflow i {
+  background: var(--kg-workflow);
+}
+.kg-leg-tag i {
+  background: var(--kg-tag);
+}
 
 #kg-canvas {
   flex: 1;
@@ -9220,21 +8923,43 @@ svg#kg-svg {
   display: block;
   cursor: grab;
 }
-svg#kg-svg:active { cursor: grabbing; }
+svg#kg-svg:active {
+  cursor: grabbing;
+}
 
-.kg-link { stroke: var(--border-hi); stroke-width: 1.2; stroke-opacity: .6; }
-.kg-link-reference { stroke: var(--kg-task); stroke-width: 2; stroke-opacity: .85; }
-.kg-link.kg-hi { stroke: var(--accent); stroke-width: 2.4; stroke-opacity: 1; }
-.kg-link.kg-dim { opacity: .06; }
+.kg-link {
+  stroke: var(--border-hi);
+  stroke-width: 1.2;
+  stroke-opacity: .6;
+}
+.kg-link-reference {
+  stroke: var(--kg-task);
+  stroke-width: 2;
+  stroke-opacity: .85;
+}
+.kg-link.kg-hi {
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-opacity: 1;
+}
+.kg-link.kg-dim {
+  opacity: .06;
+}
 
-.kg-node { cursor: pointer; }
-.kg-halo { pointer-events: none; }
+.kg-node {
+  cursor: pointer;
+}
+.kg-halo {
+  pointer-events: none;
+}
 .kg-core {
   stroke: var(--bg);
   stroke-width: 2;
   transition: transform .16s ease;
 }
-.kg-node:hover .kg-core { transform: scale(1.15); }
+.kg-node:hover .kg-core {
+  transform: scale(1.15);
+}
 .kg-label {
   font-family: var(--font-ui);
   font-size: 11px;
@@ -9245,11 +8970,24 @@ svg#kg-svg:active { cursor: grabbing; }
   stroke-width: 3.5px;
   stroke-linejoin: round;
 }
-.kg-node-tag .kg-label { fill: var(--text-3); font-style: italic; }
-.kg-node.kg-selected .kg-core { stroke: var(--text); stroke-width: 3; }
-.kg-node.kg-selected .kg-label { fill: var(--text); font-weight: 600; }
-.kg-node.kg-dim { opacity: .15; }
-.kg-node.kg-dim .kg-label { opacity: 0; }
+.kg-node-tag .kg-label {
+  fill: var(--text-3);
+  font-style: italic;
+}
+.kg-node.kg-selected .kg-core {
+  stroke: var(--text);
+  stroke-width: 3;
+}
+.kg-node.kg-selected .kg-label {
+  fill: var(--text);
+  font-weight: 600;
+}
+.kg-node.kg-dim {
+  opacity: .15;
+}
+.kg-node.kg-dim .kg-label {
+  opacity: 0;
+}
 
 #kg-empty {
   position: absolute;
@@ -9263,9 +9001,19 @@ svg#kg-svg:active { cursor: grabbing; }
   text-align: center;
   padding: 40px;
 }
-#kg-empty[data-show="1"] { display: flex; }
-.kg-empty-mark { width: 44px; height: 44px; opacity: .4; }
-.kg-empty-hint { font-size: 13px; max-width: 340px; line-height: 1.55; }
+#kg-empty[data-show="1"] {
+  display: flex;
+}
+.kg-empty-mark {
+  width: 44px;
+  height: 44px;
+  opacity: .4;
+}
+.kg-empty-hint {
+  font-size: 13px;
+  max-width: 340px;
+  line-height: 1.55;
+}
 
 /* ════════ Responsivo ════════ */
 @media (max-width: 600px) {
@@ -9309,7 +9057,7 @@ svg#kg-svg:active { cursor: grabbing; }
   display: none;
   flex-direction: column;
   position: relative;
-  z-index: 35;             /* acima do rail (30) mas abaixo de modais (750+) */
+  z-index: 35; /* acima do rail (30) mas abaixo de modais (750+) */
   flex-shrink: 0;
 }
 
@@ -9408,8 +9156,8 @@ svg#kg-svg:active { cursor: grabbing; }
   flex: 1;
   min-height: 0;
   width: 100%;
-  overflow: hidden;        /* contém o xterm e evita que ele empurre o layout */
-  position: relative;       /* containing block para os absolutes do xterm */
+  overflow: hidden; /* contém o xterm e evita que ele empurre o layout */
+  position: relative; /* containing block para os absolutes do xterm */
   /* fundo espelha o tema do terminal.
      Dark:  var(--bg)     = #0b0c0e  (sync com DARK_THEME.background  em terminal.js)
      Light: var(--surface) = #ffffff  (sync com LIGHT_THEME.background em terminal.js) */
@@ -9443,11 +9191,11 @@ svg#kg-svg:active { cursor: grabbing; }
   background: transparent;
 }
 #terminal-container .xterm-viewport::-webkit-scrollbar-thumb {
-  background: var(--text-4);       /* #454b56 — visível sobre fundo escuro */
+  background: var(--text-4); /* #454b56 — visível sobre fundo escuro */
   border-radius: 4px;
 }
 #terminal-container .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: var(--text-3);       /* #626976 no hover */
+  background: var(--text-3); /* #626976 no hover */
 }
 #terminal-container .xterm-viewport::-webkit-scrollbar-corner {
   background: transparent;
@@ -9516,17 +9264,20 @@ svg#kg-svg:active { cursor: grabbing; }
             <defs>
               <linearGradient id="dm-logo-bg" x1="0" y1="0" x2="1024" y2="1024"
                 gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#1a1e26"/>
-                <stop offset="1" stop-color="#0b0c0e"/>
+                <stop offset="0" stop-color="#1a1e26" />
+                <stop offset="1" stop-color="#0b0c0e" />
               </linearGradient>
             </defs>
-            <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#dm-logo-bg)"/>
+            <rect x="64" y="64" width="896" height="896" rx="200"
+              fill="url(#dm-logo-bg)" />
             <ellipse cx="512" cy="512" rx="300" ry="205" fill="none"
               stroke="#37d99a" stroke-width="34" stroke-opacity="0.9"
-              transform="rotate(-18 512 512)"/>
-            <circle cx="512" cy="512" r="128" fill="#37d99a"/>
-            <circle cx="797" cy="419" r="52" fill="#37d99a" fill-opacity="0.95"/>
-            <circle cx="227" cy="605" r="26" fill="#37d99a" fill-opacity="0.5"/>
+              transform="rotate(-18 512 512)" />
+            <circle cx="512" cy="512" r="128" fill="#37d99a" />
+            <circle cx="797" cy="419" r="52" fill="#37d99a"
+              fill-opacity="0.95" />
+            <circle cx="227" cy="605" r="26" fill="#37d99a"
+              fill-opacity="0.5" />
           </svg>
         </div>
         <button class="rail-btn active" id="rail-graph"
@@ -9561,11 +9312,6 @@ svg#kg-svg:active { cursor: grabbing; }
         <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
           title="Macros">
     <span class="rail-ico" data-icon="bot"></span><span class="rail-lbl">Macros</span>
-  </button>
-        <button class="rail-btn" id="rail-diagrams"
-          onclick="setMode('diagrams')"
-          title="Diagramas">
-    <span class="rail-ico" data-icon="git-branch"></span><span class="rail-lbl">Diag</span>
   </button>
         <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
           title="Mocks HTTP">
@@ -9730,7 +9476,8 @@ svg#kg-svg:active { cursor: grabbing; }
                   title="Interpretador detectado pelo shebang"></span>
                 <button id="macro-slug-copy-btn" class="macro-slug-chip"
                   style="display:none" onclick="copyCurrentMacroSlug()"
-                  title="Copiar slug da macro" aria-label="Copiar slug da macro">
+                  title="Copiar slug da macro"
+                  aria-label="Copiar slug da macro">
                   <span class="macro-slug-label">slug</span>
                   <code id="macro-slug-value"></code>
                   <span data-icon="copy"></span>
@@ -9836,74 +9583,6 @@ svg#kg-svg:active { cursor: grabbing; }
                 <textarea id="skill-content-textarea"
                   placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;\`\`\`bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;\`\`\`"></textarea>
                 <div id="skill-preview"></div>
-              </div>
-            </div>
-          </section>
-        </main>
-
-        <!-- ═══ MODE: DIAGRAMS ═══ -->
-        <main id="mode-diagrams" class="mode">
-          <section id="diag-col">
-            <div id="diag-col-head">
-              <div id="diag-col-title">Diagramas</div>
-              <button id="diag-new-btn" title="Novo diagrama"
-                onclick="newDiagram()" data-icon="plus"></button>
-            </div>
-            <div id="diag-list"></div>
-          </section>
-
-          <section id="diag-editor">
-            <div id="diag-editor-empty">
-              <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
-              <div
-                id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
-            </div>
-
-            <div id="diag-editor-form">
-              <div id="diag-head">
-                <input id="diag-title-input" type="text"
-                  placeholder="Título do diagrama…" />
-                <input id="diag-tags-input" type="text"
-                  placeholder="tags, separadas, por vírgula" />
-                <span id="diag-id-badge" style="display:none"
-                  title="Clique para copiar o deep link"></span>
-                <div id="diag-head-actions">
-                  <button class="tool-btn" id="btn-diag-copy-link"
-                    style="display:none"
-                    onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
-                  <button class="tool-btn danger" id="btn-diag-delete"
-                    style="display:none"
-                    onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
-                  <button class="tool-btn primary"
-                    onclick="saveCurrentDiagram()">Salvar</button>
-                </div>
-              </div>
-
-              <div id="diag-body">
-                <div id="diag-preview-col">
-                  <div id="diag-zoom-bar">
-                    <button class="diag-zoom-btn" onclick="diagZoomOut()"
-                      title="Afastar" data-icon="zoom-out"></button>
-                    <span id="diag-zoom-label">100%</span>
-                    <button class="diag-zoom-btn" onclick="diagZoomIn()"
-                      title="Aproximar" data-icon="zoom-in"></button>
-                    <button class="diag-zoom-btn" onclick="diagZoomReset()"
-                      title="Resetar zoom" data-icon="maximize-2"></button>
-                  </div>
-                  <div id="diag-preview"></div>
-                </div>
-                <div id="diag-source-col">
-                  <div id="diag-source-header" onclick="toggleDiagSource()">
-                    <span>⌨ Código Mermaid</span>
-                    <span id="diag-source-toggle">▸</span>
-                    <a href="https://mermaid.js.org/syntax/flowchart.html"
-                      target="_blank" id="diag-docs-link"
-                      onclick="event.stopPropagation()">docs ↗</a>
-                  </div>
-                  <textarea id="diag-source"
-                    placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]"
-                    spellcheck="false"></textarea>
-                </div>
               </div>
             </div>
           </section>
@@ -10457,7 +10136,7 @@ svg#kg-svg:active { cursor: grabbing; }
             <div id="kg-empty">
               <span class="kg-empty-mark" data-icon="waypoints"></span>
               <div
-                class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, diagramas… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
+                class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, desenhos… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
             </div>
           </div>
         </main>
@@ -11081,7 +10760,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', diagrams: 'Diagramas', tasks: 'Kanban', workflows: 'Workflows', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', workflows: 'Workflows', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -11089,7 +10768,6 @@ const PANEL_BY_MODE = {
   notes:     'notes-col',
   macros:    'macros-col',
   skills:    'skills-col',
-  diagrams:  'diag-col',
   mocks:     'mocks-col',
   favorites: 'fav-sidebar',
   podcasts:  'pod-col',
@@ -11124,7 +10802,6 @@ const setMode = (mode) => {
   if (mode === 'macros')         loadMacrosList();
   else if (mode === 'notes')     loadNotesList();
   else if (mode === 'skills')    loadSkillsList();
-  else if (mode === 'diagrams')  loadDiagramsList();
   else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
   else if (mode === 'workflows') loadWorkflows();
   else if (mode === 'mocks')     loadMocksData();
@@ -11175,11 +10852,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ── Canvas mode ──
-// O canvas carrega via iframe apontando para /canvas.
-// loadCanvas apenas garante que o iframe está apontando pra URL correta.
+// O canvas carrega via iframe apontando para /canvas (com ?open=<id> opcional
+// vindo de deep link #drawing/<id>).
 const loadCanvas = () => {
   const iframe = document.getElementById('canvas-iframe');
-  if (iframe && iframe.getAttribute('src') !== '/canvas') {
+  if (iframe && !iframe.getAttribute('src')) {
     iframe.setAttribute('src', '/canvas');
   }
 };
@@ -11209,12 +10886,20 @@ document.addEventListener('click', (e) => {
     <script>
 // ════ Deep links — abre entidades direto pela URL ════
 
+// Abre um desenho salvo no modo canvas (iframe carrega com ?open=<id>).
+const openDrawing = (id) => {
+  setMode('canvas');
+  const iframe = document.getElementById('canvas-iframe');
+  if (iframe) {
+    iframe.setAttribute('src', '/canvas?open=' + encodeURIComponent(id));
+  }
+};
+
 const handleDeepLink = () => {
   const hash = window.location.hash;
-  const diag = hash.match(/^#diagram\\/([a-f0-9-]{36})$/);
-  if (diag) {
-    setMode('diagrams');
-    openDiagram(diag[1]);
+  const drawing = hash.match(/^#drawing\\/([a-f0-9-]{36})$/);
+  if (drawing) {
+    openDrawing(drawing[1]);
     history.replaceState(null, '', '/');
     return;
   }
@@ -12408,250 +12093,6 @@ document.addEventListener('keydown', (e) => {
     saveCurrentSkill();
   }
 });
-
-</script>
-    <script>
-// ════ Diagramas Mermaid ════
-
-let allDiagrams     = [];
-let currentDiagram  = null;
-let renderTimer     = null;
-let mermaidReady    = false;
-
-// ── Inicializa Mermaid com tema dark ──
-const initMermaid = () => {
-  if (!window.mermaid || mermaidReady) return;
-  window.mermaid.initialize({
-    startOnLoad: false,
-    suppressErrorRendering: true,
-    theme: 'dark',
-    themeVariables: {
-      background:       '#101216',
-      primaryColor:     '#1e222a',
-      primaryTextColor: '#edeef1',
-      primaryBorderColor: '#22262e',
-      lineColor:        '#626976',
-      secondaryColor:   '#16191f',
-      tertiaryColor:    '#262b34',
-    },
-  });
-  mermaidReady = true;
-};
-
-// ── Lista ──
-const loadDiagramsList = async () => {
-  try {
-    const res = await fetch('/diagrams');
-    allDiagrams = await res.json();
-    renderDiagramsList();
-  } catch (err) { console.error('Erro ao carregar diagramas:', err); }
-};
-
-const renderDiagramsList = () => {
-  const list = $('diag-list');
-  if (!allDiagrams.length) {
-    list.innerHTML = \`<div class="diag-empty">Nenhum diagrama ainda.<br>Clique em <strong>+</strong> para criar.</div>\`;
-    return;
-  }
-  list.innerHTML = allDiagrams.map((d) =>
-    \`<div class="diag-item\${currentDiagram?.id === d.id ? ' active' : ''}" onclick="openDiagram('\${d.id}')">
-      <div class="diag-item-title">\${escHtml(d.title)}</div>
-      <div class="diag-item-preview">\${escHtml(d.preview || '')}</div>
-      \${(d.tags||[]).length ? \`<div class="diag-item-tags">\${d.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\` : ''}
-    </div>\`
-  ).join('');
-};
-
-// ── Abrir / Novo ──
-const openDiagram = async (id) => {
-  if (currentMode !== 'diagrams') setMode('diagrams');
-  try {
-    const res = await fetch('/diagrams/' + id);
-    currentDiagram = await res.json();
-    fillDiagramEditor(currentDiagram);
-    renderDiagramsList();
-  } catch (err) { console.error('Erro ao abrir diagrama:', err); }
-};
-
-const newDiagram = () => {
-  currentDiagram = null;
-  diagZoomLevel = 1;
-  $('diag-title-input').value = '';
-  $('diag-tags-input').value = '';
-  $('diag-source').value = '';
-  $('diag-id-badge').style.display = 'none';
-  $('btn-diag-copy-link').style.display = 'none';
-  $('btn-diag-delete').style.display = 'none';
-  $('diag-preview').innerHTML = '';
-  $('diag-zoom-label').textContent = '100%';
-  showDiagramEditor();
-  $('diag-title-input').focus();
-};
-
-const fillDiagramEditor = (d) => {
-  $('diag-title-input').value = d.title;
-  $('diag-tags-input').value = (d.tags || []).join(', ');
-  $('diag-source').value      = d.source;
-  const badge = $('diag-id-badge');
-  badge.textContent            = d.id.slice(0, 8);
-  badge.style.display          = 'inline-block';
-  $('btn-diag-copy-link').style.display = 'inline-flex';
-  $('btn-diag-delete').style.display    = 'inline-flex';
-  showDiagramEditor();
-  renderPreview(d.source);
-};
-
-const showDiagramEditor = () => {
-  $('diag-editor-empty').style.display = 'none';
-  $('diag-editor-form').classList.add('visible');
-};
-
-// ── Salvar / Excluir ──
-const saveCurrentDiagram = async () => {
-  const title  = $('diag-title-input').value.trim();
-  const source = $('diag-source').value.trim();
-  if (!title)  { $('diag-title-input').focus(); return toast('Dê um título ao diagrama'); }
-  if (!source) { $('diag-source').focus();      return toast('Escreva o código Mermaid'); }
-
-  const url    = currentDiagram ? '/diagrams/' + currentDiagram.id : '/diagrams';
-  const method = currentDiagram ? 'PUT' : 'POST';
-  try {
-    const tags = $('diag-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, source, tags }),
-    });
-    currentDiagram = await res.json();
-    fillDiagramEditor(currentDiagram);
-    const listRes = await fetch('/diagrams');
-    allDiagrams = await listRes.json();
-    renderDiagramsList();
-    toast('Diagrama salvo');
-  } catch { toast('Erro ao salvar'); }
-};
-
-const deleteCurrentDiagram = async () => {
-  if (!currentDiagram) return;
-  const ok = await confirmDialog(\`Excluir "\${currentDiagram.title}"?\`, { danger: true, okLabel: 'Excluir' });
-  if (!ok) return;
-  await fetch('/diagrams/' + currentDiagram.id, { method: 'DELETE' });
-  currentDiagram = null;
-  $('diag-editor-form').classList.remove('visible');
-  $('diag-editor-empty').style.display = 'flex';
-  $('diag-preview').innerHTML = '';
-  const listRes = await fetch('/diagrams');
-  allDiagrams = await listRes.json();
-  renderDiagramsList();
-  toast('Diagrama excluído');
-};
-
-// ── Deep link / copiar ──
-const copyDiagramLink = () => {
-  if (!currentDiagram) return;
-  const link = \`http://127.0.0.1:3333/#diagram/\${currentDiagram.id}\`;
-  copyToClipboard(link, 'Link copiado — cole numa IA ou no navegador');
-};
-
-// ── Zoom ──
-let diagZoomLevel = 1;
-
-const diagApplyZoom = () => {
-  const svgEl = $('diag-preview')?.querySelector('svg');
-  if (!svgEl) return;
-  const pct = Math.round(diagZoomLevel * 100);
-  svgEl.style.width  = pct + '%';
-  svgEl.style.height = 'auto';
-  $('diag-zoom-label').textContent = pct + '%';
-};
-
-const diagZoomIn    = () => { diagZoomLevel = Math.min(diagZoomLevel + 0.25, 4);   diagApplyZoom(); };
-const diagZoomOut   = () => { diagZoomLevel = Math.max(diagZoomLevel - 0.25, 0.25); diagApplyZoom(); };
-const diagZoomReset = () => { diagZoomLevel = 1; diagApplyZoom(); };
-
-// ── Preview Mermaid ──
-const renderPreview = async (source) => {
-  if (!source.trim()) { $('diag-preview').innerHTML = ''; return; }
-  initMermaid();
-  if (!window.mermaid) return;
-  try {
-    const id  = 'mmd-' + Date.now();
-    const { svg } = await window.mermaid.render(id, source);
-    const el = $('diag-preview');
-    el.innerHTML = svg;
-    const svgEl = el.querySelector('svg');
-    if (svgEl) { svgEl.style.maxWidth = 'none'; }
-    diagApplyZoom();
-  } catch (err) {
-    $('diag-preview').innerHTML =
-      \`<div class="diag-error">Erro no diagrama:<br><code>\${escHtml(String(err).slice(0, 200))}</code></div>\`;
-  }
-};
-
-// ── Toggle código Mermaid ──
-const toggleDiagSource = () => {
-  $('diag-source-col').classList.toggle('open');
-};
-
-// ── Live preview ao digitar (debounced) ──
-$('diag-source').addEventListener('input', debounce(() => {
-  renderPreview($('diag-source').value);
-}, 600));
-
-// ── Atalho: Ctrl/Cmd+S salva ──
-document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 's' && currentMode === 'diagrams') {
-    e.preventDefault();
-    saveCurrentDiagram();
-  }
-});
-
-// ── SSE: atualiza preview em tempo real quando um agente modifica o diagrama ──
-const connectDiagramEvents = () => {
-  const es = new EventSource('/diagrams/events');
-
-  es.addEventListener('updated', (e) => {
-    const { diagram } = JSON.parse(e.data);
-    allDiagrams = allDiagrams.map((d) => d.id === diagram.id
-      ? { ...d, ...diagram, preview: (diagram.source ?? '').slice(0, 120) }
-      : d);
-    renderDiagramsList();
-    if (currentDiagram?.id === diagram.id) {
-      currentDiagram = diagram;
-      // Só sobrescreve o editor se o usuário não estiver digitando nele
-      if (document.activeElement !== $('diag-source')) {
-        $('diag-title-input').value = diagram.title;
-        $('diag-source').value      = diagram.source;
-      }
-      if (document.activeElement !== $('diag-tags-input')) {
-        $('diag-tags-input').value = (diagram.tags || []).join(', ');
-      }
-      renderPreview(diagram.source);
-    }
-  });
-
-  es.addEventListener('created', (e) => {
-    const { diagram } = JSON.parse(e.data);
-    if (!allDiagrams.find((d) => d.id === diagram.id)) {
-      allDiagrams = [diagram, ...allDiagrams];
-      renderDiagramsList();
-    }
-  });
-
-  es.addEventListener('deleted', (e) => {
-    const { id } = JSON.parse(e.data);
-    allDiagrams = allDiagrams.filter((d) => d.id !== id);
-    if (currentDiagram?.id === id) {
-      currentDiagram = null;
-      $('diag-editor-form').classList.remove('visible');
-      $('diag-editor-empty').style.display = 'flex';
-      $('diag-preview').innerHTML = '';
-    }
-    renderDiagramsList();
-  });
-};
-
-connectDiagramEvents();
 
 </script>
     <script>
@@ -16843,9 +16284,9 @@ let kgLinks = [];
 let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'diagram', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'tag'];
+const KG_KINDS = ['note', 'task', 'drawing', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'tag'];
 const KG_LABELS = {
-  note: 'Notas', task: 'Tasks', diagram: 'Diagramas', macro: 'Macros',
+  note: 'Notas', task: 'Tasks', drawing: 'Desenhos', macro: 'Macros',
   podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
   workflow: 'Workflows', tag: 'Tags',
 };
@@ -16859,7 +16300,7 @@ const kgCss = (name) => {
 // Duplo-clique numa entidade → abre no modo dela.
 const OPEN_BY_KIND = {
   note: (id) => openNote(id),
-  diagram: (id) => openDiagram(id),
+  drawing: (id) => openDrawing(id),
   macro: (id) => openMacro(id),
   podcast: (id) => openPodcast(id),
   skill: (id) => openSkill(id),

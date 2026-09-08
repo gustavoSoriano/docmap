@@ -11,7 +11,7 @@
   display: none;
   flex-direction: column;
   position: relative;
-  z-index: 35;             /* acima do rail (30) mas abaixo de modais (750+) */
+  z-index: 35; /* acima do rail (30) mas abaixo de modais (750+) */
   flex-shrink: 0;
 }
 
@@ -110,8 +110,8 @@
   flex: 1;
   min-height: 0;
   width: 100%;
-  overflow: hidden;        /* contém o xterm e evita que ele empurre o layout */
-  position: relative;       /* containing block para os absolutes do xterm */
+  overflow: hidden; /* contém o xterm e evita que ele empurre o layout */
+  position: relative; /* containing block para os absolutes do xterm */
   /* fundo espelha o tema do terminal.
      Dark:  var(--bg)     = #0b0c0e  (sync com DARK_THEME.background  em terminal.js)
      Light: var(--surface) = #ffffff  (sync com LIGHT_THEME.background em terminal.js) */
@@ -145,11 +145,11 @@
   background: transparent;
 }
 #terminal-container .xterm-viewport::-webkit-scrollbar-thumb {
-  background: var(--text-4);       /* #454b56 — visível sobre fundo escuro */
+  background: var(--text-4); /* #454b56 — visível sobre fundo escuro */
   border-radius: 4px;
 }
 #terminal-container .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: var(--text-3);       /* #626976 no hover */
+  background: var(--text-3); /* #626976 no hover */
 }
 #terminal-container .xterm-viewport::-webkit-scrollbar-corner {
   background: transparent;

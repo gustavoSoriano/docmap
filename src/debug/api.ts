@@ -1,9 +1,11 @@
 // ════ AI API handlers para debug audit (porta 3334) ════
 
-import { json, badRequest } from '../server/response.ts';
+import { badRequest, json } from '../server/response.ts';
 import { addDebugEntry, getDebugSessionEntries } from './store.ts';
 
-const isValidBody = (body: unknown): body is { sessionId: string; payload: unknown } =>
+const isValidBody = (
+  body: unknown,
+): body is { sessionId: string; payload: unknown } =>
   body !== null &&
   typeof body === 'object' &&
   !Array.isArray(body) &&

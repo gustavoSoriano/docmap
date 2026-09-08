@@ -111,7 +111,10 @@ const handleWebSocket = (req: Request): Response => {
                 ? '\r\n\x1b[33m[process killed]\x1b[0m\r\n'
                 : `\r\n\x1b[33m[process exited with code ${code}]\x1b[0m\r\n`;
               socket.send(msg);
-              socket.close(1000, code === null ? 'Shell killed' : `Shell exited: ${code}`);
+              socket.close(
+                1000,
+                code === null ? 'Shell killed' : `Shell exited: ${code}`,
+              );
             }
           } catch {
             // socket já fechou

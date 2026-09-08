@@ -69,7 +69,7 @@ const canon = (tags: readonly string[]): string[] => {
 const changedTags = (a: readonly string[], b: readonly string[]): boolean =>
   JSON.stringify([...a].sort()) !== JSON.stringify([...b].sort());
 
-const eps = ['notes', 'tasks', 'diagrams', 'macros', 'podcasts', 'favorites', 'skills'];
+const eps = ['notes', 'tasks', 'macros', 'podcasts', 'favorites', 'skills'];
 const before = new Set<string>();
 const after = new Set<string>();
 let scanned = 0, changed = 0, failed = 0;

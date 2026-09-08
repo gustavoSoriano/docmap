@@ -15,10 +15,9 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet">
-    <script
-      src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-    <script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/markmap-lib/dist/browser/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -50,7 +49,6 @@
     <link rel="stylesheet" href="/styles/notes.css">
     <link rel="stylesheet" href="/styles/macros.css">
     <link rel="stylesheet" href="/styles/skills.css">
-    <link rel="stylesheet" href="/styles/diagrams.css">
     <link rel="stylesheet" href="/styles/tasks.css">
     <link rel="stylesheet" href="/styles/workflows.css">
     <link rel="stylesheet" href="/styles/mocks.css">
@@ -69,17 +67,20 @@
             <defs>
               <linearGradient id="dm-logo-bg" x1="0" y1="0" x2="1024" y2="1024"
                 gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#1a1e26"/>
-                <stop offset="1" stop-color="#0b0c0e"/>
+                <stop offset="0" stop-color="#1a1e26" />
+                <stop offset="1" stop-color="#0b0c0e" />
               </linearGradient>
             </defs>
-            <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#dm-logo-bg)"/>
+            <rect x="64" y="64" width="896" height="896" rx="200"
+              fill="url(#dm-logo-bg)" />
             <ellipse cx="512" cy="512" rx="300" ry="205" fill="none"
               stroke="#37d99a" stroke-width="34" stroke-opacity="0.9"
-              transform="rotate(-18 512 512)"/>
-            <circle cx="512" cy="512" r="128" fill="#37d99a"/>
-            <circle cx="797" cy="419" r="52" fill="#37d99a" fill-opacity="0.95"/>
-            <circle cx="227" cy="605" r="26" fill="#37d99a" fill-opacity="0.5"/>
+              transform="rotate(-18 512 512)" />
+            <circle cx="512" cy="512" r="128" fill="#37d99a" />
+            <circle cx="797" cy="419" r="52" fill="#37d99a"
+              fill-opacity="0.95" />
+            <circle cx="227" cy="605" r="26" fill="#37d99a"
+              fill-opacity="0.5" />
           </svg>
         </div>
         <button class="rail-btn active" id="rail-graph"
@@ -114,11 +115,6 @@
         <button class="rail-btn" id="rail-macros" onclick="setMode('macros')"
           title="Macros">
     <span class="rail-ico" data-icon="bot"></span><span class="rail-lbl">Macros</span>
-  </button>
-        <button class="rail-btn" id="rail-diagrams"
-          onclick="setMode('diagrams')"
-          title="Diagramas">
-    <span class="rail-ico" data-icon="git-branch"></span><span class="rail-lbl">Diag</span>
   </button>
         <button class="rail-btn" id="rail-mocks" onclick="setMode('mocks')"
           title="Mocks HTTP">
@@ -283,7 +279,8 @@
                   title="Interpretador detectado pelo shebang"></span>
                 <button id="macro-slug-copy-btn" class="macro-slug-chip"
                   style="display:none" onclick="copyCurrentMacroSlug()"
-                  title="Copiar slug da macro" aria-label="Copiar slug da macro">
+                  title="Copiar slug da macro"
+                  aria-label="Copiar slug da macro">
                   <span class="macro-slug-label">slug</span>
                   <code id="macro-slug-value"></code>
                   <span data-icon="copy"></span>
@@ -389,74 +386,6 @@
                 <textarea id="skill-content-textarea"
                   placeholder="# Instruções&#10;&#10;Escreva em markdown. Use blocos de código para scripts:&#10;&#10;```bash&#10;#!/bin/bash&#10;echo &quot;faça algo&quot;&#10;```"></textarea>
                 <div id="skill-preview"></div>
-              </div>
-            </div>
-          </section>
-        </main>
-
-        <!-- ═══ MODE: DIAGRAMS ═══ -->
-        <main id="mode-diagrams" class="mode">
-          <section id="diag-col">
-            <div id="diag-col-head">
-              <div id="diag-col-title">Diagramas</div>
-              <button id="diag-new-btn" title="Novo diagrama"
-                onclick="newDiagram()" data-icon="plus"></button>
-            </div>
-            <div id="diag-list"></div>
-          </section>
-
-          <section id="diag-editor">
-            <div id="diag-editor-empty">
-              <div id="diag-editor-empty-mark" data-icon="waypoints"></div>
-              <div
-                id="diag-editor-empty-text">Selecione ou crie um diagrama</div>
-            </div>
-
-            <div id="diag-editor-form">
-              <div id="diag-head">
-                <input id="diag-title-input" type="text"
-                  placeholder="Título do diagrama…" />
-                <input id="diag-tags-input" type="text"
-                  placeholder="tags, separadas, por vírgula" />
-                <span id="diag-id-badge" style="display:none"
-                  title="Clique para copiar o deep link"></span>
-                <div id="diag-head-actions">
-                  <button class="tool-btn" id="btn-diag-copy-link"
-                    style="display:none"
-                    onclick="copyDiagramLink()"><span data-icon="copy"></span> Link</button>
-                  <button class="tool-btn danger" id="btn-diag-delete"
-                    style="display:none"
-                    onclick="deleteCurrentDiagram()"><span data-icon="trash"></span></button>
-                  <button class="tool-btn primary"
-                    onclick="saveCurrentDiagram()">Salvar</button>
-                </div>
-              </div>
-
-              <div id="diag-body">
-                <div id="diag-preview-col">
-                  <div id="diag-zoom-bar">
-                    <button class="diag-zoom-btn" onclick="diagZoomOut()"
-                      title="Afastar" data-icon="zoom-out"></button>
-                    <span id="diag-zoom-label">100%</span>
-                    <button class="diag-zoom-btn" onclick="diagZoomIn()"
-                      title="Aproximar" data-icon="zoom-in"></button>
-                    <button class="diag-zoom-btn" onclick="diagZoomReset()"
-                      title="Resetar zoom" data-icon="maximize-2"></button>
-                  </div>
-                  <div id="diag-preview"></div>
-                </div>
-                <div id="diag-source-col">
-                  <div id="diag-source-header" onclick="toggleDiagSource()">
-                    <span>⌨ Código Mermaid</span>
-                    <span id="diag-source-toggle">▸</span>
-                    <a href="https://mermaid.js.org/syntax/flowchart.html"
-                      target="_blank" id="diag-docs-link"
-                      onclick="event.stopPropagation()">docs ↗</a>
-                  </div>
-                  <textarea id="diag-source"
-                    placeholder="flowchart LR&#10;  A[Início] --> B{Decisão}&#10;  B -->|Sim| C[Resultado]&#10;  B -->|Não| D[Outro]"
-                    spellcheck="false"></textarea>
-                </div>
               </div>
             </div>
           </section>
@@ -1010,7 +939,7 @@
             <div id="kg-empty">
               <span class="kg-empty-mark" data-icon="waypoints"></span>
               <div
-                class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, diagramas… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
+                class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, desenhos… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
             </div>
           </div>
         </main>
@@ -1445,7 +1374,6 @@
     <script src="/scripts/notes.js"></script>
     <script src="/scripts/macros.js"></script>
     <script src="/scripts/skills.js"></script>
-    <script src="/scripts/diagrams.js"></script>
     <script src="/scripts/tasks.js"></script>
     <script src="/scripts/workflows.js"></script>
     <script src="/scripts/mocks.js"></script>
