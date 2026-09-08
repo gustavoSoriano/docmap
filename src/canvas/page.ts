@@ -13,7 +13,7 @@ const PAGE = `<!DOCTYPE html>
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;position:fixed;inset:0}
 #header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#0f1217;border-bottom:1px solid var(--border);flex-shrink:0;min-height:40px;gap:8px}
-#header h1{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap}
+#header h1{font-size:13px;font-weight:600;white-space:nowrap;margin:0;display:flex;align-items:center;gap:8px}
 #header h1::before{content:"\\25C6";color:var(--accent)}
 #tablet-url{font-size:11px;color:var(--text-dim);font-family:ui-monospace,monospace;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #tablet-url:hover{color:var(--accent)}
@@ -25,11 +25,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 #conn-count{font-size:10px;background:rgba(255,255,255,.06);padding:1px 7px;border-radius:8px}
 #actions{display:flex;gap:4px}
+#actions .btn{display:inline-flex;align-items:center;gap:5px}
+#actions .btn svg.ico,#drawer svg.ico{width:13px;height:13px;flex-shrink:0}
+.lib-icon{background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;padding:3px;border-radius:4px;display:inline-flex;align-items:center}
+#conn-count:not(:empty)::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#4caf50;margin-right:5px;vertical-align:1px}
+#drawing-name.dirty::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:5px;vertical-align:1px}
 .btn{background:none;border:1px solid var(--border);color:var(--text);padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap}
 .btn:hover{background:var(--hover)}
 .btn-danger:hover{background:rgba(244,67,54,.15);border-color:#f44336}
 #board{flex:1;position:relative;touch-action:none}
 #board .qd-watermark{display:none}
+#drawing-name{font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+#drawing-name.dirty{color:var(--accent)}
+/* ── Drawer da biblioteca ── */
+#drawer{position:fixed;top:41px;bottom:0;left:0;width:288px;max-width:86vw;background:#0f1217;border-right:1px solid var(--border);z-index:50;transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column}
+#drawer.open{transform:none}
+#drawer-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
+#drawer-close{background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:0 4px}
+#drawer-close:hover{color:var(--text)}
+#drawer-body{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:14px}
+.lib-title{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin-bottom:6px}
+.lib-form{display:flex;gap:4px;margin-bottom:6px}
+.lib-input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:5px;font-size:12px;outline:none}
+.lib-input:focus{border-color:var(--accent)}
+.lib-add{background:none;border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:5px;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.lib-add:hover{background:var(--hover)}
+.lib-list{display:flex;flex-direction:column;gap:2px}
+.lib-row{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid transparent}
+.lib-row:hover{background:var(--hover)}
+.lib-row.selected{background:rgba(108,92,231,.14);border-color:var(--accent)}
+.lib-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-count{font-size:10px;background:rgba(255,255,255,.07);padding:0 6px;border-radius:8px;color:var(--text-dim)}
+.lib-meta{font-size:10px;color:var(--text-dim);white-space:nowrap}
+.lib-icon{background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;padding:2px 4px;border-radius:4px}
+.lib-icon:hover{color:var(--text);background:var(--hover)}
+.lib-icon.danger:hover{color:#f44336}
+.lib-empty{font-size:12px;color:var(--text-dim);padding:6px 2px}
+.lib-rename{flex:1;min-width:0;background:var(--bg);border:1px solid var(--accent);color:var(--text);padding:2px 6px;border-radius:4px;font-size:12px;outline:none}
+/* ── Confirm ── */
+#confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center}
+#confirm-overlay.open{display:flex}
+#confirm-box{background:#101216;border:1px solid #333;border-radius:10px;width:360px;max-width:88vw;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.8)}
+#confirm-msg{font-size:13px;margin-bottom:14px;line-height:1.5}
+#confirm-actions{display:flex;gap:6px;justify-content:flex-end}
+#confirm-ok{background:var(--accent);border-color:var(--accent);color:#fff}
+html[data-theme='light'] #drawer{background:#ffffff}
+html[data-theme='light'] #confirm-box{background:#ffffff}
+html[data-theme='light'] .lib-count{background:rgba(0,0,0,.07)}
 html[data-theme='light']{--bg:#f6f7f9;--border:#d4d8e0;--text:#1a1d23;--text-dim:#828b9a;--accent:#0e9f6e;--hover:rgba(0,0,0,.06)}
 html[data-theme='light'] #header{background:#ffffff}
 html[data-theme='light'] #conn-count{background:rgba(0,0,0,.06)}
@@ -43,22 +85,87 @@ html[data-theme='light'] #toast{background:#ffffff}
 <div id="header">
   <h1>Canvas</h1>
   <span id="tablet-url" title="Clique para copiar — abra no tablet">…</span>
+  <span id="drawing-name" title="desenho aberto"></span>
   <div id="status">
     <span id="status-dot" class="connecting"></span>
     <span id="status-text">conectando...</span>
     <span id="conn-count" title="pessoas no board"></span>
   </div>
   <div id="actions">
-    <button class="btn" onclick="toggleBoardTheme()" title="Alternar tema claro/escuro">◐ Tema</button>
-    <button class="btn btn-danger" onclick="clearBoard()" title="Apagar tudo (para todos)">✕ Limpar</button>
+    <button class="btn btn-danger" onclick="clearBoard()" title="Apagar tudo (para todos)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Limpar</button>
+  </div>
+</div>
+
+<div id="drawer" class="open">
+  <div id="drawer-head">
+    <span>Desenhos salvos</span>
+    <button id="drawer-close" class="lib-icon" onclick="toggleDrawer()" title="Fechar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  </div>
+  <div id="drawer-body">
+    <div>
+      <div class="lib-title">Collections</div>
+      <div class="lib-form">
+        <input id="new-col-input" class="lib-input" placeholder="Nova collection…" maxlength="120">
+        <button class="lib-add" onclick="createCollection()" title="Criar collection"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+      </div>
+      <div id="col-list" class="lib-list"></div>
+    </div>
+    <div>
+      <div class="lib-title" id="drawings-title">Desenhos</div>
+      <div class="lib-form">
+        <input id="new-drawing-input" class="lib-input" placeholder="Salvar board atual como…" maxlength="120">
+        <button class="lib-add" onclick="saveDrawing()">Salvar</button>
+      </div>
+      <div id="drawing-list" class="lib-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <div id="confirm-msg"></div>
+    <div id="confirm-actions">
+      <button class="btn" onclick="confirmLib(false)">Cancelar</button>
+      <button class="btn" id="confirm-ok" onclick="confirmLib(true)">Confirmar</button>
+    </div>
   </div>
 </div>
 
 <div id="board"></div>
 <div id="toast"></div>
 
+<script>
+// Script clássico (não-módulo): roda mesmo se o módulo do board falhar.
+window.toggleDrawer = function(){
+  var d = document.getElementById('drawer');
+  // DEBUG temporário: prova que o toque chegou no handler.
+  var t = document.getElementById('toast');
+  if (t) {
+    t.textContent = 'toggle!';
+    t.classList.add('show');
+    clearTimeout(t._hide);
+    t._hide = setTimeout(function(){ t.classList.remove('show'); }, 800);
+  }
+  if (d) d.classList.toggle('open');
+};
+// A logo do rail principal (UI docmap) alterna esta sidebar via postMessage
+// no modo canvas — mesmo comportamento das outras páginas.
+window.addEventListener('message', function(e){
+  if (e.origin !== location.origin) return;
+  if (e.data && e.data.type === 'docmap-canvas-toggle-drawer') window.toggleDrawer();
+});
+</script>
+
 <script type="module">
 import { createQuickdraw } from '/canvas/vendor/quickdraw/index.js';
+
+// Handlers da página registrados primeiro: mesmo que algo abaixo falhe,
+// os botões do header continuam funcionando.
+window.clearBoard = function(){
+  fetch('/canvas/clear', { method: 'POST' })
+    .then(function(){ showToast('Board limpo para todos'); })
+    .catch(function(){ showToast('Erro ao limpar'); });
+};
 
 var boardEl = document.getElementById('board');
 var dot = document.getElementById('status-dot');
@@ -120,10 +227,6 @@ board.editor.on('theme', function(){
   patchTheme(board.editor.theme);
   document.documentElement.dataset.theme = board.editor.theme.id;
 });
-
-window.toggleBoardTheme = function(){
-  board.editor.setTheme(board.editor.theme.id === 'light' ? 'dark' : 'light');
-};
 
 function showToast(msg){
   if (!toastEl) return;
@@ -191,15 +294,9 @@ function scheduleFrameUpload(){
 // Qualquer mudança (local ou remota) agenda um novo frame.
 store.listen(function(){ scheduleFrameUpload(); });
 
-window.clearBoard = function(){
-  fetch('/canvas/clear', { method: 'POST' })
-    .then(function(){ showToast('Board limpo para todos'); })
-    .catch(function(){ showToast('Erro ao limpar'); });
-};
-
 function setPeers(n){
   if (!cnt) return;
-  cnt.textContent = n > 0 ? ('◉ ' + n) : '';
+  cnt.textContent = n > 0 ? String(n) : '';
 }
 
 function applySnapshot(snapshot){
@@ -280,8 +377,289 @@ function loadTabletUrl(){
   }).catch(function(){ urlEl.textContent = ''; });
 }
 
+// ── Biblioteca: collections + desenhos salvos ──
+var drawerEl = document.getElementById('drawer');
+var colListEl = document.getElementById('col-list');
+var drawingListEl = document.getElementById('drawing-list');
+var drawingsTitleEl = document.getElementById('drawings-title');
+var drawingNameEl = document.getElementById('drawing-name');
+var collections = [];
+var drawings = [];
+var selectedCol = null;
+var currentDrawing = null;
+var dirty = false;
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Ícones Lucide (mesmos paths de ui/scripts/icons.js).
+function icon(n){
+  var P = {
+    pencil: '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+    trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+    save: '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h5"/>'
+  };
+  return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (P[n] || '') + '</svg>';
+}
+
+function apiGet(p){ return fetch(p).then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.json(); }); }
+function apiSend(method, p, body){
+  return fetch(p, { method: method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) })
+    .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error((j && (j.message || j.error)) || ('http '+r.status)); return j; }); });
+}
+
+function updateDrawingLabel(){
+  if (!drawingNameEl) return;
+  if (!currentDrawing) { drawingNameEl.textContent = ''; drawingNameEl.className = ''; return; }
+  drawingNameEl.textContent = currentDrawing.name;
+  drawingNameEl.className = dirty ? 'dirty' : '';
+  drawingNameEl.title = dirty ? 'alterações não salvas' : 'desenho aberto';
+}
+
+function markDirty(){
+  if (currentDrawing && !dirty) { dirty = true; updateDrawingLabel(); }
+}
+store.listen(function(){ markDirty(); });
+
+var confirmResolve = null;
+function askConfirm(msg, okLabel){
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-ok').textContent = okLabel || 'Confirmar';
+  document.getElementById('confirm-overlay').classList.add('open');
+  return new Promise(function(res){ confirmResolve = res; });
+}
+window.confirmLib = function(ok){
+  document.getElementById('confirm-overlay').classList.remove('open');
+  if (confirmResolve) { confirmResolve(!!ok); confirmResolve = null; }
+};
+
+function storedCol(){ try { return localStorage.getItem('docmap-canvas-col'); } catch(e){ return null; } }
+function storeCol(id){ try { if (id) localStorage.setItem('docmap-canvas-col', id); else localStorage.removeItem('docmap-canvas-col'); } catch(e){} }
+
+function refreshLibrary(){
+  apiGet('/canvas/collections').then(function(cols){
+    collections = cols || [];
+    if (!selectedCol || !collections.some(function(c){ return c.id === selectedCol; })) {
+      selectedCol = storedCol();
+      if (!selectedCol || !collections.some(function(c){ return c.id === selectedCol; })) {
+        selectedCol = collections.length ? collections[0].id : null;
+      }
+    }
+    storeCol(selectedCol);
+    renderCols();
+    return refreshDrawings();
+  }).catch(function(){ showToast('Falha ao carregar biblioteca'); });
+}
+
+function renderCols(){
+  if (!colListEl) return;
+  if (!collections.length) { colListEl.innerHTML = '<div class="lib-empty">Nenhuma collection. Crie uma acima.</div>'; return; }
+  colListEl.innerHTML = collections.map(function(c){
+    return '<div class="lib-row' + (c.id === selectedCol ? ' selected' : '') + '" data-id="' + esc(c.id) + '">' +
+      '<span class="lib-name">' + esc(c.name) + '</span>' +
+      '<span class="lib-count">' + (c.drawings || 0) + '</span>' +
+      '<button class="lib-icon" data-act="rename" title="Renomear">' + icon('pencil') + '</button>' +
+      '<button class="lib-icon danger" data-act="del" title="Excluir collection e desenhos">' + icon('trash') + '</button>' +
+      '</div>';
+  }).join('');
+  Array.prototype.forEach.call(colListEl.querySelectorAll('.lib-row'), function(row){
+    var id = row.getAttribute('data-id');
+    row.addEventListener('click', function(e){
+      var t = e.target && e.target.closest ? e.target.closest('[data-act]') : null;
+      var act = t && t.getAttribute('data-act');
+      if (act === 'rename') { e.stopPropagation(); inlineRename(row, id, 'col'); return; }
+      if (act === 'del') { e.stopPropagation(); deleteCollection(id); return; }
+      selectedCol = id; storeCol(id); renderCols(); refreshDrawings();
+    });
+  });
+}
+
+function refreshDrawings(){
+  if (!selectedCol) { drawings = []; renderDrawings(); return Promise.resolve(); }
+  var col = null;
+  for (var i = 0; i < collections.length; i++) { if (collections[i].id === selectedCol) col = collections[i]; }
+  if (drawingsTitleEl) drawingsTitleEl.textContent = col ? ('Desenhos — ' + col.name) : 'Desenhos';
+  return apiGet('/canvas/drawings?collectionId=' + encodeURIComponent(selectedCol)).then(function(list){
+    drawings = list || [];
+    renderDrawings();
+  }).catch(function(){ showToast('Falha ao carregar desenhos'); });
+}
+
+function fmtDate(iso){
+  try { return new Date(iso).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
+  catch(e){ return ''; }
+}
+
+function renderDrawings(){
+  if (!drawingListEl) return;
+  if (!selectedCol) { drawingListEl.innerHTML = '<div class="lib-empty">Selecione uma collection.</div>'; return; }
+  if (!drawings.length) { drawingListEl.innerHTML = '<div class="lib-empty">Nenhum desenho. Salve o board atual acima.</div>'; return; }
+  drawingListEl.innerHTML = drawings.map(function(d){
+    return '<div class="lib-row' + (currentDrawing && currentDrawing.id === d.id ? ' selected' : '') + '" data-id="' + esc(d.id) + '" title="' + esc(d.shapes) + ' shapes • ' + esc(fmtDate(d.updatedAt)) + '">' +
+      '<span class="lib-name">' + esc(d.name) + '</span>' +
+      '<span class="lib-meta">' + esc(d.shapes) + '</span>' +
+      '<button class="lib-icon" data-act="save" title="Sobrescrever com o board atual">' + icon('save') + '</button>' +
+      '<button class="lib-icon" data-act="rename" title="Renomear">' + icon('pencil') + '</button>' +
+      '<button class="lib-icon danger" data-act="del" title="Excluir">' + icon('trash') + '</button>' +
+      '</div>';
+  }).join('');
+  Array.prototype.forEach.call(drawingListEl.querySelectorAll('.lib-row'), function(row){
+    var id = row.getAttribute('data-id');
+    row.addEventListener('click', function(e){
+      var t = e.target && e.target.closest ? e.target.closest('[data-act]') : null;
+      var act = t && t.getAttribute('data-act');
+      if (act === 'save') { e.stopPropagation(); overwriteDrawing(id); return; }
+      if (act === 'rename') { e.stopPropagation(); inlineRename(row, id, 'drawing'); return; }
+      if (act === 'del') { e.stopPropagation(); deleteDrawing(id); return; }
+      openDrawing(id);
+    });
+  });
+}
+
+function findCol(id){
+  for (var i = 0; i < collections.length; i++) { if (collections[i].id === id) return collections[i]; }
+  return null;
+}
+function findDrawing(id){
+  for (var i = 0; i < drawings.length; i++) { if (drawings[i].id === id) return drawings[i]; }
+  return null;
+}
+
+function inlineRename(row, id, what){
+  var nameEl = row.querySelector('.lib-name');
+  if (!nameEl) return;
+  var obj = what === 'col' ? findCol(id) : findDrawing(id);
+  var old = (obj && obj.name) || '';
+  var input = document.createElement('input');
+  input.className = 'lib-rename';
+  input.value = old;
+  input.maxLength = 120;
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+  var done = false;
+  function commit(save){
+    if (done) return; done = true;
+    var v = input.value.trim();
+    if (!save || !v || v === old) { what === 'col' ? renderCols() : renderDrawings(); return; }
+    if (what === 'col') {
+      apiSend('PUT', '/canvas/collections/' + encodeURIComponent(id), { name: v }).then(function(){
+        refreshLibrary();
+      }).catch(function(){ showToast('Falha ao renomear'); renderCols(); });
+    } else {
+      apiSend('PUT', '/canvas/drawings/' + encodeURIComponent(id), { name: v }).then(function(updated){
+        if (currentDrawing && currentDrawing.id === id) { currentDrawing.name = updated.name; updateDrawingLabel(); }
+        refreshDrawings();
+      }).catch(function(){ showToast('Falha ao renomear'); renderDrawings(); });
+    }
+  }
+  input.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') commit(true);
+    else if (e.key === 'Escape') commit(false);
+  });
+  input.addEventListener('blur', function(){ commit(true); });
+}
+
+window.createCollection = function(){
+  var input = document.getElementById('new-col-input');
+  var name = input ? input.value.trim() : '';
+  if (!name) return;
+  apiSend('POST', '/canvas/collections', { name: name }).then(function(col){
+    if (input) input.value = '';
+    collections.push(col);
+    selectedCol = col.id; storeCol(col.id);
+    renderCols(); refreshDrawings();
+    showToast('Collection criada');
+  }).catch(function(e){ showToast(e.message || 'Falha ao criar'); });
+};
+
+function deleteCollection(id){
+  var col = findCol(id);
+  var n = col && col.drawings ? col.drawings : 0;
+  askConfirm('Excluir "' + (col ? col.name : '') + '" e seus ' + n + ' desenho(s)?', 'Excluir').then(function(ok){
+    if (!ok) return;
+    apiSend('DELETE', '/canvas/collections/' + encodeURIComponent(id)).then(function(){
+      collections = collections.filter(function(c){ return c.id !== id; });
+      if (selectedCol === id) { selectedCol = collections.length ? collections[0].id : null; storeCol(selectedCol); }
+      renderCols(); refreshDrawings();
+      showToast('Collection excluída');
+    }).catch(function(){ showToast('Falha ao excluir'); });
+  });
+}
+
+window.saveDrawing = function(){
+  var input = document.getElementById('new-drawing-input');
+  var name = input ? input.value.trim() : '';
+  if (!name) { showToast('Dê um nome ao desenho'); if (input) input.focus(); return; }
+  if (store.size === 0) { showToast('Board vazio — nada a salvar'); return; }
+  var body = { name: name };
+  if (selectedCol) body.collectionId = selectedCol;
+  apiSend('POST', '/canvas/drawings', body).then(function(meta){
+    if (input) input.value = '';
+    currentDrawing = { id: meta.id, name: meta.name };
+    dirty = false; updateDrawingLabel();
+    return refreshLibrary().then(function(){
+      selectedCol = meta.collectionId; storeCol(selectedCol);
+      renderCols(); return refreshDrawings();
+    });
+  }).then(function(){ showToast('Desenho salvo'); })
+  .catch(function(e){ showToast(e.message || 'Falha ao salvar'); });
+};
+
+function openDrawing(id){
+  function doOpen(){
+    apiSend('POST', '/canvas/drawings/' + encodeURIComponent(id) + '/open').then(function(res){
+      currentDrawing = { id: res.drawing.id, name: res.drawing.name };
+      dirty = false;
+      applySnapshot(res.snapshot);
+      try { board.editor.fitContent(); } catch(e){}
+      updateDrawingLabel(); renderDrawings();
+      if (drawerEl) drawerEl.classList.remove('open');
+      showToast('Desenho aberto');
+    }).catch(function(e){ showToast(e.message || 'Falha ao abrir'); });
+  }
+  if (dirty && currentDrawing) {
+    askConfirm('Abrir outro desenho descarta as alterações não salvas. Continuar?', 'Abrir').then(function(ok){
+      if (ok) doOpen();
+    });
+  } else doOpen();
+}
+
+function overwriteDrawing(id){
+  var d = findDrawing(id);
+  askConfirm('Sobrescrever "' + (d ? d.name : '') + '" com o board atual?', 'Salvar').then(function(ok){
+    if (!ok) return;
+    apiSend('POST', '/canvas/drawings/' + encodeURIComponent(id) + '/save').then(function(){
+      if (currentDrawing && currentDrawing.id === id) { dirty = false; updateDrawingLabel(); }
+      refreshDrawings();
+      showToast('Desenho atualizado');
+    }).catch(function(e){ showToast(e.message || 'Falha ao salvar'); });
+  });
+}
+
+function deleteDrawing(id){
+  var d = findDrawing(id);
+  askConfirm('Excluir "' + (d ? d.name : '') + '"?', 'Excluir').then(function(ok){
+    if (!ok) return;
+    apiSend('DELETE', '/canvas/drawings/' + encodeURIComponent(id)).then(function(){
+      if (currentDrawing && currentDrawing.id === id) { currentDrawing = null; dirty = false; updateDrawingLabel(); }
+      refreshDrawings(); refreshLibraryCounts();
+      showToast('Desenho excluído');
+    }).catch(function(){ showToast('Falha ao excluir'); });
+  });
+}
+
+function refreshLibraryCounts(){
+  apiGet('/canvas/collections').then(function(cols){
+    collections = cols || [];
+    renderCols();
+  }).catch(function(){});
+}
+
 loadTabletUrl();
 connect();
+
+// Sidebar aberta por padrão (padrão docmap: logo alterna).
+refreshLibrary();
 <\/script>
 </body>
 </html>`;

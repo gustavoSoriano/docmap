@@ -35,6 +35,12 @@ export const kvPath = (): string => `${dataDir()}/data.sqlite3`;
 // Áudio MP3 fica fora do KV (limite de tamanho por valor), junto do data dir.
 export const podcastsDir = (): string => `${dataDir()}/podcasts`;
 
+// ════ Canvas: biblioteca de desenhos ════
+// Snapshots do board vão pro filesystem (podem passar de 64 KiB com imagens
+// embutidas); só os metadados ficam no KV. Override via DOCMAP_DRAWINGS_DIR.
+export const drawingsDir = (): string =>
+  Deno.env.get('DOCMAP_DRAWINGS_DIR') ?? `${dataDir()}/drawings`;
+
 // Binários externos usados na síntese/concatenação de áudio.
 // edge-tts: CLI Python (pip install edge-tts). ffmpeg/ffprobe: brew install ffmpeg.
 //
@@ -50,12 +56,12 @@ const resolveBin = (name: string, envKey: string): string => {
   const candidates: string[] = Deno.build.os === 'windows'
     ? [`C:\\Windows\\System32\\${name}.exe`]
     : [
-        `/usr/local/bin/${name}`,       // symlinks / Homebrew Intel Mac
-        `/opt/homebrew/bin/${name}`,    // Homebrew Apple Silicon
-        `${home}/.local/bin/${name}`,   // pipx / instalações de usuário
-        `/usr/bin/${name}`,
-        `/bin/${name}`,
-      ];
+      `/usr/local/bin/${name}`, // symlinks / Homebrew Intel Mac
+      `/opt/homebrew/bin/${name}`, // Homebrew Apple Silicon
+      `${home}/.local/bin/${name}`, // pipx / instalações de usuário
+      `/usr/bin/${name}`,
+      `/bin/${name}`,
+    ];
 
   for (const p of candidates) {
     try {

@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '11.2.0';
+export const HEADLESS_MANUAL_VERSION = '11.3.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -104,7 +104,7 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     title: 'Canvas',
     heading: 'Canvas — lousa realtime compartilhada na rede',
     summary: 'Lousa infinita realtime: tablet na mesma rede desenha, todos veem.',
-    tags: ['canvas', 'realtime', 'whiteboard'],
+    tags: ['canvas', 'realtime', 'whiteboard', 'library'],
   },
   {
     id: 'debug',
@@ -908,6 +908,17 @@ UI; botão Tema no topo, acompanha a preferência salva).
 | GET | \`/canvas/frame.png\` | PNG atual do board (visão p/ IA) |
 | POST | \`/canvas/frame\` | Viewers enviam o frame (body = PNG) |
 | POST | \`/canvas/shapes\` | IA desenha shapes (texto, sticky, formas, setas) |
+| GET | \`/canvas/collections\` | Lista collections de desenhos (com contagem) |
+| POST | \`/canvas/collections\` | Cria collection \`{ name }\` |
+| PUT | \`/canvas/collections/:id\` | Renomeia collection |
+| DELETE | \`/canvas/collections/:id\` | Exclui collection + desenhos (cascata) |
+| GET | \`/canvas/drawings?collectionId=\` | Lista metadados (sem snapshot) |
+| POST | \`/canvas/drawings\` | Salva o board atual \`{ name, collectionId? }\` |
+| GET | \`/canvas/drawings/:id\` | Metadados de um desenho |
+| PUT | \`/canvas/drawings/:id\` | Renomeia/move \`{ name?, collectionId? }\` |
+| POST | \`/canvas/drawings/:id/save\` | Sobrescreve com o board atual |
+| POST | \`/canvas/drawings/:id/open\` | Carrega no board ao vivo p/ todos |
+| DELETE | \`/canvas/drawings/:id\` | Exclui desenho |
 | POST | \`/canvas/clear\` | Apaga o board para todos |
 
 ### Protocolo WS \`/canvas/ws\`
@@ -987,6 +998,30 @@ curl -X POST http://127.0.0.1:3333/canvas/shapes \\
 curl -X POST http://127.0.0.1:3333/canvas/shapes \\
   -H "Content-Type: application/json" \\
   -d '{"shapes":[{"kind":"arrow","x1":100,"y1":100,"x2":300,"y2":200,"color":"red"}]}'
+\`\`\`
+
+### Biblioteca: collections e desenhos salvos
+
+O board ao vivo é efêmero; para guardar, salve na biblioteca (sidebar da
+página — aberta por padrão, a logo abre/fecha — ou API abaixo). Metadados no KV, snapshots no
+filesystem (\`<dataDir>/drawings/<collectionId>/<drawingId>.json\`, pois
+podem passar de 64 KiB com imagens embutidas).
+
+- Salvar (\`POST /canvas/drawings { name, collectionId? }\`) fotografa o
+  board atual do servidor; sem \`collectionId\` usa/cria a "Geral".
+- Abrir (\`POST /canvas/drawings/:id/open\`) substitui o board ao vivo
+  para TODOS e retorna \`{ drawing, snapshot }\`.
+- Sobrescrever (\`POST /canvas/drawings/:id/save\`) atualiza com o board atual.
+- Renomear/mover via \`PUT\`; excluir collection apaga os desenhos junto.
+
+\`\`\`bash
+# Salvar o board atual
+curl -X POST http://127.0.0.1:3333/canvas/drawings \\
+  -H "Content-Type: application/json" \\
+  -d '{"name":"fluxo token bucket"}'
+
+# Reabrir depois (todos veem)
+curl -X POST http://127.0.0.1:3333/canvas/drawings/<id>/open
 \`\`\`
 
 ### Quick start

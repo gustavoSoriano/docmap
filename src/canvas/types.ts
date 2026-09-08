@@ -70,3 +70,32 @@ export interface CanvasShapesResponse {
   readonly ids: readonly string[];
   readonly count: number;
 }
+
+// ── Biblioteca: collections + desenhos (metadados no KV, snapshot no FS) ──
+
+export interface DrawingCollection {
+  readonly id: string;
+  readonly name: string;
+  readonly tags: readonly string[];
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface DrawingMeta {
+  readonly id: string;
+  readonly collectionId: string;
+  readonly name: string;
+  readonly shapes: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface DrawingDocument {
+  readonly version: 1;
+  readonly snapshot: BoardSnapshot;
+}
+
+export interface DrawingOpenResponse {
+  readonly drawing: DrawingMeta;
+  readonly snapshot: BoardSnapshot;
+}

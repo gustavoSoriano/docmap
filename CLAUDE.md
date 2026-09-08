@@ -66,6 +66,8 @@ Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100
 ["macros",         "_global_", macroId]          → Macro
 ["skills",         "_global_", skillId]          → Skill
 ["comments",       "_global_", fileId]          → Comment[]
+["canvas_collections", id]                       → DrawingCollection
+["canvas_drawings",  collectionId, drawingId]    → DrawingMeta (snapshot vai em `<dataDir>/drawings/<collectionId>/<drawingId>.json`)
 ["podcasts",       "_global_", podcastId]        → Podcast (metadados; áudio MP3 vai no filesystem)
 ["mock_collections", id]                         → MockCollection
 ["mocks_data",     collectionId, mockId]         → Mock

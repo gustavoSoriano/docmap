@@ -71,6 +71,28 @@ export const validateDiff = (v: unknown): string | null => {
 
 export const emptySnapshot = (): BoardSnapshot => ({ document: { store: {} } });
 
+/** Valida um snapshot completo (abrir desenho salvo). */
+export const validateSnapshot = (v: unknown): string | null => {
+  if (v === null || typeof v !== 'object' || Array.isArray(v)) {
+    return 'snapshot deve ser um objeto';
+  }
+  const doc = (v as Record<string, unknown>).document;
+  if (doc === null || typeof doc !== 'object' || Array.isArray(doc)) {
+    return 'snapshot.document inválido';
+  }
+  const store = (doc as Record<string, unknown>).store;
+  if (store === null || typeof store !== 'object' || Array.isArray(store)) {
+    return 'snapshot.document.store inválido';
+  }
+  for (const [id, rec] of Object.entries(store)) {
+    if (!id || !isRecord(rec) || rec.id !== id) return `store.${id} inválido`;
+  }
+  if (JSON.stringify(v).length > 20 * 1024 * 1024) {
+    return 'snapshot excede 20MB';
+  }
+  return null;
+};
+
 const round1 = (n: unknown): number =>
   typeof n === 'number' && Number.isFinite(n) ? Math.round(n * 10) / 10 : 0;
 
@@ -257,6 +279,23 @@ class BoardHub {
     this.#frame = null;
     this.#updatedAt = new Date().toISOString();
     this.#broadcast({ type: 'snapshot', snapshot: emptySnapshot() });
+  }
+
+  /**
+   * Carrega um desenho salvo no board ao vivo (abrir da biblioteca).
+   * Substitui tudo, invalida o frame e avisa todos. Retorna erro se inválido.
+   */
+  loadSnapshotData(snapshot: BoardSnapshot): string | null {
+    const err = validateSnapshot(snapshot);
+    if (err) return err;
+    this.#records.clear();
+    for (const rec of Object.values(snapshot.document.store)) {
+      this.#records.set(rec.id, rec);
+    }
+    this.#frame = null;
+    this.#updatedAt = new Date().toISOString();
+    this.#broadcast({ type: 'snapshot', snapshot: this.getSnapshot() });
+    return null;
   }
 
   #remove(ws: WebSocket): void {

@@ -13,7 +13,7 @@
     "lint": "deno lint src/",
     "fmt": "deno fmt src/ ui/",
     "check": "deno check src/main.ts",
-    "test": "deno test --allow-read --allow-write --unstable-kv"
+    "test": "deno test --allow-read --allow-write --allow-env --unstable-kv"
   },
   "imports": {
     "webview": "https://deno.land/x/webview@0.7.6/mod.ts"

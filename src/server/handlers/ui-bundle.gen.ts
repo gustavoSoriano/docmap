@@ -11097,6 +11097,14 @@ const PANEL_BY_MODE = {
 };
 
 const toggleSidebar = () => {
+  // No modo canvas a sidebar vive dentro do iframe (/canvas) — pede via postMessage.
+  if (currentMode === 'canvas') {
+    const iframe = document.getElementById('canvas-iframe');
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage({ type: 'docmap-canvas-toggle-drawer' }, location.origin);
+    }
+    return;
+  }
   const panelId = PANEL_BY_MODE[currentMode];
   if (!panelId) return;
   const panel = $(panelId);

@@ -1,5 +1,6 @@
 import { serveCanvasPage } from './page.ts';
 import { boardHub, validateDiff, validateFrame } from './hub.ts';
+import { createLibraryHandler } from './library-handler.ts';
 import { validateShapeInputs } from './shapes.ts';
 import { isVendorFile, serveVendorFile, vendorVersion } from './vendor.ts';
 import { json } from '../server/response.ts';
@@ -22,7 +23,9 @@ const PNG_HEADERS = (updatedAt: string, shapes: number): HeadersInit => ({
   'X-Canvas-Shapes': String(shapes),
 });
 
-export const createCanvasHandler = (_deps: HandlerDeps) => {
+export const createCanvasHandler = (deps: HandlerDeps) => {
+  const library = createLibraryHandler(deps);
+
   return (req: Request, url: URL): Response | Promise<Response> => {
     const { pathname } = url;
 
@@ -87,6 +90,20 @@ export const createCanvasHandler = (_deps: HandlerDeps) => {
     if (req.method === 'POST' && pathname === '/canvas/clear') {
       boardHub.clearBoard();
       return json({ ok: true, connections: boardHub.connectionCount });
+    }
+
+    // Biblioteca: /canvas/collections… e /canvas/drawings…
+    if (
+      pathname === '/canvas/collections' ||
+      pathname.startsWith('/canvas/collections/')
+    ) {
+      return library(req, url);
+    }
+    if (
+      pathname === '/canvas/drawings' ||
+      pathname.startsWith('/canvas/drawings/')
+    ) {
+      return library(req, url);
     }
 
     return new Response('Not found', { status: 404 });
