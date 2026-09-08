@@ -40,7 +40,7 @@ deno run --allow-read --allow-write scripts/bundle-ui.ts
 echo "2/4  Compilando binário..."
 deno compile \
   --allow-read --allow-write --allow-net \
-  --allow-env --allow-run --allow-ffi \
+  --allow-env --allow-run --allow-ffi --allow-sys=networkInterfaces \
   --unstable-kv \
   --include src/worker.ts \
   --include src/server/handlers/ui-bundle.gen.ts \
