@@ -64,3 +64,9 @@ export interface CanvasFrameResponse {
   readonly bytes: number;
   readonly updatedAt: string;
 }
+
+export interface CanvasShapesResponse {
+  readonly ok: boolean;
+  readonly ids: readonly string[];
+  readonly count: number;
+}

@@ -1,5 +1,6 @@
 import { serveCanvasPage } from './page.ts';
 import { boardHub, validateDiff, validateFrame } from './hub.ts';
+import { validateShapeInputs } from './shapes.ts';
 import { isVendorFile, serveVendorFile, vendorVersion } from './vendor.ts';
 import { json } from '../server/response.ts';
 import type { HandlerDeps } from '../server/types.ts';
@@ -7,6 +8,7 @@ import type {
   BoardDiff,
   CanvasFrameResponse,
   CanvasInfoResponse,
+  CanvasShapesResponse,
   CanvasSnapshotResponse,
   ClientMessage,
 } from './types.ts';
@@ -73,6 +75,11 @@ export const createCanvasHandler = (_deps: HandlerDeps) => {
       return handleFrameUpload(req);
     }
 
+    // IA desenha: shapes de alto nível viram records + broadcast.
+    if (req.method === 'POST' && pathname === '/canvas/shapes') {
+      return handleShapes(req);
+    }
+
     if (pathname === '/canvas/ws') {
       return handleWebSocket(req);
     }
@@ -106,6 +113,24 @@ async function handleFrameUpload(req: Request): Promise<Response> {
   }
   const updatedAt = boardHub.setFrame(bytes);
   const res: CanvasFrameResponse = { ok: true, bytes: bytes.length, updatedAt };
+  return json(res);
+}
+
+// ── IA desenha: shapes de alto nível → records → broadcast ──
+
+async function handleShapes(req: Request): Promise<Response> {
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return json({ error: 'invalid_json' }, 400);
+  }
+  const parsed = validateShapeInputs(body);
+  if ('error' in parsed) {
+    return json({ error: 'invalid_shapes', message: parsed.error }, 400);
+  }
+  const ids = boardHub.insertShapes(parsed.shapes);
+  const res: CanvasShapesResponse = { ok: true, ids, count: ids.length };
   return json(res);
 }
 

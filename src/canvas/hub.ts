@@ -11,6 +11,8 @@ import type {
   ServerMessage,
   SnapshotText,
 } from './types.ts';
+import { buildRecords, placeShapes } from './shapes.ts';
+import type { ShapeInput } from './shapes.ts';
 
 /** Tamanho máximo de um diff aceito (imagens vão embutidas no documento). */
 const MAX_DIFF_BYTES = 5 * 1024 * 1024;
@@ -218,6 +220,35 @@ class BoardHub {
     // Cópia normalizada: o Response exige Uint8Array<ArrayBuffer>.
     this.#frame = { bytes: new Uint8Array(bytes), updatedAt };
     return updatedAt;
+  }
+
+  /**
+   * Insere shapes da IA (POST /canvas/shapes): posiciona, gera ids/z,
+   * aplica no op-log e difunde a TODOS (sem remetente). Retorna os ids.
+   */
+  insertShapes(inputs: readonly ShapeInput[]): string[] {
+    const placed = placeShapes(inputs, this.#records);
+    const startZ = this.#maxZ() + 1;
+    const records = buildRecords(placed, startZ);
+    const added: Record<string, BoardRecord> = {};
+    for (const rec of records) {
+      this.#records.set(rec.id, rec);
+      added[rec.id] = rec;
+    }
+    this.#updatedAt = new Date().toISOString();
+    this.#broadcast({ type: 'diff', diff: { added } });
+    return records.map((rec) => rec.id);
+  }
+
+  #maxZ(): number {
+    let z = 0;
+    for (const rec of this.#records.values()) {
+      const recZ = rec.z;
+      if (typeof recZ === 'number' && Number.isFinite(recZ) && recZ > z) {
+        z = recZ;
+      }
+    }
+    return z;
   }
 
   /** Limpa o board (botão Limpar / POST /canvas/clear). Invalida o frame. */

@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '11.1.0';
+export const HEADLESS_MANUAL_VERSION = '11.2.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -907,6 +907,7 @@ UI; botão Tema no topo, acompanha a preferência salva).
 | GET | \`/canvas/snapshot\` | Documento + textos extraídos (leitura precisa p/ IA) |
 | GET | \`/canvas/frame.png\` | PNG atual do board (visão p/ IA) |
 | POST | \`/canvas/frame\` | Viewers enviam o frame (body = PNG) |
+| POST | \`/canvas/shapes\` | IA desenha shapes (texto, sticky, formas, setas) |
 | POST | \`/canvas/clear\` | Apaga o board para todos |
 
 ### Protocolo WS \`/canvas/ws\`
@@ -949,6 +950,44 @@ Como o frame é produzido: todo viewer conectado exporta o board (debounce
 de magic bytes; 415 se não for PNG). Servidor guarda o último
 (last-write-wins); \`POST /canvas/clear\` invalida o frame. Viewers não
 enviam frame de board vazio.
+
+### IA desenhando — \`POST /canvas/shapes\`
+
+A IA desenha sem WebSocket: manda shapes de alto nível, o servidor converte
+em records Quickdraw, aplica no op-log e difunde a todos (com undo normal
+para os humanos). Fluxo sugerido: consulte \`GET /canvas/frame.png\` e/ou
+\`/canvas/snapshot\` para escolher coordenadas livres, depois poste.
+
+Body \`{ shapes: [...] }\` (max 50 por request). Kinds:
+
+| Kind | Campos | Efeito |
+|------|--------|--------|
+| \`text\` | \`text*\`, \`x?\`, \`y?\`, \`color?\`, \`size?\` (\`s/m/l/xl\`), \`font?\` | Texto digitado |
+| \`note\` | \`text*\`, \`x?\`, \`y?\`, \`color?\`, \`font?\` | Sticky note |
+| \`geo\` | \`geo?\` (\`rectangle/ellipse/triangle/diamond/hexagon/star\`), \`label?\`, \`w?\`, \`h?\`, \`x?\`, \`y?\`, \`color?\`, \`size?\`, \`fill?\`, \`font?\` | Forma (default 220×140) |
+| \`arrow\`/\`line\` | \`x2*\`, \`y2*\`, \`x1?\`, \`y1?\`, \`bend?\`, \`color?\`, \`size?\` | Seta/linha por endpoints |
+
+- Cores: \`black/grey/light-violet/violet/blue/light-blue/yellow/orange/green/light-green/light-red/red\`
+  (default \`black\`); fontes: \`draw/sans/serif/mono\` (default \`draw\`, traço à mão).
+- \`x/y\` omitidos → empilha abaixo do conteúdo existente (cursor automático).
+  Coordenadas em px do board; textos até 500 chars, labels até 200.
+- Resposta \`{ ok: true, ids, count }\` com os ids gerados (\`shape:ai-…\`).
+
+\`\`\`bash
+# Fluxograma mínimo: duas caixas + seta (posicionamento automático)
+curl -X POST http://127.0.0.1:3333/canvas/shapes \\
+  -H "Content-Type: application/json" \\
+  -d '{"shapes":[
+    {"kind":"geo","geo":"rectangle","label":"coleta","color":"blue"},
+    {"kind":"geo","geo":"ellipse","label":"pronto","color":"green"},
+    {"kind":"text","text":"gerado pela IA","size":"s","color":"grey"}
+  ]}'
+
+# Setas precisam de endpoints (veja o snapshot para coordenadas livres)
+curl -X POST http://127.0.0.1:3333/canvas/shapes \\
+  -H "Content-Type: application/json" \\
+  -d '{"shapes":[{"kind":"arrow","x1":100,"y1":100,"x2":300,"y2":200,"color":"red"}]}'
+\`\`\`
 
 ### Quick start
 
