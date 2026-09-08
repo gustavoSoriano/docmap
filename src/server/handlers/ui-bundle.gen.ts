@@ -9920,7 +9920,7 @@ svg#kg-svg:active { cursor: grabbing; }
             <div id="mocks-col-list"></div>
 
             <div id="mocks-list-head">
-              <span id="mocks-list-heading">Todos os mocks</span>
+              <span id="mocks-list-heading">Sem collection</span>
               <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
                 data-icon="plus"></button>
             </div>
@@ -14886,7 +14886,7 @@ const MOCK_SERVER = 'http://127.0.0.1:3335';
 
 let allCollections = [];
 let allMocks       = [];
-let activeColId    = null;   // null = show all
+let activeColId    = null;   // null = mocks sem collection
 let currentMockId  = null;
 let scriptEditor   = null;   // instância CodeMirror (lazy init)
 
@@ -14937,6 +14937,9 @@ const loadMocksData = async () => {
     ]);
     allCollections = await colsRes.json();
     allMocks       = await mocksRes.json();
+    if (activeColId && !allCollections.some((c) => c.id === activeColId)) {
+      activeColId = null;
+    }
     renderCollections();
     renderMocksList();
     updateServerBadge();
@@ -15107,17 +15110,23 @@ const renderMocksList = () => {
 
   const filtered = activeColId
     ? allMocks.filter((m) => m.collectionId === activeColId)
-    : allMocks;
+    : allMocks.filter((m) => !m.collectionId);
 
   if (heading) {
     const col     = allCollections.find((c) => c.id === activeColId);
-    heading.textContent = col ? col.name : 'Todos os mocks';
+    heading.textContent = col ? col.name : 'Sem collection';
   }
 
   if (!filtered.length) {
+    const emptyText = activeColId
+      ? 'Nenhum mock nesta collection.'
+      : 'Nenhum mock sem collection.';
+    const emptyAction = activeColId
+      ? 'Crie o primeiro.'
+      : 'Selecione uma collection para criar novos mocks.';
     list.innerHTML = \`<div class="mocks-list-empty">
       <span data-icon="share"></span>
-      <span>Nenhum mock aqui.<br>Crie o primeiro.</span>
+      <span>\${emptyText}<br>\${emptyAction}</span>
     </div>\`;
     hydrateIcons(list);
     return;
@@ -15149,9 +15158,6 @@ const renderMocksList = () => {
     html += mocks.map((m) => {
       const active  = m.id === currentMockId ? ' active' : '';
       const mCls    = METHOD_CLS[m.method] ?? 'method-gray';
-      const colName = !activeColId
-        ? allCollections.find((c) => c.id === m.collectionId)?.name ?? ''
-        : '';
       return \`<div class="mocks-item\${active}" data-id="\${m.id}" onclick="openMockEditor('\${m.id}')">
         <span class="mock-method-badge \${mCls}">\${escHtml(m.method)}</span>
         <div class="mock-item-info">
@@ -15159,7 +15165,6 @@ const renderMocksList = () => {
           \${m.name ? \`<span class="mock-item-name">\${escHtml(m.name)}</span>\` : ''}
           \${(m.tags||[]).length ? \`<div class="mock-item-tags">\${m.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\` : ''}
         </div>
-        \${colName ? \`<span class="mock-item-col">\${escHtml(colName)}</span>\` : ''}
       </div>\`;
     }).join('');
   }
@@ -15195,11 +15200,19 @@ const newMock = () => {
     toast('Crie uma collection primeiro');
     return;
   }
+  if (!activeColId) {
+    toast('Selecione uma collection para criar mock');
+    return;
+  }
   currentMockId = null;
-  const col = allCollections.find((c) => c.id === activeColId) ?? allCollections[0];
+  const col = allCollections.find((c) => c.id === activeColId);
+  if (!col) {
+    toast('Collection não encontrada');
+    return;
+  }
   renderMocksList();
   showEditorForm({
-    collectionId: col?.id ?? '',
+    collectionId: col.id,
     method: 'GET',
     path: '',
     name: '',
