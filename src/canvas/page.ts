@@ -9,10 +9,10 @@ const PAGE = `<!DOCTYPE html>
 <link rel="stylesheet" href="/canvas/vendor/quickdraw/quickdraw.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0f0f0f;--border:#2a2a3e;--text:#e0e0e0;--text-dim:#888;--accent:#6c5ce7;--hover:rgba(255,255,255,0.08)}
+:root{--bg:#0b0c0e;--surface:#101216;--surface-2:#16191f;--surface-3:#1e222a;--border:#22262e;--text:#edeef1;--text-dim:#9ca3af;--accent:#37d99a;--accent-dim:rgba(55,217,154,.14);--accent-line:rgba(55,217,154,.35);--hover:rgba(255,255,255,.08)}
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;position:fixed;inset:0}
-#header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#0f1217;border-bottom:1px solid var(--border);flex-shrink:0;min-height:40px;gap:8px}
+#header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;min-height:40px;gap:8px}
 #header h1{font-size:13px;font-weight:600;white-space:nowrap;margin:0;display:flex;align-items:center;gap:8px}
 #header h1::before{content:"\\25C6";color:var(--accent)}
 #tablet-url{font-size:11px;color:var(--text-dim);font-family:ui-monospace,monospace;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -38,7 +38,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 #drawing-name{font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
 #drawing-name.dirty{color:var(--accent)}
 /* ── Drawer da biblioteca ── */
-#drawer{position:fixed;top:41px;bottom:0;left:0;width:288px;max-width:86vw;background:#0f1217;border-right:1px solid var(--border);z-index:50;transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column}
+#drawer{position:fixed;top:41px;bottom:0;left:0;width:288px;max-width:86vw;background:var(--surface);border-right:1px solid var(--border);z-index:50;transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column}
 #drawer.open{transform:none}
 #drawer-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
 #drawer-close{background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:0 4px}
@@ -53,7 +53,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .lib-list{display:flex;flex-direction:column;gap:2px}
 .lib-row{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid transparent}
 .lib-row:hover{background:var(--hover)}
-.lib-row.selected{background:rgba(108,92,231,.14);border-color:var(--accent)}
+.lib-row.selected{background:var(--accent-dim);border-color:var(--accent-line)}
 .lib-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lib-count{font-size:10px;background:rgba(255,255,255,.07);padding:0 6px;border-radius:8px;color:var(--text-dim)}
 .lib-meta{font-size:10px;color:var(--text-dim);white-space:nowrap}
@@ -65,18 +65,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 /* ── Confirm ── */
 #confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center}
 #confirm-overlay.open{display:flex}
-#confirm-box{background:#101216;border:1px solid #333;border-radius:10px;width:360px;max-width:88vw;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.8)}
+#confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:360px;max-width:88vw;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.8)}
 #confirm-msg{font-size:13px;margin-bottom:14px;line-height:1.5}
 #confirm-actions{display:flex;gap:6px;justify-content:flex-end}
 #confirm-ok{background:var(--accent);border-color:var(--accent);color:#fff}
 html[data-theme='light'] #drawer{background:#ffffff}
 html[data-theme='light'] #confirm-box{background:#ffffff}
 html[data-theme='light'] .lib-count{background:rgba(0,0,0,.07)}
-html[data-theme='light']{--bg:#f6f7f9;--border:#d4d8e0;--text:#1a1d23;--text-dim:#828b9a;--accent:#0e9f6e;--hover:rgba(0,0,0,.06)}
+html[data-theme='light']{--bg:#f6f7f9;--surface:#ffffff;--surface-2:#eef0f4;--border:#d4d8e0;--text:#1a1d23;--text-dim:#828b9a;--accent:#0e9f6e;--accent-dim:rgba(14,159,110,.12);--accent-line:rgba(14,159,110,.32);--hover:rgba(0,0,0,.06)}
 html[data-theme='light'] #header{background:#ffffff}
 html[data-theme='light'] #conn-count{background:rgba(0,0,0,.06)}
 html[data-theme='light'] #toast{background:#ffffff}
-#toast{position:fixed;bottom:16px;right:16px;background:#1a1a2e;border:1px solid var(--border);padding:6px 14px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+#toast{position:fixed;bottom:16px;right:16px;background:var(--surface-2);border:1px solid var(--border);padding:6px 14px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
 #toast.show{opacity:1}
 </style>
 </head>
