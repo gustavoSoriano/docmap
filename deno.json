@@ -6,6 +6,7 @@
   "tasks": {
     "dev": "deno run --allow-read --allow-write scripts/bundle-ui.ts && deno run --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --allow-sys=networkInterfaces --unstable-kv src/main.ts",
     "bundle-ui": "deno run --allow-read --allow-write scripts/bundle-ui.ts",
+    "vendor-quickdraw": "deno run --allow-net --allow-write --allow-env scripts/vendor-quickdraw.ts",
     "gen-skill": "deno run --allow-read --allow-write --allow-env scripts/gen-skill.ts",
     "build": "deno task bundle-ui && deno compile --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --allow-sys=networkInterfaces --unstable-kv --include src/worker.ts --output docmap-app src/main.ts",
     "release": "deno task bundle-ui && deno compile --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --allow-sys=networkInterfaces --unstable-kv --include src/worker.ts --include src/server/handlers/ui-bundle.gen.ts --output ../docmap-release/docmap-macos-aarch64 src/main.ts && cp install.sh ../docmap-release/install.sh && cp -R resources ../docmap-release/resources && echo '\\n✓ Release gerado em ../docmap-release/'",

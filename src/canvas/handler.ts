@@ -1,14 +1,13 @@
 import { serveCanvasPage } from './page.ts';
-import { canvasHub } from './hub.ts';
-import { createImportFileHandler } from './import.ts';
-import { createInspectHandler } from './inspect.ts';
+import { boardHub, validateDiff } from './hub.ts';
+import { isVendorFile, serveVendorFile, vendorVersion } from './vendor.ts';
 import { json } from '../server/response.ts';
 import type { HandlerDeps } from '../server/types.ts';
+import type { BoardDiff, ClientMessage } from './types.ts';
 
-export const createCanvasHandler = (deps: HandlerDeps) => {
-  const inspectHandler = createInspectHandler(deps);
-  const importFileHandler = createImportFileHandler(deps);
+const VENDOR_PREFIX = '/canvas/vendor/quickdraw/';
 
+export const createCanvasHandler = (_deps: HandlerDeps) => {
   return (req: Request, url: URL): Response | Promise<Response> => {
     const { pathname } = url;
 
@@ -16,25 +15,29 @@ export const createCanvasHandler = (deps: HandlerDeps) => {
       return serveCanvasPage();
     }
 
+    if (req.method === 'GET' && pathname.startsWith(VENDOR_PREFIX)) {
+      const name = pathname.slice(VENDOR_PREFIX.length);
+      if (!isVendorFile(name)) {
+        return new Response('Not found', { status: 404 });
+      }
+      return serveVendorFile(name);
+    }
+
+    if (req.method === 'GET' && pathname === '/canvas/info') {
+      return json({
+        vendor: `quickdraw@${vendorVersion()}`,
+        peers: boardHub.connectionCount,
+        shapes: boardHub.shapeCount,
+      });
+    }
+
     if (pathname === '/canvas/ws') {
       return handleWebSocket(req);
     }
 
-    if (req.method === 'POST' && pathname === '/canvas/push') {
-      return handlePush(req);
-    }
-
     if (req.method === 'POST' && pathname === '/canvas/clear') {
-      canvasHub.broadcast({ type: 'clear' });
-      return json({ ok: true, connections: canvasHub.connectionCount });
-    }
-
-    if (req.method === 'POST' && pathname === '/canvas/inspect') {
-      return inspectHandler(req);
-    }
-
-    if (req.method === 'POST' && pathname === '/canvas/import-file') {
-      return importFileHandler(req);
+      boardHub.clearBoard();
+      return json({ ok: true, connections: boardHub.connectionCount });
     }
 
     return new Response('Not found', { status: 404 });
@@ -46,41 +49,35 @@ export const createCanvasHandler = (deps: HandlerDeps) => {
 function handleWebSocket(req: Request): Response {
   try {
     const { socket, response } = Deno.upgradeWebSocket(req);
-    canvasHub.add(socket);
+    socket.addEventListener('message', (ev) => {
+      handleClientMessage(socket, ev.data);
+    });
+    boardHub.add(socket);
     return response;
   } catch {
     return new Response('WebSocket upgrade failed', { status: 400 });
   }
 }
 
-// ── Push de HTML pela IA externa ──
+// ── Cliente → servidor: apenas diffs de origem 'user' ──
 
-function isCanvasType(type: string): type is 'replace' | 'append' | 'css' | 'clear' {
-  return type === 'replace' || type === 'append' || type === 'css' || type === 'clear';
-}
+const MAX_MSG_BYTES = 6 * 1024 * 1024;
 
-async function handlePush(req: Request): Promise<Response> {
-  let body: unknown;
+function handleClientMessage(sender: WebSocket, data: unknown): void {
+  if (typeof data !== 'string' || data.length > MAX_MSG_BYTES) return;
+  let msg: unknown;
   try {
-    body = await req.json();
+    msg = JSON.parse(data);
   } catch {
-    return json({ error: 'invalid_json' }, 400);
+    return;
   }
-
-  // Valida que body é um objeto (req.json() pode retornar null, array, string…)
-  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
-    return json({ error: 'invalid_body' }, 400);
+  if (msg === null || typeof msg !== 'object' || Array.isArray(msg)) return;
+  const { type, diff } = msg as Partial<ClientMessage>;
+  if (type !== 'diff') return;
+  const err = validateDiff(diff);
+  if (err) {
+    console.warn('canvas ws: diff inválido descartado:', err);
+    return;
   }
-
-  const { html, type } = body as Record<string, unknown>;
-
-  if (typeof type !== 'string' || !isCanvasType(type)) {
-    return json({ error: 'invalid_type' }, 400);
-  }
-  if (typeof html !== 'string' && type !== 'clear') {
-    return json({ error: 'html_required' }, 400);
-  }
-
-  canvasHub.broadcast({ type, html: html as string });
-  return json({ ok: true, connections: canvasHub.connectionCount });
+  boardHub.applyUserDiff(diff as BoardDiff, sender);
 }

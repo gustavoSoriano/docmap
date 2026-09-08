@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '10.0.0';
+export const HEADLESS_MANUAL_VERSION = '11.0.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -102,9 +102,9 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
   {
     id: 'canvas',
     title: 'Canvas',
-    heading: 'Canvas — tela realtime para IA desenhar HTML/CSS/JS ao vivo',
-    summary: 'Canvas realtime para agentes desenharem HTML visual pela API.',
-    tags: ['canvas', 'realtime', 'html'],
+    heading: 'Canvas — lousa realtime compartilhada na rede',
+    summary: 'Lousa infinita realtime: tablet na mesma rede desenha, todos veem.',
+    tags: ['canvas', 'realtime', 'whiteboard'],
   },
   {
     id: 'debug',
@@ -870,112 +870,85 @@ POST /favorites { type: "site", title: "DocMap docs", url: "...", category: "doc
 
 ---
 
-## Canvas — tela realtime para IA desenhar HTML/CSS/JS ao vivo
+## Canvas — lousa realtime compartilhada na rede
 
-O docmap tem uma tela de canvas onde **IAs externas podem desenhar HTML visual em tempo real**,
-e o usuario ve o resultado instantaneamente. Util para prototipacao visual, diagramas
-dinamicos, debugging front-end e conversas visuais entre humano e IA.
+O docmap tem uma lousa infinita onde **qualquer dispositivo na mesma rede
+desenha e todos veem ao vivo**: abra no tablet, desenhe com caneta/dedo e o
+PC (e outros na rede) acompanham em tempo real via WebSocket.
+
+Motor: Quickdraw vendored no app (MIT, zero dependencias, 100% offline na
+LAN — nenhum CDN externo).
+
+### Acesso
+
+- **Tablet/celular**: \`http://<ip-do-pc>:3333/canvas\` (o IP aparece no topo
+  da propria pagina e em Configuracoes → "IP da rede" na UI desktop)
+- **Rail do docmap**: botao "Canvas" na barra lateral (iframe da mesma pagina)
+
+### Ferramentas (toolbar do board)
+
+Caneta com pressao (caneta) / velocidade (mouse), marca-texto, formas
+(retangulo, elipse, triangulo, diamante, hexagono, estrela) com traço
+hand-drawn, setas com curva arrastavel, linha, texto, sticky notes, imagens
+(colar/arrastar — vao embutidas no documento), laser pointer (efemero, nao
+salva), selecao (mover/redimensionar/rotacionar/duplicar), pan + zoom
+(scroll/pinch), palm rejection (com stylus, o dedo move a camera e a caneta
+desenha), undo/redo por gesto, export PNG (menu ⋮ → "Export as PNG").
 
 ### Endpoints (porta :3333)
 
 | Metodo | Endpoint | Descricao |
 |--------|----------|-----------|
-| GET | \`/canvas\` | Abre a pagina standalone do canvas no navegador |
-| GET | \`/canvas/ws\` | WebSocket para receber atualizacoes em tempo real |
-| POST | \`/canvas/push\` | Envia HTML pro canvas (veja body abaixo) |
-| POST | \`/canvas/clear\` | Limpa o canvas |
-| POST | \`/canvas/inspect\` | Gera prompt estruturado para LLM a partir de elemento HTML + instrucao do usuario |
-| POST | \`/canvas/import-file\` | Importa arquivo .html do filesystem e renderiza no canvas |
+| GET | \`/canvas\` | Pagina standalone da lousa |
+| GET | \`/canvas/ws\` | WebSocket do sync realtime |
+| GET | \`/canvas/info\` | \`{ vendor, peers, shapes }\` |
+| POST | \`/canvas/clear\` | Apaga o board para todos |
 
-### POST /canvas/inspect — body
+### Protocolo WS \`/canvas/ws\`
 
-\`\`\`json
-{
-  "element": {
-    "tag": "button",
-    "id": "submit-btn",
-    "classes": ["primary", "large"],
-    "attributes": { "data-testid": "submit", "type": "submit" },
-    "textContent": "Enviar",
-    "boundingRect": { "x": 100, "y": 200, "width": 120, "height": 40 }
-  },
-  "userText": "mudar a cor para azul e aumentar o padding"
-}
-\`\`\`
+**Servidor → cliente:**
 
-Retorna \`{ prompt, elementDescription }\`. O prompt combina a identificacao do elemento
-(seletor CSS, atributos, posicao, texto) com a instrucao do usuario, pronto para colar
-numa LLM.
+- \`{ "type": "snapshot", "snapshot": { "document": { "store": { "<id>": <record> } } } }\`
+  — estado completo; enviado ao conectar (late joiner) e ao limpar
+- \`{ "type": "diff", "diff": { "added": {...}, "removed": {...}, "updated": { "<id>": [antes, depois] } } }\`
+  — mudança incremental em tempo real
+- \`{ "type": "peers", "count": N }\` — pessoas no board
 
-### POST /canvas/import-file — body
+**Cliente → servidor:**
 
-\`\`\`json
-{
-  "filePath": "/caminho/absoluto/para/pagina.html"
-}
-\`\`\`
+- \`{ "type": "diff", "diff": {...} }\` — apenas edicoes locais; o servidor
+  aplica no op-log e repassa aos demais (sem eco para o remetente)
 
-Valida extensao (.html/.htm), tipo (arquivo regular), tamanho (ate 10MB por default,
-configuravel via \`DOCMAP_CANVAS_MAX_IMPORT_SIZE\`). Retorna \`{ success, path, fileSize, preview }\`.
-Util para arquivos HTML muito grandes que excederiam o limite do JSON via push.
-
-### Modo inspecionar (UI)
-
-O canvas tem um botao "Inspecionar" que ativa o modo de inspecao de elementos:
-- Ao passar o mouse, um contorno roxo segue os elementos (hover highlight)
-- Ao clicar, abre um modal com resumo do elemento + campo de texto
-- O botao "Copiar prompt" gera o prompt via \`POST /canvas/inspect\` e copia pro clipboard
-
-### POST /canvas/push — body
-
-\`\`\`json
-{
-  "html": "<h1>Ola</h1>",
-  "type": "replace"
-}
-\`\`\`
-
-**Tipos de mensagem:**
-
-| Type | Efeito |
-|------|--------|
-| \`replace\` | Substitui TODO o conteudo do canvas pelo HTML enviado |
-| \`append\` | Adiciona o HTML ao final do conteudo existente |
-| \`css\` | Injeta CSS (envolto em \`<style>\`) no canvas |
-| \`clear\` | Limpa o canvas (ignora o campo \`html\`) |
+Regras: diffs remotos nao poluem o undo local (undo colaborativo comporta-se);
+conflito resolve por last-writer-wins por record (cada traço tem id unico);
+diffs sao validados (forma + ate 5MB, imagens embutem dataURL) e inválidos
+sao descartados. O board é **efemero** (memoria; restart limpa).
 
 ### Quick start
 
 \`\`\`bash
-# Abrir o canvas standalone
+# Abrir a lousa
 open http://127.0.0.1:3333/canvas
 
-# Desenhar algo
-curl -X POST http://127.0.0.1:3333/canvas/push \\
-  -H "Content-Type: application/json" \\
-  -d '{"html":"<h1>Ola!</h1><style>body{background:#1a1a2e;color:#fff;display:grid;place-items:center;min-height:100vh;font-family:system-ui}</style>","type":"replace"}'
+# Ver quem está desenhando + tamanho do board
+curl http://127.0.0.1:3333/canvas/info
 
-# Acrescentar conteudo
-curl -X POST http://127.0.0.1:3333/canvas/push \\
-  -H "Content-Type: application/json" \\
-  -d '{"html":"<p>Mais conteudo</p>","type":"append"}'
-
-# Limpar
+# Apagar tudo
 curl -X POST http://127.0.0.1:3333/canvas/clear
 \`\`\`
 
-### Seguranca
+### Rede
 
-- HTML renderizado em **iframe sandbox="allow-scripts"** (sem allow-same-origin)
-- O conteudo nao acessa cookies, localStorage ou DOM do docmap
-- Servidor valida tipo da mensagem e estrutura do body
-- Reconexao WebSocket com backoff exponencial e limite de 20 tentativas
+- A UI (\`:3333\`) binda em \`0.0.0.0\` por padrao (acessivel na LAN).
+  Feche com \`DOCMAP_HOST=127.0.0.1\` se quiser só local.
+- A AI API (\`:3334\`) continua exclusiva em \`127.0.0.1\` (loopback).
+- \`GET /system/network\` lista os IPv4 da maquina (usado pela pagina e settings).
 
-### Acesso
+### Breaking change (v11)
 
-- **Standalone**: http://127.0.0.1:3333/canvas
-- **Rail do docmap**: botao "Canva" na barra lateral
-- **URL direta**: qualquer navegador na rede local
+Os endpoints de push de HTML (\`POST /canvas/push\`, \`/canvas/inspect\`,
+\`/canvas/import-file\`) foram removidos — o canvas agora é lousa, nao
+renderizador de HTML.
 
 ---
 
