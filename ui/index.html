@@ -1205,28 +1205,38 @@
       </div>
 
       <!-- ════ Task Modal ════ -->
-      <div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
-        <div id="task-modal">
+      <div id="task-modal-overlay">
+        <div id="task-modal" role="dialog" aria-label="Task">
           <div id="task-modal-head">
             <input id="task-title-input" type="text"
               placeholder="Título da task…"
               autocomplete="off" />
-            <select id="task-status-select">
+            <select id="task-status-select" onchange="onTaskStatusOrDueChange()">
               <option value="todo">A Fazer</option>
               <option value="in-progress">Em Andamento</option>
               <option value="review">Revisão</option>
               <option value="done">Concluído</option>
             </select>
             <button class="kanban-modal-close" id="task-modal-close"
-              onclick="closeTaskModal()" title="Fechar">
+              onclick="requestCloseTaskModal()" title="Fechar">
               <span data-icon="x"></span>
             </button>
           </div>
           <div id="task-modal-body">
-            <div class="task-field">
-              <label class="task-label">Descrição (markdown)</label>
+            <div class="task-field task-desc-field">
+              <div class="task-desc-head">
+                <label class="task-label">Descrição</label>
+                <div class="task-seg" role="tablist" aria-label="Modo de descrição">
+                  <button type="button" id="task-desc-tab-preview"
+                    class="task-seg-btn" onclick="setTaskDescMode('preview')">Preview</button>
+                  <button type="button" id="task-desc-tab-edit"
+                    class="task-seg-btn" onclick="setTaskDescMode('edit')">Editar</button>
+                </div>
+              </div>
               <textarea id="task-desc-textarea"
-                placeholder="Detalhes, contexto, links…" rows="5"></textarea>
+                placeholder="Detalhes, contexto, links… (markdown)" rows="5"
+                oninput="onTaskDescInput()"></textarea>
+              <div id="task-desc-preview"></div>
             </div>
             <div class="task-meta-row">
               <div class="task-field">
@@ -1237,7 +1247,9 @@
               </div>
               <div class="task-field">
                 <label class="task-label">Data limite</label>
-                <input id="task-due-input" type="date" />
+                <input id="task-due-input" type="date"
+                  onchange="onTaskStatusOrDueChange()" />
+                <span id="task-due-hint"></span>
               </div>
               <div class="task-field">
                 <label class="task-label">Tags</label>
@@ -1258,6 +1270,22 @@
                 <div id="task-note-dropdown"></div>
                 <input type="hidden" id="task-note-id" />
               </div>
+              <div class="task-field">
+                <div class="task-checklist-head">
+                  <label class="task-label">Checklist</label>
+                  <span id="task-checklist-count"></span>
+                </div>
+                <div id="task-checklist-progress"><div id="task-checklist-bar"></div></div>
+                <div id="task-checklist"></div>
+                <div id="task-checklist-add-row">
+                  <input id="task-checklist-input" type="text"
+                    placeholder="Novo item… (Enter adiciona)"
+                    autocomplete="off"
+                    onkeydown="onChecklistInputKey(event)" />
+                  <button class="task-checklist-add-btn" type="button"
+                    onclick="addChecklistItem()" title="Adicionar item">+</button>
+                </div>
+              </div>
             </div>
           </div>
           <div id="task-modal-footer">
@@ -1272,7 +1300,7 @@
 
             <div class="task-footer-spacer"></div>
             <button class="tool-btn"
-              onclick="closeTaskModal()">Cancelar</button>
+              onclick="requestCloseTaskModal()">Cancelar</button>
             <button class="tool-btn primary"
               onclick="saveCurrentTask()">Salvar</button>
           </div>

@@ -115,6 +115,19 @@ const migrations: Migration[] = [
       await kv.delete(entry.key);
     }
   },
+
+  // v11 — tasks ganham `checklist: [{ id, text, done }]`. Tasks antigas
+  // continuam válidas (campo opcional na leitura), mas a migração preenche
+  // `checklist: []` para leitura uniforme. Idempotente.
+  async (kv) => {
+    for await (
+      const entry of kv.list<{ checklist?: unknown }>({ prefix: ['tasks', '_global_'] })
+    ) {
+      const v = entry.value;
+      if (!v || Array.isArray(v.checklist)) continue;
+      await kv.set(entry.key, { ...v, checklist: [] });
+    }
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

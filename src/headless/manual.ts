@@ -515,7 +515,7 @@ Ordem dentro da coluna = prioridade (menor \`order\` = mais prioritário).
 |--------|----------|-----------|
 | GET | \`/tasks\` | Lista todas as tasks |
 | GET | \`/tasks/:id\` | Task completa + \`deepLink\` |
-| POST | \`/tasks\` | Cria \`{ title, description?, status?, dueDate?, noteId?, tags? }\` |
+| POST | \`/tasks\` | Cria \`{ title, description?, status?, dueDate?, noteId?, tags?, checklist? }\` |
 | PUT | \`/tasks/:id\` | Edita campos (parcial). \`dueDate: null\` e \`noteId: null\` removem o campo |
 | DELETE | \`/tasks/:id\` | Remove |
 | PUT | \`/tasks/reorder\` | Reordena coluna: \`{ status, ids: string[] }\` |
@@ -528,6 +528,7 @@ Ordem dentro da coluna = prioridade (menor \`order\` = mais prioritário).
 - \`dueDate\` (YYYY-MM-DD, opcional)
 - \`noteId\` (UUID de uma nota vinculada, opcional)
 - \`tags\` (array de strings, opcional) — tema/assunto da task
+- \`checklist\` (array de \`{ id?, text, done? }\`, opcional) — itens de verificação
 
 **Deep link**: \`GET /tasks/:id\` retorna \`{ deepLink: "http://127.0.0.1:3333/#task/<id>" }\`.
 

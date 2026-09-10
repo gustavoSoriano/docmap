@@ -3716,6 +3716,24 @@ body::before {
   color: var(--cat-entry);
 }
 
+/* Task concluída: data sempre neutra/positiva, nunca "atrasada" */
+.kanban-card-due.is-done {
+  color: var(--accent);
+}
+
+.kanban-card-checklist {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kanban-card-checklist.all-done {
+  color: var(--accent);
+}
+
 .kanban-card-note-link {
   font-size: 0.7rem;
   background: var(--accent-dim);
@@ -3749,8 +3767,10 @@ body::before {
   background: var(--surface-2);
   border: 1px solid var(--border-mid);
   border-radius: var(--r-xl);
-  width: min(860px, 92vw);
-  height: min(600px, 88vh);
+  width: 90vw;
+  max-width: 95vw;
+  height: 88vh;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3867,6 +3887,286 @@ body::before {
 }
 #task-desc-textarea:focus {
   border-color: var(--accent-line);
+}
+
+/* ── Descrição: header com toggle Preview/Editar ── */
+
+.task-desc-field {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-desc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-seg {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.task-seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.task-seg-btn:hover {
+  color: var(--text-2);
+}
+
+.task-seg-btn.active {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* Preview markdown da descrição (padrão ao abrir a modal) */
+#task-desc-preview {
+  flex: 1;
+  display: none;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  word-break: break-word;
+}
+#task-desc-preview.visible {
+  display: block;
+}
+#task-desc-preview:empty::before {
+  content: 'Sem descrição — clique em Editar para escrever em markdown…';
+  color: var(--text-4);
+  font-style: italic;
+}
+#task-desc-preview h1,
+#task-desc-preview h2,
+#task-desc-preview h3 {
+  font-weight: 700;
+  margin: 14px 0 6px;
+  line-height: 1.25;
+}
+#task-desc-preview h1 { font-size: 1.15rem; }
+#task-desc-preview h2 { font-size: 1rem; }
+#task-desc-preview h3 { font-size: 0.9rem; }
+#task-desc-preview p { margin: 8px 0; }
+#task-desc-preview code {
+  font-family: var(--font-mono);
+  background: var(--surface-3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+#task-desc-preview pre {
+  background: var(--surface-2);
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  overflow-x: auto;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+}
+#task-desc-preview pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+#task-desc-preview blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+  color: var(--text-2);
+  margin: 10px 0;
+}
+#task-desc-preview ul,
+#task-desc-preview ol {
+  padding-left: 22px;
+  margin: 8px 0;
+}
+#task-desc-preview li { margin: 3px 0; }
+#task-desc-preview a { color: var(--accent); }
+#task-desc-preview hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
+#task-desc-preview input[type="checkbox"] {
+  accent-color: var(--accent);
+  margin-right: 4px;
+}
+
+/* ── Hint da data limite ── */
+
+#task-due-hint {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-3);
+  min-height: 1em;
+}
+#task-due-hint.overdue { color: var(--type-warning); }
+#task-due-hint.due-today { color: var(--cat-entry); }
+#task-due-hint.is-done { color: var(--accent); }
+
+/* ── Checklist ── */
+
+.task-checklist-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+#task-checklist-count {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#task-checklist-progress {
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#task-checklist-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.15s;
+}
+
+#task-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.task-checklist-empty {
+  font-size: 0.75rem;
+  color: var(--text-4);
+  font-style: italic;
+  padding: 2px 0;
+}
+
+.task-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  transition: background 0.1s;
+}
+
+.task-checklist-item:hover {
+  background: var(--surface-3);
+}
+
+.task-checklist-check {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.task-checklist-text {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  word-break: break-word;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.task-checklist-item.done .task-checklist-text {
+  text-decoration: line-through;
+  color: var(--text-4);
+}
+
+.task-checklist-del {
+  border: none;
+  background: transparent;
+  color: var(--text-4);
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+}
+
+.task-checklist-item:hover .task-checklist-del,
+.task-checklist-del:focus-visible {
+  opacity: 1;
+}
+.task-checklist-del:hover { color: var(--type-warning); }
+
+#task-checklist-add-row {
+  display: flex;
+  gap: 6px;
+}
+
+#task-checklist-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  transition: border-color 0.12s;
+}
+#task-checklist-input:focus { border-color: var(--accent-line); }
+#task-checklist-input::placeholder { color: var(--text-4); }
+
+.task-checklist-add-btn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  color: var(--text-2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 0.12s, color 0.12s;
+}
+.task-checklist-add-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
 }
 
 /* metadados: coluna vertical à direita */
@@ -10354,28 +10654,38 @@ svg#kg-svg:active {
       </div>
 
       <!-- ════ Task Modal ════ -->
-      <div id="task-modal-overlay" onclick="closeTaskModalOnOverlay(event)">
-        <div id="task-modal">
+      <div id="task-modal-overlay">
+        <div id="task-modal" role="dialog" aria-label="Task">
           <div id="task-modal-head">
             <input id="task-title-input" type="text"
               placeholder="Título da task…"
               autocomplete="off" />
-            <select id="task-status-select">
+            <select id="task-status-select" onchange="onTaskStatusOrDueChange()">
               <option value="todo">A Fazer</option>
               <option value="in-progress">Em Andamento</option>
               <option value="review">Revisão</option>
               <option value="done">Concluído</option>
             </select>
             <button class="kanban-modal-close" id="task-modal-close"
-              onclick="closeTaskModal()" title="Fechar">
+              onclick="requestCloseTaskModal()" title="Fechar">
               <span data-icon="x"></span>
             </button>
           </div>
           <div id="task-modal-body">
-            <div class="task-field">
-              <label class="task-label">Descrição (markdown)</label>
+            <div class="task-field task-desc-field">
+              <div class="task-desc-head">
+                <label class="task-label">Descrição</label>
+                <div class="task-seg" role="tablist" aria-label="Modo de descrição">
+                  <button type="button" id="task-desc-tab-preview"
+                    class="task-seg-btn" onclick="setTaskDescMode('preview')">Preview</button>
+                  <button type="button" id="task-desc-tab-edit"
+                    class="task-seg-btn" onclick="setTaskDescMode('edit')">Editar</button>
+                </div>
+              </div>
               <textarea id="task-desc-textarea"
-                placeholder="Detalhes, contexto, links…" rows="5"></textarea>
+                placeholder="Detalhes, contexto, links… (markdown)" rows="5"
+                oninput="onTaskDescInput()"></textarea>
+              <div id="task-desc-preview"></div>
             </div>
             <div class="task-meta-row">
               <div class="task-field">
@@ -10386,7 +10696,9 @@ svg#kg-svg:active {
               </div>
               <div class="task-field">
                 <label class="task-label">Data limite</label>
-                <input id="task-due-input" type="date" />
+                <input id="task-due-input" type="date"
+                  onchange="onTaskStatusOrDueChange()" />
+                <span id="task-due-hint"></span>
               </div>
               <div class="task-field">
                 <label class="task-label">Tags</label>
@@ -10407,6 +10719,22 @@ svg#kg-svg:active {
                 <div id="task-note-dropdown"></div>
                 <input type="hidden" id="task-note-id" />
               </div>
+              <div class="task-field">
+                <div class="task-checklist-head">
+                  <label class="task-label">Checklist</label>
+                  <span id="task-checklist-count"></span>
+                </div>
+                <div id="task-checklist-progress"><div id="task-checklist-bar"></div></div>
+                <div id="task-checklist"></div>
+                <div id="task-checklist-add-row">
+                  <input id="task-checklist-input" type="text"
+                    placeholder="Novo item… (Enter adiciona)"
+                    autocomplete="off"
+                    onkeydown="onChecklistInputKey(event)" />
+                  <button class="task-checklist-add-btn" type="button"
+                    onclick="addChecklistItem()" title="Adicionar item">+</button>
+                </div>
+              </div>
             </div>
           </div>
           <div id="task-modal-footer">
@@ -10421,7 +10749,7 @@ svg#kg-svg:active {
 
             <div class="task-footer-spacer"></div>
             <button class="tool-btn"
-              onclick="closeTaskModal()">Cancelar</button>
+              onclick="requestCloseTaskModal()">Cancelar</button>
             <button class="tool-btn primary"
               onclick="saveCurrentTask()">Salvar</button>
           </div>
@@ -12448,6 +12776,11 @@ let allProjects   = [];
 let taskNotesList = [];  // cache da lista de notas p/ o seletor (nome distinto de allNotes em notes.js)
 let currentTaskId = null;
 
+// ── Estado local da modal ──
+let taskDescMode   = 'preview'; // 'preview' (padrão) | 'edit'
+let draftChecklist = [];        // [{ id, text, done }] — editado na modal, salvo no Save
+let taskSnapshot   = null;      // snapshot p/ detectar alterações (guarda contra perda)
+
 // ── Drag state ──
 let draggedId     = null;
 let dropTargetId  = null;
@@ -12635,7 +12968,11 @@ const formatDue = (dueDate, status) => {
   let cls = 'kanban-card-due';
   let label;
 
-  if (status === 'done')   { label = due.split('-').reverse().join('/'); }
+  // Task concluída nunca aparece como atrasada — mostra a data em verde.
+  if (status === 'done') {
+    cls += ' is-done';
+    label = \`✓ \${due.split('-').reverse().join('/')}\`;
+  }
   else if (diff < 0)       { cls += ' overdue';   label = \`Atrasada \${Math.abs(diff)}d\`; }
   else if (diff === 0)     { cls += ' due-today'; label = 'Hoje'; }
   else if (diff === 1)     { label = 'Amanhã'; }
@@ -12644,19 +12981,28 @@ const formatDue = (dueDate, status) => {
   return \`<span class="\${cls}">📅 \${escHtml(label)}</span>\`;
 };
 
+const formatChecklistBadge = (task) => {
+  const list = Array.isArray(task.checklist) ? task.checklist : [];
+  if (!list.length) return '';
+  const done = list.filter((i) => i.done).length;
+  const cls = done === list.length ? 'kanban-card-checklist all-done' : 'kanban-card-checklist';
+  return \`<span class="\${cls}">☑ \${done}/\${list.length}</span>\`;
+};
+
 const renderCard = (task) => {
   const due  = formatDue(task.dueDate, task.status);
   const note = task.noteId
     ? \`<span class="kanban-card-note-link">nota</span>\`
     : '';
+  const checklist = formatChecklistBadge(task);
   const desc = task.description
     ? \`<div class="kanban-card-desc">\${escHtml(task.description.slice(0, 120))}</div>\`
     : '';
   const tags = (task.tags || []).length
     ? \`<div class="kanban-card-tags">\${task.tags.map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('')}</div>\`
     : '';
-  const meta = (due || note)
-    ? \`<div class="kanban-card-meta">\${due}\${note}</div>\`
+  const meta = (due || note || checklist)
+    ? \`<div class="kanban-card-meta">\${due}\${checklist}\${note}</div>\`
     : '';
   return \`<div class="kanban-card"
     data-id="\${task.id}"
@@ -12801,7 +13147,12 @@ const openNewTask = async (status) => {
   $('task-project-select').value = $('kanban-project-select')?.value ?? '';
   $('task-delete-btn').style.display = 'none';
 
+  draftChecklist = [];
+  renderChecklist();
+  setTaskDescMode('preview');
+  updateDueHint();
   showTaskModal();
+  taskSnapshot = captureTaskSnapshot();
   $('task-title-input').focus();
 };
 
@@ -12821,7 +13172,15 @@ const openTaskModal = async (id) => {
   $('task-project-select').value = task.projectId ?? '';
   $('task-delete-btn').style.display = 'inline-flex';
 
+  draftChecklist = Array.isArray(task.checklist)
+    ? task.checklist.map((i) => ({ id: i.id, text: i.text, done: i.done === true }))
+    : [];
+  renderChecklist();
+  // Preview é o padrão; edição só se necessário.
+  setTaskDescMode('preview');
+  updateDueHint();
   showTaskModal();
+  taskSnapshot = captureTaskSnapshot();
   $('task-title-input').focus();
 };
 
@@ -12844,10 +13203,177 @@ const showTaskModal = () => {
 const closeTaskModal = () => {
   $('task-modal-overlay').classList.remove('visible');
   currentTaskId = null;
+  taskSnapshot = null;
 };
 
-const closeTaskModalOnOverlay = (e) => {
-  if (e.target === $('task-modal-overlay')) closeTaskModal();
+// Compat: a modal NÃO fecha mais ao clicar fora (só no X/Cancelar).
+// Mantida para não quebrar referências antigas — agora é no-op.
+const closeTaskModalOnOverlay = (_e) => {};
+
+// Fecha pelo X/Cancelar com guarda contra perda de alterações.
+const requestCloseTaskModal = async () => {
+  if (isTaskDirty()) {
+    const ok = await confirmDialog(
+      'Fechar sem salvar? As alterações serão perdidas.',
+      { okLabel: 'Fechar sem salvar' },
+    );
+    if (!ok) return;
+  }
+  closeTaskModal();
+};
+
+const captureTaskSnapshot = () => JSON.stringify({
+  title:       $('task-title-input').value,
+  description: $('task-desc-textarea').value,
+  status:      $('task-status-select').value,
+  dueDate:     $('task-due-input').value,
+  tags:        $('task-tags-input').value,
+  noteId:      $('task-note-id').value,
+  projectId:   $('task-project-select').value,
+  checklist:   draftChecklist,
+});
+
+const isTaskDirty = () => {
+  if (!taskSnapshot) return false;
+  try {
+    return captureTaskSnapshot() !== taskSnapshot;
+  } catch { return false; }
+};
+
+// ── Descrição: preview markdown (padrão) / edição ──
+
+const renderTaskDescPreview = () => {
+  const ta = $('task-desc-textarea');
+  const pv = $('task-desc-preview');
+  if (!ta || !pv) return;
+  const raw = ta.value;
+  pv.innerHTML = window.marked
+    ? marked.parse(raw)
+    : \`<pre>\${escHtml(raw)}</pre>\`;
+};
+
+const setTaskDescMode = (mode) => {
+  taskDescMode = mode === 'edit' ? 'edit' : 'preview';
+  const ta = $('task-desc-textarea');
+  const pv = $('task-desc-preview');
+  if (!ta || !pv) return;
+  if (taskDescMode === 'preview') {
+    renderTaskDescPreview();
+    ta.style.display = 'none';
+    pv.classList.add('visible');
+  } else {
+    pv.classList.remove('visible');
+    ta.style.display = '';
+    ta.focus();
+  }
+  $('task-desc-tab-preview')?.classList.toggle('active', taskDescMode === 'preview');
+  $('task-desc-tab-edit')?.classList.toggle('active', taskDescMode === 'edit');
+};
+
+const onTaskDescInput = () => {
+  if (taskDescMode === 'preview') renderTaskDescPreview();
+};
+
+// ── Hint da data limite ──
+// Concluída (done) nunca mostra "atrasada": exibe confirmação neutra.
+
+const updateDueHint = () => {
+  const hint = $('task-due-hint');
+  if (!hint) return;
+  const due    = $('task-due-input').value;
+  const status = $('task-status-select').value;
+  hint.className = '';
+
+  if (!due) { hint.textContent = ''; return; }
+  const pretty = due.split('-').reverse().join('/');
+
+  if (status === 'done') {
+    hint.textContent = \`✓ Concluída • prazo \${pretty}\`;
+    hint.className = 'is-done';
+    return;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const diff  = Math.ceil((new Date(due) - new Date(today)) / 86400000);
+  if (diff < 0) {
+    hint.textContent = \`⚠ Atrasada \${Math.abs(diff)}d\`;
+    hint.className = 'overdue';
+  } else if (diff === 0) {
+    hint.textContent = 'Vence hoje';
+    hint.className = 'due-today';
+  } else if (diff === 1) {
+    hint.textContent = 'Vence amanhã';
+  } else {
+    hint.textContent = \`Vence em \${pretty}\`;
+  }
+};
+
+const onTaskStatusOrDueChange = () => updateDueHint();
+
+// ── Checklist ──
+
+const newChecklistId = () =>
+  (window.crypto?.randomUUID)
+    ? window.crypto.randomUUID()
+    : \`c_\${Date.now().toString(36)}_\${Math.floor(Math.random() * 1e9).toString(36)}\`;
+
+const renderChecklist = () => {
+  const box = $('task-checklist');
+  if (!box) return;
+  if (!draftChecklist.length) {
+    box.innerHTML = \`<div class="task-checklist-empty">Nenhum item — adicione abaixo.</div>\`;
+  } else {
+    box.innerHTML = draftChecklist.map((item) => \`
+      <div class="task-checklist-item\${item.done ? ' done' : ''}" data-id="\${escHtml(item.id)}">
+        <input type="checkbox" class="task-checklist-check"
+          \${item.done ? 'checked' : ''}
+          onchange="toggleChecklistItem('\${escHtml(item.id)}')"
+          title="Marcar/desmarcar" />
+        <span class="task-checklist-text"
+          onclick="toggleChecklistItem('\${escHtml(item.id)}')">\${escHtml(item.text)}</span>
+        <button type="button" class="task-checklist-del"
+          onclick="removeChecklistItem('\${escHtml(item.id)}')"
+          title="Remover item">×</button>
+      </div>\`).join('');
+  }
+  updateChecklistProgress();
+};
+
+const updateChecklistProgress = () => {
+  const total = draftChecklist.length;
+  const done  = draftChecklist.filter((i) => i.done).length;
+  const pct   = total ? Math.round((done / total) * 100) : 0;
+  const bar = $('task-checklist-bar');
+  if (bar) bar.style.width = \`\${pct}%\`;
+  const count = $('task-checklist-count');
+  if (count) count.textContent = total ? \`\${done}/\${total}\` : '';
+};
+
+const addChecklistItem = () => {
+  const input = $('task-checklist-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) { input.focus(); return; }
+  draftChecklist = [...draftChecklist, { id: newChecklistId(), text, done: false }];
+  input.value = '';
+  input.focus();
+  renderChecklist();
+};
+
+const onChecklistInputKey = (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); addChecklistItem(); }
+};
+
+const toggleChecklistItem = (id) => {
+  draftChecklist = draftChecklist.map((i) =>
+    i.id === id ? { ...i, done: !i.done } : i
+  );
+  renderChecklist();
+};
+
+const removeChecklistItem = (id) => {
+  draftChecklist = draftChecklist.filter((i) => i.id !== id);
+  renderChecklist();
 };
 
 const saveCurrentTask = async () => {
@@ -12862,6 +13388,7 @@ const saveCurrentTask = async () => {
     noteId:      $('task-note-id').value   || null,
     projectId:   $('task-project-select').value || null,
     tags:        $('task-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean),
+    checklist:   draftChecklist.map((i) => ({ id: i.id, text: i.text, done: i.done })),
   };
 
   try {
@@ -13002,6 +13529,16 @@ const saveProject = async () => {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.kanban-col').forEach(bindColumnDrop);
   document.addEventListener('click', closeNoteDropdown);
+
+  // Atalho de save com a modal aberta (a modal só fecha no X/Cancelar).
+  document.addEventListener('keydown', (e) => {
+    const open = $('task-modal-overlay')?.classList.contains('visible');
+    if (!open) return;
+    // Não rouba Enter/Escape do confirm dialog de "fechar sem salvar".
+    if ($('modal-overlay')?.classList.contains('visible')) return;
+    const saveKey = (e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'Enter');
+    if (saveKey) { e.preventDefault(); saveCurrentTask(); }
+  });
 });
 
 </script>

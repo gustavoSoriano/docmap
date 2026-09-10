@@ -2,6 +2,7 @@ import type {
   CreateTaskInput,
   ReorderInput,
   Task,
+  TaskChecklistItem,
   UpdateTaskInput,
 } from './types.ts';
 import { normalizeTags } from '../tags/normalize.ts';
@@ -15,6 +16,22 @@ const STATUS_ORDER: Record<string, number> = {
   'in-progress': 1,
   'review': 2,
   'done': 3,
+};
+
+// Sanitiza checklist vinda de fora (API/UI): remove itens vazios, limita
+// tamanho e garante shape { id, text, done }. Função pura.
+export const normalizeChecklist = (
+  input: readonly TaskChecklistItem[] | undefined,
+): readonly TaskChecklistItem[] => {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter((item) => item && typeof item.text === 'string' && item.text.trim())
+    .slice(0, 100)
+    .map((item) => ({
+      id: typeof item.id === 'string' && item.id ? item.id : crypto.randomUUID(),
+      text: item.text.trim().slice(0, 500),
+      done: item.done === true,
+    }));
 };
 
 export const listTasks = async (
@@ -62,6 +79,7 @@ export const createTask = async (
     ...(input.noteId ? { noteId: input.noteId } : {}),
     ...(input.projectId ? { projectId: input.projectId } : {}),
     tags: normalizeTags(input.tags),
+    checklist: normalizeChecklist(input.checklist),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -98,6 +116,12 @@ export const updateTask = async (
     else base.projectId = input.projectId;
   }
   if (input.tags !== undefined) base.tags = normalizeTags(input.tags);
+  if (input.checklist !== undefined) {
+    base.checklist = normalizeChecklist(input.checklist);
+  } else if (!Array.isArray(base.checklist)) {
+    // Compat: tasks antigas (pre-checklist) ganham o campo vazio ao salvar.
+    base.checklist = [];
+  }
 
   const updated = base as unknown as Task;
   await kv.set(key(id), updated);

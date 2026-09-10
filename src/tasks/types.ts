@@ -1,5 +1,11 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 
+export type TaskChecklistItem = {
+  readonly id: string;
+  readonly text: string;
+  readonly done: boolean;
+};
+
 export type Task = {
   readonly id: string;
   readonly title: string;
@@ -10,6 +16,7 @@ export type Task = {
   readonly noteId?: string;
   readonly projectId?: string;
   readonly tags: readonly string[]; // tema/assunto — eixo do grafo
+  readonly checklist: readonly TaskChecklistItem[];
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -23,6 +30,7 @@ export type CreateTaskInput = {
   readonly noteId?: string;
   readonly projectId?: string;
   readonly tags?: readonly string[];
+  readonly checklist?: readonly TaskChecklistItem[];
 };
 
 export type UpdateTaskInput = {
@@ -34,6 +42,7 @@ export type UpdateTaskInput = {
   readonly noteId?: string | null; // null = remover campo
   readonly projectId?: string | null; // null = remover campo
   readonly tags?: readonly string[];
+  readonly checklist?: readonly TaskChecklistItem[];
 };
 
 export type ReorderInput = {

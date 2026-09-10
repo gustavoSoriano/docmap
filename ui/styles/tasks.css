@@ -289,6 +289,24 @@
   color: var(--cat-entry);
 }
 
+/* Task concluída: data sempre neutra/positiva, nunca "atrasada" */
+.kanban-card-due.is-done {
+  color: var(--accent);
+}
+
+.kanban-card-checklist {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kanban-card-checklist.all-done {
+  color: var(--accent);
+}
+
 .kanban-card-note-link {
   font-size: 0.7rem;
   background: var(--accent-dim);
@@ -322,8 +340,10 @@
   background: var(--surface-2);
   border: 1px solid var(--border-mid);
   border-radius: var(--r-xl);
-  width: min(860px, 92vw);
-  height: min(600px, 88vh);
+  width: 90vw;
+  max-width: 95vw;
+  height: 88vh;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -440,6 +460,286 @@
 }
 #task-desc-textarea:focus {
   border-color: var(--accent-line);
+}
+
+/* ── Descrição: header com toggle Preview/Editar ── */
+
+.task-desc-field {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-desc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-seg {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.task-seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.task-seg-btn:hover {
+  color: var(--text-2);
+}
+
+.task-seg-btn.active {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* Preview markdown da descrição (padrão ao abrir a modal) */
+#task-desc-preview {
+  flex: 1;
+  display: none;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  word-break: break-word;
+}
+#task-desc-preview.visible {
+  display: block;
+}
+#task-desc-preview:empty::before {
+  content: 'Sem descrição — clique em Editar para escrever em markdown…';
+  color: var(--text-4);
+  font-style: italic;
+}
+#task-desc-preview h1,
+#task-desc-preview h2,
+#task-desc-preview h3 {
+  font-weight: 700;
+  margin: 14px 0 6px;
+  line-height: 1.25;
+}
+#task-desc-preview h1 { font-size: 1.15rem; }
+#task-desc-preview h2 { font-size: 1rem; }
+#task-desc-preview h3 { font-size: 0.9rem; }
+#task-desc-preview p { margin: 8px 0; }
+#task-desc-preview code {
+  font-family: var(--font-mono);
+  background: var(--surface-3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+#task-desc-preview pre {
+  background: var(--surface-2);
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  overflow-x: auto;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+}
+#task-desc-preview pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+#task-desc-preview blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+  color: var(--text-2);
+  margin: 10px 0;
+}
+#task-desc-preview ul,
+#task-desc-preview ol {
+  padding-left: 22px;
+  margin: 8px 0;
+}
+#task-desc-preview li { margin: 3px 0; }
+#task-desc-preview a { color: var(--accent); }
+#task-desc-preview hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
+#task-desc-preview input[type="checkbox"] {
+  accent-color: var(--accent);
+  margin-right: 4px;
+}
+
+/* ── Hint da data limite ── */
+
+#task-due-hint {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-3);
+  min-height: 1em;
+}
+#task-due-hint.overdue { color: var(--type-warning); }
+#task-due-hint.due-today { color: var(--cat-entry); }
+#task-due-hint.is-done { color: var(--accent); }
+
+/* ── Checklist ── */
+
+.task-checklist-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+#task-checklist-count {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#task-checklist-progress {
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#task-checklist-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.15s;
+}
+
+#task-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.task-checklist-empty {
+  font-size: 0.75rem;
+  color: var(--text-4);
+  font-style: italic;
+  padding: 2px 0;
+}
+
+.task-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  transition: background 0.1s;
+}
+
+.task-checklist-item:hover {
+  background: var(--surface-3);
+}
+
+.task-checklist-check {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.task-checklist-text {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  word-break: break-word;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.task-checklist-item.done .task-checklist-text {
+  text-decoration: line-through;
+  color: var(--text-4);
+}
+
+.task-checklist-del {
+  border: none;
+  background: transparent;
+  color: var(--text-4);
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+}
+
+.task-checklist-item:hover .task-checklist-del,
+.task-checklist-del:focus-visible {
+  opacity: 1;
+}
+.task-checklist-del:hover { color: var(--type-warning); }
+
+#task-checklist-add-row {
+  display: flex;
+  gap: 6px;
+}
+
+#task-checklist-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text);
+  padding: 0 9px;
+  outline: none;
+  transition: border-color 0.12s;
+}
+#task-checklist-input:focus { border-color: var(--accent-line); }
+#task-checklist-input::placeholder { color: var(--text-4); }
+
+.task-checklist-add-btn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  color: var(--text-2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 0.12s, color 0.12s;
+}
+.task-checklist-add-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
 }
 
 /* metadados: coluna vertical à direita */
