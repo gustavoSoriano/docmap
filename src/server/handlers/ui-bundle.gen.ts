@@ -100,6 +100,8 @@ export const UI_HTML = `<!DOCTYPE html>
   /* ── Metrics ── */
   /* Breakpoints usados nas @media queries: 600px (mobile), 900px (tablet) */
   --rail-w: 60px;
+  --sidebar-w: 280px;
+  --sidebar-w-tablet: 220px;
   --term-default-h: 35vh;
   --r-xs: 5px;
   --r-sm: 7px;
@@ -334,7 +336,8 @@ body::before {
 .col-collapsed#diag-col,
 .col-collapsed#mocks-col,
 .col-collapsed#fav-sidebar,
-.col-collapsed#pod-col {
+.col-collapsed#pod-col,
+.col-collapsed#wf-sidebar {
   width: 0;
   min-width: 0;
   flex-shrink: 1;
@@ -344,6 +347,470 @@ body::before {
   border-right-width: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+/* ════════ Sidebar standard ════════
+   Padrão único para todas as sidebars (notes, skills, podcasts, workflows,
+   macros, mocks, favorites):
+   - largura var(--sidebar-w) / tablet var(--sidebar-w-tablet)
+   - head: título 18px 700 + botão verde 30px
+   - subhead de collections: label uppercase .65rem + botão ghost 22px
+   - lista de collections: dot 6px + nome + count + ações hover
+   - footer: count + botão zerar
+   Regras estruturais ficam aqui; os arquivos por modo definem só o item
+   da lista (note-item, skill-item, …) e particularidades do editor. */
+#notes-col,
+#skills-col,
+#pod-col,
+#wf-sidebar,
+#macros-col,
+#mocks-col,
+#fav-sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+}
+
+/* ── Head: título + botão verde ── */
+#notes-col-head,
+#skills-col-head,
+#pod-col-head,
+#macros-col-head,
+#mocks-col-head {
+  display: flex;
+  align-items: center;
+  padding: 18px 18px 12px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+#notes-col-title,
+#skills-col-title,
+#macros-col-title,
+#mocks-col-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  flex: 1;
+}
+#notes-new-btn,
+#skills-new-btn,
+#macros-new-btn,
+#mocks-new-btn,
+#wf-new-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all .15s;
+  box-shadow: 0 2px 10px rgba(55,217,154,.28);
+}
+#notes-new-btn:hover,
+#skills-new-btn:hover,
+#macros-new-btn:hover,
+#mocks-new-btn:hover,
+#wf-new-btn:hover {
+  background: var(--accent-2);
+  transform: scale(1.08);
+}
+#notes-new-btn .ico,
+#skills-new-btn .ico,
+#macros-new-btn .ico,
+#mocks-new-btn .ico,
+#wf-new-btn .ico {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── Search ── */
+#notes-search-box,
+#skills-search-box {
+  padding: 0 18px 12px;
+  flex-shrink: 0;
+}
+#notes-search-input,
+#skills-search-input {
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  color: var(--text);
+  padding: 0 13px;
+  outline: none;
+  transition: border .12s;
+}
+#notes-search-input:focus,
+#skills-search-input:focus {
+  border-color: var(--accent-line);
+}
+#notes-search-input::placeholder,
+#skills-search-input::placeholder {
+  color: var(--text-3);
+}
+
+/* ── Collections subhead (macros / mocks / skills) ── */
+#macros-col-subhead,
+#mocks-col-subhead,
+#skills-col-subhead {
+  display: flex;
+  align-items: center;
+  padding: 9px 10px 9px 14px;
+  gap: 6px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.macros-section-label,
+.mocks-section-label,
+.skills-section-label {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-4);
+  flex: 1;
+}
+.macros-hd-btn,
+.mocks-hd-btn,
+.skills-hd-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--r-xs);
+  background: transparent;
+  color: var(--text-4);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .12s, color .12s;
+}
+.macros-hd-btn:hover,
+.mocks-hd-btn:hover,
+.skills-hd-btn:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.macros-hd-btn .ico,
+.mocks-hd-btn .ico,
+.skills-hd-btn .ico {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Collections list ── */
+#macros-collections-list,
+#mocks-col-list,
+#skills-collections-list {
+  padding: 5px;
+  flex-shrink: 0;
+  max-height: 210px;
+  overflow-y: auto;
+}
+.macros-col-empty,
+.mocks-col-empty,
+.skills-col-empty {
+  font-size: .75rem;
+  color: var(--text-4);
+  text-align: center;
+  padding: 18px 10px;
+  line-height: 1.6;
+}
+.macros-col-item,
+.mocks-col-item,
+.skills-col-item {
+  display: flex;
+  align-items: center;
+  border-radius: var(--r-sm);
+  transition: background .1s;
+}
+.macros-col-item:hover,
+.mocks-col-item:hover,
+.skills-col-item:hover {
+  background: var(--surface-3);
+}
+.macros-col-item.active,
+.mocks-col-item.active,
+.skills-col-item.active {
+  background: var(--accent-dim);
+}
+.macros-col-item-inner,
+.mocks-col-item-inner,
+.skills-col-item-inner {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 7px 8px;
+  cursor: pointer;
+  gap: 8px;
+  min-width: 0;
+}
+.macros-col-dot,
+.mocks-col-dot,
+.skills-col-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-4);
+  flex-shrink: 0;
+  transition: background .12s, box-shadow .12s;
+}
+.macros-col-item.active .macros-col-dot,
+.mocks-col-item.active .mocks-col-dot,
+.skills-col-item.active .skills-col-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.macros-col-name,
+.mocks-col-name,
+.skills-col-name {
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--text-2);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color .12s;
+}
+.macros-col-item.active .macros-col-name,
+.mocks-col-item.active .mocks-col-name,
+.skills-col-item.active .skills-col-name {
+  color: var(--accent);
+}
+.macros-col-count,
+.mocks-col-count,
+.skills-col-count {
+  font-size: .65rem;
+  color: var(--text-4);
+  background: var(--surface-4);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.macros-col-actions,
+.mocks-col-actions,
+.skills-col-actions {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding-right: 5px;
+}
+.macros-col-item:hover .macros-col-actions,
+.mocks-col-item:hover .mocks-col-actions,
+.skills-col-item:hover .skills-col-actions {
+  display: flex;
+}
+.macros-col-action-btn,
+.mocks-col-action-btn,
+.skills-col-action-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-4);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .12s, background .12s;
+}
+.macros-col-action-btn:hover,
+.mocks-col-action-btn:hover,
+.skills-col-action-btn:hover {
+  color: var(--text-2);
+  background: var(--surface-4);
+}
+.macros-col-action-btn.warn:hover,
+.mocks-col-action-btn.warn:hover,
+.skills-col-action-btn.warn:hover {
+  color: #f59e0b;
+}
+.macros-col-action-btn.danger:hover,
+.mocks-col-action-btn.danger:hover,
+.skills-col-action-btn.danger:hover {
+  color: #fb7185;
+}
+.macros-col-action-btn .ico,
+.mocks-col-action-btn .ico,
+.skills-col-action-btn .ico {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── Inline new/rename ── */
+.macros-col-new-row,
+.mocks-col-new-row,
+.skills-col-new-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 6px;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  margin-bottom: 4px;
+}
+.macros-col-new-input,
+.macros-col-rename-input,
+.mocks-col-new-input,
+.mocks-col-rename-input,
+.skills-col-new-input,
+.skills-col-rename-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: .8125rem;
+  font-family: var(--font-ui);
+  padding: 2px 4px;
+  min-width: 0;
+}
+.mocks-col-new-input::placeholder,
+.skills-col-new-input::placeholder {
+  color: var(--text-4);
+}
+.macros-col-rename-input,
+.mocks-col-rename-input,
+.skills-col-rename-input {
+  border-bottom: 1px solid var(--accent-line);
+}
+.macros-col-new-ok,
+.mocks-col-new-ok,
+.skills-col-new-ok {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .12s;
+}
+.macros-col-new-ok:hover,
+.mocks-col-new-ok:hover,
+.skills-col-new-ok:hover {
+  background: var(--accent-2);
+}
+.macros-col-new-ok .ico,
+.mocks-col-new-ok .ico,
+.skills-col-new-ok .ico {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Items list head ── */
+#macros-list-head,
+#mocks-list-head,
+#skills-list-head {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px 8px 14px;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#macros-list-heading,
+#mocks-list-heading,
+#skills-list-heading {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--text-3);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Sidebar footer (count + zerar) ── */
+#macros-col-footer,
+#skills-col-footer {
+  border-top: 1px solid var(--border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+#macros-count-badge,
+#skills-count-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.macros-count-pulse,
+.skills-count-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+#macros-count-text,
+#skills-count-text {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  color: var(--text-3);
+  flex: 1;
+}
+#macros-clear-btn,
+#skills-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: .74rem;
+  font-weight: 500;
+  color: #fb7185;
+  background: rgba(251,113,133,.07);
+  border: 1px solid rgba(251,113,133,.18);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+  width: 100%;
+  font-family: var(--font-ui);
+}
+#macros-clear-btn:hover,
+#skills-clear-btn:hover {
+  background: rgba(251,113,133,.15);
+  border-color: rgba(251,113,133,.38);
+}
+#macros-clear-btn .ico,
+#skills-clear-btn .ico {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Sidebar list active (notas, skills, podcasts, macros) ──
+   Mocks usa inset shadow por causa do badge de método; workflows usa card
+   com borda (lista densa com progresso). */
+.note-item.active,
+.skill-item.active,
+.pod-item.active,
+.macro-item.active {
+  background: var(--surface-2);
+  border-left-color: var(--accent);
 }
 
 /* ════════ Stage ════════ */
@@ -1415,54 +1882,9 @@ body::before {
   background: var(--bg);
 }
 
-/* ── List column ── */
+/* ── List column (estrutura no layout.css — padrão sidebar) ── */
 #notes-col {
-  width: 320px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
   background: var(--surface);
-}
-#notes-col-head {
-  display: flex;
-  align-items: center;
-  padding: 18px 18px 12px;
-  gap: 10px;
-  flex-shrink: 0;
-}
-#notes-col-title {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -.02em;
-  color: var(--text);
-  flex: 1;
-}
-#notes-new-btn {
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 19px;
-  line-height: 1;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  transition: all .15s;
-  box-shadow: 0 2px 10px rgba(55,217,154,.28);
-}
-#notes-new-btn:hover {
-  background: var(--accent-2);
-  transform: scale(1.08);
-}
-
-#notes-search-box {
-  padding: 0 18px 10px;
-  flex-shrink: 0;
 }
 
 #notes-filters {
@@ -1503,22 +1925,6 @@ body::before {
 }
 #notes-search-input {
   width: 100%;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 0 13px;
-  font-size: 12.5px;
-  font-family: var(--font-ui);
-  background: var(--surface-2);
-  color: var(--text);
-  outline: none;
-  transition: border .15s;
-}
-#notes-search-input:focus {
-  border-color: var(--accent-line);
-}
-#notes-search-input::placeholder {
-  color: var(--text-3);
 }
 
 #notes-list {
@@ -1920,7 +2326,7 @@ body::before {
 /* ════════ Responsivo ════════ */
 @media (max-width: 900px) {
   #notes-col {
-    width: 240px;
+    width: var(--sidebar-w-tablet);
   }
   #note-toolbar {
     flex-wrap: wrap;
@@ -2021,194 +2427,9 @@ body::before {
   background: var(--bg);
 }
 
-/* ── List column ── */
+/* ── List column (estrutura no layout.css — padrão sidebar) ── */
 #macros-col {
-  width: 260px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
   background: var(--surface);
-}
-#macros-col-head {
-  display: flex;
-  align-items: center;
-  padding: 9px 10px 9px 14px;
-  gap: 6px;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-}
-#macros-list-head {
-  display: flex;
-  align-items: center;
-  padding: 8px 10px 8px 14px;
-  gap: 6px;
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.macros-section-label {
-  font-size: .65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: var(--text-4);
-  flex: 1;
-}
-#macros-list-heading {
-  font-size: .7rem;
-  font-weight: 600;
-  color: var(--text-3);
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.macros-hd-btn {
-  width: 22px;
-  height: 22px;
-  border: none;
-  border-radius: var(--r-xs);
-  background: transparent;
-  color: var(--text-4);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background .12s, color .12s;
-}
-.macros-hd-btn:hover {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-#macros-collections-list {
-  padding: 5px;
-  flex-shrink: 0;
-  max-height: 210px;
-  overflow-y: auto;
-}
-.macros-col-empty {
-  font-size: .75rem;
-  color: var(--text-4);
-  text-align: center;
-  padding: 18px 10px;
-  line-height: 1.6;
-}
-.macros-col-item {
-  display: flex;
-  align-items: center;
-  border-radius: var(--r-sm);
-  transition: background .1s;
-}
-.macros-col-item:hover {
-  background: var(--surface-3);
-}
-.macros-col-item.active {
-  background: var(--accent-dim);
-}
-.macros-col-item-inner {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  padding: 7px 8px;
-  cursor: pointer;
-  gap: 8px;
-  min-width: 0;
-}
-.macros-col-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-4);
-  flex-shrink: 0;
-}
-.macros-col-item.active .macros-col-dot {
-  background: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-dim);
-}
-.macros-col-name {
-  font-size: .8125rem;
-  font-weight: 500;
-  color: var(--text-2);
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.macros-col-item.active .macros-col-name {
-  color: var(--accent);
-}
-.macros-col-count {
-  font-size: .65rem;
-  color: var(--text-4);
-  background: var(--surface-4);
-  border-radius: 10px;
-  padding: 1px 6px;
-}
-.macros-col-actions {
-  display: none;
-  align-items: center;
-  gap: 2px;
-  padding-right: 5px;
-}
-.macros-col-item:hover .macros-col-actions {
-  display: flex;
-}
-.macros-col-action-btn {
-  width: 20px;
-  height: 20px;
-  border: none;
-  background: transparent;
-  color: var(--text-4);
-  border-radius: 4px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.macros-col-action-btn:hover {
-  color: var(--text-2);
-  background: var(--surface-4);
-}
-.macros-col-action-btn.danger:hover {
-  color: #fb7185;
-}
-.macros-col-new-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 4px 4px 6px;
-  border-radius: var(--r-sm);
-  background: var(--surface-3);
-  margin-bottom: 4px;
-}
-.macros-col-new-input,
-.macros-col-rename-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text);
-  font-size: .8125rem;
-  font-family: var(--font-ui);
-  padding: 2px 4px;
-  min-width: 0;
-}
-.macros-col-rename-input {
-  border-bottom: 1px solid var(--accent-line);
-}
-.macros-col-new-ok {
-  width: 22px;
-  height: 22px;
-  border: none;
-  background: var(--accent);
-  color: var(--on-accent);
-  border-radius: var(--r-xs);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 #macros-list {
@@ -2233,10 +2454,6 @@ body::before {
 }
 .macro-item:hover {
   background: var(--surface-2);
-}
-.macro-item.active {
-  background: var(--surface-2);
-  border-left-color: var(--accent);
 }
 .macro-item-collection {
   display: inline-block;
@@ -2675,7 +2892,7 @@ body::before {
 /* ════════ Responsivo ════════ */
 @media (max-width: 900px) {
   #macros-col {
-    width: 200px;
+    width: var(--sidebar-w-tablet);
   }
   #macro-head {
     flex-wrap: wrap;
@@ -2720,6 +2937,9 @@ body::before {
   }
   #macros-col-head {
     padding: 8px 12px 6px;
+  }
+  #macros-col-subhead {
+    padding: 6px 8px 6px 12px;
   }
   #macros-col-title {
     font-size: 14px;
@@ -2774,72 +2994,9 @@ body::before {
   background: var(--bg);
 }
 
-/* ── List column ── */
+/* ── List column (estrutura no layout.css — padrão sidebar) ── */
 #skills-col {
-  width: 300px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
   background: var(--surface);
-}
-#skills-col-head {
-  display: flex;
-  align-items: center;
-  padding: 18px 18px 12px;
-  gap: 10px;
-  flex-shrink: 0;
-}
-#skills-col-title {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -.02em;
-  color: var(--text);
-  flex: 1;
-}
-#skills-new-btn {
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 19px;
-  line-height: 1;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  transition: all .15s;
-  box-shadow: 0 2px 10px rgba(55,217,154,.28);
-}
-#skills-new-btn:hover {
-  background: var(--accent-2);
-  transform: scale(1.08);
-}
-
-#skills-search-box {
-  padding: 0 18px 12px;
-  flex-shrink: 0;
-}
-#skills-search-input {
-  width: 100%;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  color: var(--text);
-  padding: 0 13px;
-  outline: none;
-  transition: border .12s;
-}
-#skills-search-input:focus {
-  border-color: var(--accent-line);
-}
-#skills-search-input::placeholder {
-  color: var(--text-3);
 }
 
 #skills-list {
@@ -3045,12 +3202,32 @@ body::before {
 }
 
 #skill-desc-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   padding: 0 20px 12px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+#skill-collection-select {
+  height: 30px;
+  max-width: 170px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  padding: 0 8px;
+  outline: none;
+  flex-shrink: 0;
+}
+#skill-collection-select:focus {
+  border-color: var(--accent-line);
+}
 #skill-desc-input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 30px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
@@ -3146,7 +3323,7 @@ body::before {
 /* ════════ Responsivo ════════ */
 @media (max-width: 900px) {
   #skills-col {
-    width: 220px;
+    width: var(--sidebar-w-tablet);
   }
   #skill-toolbar {
     flex-wrap: wrap;
@@ -3162,6 +3339,12 @@ body::before {
   }
   #skill-name-input {
     width: 110px;
+  }
+  #skill-desc-row {
+    flex-wrap: wrap;
+  }
+  #skill-collection-select {
+    max-width: 140px;
   }
 }
 
@@ -3192,8 +3375,15 @@ body::before {
   #skills-col-head {
     padding: 8px 12px 6px;
   }
+  #skills-col-subhead,
+  #skills-list-head {
+    padding: 6px 8px 6px 12px;
+  }
   #skills-col-title {
     font-size: 14px;
+  }
+  #skills-collections-list {
+    max-height: 120px;
   }
   .skill-item {
     padding: 7px 12px;
@@ -3985,8 +4175,6 @@ body::before {
 }
 
 #wf-sidebar {
-  width: 238px;
-  min-width: 238px;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -4003,16 +4191,18 @@ body::before {
 }
 
 #wf-sidebar-head {
-  height: 66px;
-  padding: 13px 13px 10px 16px;
+  padding: 18px 18px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 #wf-sidebar-title {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
+  letter-spacing: -.02em;
 }
 
 #wf-sidebar-count {
@@ -4021,7 +4211,7 @@ body::before {
   font-size: 10px;
 }
 
-#wf-new-btn,
+/* #wf-new-btn usa o padrão verde 30px do layout.css */
 .wf-icon-btn,
 .wf-modal-head button {
   width: 32px;
@@ -4037,15 +4227,10 @@ body::before {
   transition: background .14s, border-color .14s, color .14s;
 }
 
-#wf-new-btn {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-}
-
 #wf-new-btn:hover,
 .wf-primary-btn:hover {
   background: var(--accent-2);
+  transform: scale(1.08);
 }
 
 .wf-icon-btn:hover,
@@ -5745,8 +5930,7 @@ body::before {
 
 @media (max-width: 780px) {
   #wf-sidebar {
-    width: 200px;
-    min-width: 200px;
+    width: var(--sidebar-w-tablet);
   }
 
   #wf-timeline {
@@ -5811,239 +5995,12 @@ body::before {
   overflow: hidden;
 }
 
-/* ────────────────────────────
-   Coluna esquerda
-──────────────────────────── */
+/* ── Coluna esquerda (estrutura no layout.css — padrão sidebar) ── */
 
 #mocks-col {
-  width: 256px;
   min-width: 220px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--border);
   overflow: hidden;
   background: var(--surface);
-}
-
-/* ── Cabeçalhos de seção ── */
-
-#mocks-col-head,
-#mocks-list-head {
-  display: flex;
-  align-items: center;
-  padding: 9px 10px 9px 14px;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-#mocks-col-head {
-  border-bottom: 1px solid var(--border);
-}
-
-#mocks-list-head {
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-}
-
-.mocks-section-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-4);
-  flex: 1;
-}
-
-#mocks-list-heading {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-3);
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mocks-hd-btn {
-  width: 22px;
-  height: 22px;
-  border: none;
-  background: transparent;
-  color: var(--text-4);
-  border-radius: var(--r-xs);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.12s, color 0.12s;
-}
-.mocks-hd-btn:hover {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-/* ── Lista de collections ── */
-
-#mocks-col-list {
-  padding: 5px;
-  flex-shrink: 0;
-  max-height: 210px;
-  overflow-y: auto;
-}
-
-.mocks-col-empty {
-  font-size: 0.75rem;
-  color: var(--text-4);
-  text-align: center;
-  padding: 18px 10px;
-  line-height: 1.6;
-}
-
-.mocks-col-item {
-  display: flex;
-  align-items: center;
-  border-radius: var(--r-sm);
-  transition: background 0.1s;
-}
-.mocks-col-item:hover {
-  background: var(--surface-3);
-}
-.mocks-col-item.active {
-  background: var(--accent-dim);
-}
-
-.mocks-col-item-inner {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  padding: 7px 8px;
-  cursor: pointer;
-  gap: 8px;
-  min-width: 0;
-}
-
-.mocks-col-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-4);
-  flex-shrink: 0;
-  transition: background 0.12s, box-shadow 0.12s;
-}
-.mocks-col-item.active .mocks-col-dot {
-  background: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-dim);
-}
-
-.mocks-col-name {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-2);
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color 0.12s;
-}
-.mocks-col-item.active .mocks-col-name {
-  color: var(--accent);
-}
-
-.mocks-col-count {
-  font-size: 0.65rem;
-  color: var(--text-4);
-  background: var(--surface-4);
-  border-radius: 10px;
-  padding: 1px 6px;
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-}
-
-.mocks-col-actions {
-  display: none;
-  align-items: center;
-  gap: 2px;
-  padding-right: 5px;
-}
-.mocks-col-item:hover .mocks-col-actions {
-  display: flex;
-}
-
-.mocks-col-action-btn {
-  width: 20px;
-  height: 20px;
-  border: none;
-  background: transparent;
-  color: var(--text-4);
-  border-radius: 4px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.12s, background 0.12s;
-}
-.mocks-col-action-btn:hover {
-  color: var(--text-2);
-  background: var(--surface-4);
-}
-.mocks-col-action-btn.warn:hover {
-  color: #f59e0b;
-}
-.mocks-col-action-btn.danger:hover {
-  color: #fb7185;
-}
-
-/* ── Inline new/rename inputs ── */
-
-.mocks-col-new-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 4px 4px 6px;
-  border-radius: var(--r-sm);
-  background: var(--surface-3);
-  margin-bottom: 4px;
-}
-
-.mocks-col-new-input,
-.mocks-col-rename-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text);
-  font-size: 0.8125rem;
-  font-family: var(--font-ui);
-  padding: 2px 4px;
-  min-width: 0;
-}
-.mocks-col-new-input::placeholder {
-  color: var(--text-4);
-}
-
-.mocks-col-rename-input {
-  flex: 1;
-  border-bottom: 1px solid var(--accent-line);
-}
-
-.mocks-col-new-ok {
-  width: 22px;
-  height: 22px;
-  border: none;
-  background: var(--accent);
-  color: var(--on-accent);
-  border-radius: var(--r-xs);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.12s;
-}
-.mocks-col-new-ok:hover {
-  background: var(--accent-2);
 }
 
 /* ── Lista de mocks ── */
@@ -6773,7 +6730,7 @@ body::before {
 /* ════════ Responsivo ════════ */
 @media (max-width: 900px) {
   #mocks-col {
-    width: 200px;
+    width: var(--sidebar-w-tablet);
     min-width: 180px;
   }
   #mock-meta-row-2 {
@@ -6811,6 +6768,7 @@ body::before {
     max-height: 120px;
   }
   #mocks-col-head,
+  #mocks-col-subhead,
   #mocks-list-head {
     padding: 6px 8px;
   }
@@ -6891,9 +6849,8 @@ body::before {
   flex-direction: row;
 }
 
-/* ── Sidebar ── */
+/* ── Sidebar (largura no layout.css — padrão sidebar) ── */
 #fav-sidebar {
-  width: 210px;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
   background: var(--surface);
@@ -7993,7 +7950,7 @@ mark.fav-hl {
 /* ════════ Responsivo ════════ */
 @media (max-width: 900px) {
   #fav-sidebar {
-    width: 170px;
+    width: var(--sidebar-w-tablet);
   }
   #fav-grid {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -8130,13 +8087,8 @@ mark.fav-hl {
   background: var(--bg);
 }
 
-/* ── List column ── */
+/* ── List column (largura no layout.css — padrão sidebar) ── */
 #pod-col {
-  width: 300px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
   background: var(--surface);
 }
 #pod-col-head {
@@ -8688,7 +8640,7 @@ mark.fav-hl {
 /* ════════ Responsivo ════════ */
 @media (max-width: 900px) {
   #pod-col {
-    width: 220px;
+    width: var(--sidebar-w-tablet);
   }
   #pod-head {
     flex-wrap: wrap;
@@ -9442,6 +9394,11 @@ svg#kg-svg:active {
         <main id="mode-macros" class="mode">
           <section id="macros-col">
             <div id="macros-col-head">
+              <div id="macros-col-title">Macros</div>
+              <button id="macros-new-btn" title="Nova macro"
+                onclick="newMacro()" data-icon="plus"></button>
+            </div>
+            <div id="macros-col-subhead">
               <span class="macros-section-label">Collections</span>
               <button class="macros-hd-btn" title="Nova collection"
                 onclick="newMacroCollection()" data-icon="plus"></button>
@@ -9449,11 +9406,19 @@ svg#kg-svg:active {
             <div id="macros-collections-list"></div>
             <div id="macros-list-head">
               <span id="macros-list-heading">Sem collection</span>
-              <button id="macros-new-btn" class="macros-hd-btn"
-                title="Nova macro" onclick="newMacro()"
-                data-icon="plus"></button>
             </div>
             <div id="macros-list"></div>
+
+            <footer id="macros-col-footer">
+              <div id="macros-count-badge">
+                <span class="macros-count-pulse"></span>
+                <span id="macros-count-text">0 macros</span>
+              </div>
+              <button id="macros-clear-btn" onclick="clearMacrosDatabase()">
+                <span data-icon="trash"></span>
+                <span class="macros-clear-label">Zerar tudo</span>
+              </button>
+            </footer>
           </section>
 
           <section id="macros-editor">
@@ -9538,7 +9503,28 @@ svg#kg-svg:active {
                 placeholder="Buscar skills…" autocomplete="off"
                 spellcheck="false" />
             </div>
+            <div id="skills-col-subhead">
+              <span class="skills-section-label">Collections</span>
+              <button class="skills-hd-btn"
+                onclick="newSkillCollection()" title="Nova collection"
+                data-icon="plus"></button>
+            </div>
+            <div id="skills-collections-list"></div>
+            <div id="skills-list-head">
+              <span id="skills-list-heading">Sem collection</span>
+            </div>
             <div id="skills-list"></div>
+
+            <footer id="skills-col-footer">
+              <div id="skills-count-badge">
+                <span class="skills-count-pulse"></span>
+                <span id="skills-count-text">0 skills</span>
+              </div>
+              <button id="skills-clear-btn" onclick="clearSkillsDatabase()">
+                <span data-icon="trash"></span>
+                <span class="skills-clear-label">Zerar tudo</span>
+              </button>
+            </footer>
           </section>
 
           <section id="skills-editor">
@@ -9576,6 +9562,8 @@ svg#kg-svg:active {
                   onclick="saveCurrentSkill()">Salvar</button>
               </div>
               <div id="skill-desc-row">
+                <select id="skill-collection-select"
+                  title="Collection da skill"></select>
                 <input id="skill-desc-input" type="text"
                   placeholder="Descrição curta (aparece na listagem da IA)…" />
               </div>
@@ -9592,6 +9580,11 @@ svg#kg-svg:active {
         <main id="mode-mocks" class="mode">
           <section id="mocks-col">
             <div id="mocks-col-head">
+              <div id="mocks-col-title">Mocks</div>
+              <button id="mocks-new-btn" onclick="newMock()"
+                title="Novo mock" data-icon="plus"></button>
+            </div>
+            <div id="mocks-col-subhead">
               <span class="mocks-section-label">Collections</span>
               <button class="mocks-hd-btn" onclick="newCollection()"
                 title="Nova collection" data-icon="plus"></button>
@@ -9600,8 +9593,6 @@ svg#kg-svg:active {
 
             <div id="mocks-list-head">
               <span id="mocks-list-heading">Sem collection</span>
-              <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
-                data-icon="plus"></button>
             </div>
             <div id="mocks-list"></div>
 
@@ -11511,6 +11502,7 @@ const loadMacrosList = async () => {
     else {
       renderMacroCollections();
       renderMacrosList();
+      updateMacrosClearBtn();
     }
   } catch (err) { console.error('Erro ao carregar macros:', err); }
 };
@@ -11558,6 +11550,9 @@ const renderMacroCollections = () => {
         <button class="macros-col-action-btn" onclick="renameMacroCollection('\${collection.id}')" title="Renomear">
           <span data-icon="pencil"></span>
         </button>
+        <button class="macros-col-action-btn warn" onclick="clearMacroCollectionMocks('\${collection.id}')" title="Limpar macros (mantém collection)">
+          <span data-icon="minus"></span>
+        </button>
         <button class="macros-col-action-btn danger" onclick="removeMacroCollection('\${collection.id}')" title="Remover collection">
           <span data-icon="trash"></span>
         </button>
@@ -11571,6 +11566,7 @@ const selectMacroCollection = (id) => {
   activeMacroCollectionId = activeMacroCollectionId === id ? null : id;
   renderMacroCollections();
   renderMacrosList();
+  updateMacrosClearBtn();
 };
 
 const newMacroCollection = () => {
@@ -11655,7 +11651,84 @@ const removeMacroCollection = async (id) => {
   if (activeMacroCollectionId === id) activeMacroCollectionId = null;
   if (currentMacro?.collectionId === id) currentMacro = { ...currentMacro, collectionId: undefined };
   await loadMacrosList();
+  updateMacrosClearBtn();
   if (currentMacro) fillMacroEditor(currentMacro);
+};
+
+// Zera uma collection (deleta as macros, mantém a collection).
+const clearMacroCollectionMocks = async (id) => {
+  const collection = macroCollections.find((item) => item.id === id);
+  if (!collection) return;
+  const count = allMacros.filter((macro) => macro.collectionId === id).length;
+  if (!count) { toast(\`"\${collection.name}" já está vazia\`); return; }
+  const ok = await confirmDialog(
+    \`Zerar "\${collection.name}"?\\n\${count} macro(s) serão removidas. A collection será mantida.\`,
+    { okLabel: 'Zerar', danger: true },
+  );
+  if (!ok) return;
+  await fetch(\`/macros/collections/\${id}/clear\`, { method: 'DELETE' });
+  if (currentMacro?.collectionId === id) {
+    currentMacro = null;
+    $('macros-editor-form').classList.remove('visible');
+    $('macros-editor-empty').style.display = 'flex';
+    clearOutput();
+  }
+  await loadMacrosList();
+  updateMacrosClearBtn();
+  toast(\`"\${collection.name}" zerada\`);
+};
+
+const updateMacrosCount = () => {
+  const el = $('macros-count-text');
+  if (el) {
+    const n = allMacros.length;
+    el.textContent = \`\${n} macro\${n === 1 ? '' : 's'}\`;
+  }
+};
+
+const updateMacrosClearBtn = () => {
+  updateMacrosCount();
+  const lbl = document.querySelector('#macros-clear-btn .macros-clear-label');
+  if (!lbl) return;
+  if (activeMacroCollectionId) {
+    const col = macroCollections.find((c) => c.id === activeMacroCollectionId);
+    lbl.textContent = col ? \`Zerar "\${col.name}"\` : 'Zerar tudo';
+  } else {
+    lbl.textContent = 'Zerar tudo';
+  }
+};
+
+// Botão do rodapé: contextual à collection ativa.
+// Sem collection ativa, apaga macro por macro + collection por collection
+// (não há endpoint de clear-all em macros).
+const clearMacrosDatabase = async () => {
+  if (activeMacroCollectionId) {
+    await clearMacroCollectionMocks(activeMacroCollectionId);
+    return;
+  }
+  const total = allMacros.length;
+  const cols = macroCollections.length;
+  if (!total && !cols) { toast('Banco já está vazio'); return; }
+  const ok = await confirmDialog(
+    \`Zerar tudo?\\n\${cols} collection(s) e \${total} macro(s) serão removidas permanentemente.\`,
+    { okLabel: 'Zerar tudo', danger: true },
+  );
+  if (!ok) return;
+  for (const c of macroCollections) {
+    await fetch(\`/macros/collections/\${c.id}/clear\`, { method: 'DELETE' });
+    await fetch(\`/macros/collections/\${c.id}\`, { method: 'DELETE' });
+  }
+  for (const m of allMacros.filter((x) => !x.collectionId)) {
+    await fetch(\`/macros/\${m.id}\`, { method: 'DELETE' });
+  }
+  activeMacroCollectionId = null;
+  currentMacro = null;
+  $('macros-editor-form').classList.remove('visible');
+  $('macros-editor-empty').style.display = 'flex';
+  clearOutput();
+  await loadMacrosList();
+  updateMacrosClearBtn();
+  toast('Banco de macros zerado');
 };
 
 // ── Seed macro padrão ──
@@ -11782,6 +11855,7 @@ const saveCurrentMacro = async () => {
     allMacros = await listRes.json();
     renderMacroCollections();
     renderMacrosList();
+    updateMacrosClearBtn();
     toast('Macro salva');
   } catch { toast('Erro ao salvar'); }
 };
@@ -11799,6 +11873,7 @@ const deleteCurrentMacro = async () => {
   allMacros = await listRes.json();
   renderMacroCollections();
   renderMacrosList();
+  updateMacrosClearBtn();
   toast('Macro excluída');
 };
 
@@ -11924,22 +11999,64 @@ document.addEventListener('keydown', (e) => {
 // ════ Skills — gerenciamento local, leitura pela IA ════
 
 let allSkills    = [];
+let skillCollections = [];
+let activeSkillCollectionId = null;
 let currentSkill = null;
 let skillPreview = false;
 
 // ── Lista ──
 const loadSkillsList = async () => {
   try {
-    const res = await fetch('/skills');
-    allSkills  = await res.json();
-    renderSkillsList(allSkills);
+    const [res, collectionsRes] = await Promise.all([
+      fetch('/skills'),
+      fetch('/skills/collections'),
+    ]);
+    allSkills = await res.json();
+    skillCollections = await collectionsRes.json();
+    if (
+      activeSkillCollectionId &&
+      !skillCollections.some((c) => c.id === activeSkillCollectionId)
+    ) {
+      activeSkillCollectionId = null;
+    }
+    renderSkillCollections();
+    applySkillFilters();
+    updateSkillsClearBtn();
   } catch (err) { console.error('Erro ao carregar skills:', err); }
+};
+
+const visibleSkills = () => {
+  const q = ($('skills-search-input')?.value ?? '').trim().toLowerCase();
+  let skills = activeSkillCollectionId
+    ? allSkills.filter((s) => s.collectionId === activeSkillCollectionId)
+    : allSkills.filter((s) => !s.collectionId);
+  if (q) {
+    skills = skills.filter((s) =>
+      s.name.includes(q) || s.title.toLowerCase().includes(q) ||
+      (s.description || '').toLowerCase().includes(q) ||
+      (s.tags || []).some((t) => t.toLowerCase().includes(q))
+    );
+  }
+  return skills;
+};
+
+const applySkillFilters = () => {
+  const skills = visibleSkills();
+  const collection = skillCollections.find((c) =>
+    c.id === activeSkillCollectionId
+  );
+  $('skills-list-heading').textContent = collection?.name ?? 'Sem collection';
+  renderSkillsList(skills);
 };
 
 const renderSkillsList = (skills) => {
   const list = $('skills-list');
   if (!skills.length) {
-    list.innerHTML = \`<div class="skills-empty">Nenhuma skill ainda.<br>Clique em <strong>+</strong> para criar.</div>\`;
+    const emptyLabel = activeSkillCollectionId
+      ? 'Nenhuma skill nesta collection ainda.'
+      : 'Nenhuma skill sem collection ainda.';
+    list.innerHTML =
+      \`<div class="skills-empty">\${emptyLabel}<br>Clique em <strong>+</strong> para criar.</div>\`;
     return;
   }
   list.innerHTML = skills.map((s) =>
@@ -11954,15 +12071,218 @@ const renderSkillsList = (skills) => {
   ).join('');
 };
 
+// ── Collections (padrão macros/mocks) ──
+const renderSkillCollections = () => {
+  const list = $('skills-collections-list');
+  if (!list) return;
+  if (!skillCollections.length) {
+    list.innerHTML =
+      \`<div class="skills-col-empty">Nenhuma collection ainda.<br>Crie a primeira.</div>\`;
+    return;
+  }
+  list.innerHTML = skillCollections.map((collection) => {
+    const count = allSkills.filter((s) =>
+      s.collectionId === collection.id
+    ).length;
+    const active = activeSkillCollectionId === collection.id ? ' active' : '';
+    return \`<div class="skills-col-item\${active}" data-skill-collection-id="\${collection.id}">
+      <div class="skills-col-item-inner" onclick="selectSkillCollection('\${collection.id}')">
+        <span class="skills-col-dot"></span>
+        <span class="skills-col-name">\${escHtml(collection.name)}</span>
+        <span class="skills-col-count">\${count}</span>
+      </div>
+      <div class="skills-col-actions">
+        <button class="skills-col-action-btn" onclick="renameSkillCollection('\${collection.id}')" title="Renomear">
+          <span data-icon="pencil"></span>
+        </button>
+        <button class="skills-col-action-btn warn" onclick="clearSkillCollectionMocks('\${collection.id}')" title="Limpar skills (mantém collection)">
+          <span data-icon="minus"></span>
+        </button>
+        <button class="skills-col-action-btn danger" onclick="removeSkillCollection('\${collection.id}')" title="Remover collection">
+          <span data-icon="trash"></span>
+        </button>
+      </div>
+    </div>\`;
+  }).join('');
+  hydrateIcons(list);
+};
+
+const selectSkillCollection = (id) => {
+  activeSkillCollectionId = activeSkillCollectionId === id ? null : id;
+  renderSkillCollections();
+  applySkillFilters();
+  updateSkillsClearBtn();
+};
+
+const newSkillCollection = () => {
+  if ($('new-skill-col-row')) return;
+  const list = $('skills-collections-list');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.id = 'new-skill-col-row';
+  row.className = 'skills-col-new-row';
+  row.innerHTML = \`<input id="new-skill-col-input" class="skills-col-new-input"
+    placeholder="Nome da collection…" autocomplete="off" spellcheck="false" />
+    <button class="skills-col-new-ok" onclick="confirmNewSkillCollection()" title="Criar">
+      <span data-icon="plus"></span>
+    </button>\`;
+  list.prepend(row);
+  hydrateIcons(row);
+  const input = $('new-skill-col-input');
+  input.focus();
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      confirmNewSkillCollection();
+    }
+    if (event.key === 'Escape') row.remove();
+  });
+};
+
+const confirmNewSkillCollection = async () => {
+  const input = $('new-skill-col-input');
+  const name = input?.value.trim();
+  $('new-skill-col-row')?.remove();
+  if (!name) return;
+  const res = await fetch('/skills/collections', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) return toast(await res.text() || 'Erro ao criar collection');
+  const collection = await res.json();
+  activeSkillCollectionId = collection.id;
+  await loadSkillsList();
+};
+
+const renameSkillCollection = (id) => {
+  const collection = skillCollections.find((item) => item.id === id);
+  const nameEl = document.querySelector(
+    \`[data-skill-collection-id="\${id}"] .skills-col-name\`,
+  );
+  if (!collection || !nameEl) return;
+  const input = document.createElement('input');
+  input.className = 'skills-col-rename-input';
+  input.value = collection.name;
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const commit = async () => {
+    if (done) return;
+    done = true;
+    const name = input.value.trim();
+    if (name && name !== collection.name) {
+      await fetch(\`/skills/collections/\${id}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+    }
+    await loadSkillsList();
+  };
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { event.preventDefault(); commit(); }
+    if (event.key === 'Escape') { done = true; loadSkillsList(); }
+  });
+  input.addEventListener('blur', commit);
+};
+
+const removeSkillCollection = async (id) => {
+  const collection = skillCollections.find((item) => item.id === id);
+  if (!collection) return;
+  const count = allSkills.filter((s) => s.collectionId === id).length;
+  const suffix = count
+    ? \` As \${count} skill(s) serão preservadas sem collection.\`
+    : '';
+  const ok = await confirmDialog(
+    \`Remover collection "\${collection.name}"?\${suffix}\`,
+    { okLabel: 'Remover', danger: true },
+  );
+  if (!ok) return;
+  const res = await fetch(\`/skills/collections/\${id}\`, { method: 'DELETE' });
+  if (!res.ok) return toast('Erro ao remover collection');
+  if (activeSkillCollectionId === id) activeSkillCollectionId = null;
+  if (currentSkill?.collectionId === id) {
+    currentSkill = { ...currentSkill, collectionId: undefined };
+  }
+  await loadSkillsList();
+  if (currentSkill) fillSkillEditor(currentSkill);
+};
+
+const clearSkillCollectionMocks = async (id) => {
+  const collection = skillCollections.find((item) => item.id === id);
+  if (!collection) return;
+  const count = allSkills.filter((s) => s.collectionId === id).length;
+  if (!count) { toast(\`"\${collection.name}" já está vazia\`); return; }
+  const ok = await confirmDialog(
+    \`Zerar "\${collection.name}"?\\n\${count} skill(s) serão removidas. A collection será mantida.\`,
+    { okLabel: 'Zerar', danger: true },
+  );
+  if (!ok) return;
+  await fetch(\`/skills/collections/\${id}/clear\`, { method: 'DELETE' });
+  if (currentSkill?.collectionId === id) {
+    currentSkill = null;
+    $('skills-editor-form').classList.remove('visible');
+    $('skills-editor-empty').style.display = 'flex';
+  }
+  await loadSkillsList();
+  toast(\`"\${collection.name}" zerada\`);
+};
+
+const updateSkillsCount = () => {
+  const el = $('skills-count-text');
+  if (el) {
+    const n = allSkills.length;
+    el.textContent = \`\${n} skill\${n === 1 ? '' : 's'}\`;
+  }
+};
+
+const updateSkillsClearBtn = () => {
+  updateSkillsCount();
+  const lbl = document.querySelector('#skills-clear-btn .skills-clear-label');
+  if (!lbl) return;
+  if (activeSkillCollectionId) {
+    const col = skillCollections.find((c) => c.id === activeSkillCollectionId);
+    lbl.textContent = col ? \`Zerar "\${col.name}"\` : 'Zerar tudo';
+  } else {
+    lbl.textContent = 'Zerar tudo';
+  }
+};
+
+// Zera a collection ativa — ou tudo (collections + skills) se nenhuma ativa.
+// Não há endpoint de clear-all: apaga collection por collection + órfãs.
+const clearSkillsDatabase = async () => {
+  if (activeSkillCollectionId) {
+    await clearSkillCollectionMocks(activeSkillCollectionId);
+    return;
+  }
+  const total = allSkills.length;
+  const cols = skillCollections.length;
+  if (!total && !cols) { toast('Banco já está vazio'); return; }
+  const ok = await confirmDialog(
+    \`Zerar tudo?\\n\${cols} collection(s) e \${total} skill(s) serão removidas permanentemente.\`,
+    { okLabel: 'Zerar tudo', danger: true },
+  );
+  if (!ok) return;
+  for (const c of skillCollections) {
+    await fetch(\`/skills/collections/\${c.id}/clear\`, { method: 'DELETE' });
+    await fetch(\`/skills/collections/\${c.id}\`, { method: 'DELETE' });
+  }
+  for (const s of allSkills.filter((x) => !x.collectionId)) {
+    await fetch(\`/skills/\${s.id}\`, { method: 'DELETE' });
+  }
+  activeSkillCollectionId = null;
+  currentSkill = null;
+  $('skills-editor-form').classList.remove('visible');
+  $('skills-editor-empty').style.display = 'flex';
+  await loadSkillsList();
+  toast('Banco de skills zerado');
+};
+
 // ── Filtro de busca ──
-$('skills-search-input').addEventListener('input', debounce((e) => {
-  const q = e.target.value.trim().toLowerCase();
-  if (!q) { renderSkillsList(allSkills); return; }
-  renderSkillsList(allSkills.filter((s) =>
-    s.name.includes(q) || s.title.toLowerCase().includes(q) ||
-    (s.description||'').toLowerCase().includes(q) ||
-    (s.tags||[]).some((t) => t.toLowerCase().includes(q))
-  ));
+$('skills-search-input').addEventListener('input', debounce(() => {
+  applySkillFilters();
 }, 200));
 
 // ── Abrir / Novo ──
@@ -11972,7 +12292,7 @@ const openSkill = async (id) => {
     const res = await fetch('/skills/' + id);
     currentSkill = await res.json();
     fillSkillEditor(currentSkill);
-    renderSkillsList(allSkills);
+    applySkillFilters();
   } catch (err) { console.error('Erro ao abrir skill:', err); }
 };
 
@@ -11984,6 +12304,7 @@ const newSkill = () => {
   $('skill-tags-input').value    = '';
   $('skill-content-textarea').value = '';
   $('skill-name-badge').textContent = '';
+  populateSkillCollectionSelect(activeSkillCollectionId);
   $('btn-skill-copy').style.display   = 'none';
   $('btn-skill-delete').style.display = 'none';
   showSkillEditor();
@@ -11998,10 +12319,20 @@ const fillSkillEditor = (s) => {
   $('skill-tags-input').value       = (s.tags||[]).join(', ');
   $('skill-content-textarea').value = s.content;
   $('skill-name-badge').textContent = '@' + s.name;
+  populateSkillCollectionSelect(s.collectionId);
   $('btn-skill-copy').style.display   = 'inline-flex';
   $('btn-skill-delete').style.display = 'inline-flex';
   showSkillEditor();
   setSkillPreview(false);
+};
+
+const populateSkillCollectionSelect = (selectedId) => {
+  const select = $('skill-collection-select');
+  if (!select) return;
+  select.innerHTML = \`<option value="">— sem collection —</option>\` +
+    skillCollections.map((collection) =>
+      \`<option value="\${collection.id}"\${collection.id === selectedId ? ' selected' : ''}>\${escHtml(collection.name)}</option>\`
+    ).join('');
 };
 
 const showSkillEditor = () => {
@@ -12029,19 +12360,27 @@ const saveCurrentSkill = async () => {
   if (!title)   { $('skill-title-input').focus(); return toast('Dê um título à skill'); }
   if (!content) { $('skill-content-textarea').focus(); return toast('Conteúdo vazio'); }
 
+  const collectionId = $('skill-collection-select')?.value || null;
   const url    = currentSkill ? '/skills/' + currentSkill.id : '/skills';
   const method = currentSkill ? 'PUT' : 'POST';
   try {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, name: name || title, description: desc, content, tags }),
+      body: JSON.stringify({ title, name: name || title, description: desc, content, tags, collectionId }),
     });
+    if (!res.ok) return toast(await res.text() || 'Erro ao salvar');
     currentSkill = await res.json();
-    const listRes = await fetch('/skills');
+    const [listRes, collectionsRes] = await Promise.all([
+      fetch('/skills'),
+      fetch('/skills/collections'),
+    ]);
     allSkills = await listRes.json();
+    skillCollections = await collectionsRes.json();
     fillSkillEditor(currentSkill);
-    renderSkillsList(allSkills);
+    renderSkillCollections();
+    applySkillFilters();
+    updateSkillsClearBtn();
     toast('Skill salva');
   } catch { toast('Erro ao salvar'); }
 };
@@ -12054,9 +12393,15 @@ const deleteCurrentSkill = async () => {
   currentSkill = null;
   $('skills-editor-form').classList.remove('visible');
   $('skills-editor-empty').style.display = 'flex';
-  const listRes = await fetch('/skills');
+  const [listRes, collectionsRes] = await Promise.all([
+    fetch('/skills'),
+    fetch('/skills/collections'),
+  ]);
   allSkills = await listRes.json();
-  renderSkillsList(allSkills);
+  skillCollections = await collectionsRes.json();
+  renderSkillCollections();
+  applySkillFilters();
+  updateSkillsClearBtn();
   toast('Skill excluída');
 };
 

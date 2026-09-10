@@ -163,12 +163,22 @@ Categoria: texto livre (\`general\`, \`ai\`, etc.).
 
 ## Skills (read-only)
 
+### Collections
+
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| GET | \`/skills\` | Lista (id, name, title, description, tags) |
+| GET | \`/skills/collections\` | Lista collections de skills |
+| GET | \`/skills/collections/:id\` | Collection + suas skills |
+
+### Skills
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/skills\` | Lista (id, name, title, description, tags); aceite \`?collectionId=<id>\` para filtrar |
 | GET | \`/skills/:nameOrId\` | Skill completa com \`content\` em markdown |
 
 \`name\` é o slug legível (ex: \`analyze-pr\`). Acesse por nome ou UUID.
+\`collectionId: null\` remove uma skill da collection atual.
 
 ---
 
@@ -183,6 +193,7 @@ Categoria: texto livre (\`general\`, \`ai\`, etc.).
 | POST | \`/macros/collections\` | Cria \`{ name }\` |
 | PUT | \`/macros/collections/:id\` | Renomeia \`{ name }\` |
 | DELETE | \`/macros/collections/:id\` | Remove a collection e preserva suas macros sem collection |
+| DELETE | \`/macros/collections/:id/clear\` | Zera macros, mantém a collection |
 
 ### Macros e execução
 

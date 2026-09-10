@@ -102,6 +102,22 @@ export const deleteMacroCollection = async (
   return { deleted: true, unassigned };
 };
 
+// Clear esvazia a collection (deleta as macros, mantém a collection) — igual mocks.
+export const clearMacroCollection = async (
+  kv: Deno.Kv,
+  id: string,
+): Promise<number> => {
+  const existing = await getMacroCollection(kv, id);
+  if (!existing) return 0;
+  let cleared = 0;
+  for await (const entry of kv.list<Macro>({ prefix: PREFIX })) {
+    if (entry.value?.collectionId !== id) continue;
+    await kv.delete(entry.key);
+    cleared += 1;
+  }
+  return cleared;
+};
+
 const toPreview = (value: Macro): MacroPreview => {
   const m = normalizeMacro(value);
   return {

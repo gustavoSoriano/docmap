@@ -11,8 +11,6 @@
 }
 
 #wf-sidebar {
-  width: 238px;
-  min-width: 238px;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -29,16 +27,18 @@
 }
 
 #wf-sidebar-head {
-  height: 66px;
-  padding: 13px 13px 10px 16px;
+  padding: 18px 18px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 #wf-sidebar-title {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
+  letter-spacing: -.02em;
 }
 
 #wf-sidebar-count {
@@ -47,7 +47,7 @@
   font-size: 10px;
 }
 
-#wf-new-btn,
+/* #wf-new-btn usa o padrão verde 30px do layout.css */
 .wf-icon-btn,
 .wf-modal-head button {
   width: 32px;
@@ -63,15 +63,10 @@
   transition: background .14s, border-color .14s, color .14s;
 }
 
-#wf-new-btn {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-}
-
 #wf-new-btn:hover,
 .wf-primary-btn:hover {
   background: var(--accent-2);
+  transform: scale(1.08);
 }
 
 .wf-icon-btn:hover,
@@ -1771,8 +1766,7 @@
 
 @media (max-width: 780px) {
   #wf-sidebar {
-    width: 200px;
-    min-width: 200px;
+    width: var(--sidebar-w-tablet);
   }
 
   #wf-timeline {

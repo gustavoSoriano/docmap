@@ -18,9 +18,8 @@
   flex-direction: row;
 }
 
-/* ── Sidebar ── */
+/* ── Sidebar (largura no layout.css — padrão sidebar) ── */
 #fav-sidebar {
-  width: 210px;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
   background: var(--surface);
@@ -1120,7 +1119,7 @@ mark.fav-hl {
 /* ════════ Responsivo ════════ */
 @media (max-width: 900px) {
   #fav-sidebar {
-    width: 170px;
+    width: var(--sidebar-w-tablet);
   }
   #fav-grid {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

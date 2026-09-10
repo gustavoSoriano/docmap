@@ -1,4 +1,5 @@
 import {
+  clearMacroCollection,
   createMacro,
   createMacroCollection,
   deleteMacro,
@@ -135,6 +136,13 @@ export const macrosHandler =
         return updated ? json(updated) : notFound();
       }
       if (req.method === 'DELETE' && collectionId) {
+        const action = parts[2];
+        // DELETE /macros/collections/:id/clear → esvazia, mantém a collection
+        if (action === 'clear') {
+          const cleared = await clearMacroCollection(kv, collectionId);
+          return json({ ok: true, cleared });
+        }
+        if (action) return json({ error: 'method_not_allowed' }, 405);
         const result = await deleteMacroCollection(kv, collectionId);
         return result.deleted ? json({ ok: true, ...result }) : notFound();
       }

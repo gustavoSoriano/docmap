@@ -245,6 +245,11 @@
         <main id="mode-macros" class="mode">
           <section id="macros-col">
             <div id="macros-col-head">
+              <div id="macros-col-title">Macros</div>
+              <button id="macros-new-btn" title="Nova macro"
+                onclick="newMacro()" data-icon="plus"></button>
+            </div>
+            <div id="macros-col-subhead">
               <span class="macros-section-label">Collections</span>
               <button class="macros-hd-btn" title="Nova collection"
                 onclick="newMacroCollection()" data-icon="plus"></button>
@@ -252,11 +257,19 @@
             <div id="macros-collections-list"></div>
             <div id="macros-list-head">
               <span id="macros-list-heading">Sem collection</span>
-              <button id="macros-new-btn" class="macros-hd-btn"
-                title="Nova macro" onclick="newMacro()"
-                data-icon="plus"></button>
             </div>
             <div id="macros-list"></div>
+
+            <footer id="macros-col-footer">
+              <div id="macros-count-badge">
+                <span class="macros-count-pulse"></span>
+                <span id="macros-count-text">0 macros</span>
+              </div>
+              <button id="macros-clear-btn" onclick="clearMacrosDatabase()">
+                <span data-icon="trash"></span>
+                <span class="macros-clear-label">Zerar tudo</span>
+              </button>
+            </footer>
           </section>
 
           <section id="macros-editor">
@@ -341,7 +354,28 @@
                 placeholder="Buscar skills…" autocomplete="off"
                 spellcheck="false" />
             </div>
+            <div id="skills-col-subhead">
+              <span class="skills-section-label">Collections</span>
+              <button class="skills-hd-btn"
+                onclick="newSkillCollection()" title="Nova collection"
+                data-icon="plus"></button>
+            </div>
+            <div id="skills-collections-list"></div>
+            <div id="skills-list-head">
+              <span id="skills-list-heading">Sem collection</span>
+            </div>
             <div id="skills-list"></div>
+
+            <footer id="skills-col-footer">
+              <div id="skills-count-badge">
+                <span class="skills-count-pulse"></span>
+                <span id="skills-count-text">0 skills</span>
+              </div>
+              <button id="skills-clear-btn" onclick="clearSkillsDatabase()">
+                <span data-icon="trash"></span>
+                <span class="skills-clear-label">Zerar tudo</span>
+              </button>
+            </footer>
           </section>
 
           <section id="skills-editor">
@@ -379,6 +413,8 @@
                   onclick="saveCurrentSkill()">Salvar</button>
               </div>
               <div id="skill-desc-row">
+                <select id="skill-collection-select"
+                  title="Collection da skill"></select>
                 <input id="skill-desc-input" type="text"
                   placeholder="Descrição curta (aparece na listagem da IA)…" />
               </div>
@@ -395,6 +431,11 @@
         <main id="mode-mocks" class="mode">
           <section id="mocks-col">
             <div id="mocks-col-head">
+              <div id="mocks-col-title">Mocks</div>
+              <button id="mocks-new-btn" onclick="newMock()"
+                title="Novo mock" data-icon="plus"></button>
+            </div>
+            <div id="mocks-col-subhead">
               <span class="mocks-section-label">Collections</span>
               <button class="mocks-hd-btn" onclick="newCollection()"
                 title="Nova collection" data-icon="plus"></button>
@@ -403,8 +444,6 @@
 
             <div id="mocks-list-head">
               <span id="mocks-list-heading">Sem collection</span>
-              <button class="mocks-hd-btn" onclick="newMock()" title="Novo mock"
-                data-icon="plus"></button>
             </div>
             <div id="mocks-list"></div>
 

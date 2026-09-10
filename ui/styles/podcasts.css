@@ -3,13 +3,8 @@
   background: var(--bg);
 }
 
-/* ── List column ── */
+/* ── List column (largura no layout.css — padrão sidebar) ── */
 #pod-col {
-  width: 300px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
   background: var(--surface);
 }
 #pod-col-head {
@@ -561,7 +556,7 @@
 /* ════════ Responsivo ════════ */
 @media (max-width: 900px) {
   #pod-col {
-    width: 220px;
+    width: var(--sidebar-w-tablet);
   }
   #pod-head {
     flex-wrap: wrap;

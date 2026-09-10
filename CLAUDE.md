@@ -64,7 +64,9 @@ Cada arquivo tem **uma única responsabilidade**. Se um arquivo ultrapassar ~100
 ["favorites",      id]                           → Favorite
 ["diagrams",       "_global_", diagramId]        → Diagram
 ["macros",         "_global_", macroId]          → Macro
+["macro_collections", id]                      → MacroCollection
 ["skills",         "_global_", skillId]          → Skill
+["skill_collections", id]                      → SkillCollection
 ["comments",       "_global_", fileId]          → Comment[]
 ["canvas_collections", id]                       → DrawingCollection
 ["canvas_drawings",  collectionId, drawingId]    → DrawingMeta (snapshot vai em `<dataDir>/drawings/<collectionId>/<drawingId>.json`)

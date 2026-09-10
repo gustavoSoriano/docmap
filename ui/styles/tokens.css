@@ -54,6 +54,8 @@
   /* ── Metrics ── */
   /* Breakpoints usados nas @media queries: 600px (mobile), 900px (tablet) */
   --rail-w: 60px;
+  --sidebar-w: 280px;
+  --sidebar-w-tablet: 220px;
   --term-default-h: 35vh;
   --r-xs: 5px;
   --r-sm: 7px;

@@ -75,6 +75,7 @@ const loadMacrosList = async () => {
     else {
       renderMacroCollections();
       renderMacrosList();
+      updateMacrosClearBtn();
     }
   } catch (err) { console.error('Erro ao carregar macros:', err); }
 };
@@ -122,6 +123,9 @@ const renderMacroCollections = () => {
         <button class="macros-col-action-btn" onclick="renameMacroCollection('${collection.id}')" title="Renomear">
           <span data-icon="pencil"></span>
         </button>
+        <button class="macros-col-action-btn warn" onclick="clearMacroCollectionMocks('${collection.id}')" title="Limpar macros (mantém collection)">
+          <span data-icon="minus"></span>
+        </button>
         <button class="macros-col-action-btn danger" onclick="removeMacroCollection('${collection.id}')" title="Remover collection">
           <span data-icon="trash"></span>
         </button>
@@ -135,6 +139,7 @@ const selectMacroCollection = (id) => {
   activeMacroCollectionId = activeMacroCollectionId === id ? null : id;
   renderMacroCollections();
   renderMacrosList();
+  updateMacrosClearBtn();
 };
 
 const newMacroCollection = () => {
@@ -219,7 +224,84 @@ const removeMacroCollection = async (id) => {
   if (activeMacroCollectionId === id) activeMacroCollectionId = null;
   if (currentMacro?.collectionId === id) currentMacro = { ...currentMacro, collectionId: undefined };
   await loadMacrosList();
+  updateMacrosClearBtn();
   if (currentMacro) fillMacroEditor(currentMacro);
+};
+
+// Zera uma collection (deleta as macros, mantém a collection).
+const clearMacroCollectionMocks = async (id) => {
+  const collection = macroCollections.find((item) => item.id === id);
+  if (!collection) return;
+  const count = allMacros.filter((macro) => macro.collectionId === id).length;
+  if (!count) { toast(`"${collection.name}" já está vazia`); return; }
+  const ok = await confirmDialog(
+    `Zerar "${collection.name}"?\n${count} macro(s) serão removidas. A collection será mantida.`,
+    { okLabel: 'Zerar', danger: true },
+  );
+  if (!ok) return;
+  await fetch(`/macros/collections/${id}/clear`, { method: 'DELETE' });
+  if (currentMacro?.collectionId === id) {
+    currentMacro = null;
+    $('macros-editor-form').classList.remove('visible');
+    $('macros-editor-empty').style.display = 'flex';
+    clearOutput();
+  }
+  await loadMacrosList();
+  updateMacrosClearBtn();
+  toast(`"${collection.name}" zerada`);
+};
+
+const updateMacrosCount = () => {
+  const el = $('macros-count-text');
+  if (el) {
+    const n = allMacros.length;
+    el.textContent = `${n} macro${n === 1 ? '' : 's'}`;
+  }
+};
+
+const updateMacrosClearBtn = () => {
+  updateMacrosCount();
+  const lbl = document.querySelector('#macros-clear-btn .macros-clear-label');
+  if (!lbl) return;
+  if (activeMacroCollectionId) {
+    const col = macroCollections.find((c) => c.id === activeMacroCollectionId);
+    lbl.textContent = col ? `Zerar "${col.name}"` : 'Zerar tudo';
+  } else {
+    lbl.textContent = 'Zerar tudo';
+  }
+};
+
+// Botão do rodapé: contextual à collection ativa.
+// Sem collection ativa, apaga macro por macro + collection por collection
+// (não há endpoint de clear-all em macros).
+const clearMacrosDatabase = async () => {
+  if (activeMacroCollectionId) {
+    await clearMacroCollectionMocks(activeMacroCollectionId);
+    return;
+  }
+  const total = allMacros.length;
+  const cols = macroCollections.length;
+  if (!total && !cols) { toast('Banco já está vazio'); return; }
+  const ok = await confirmDialog(
+    `Zerar tudo?\n${cols} collection(s) e ${total} macro(s) serão removidas permanentemente.`,
+    { okLabel: 'Zerar tudo', danger: true },
+  );
+  if (!ok) return;
+  for (const c of macroCollections) {
+    await fetch(`/macros/collections/${c.id}/clear`, { method: 'DELETE' });
+    await fetch(`/macros/collections/${c.id}`, { method: 'DELETE' });
+  }
+  for (const m of allMacros.filter((x) => !x.collectionId)) {
+    await fetch(`/macros/${m.id}`, { method: 'DELETE' });
+  }
+  activeMacroCollectionId = null;
+  currentMacro = null;
+  $('macros-editor-form').classList.remove('visible');
+  $('macros-editor-empty').style.display = 'flex';
+  clearOutput();
+  await loadMacrosList();
+  updateMacrosClearBtn();
+  toast('Banco de macros zerado');
 };
 
 // ── Seed macro padrão ──
@@ -346,6 +428,7 @@ const saveCurrentMacro = async () => {
     allMacros = await listRes.json();
     renderMacroCollections();
     renderMacrosList();
+    updateMacrosClearBtn();
     toast('Macro salva');
   } catch { toast('Erro ao salvar'); }
 };
@@ -363,6 +446,7 @@ const deleteCurrentMacro = async () => {
   allMacros = await listRes.json();
   renderMacroCollections();
   renderMacrosList();
+  updateMacrosClearBtn();
   toast('Macro excluída');
 };
 
