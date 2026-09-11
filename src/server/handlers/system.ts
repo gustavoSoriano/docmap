@@ -95,11 +95,14 @@ async (
   if (req.method === 'POST' && url.pathname === '/system/update') {
     const upd = await kv.get<UpdateStatus>(UPDATE_KEY);
     const assetUrl = upd.value?.assetUrl;
-    if (!assetUrl) {
-      return badRequest('Nenhum binário disponível para atualizar');
+    const checksumUrl = upd.value?.checksumUrl;
+    if (!assetUrl || !checksumUrl) {
+      return badRequest(
+        'Nenhum binário com checksum disponível para atualizar',
+      );
     }
     try {
-      await applyUpdate(assetUrl);
+      await applyUpdate(assetUrl, checksumUrl);
       return json({ ok: true, message: 'Atualizado. Reinicie o app.' });
     } catch (err) {
       return badRequest(err instanceof Error ? err.message : 'update falhou');

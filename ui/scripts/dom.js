@@ -9,6 +9,17 @@ const escHtml = (str) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+const renderMarkdown = (raw) => {
+  if (!window.marked) return `<pre>${escHtml(raw)}</pre>`;
+  const rendered = marked.parse(String(raw ?? ''));
+  if (!window.DOMPurify) return escHtml(rendered);
+  return DOMPurify.sanitize(rendered, {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form', 'input'],
+    FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick', 'onmouseover'],
+  });
+};
+
 const highlightQuery = (text, q) => {
   if (!q) return escHtml(text);
   const idx = text.toLowerCase().indexOf(q.toLowerCase());

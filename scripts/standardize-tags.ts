@@ -10,43 +10,75 @@ const WRITE = 'http://127.0.0.1:3333';
 // de → para (a chave é sempre o slug já normalizado que existe no banco).
 const remap: Record<string, string> = {
   // IA / GenAI
-  ia: 'ai', 'inteligencia-artificial': 'ai', inteligence: 'ai',
-  artificial: 'ai', inteligencia: 'ai', 'ai-experiments-rag': 'ai',
-  llms: 'llm', 'gpt-genai': 'genai', generative: 'genai', gen: 'genai',
+  ia: 'ai',
+  'inteligencia-artificial': 'ai',
+  inteligence: 'ai',
+  artificial: 'ai',
+  inteligencia: 'ai',
+  'ai-experiments-rag': 'ai',
+  llms: 'llm',
+  'gpt-genai': 'genai',
+  generative: 'genai',
+  gen: 'genai',
   gemmini: 'gemini',
   // métricas
-  metricas: 'metrics', metrica: 'metrics', metric: 'metrics',
+  metricas: 'metrics',
+  metrica: 'metrics',
+  metric: 'metrics',
   'datadog-metric-metrica': 'metrics',
   // dashboards
   dashboard: 'dash',
   // audiences
-  audience: 'audiences', audiencia: 'audiences', audiencias: 'audiences',
-  'audiencias-com-variaveis': 'audiences', 'audiencias-enriquecidas': 'audiences',
+  audience: 'audiences',
+  audiencia: 'audiences',
+  audiencias: 'audiences',
+  'audiencias-com-variaveis': 'audiences',
+  'audiencias-enriquecidas': 'audiences',
   // user
-  users: 'user', usuario: 'user',
+  users: 'user',
+  usuario: 'user',
   // campaigns
-  campanhas: 'campaigns', campanha: 'campaigns',
+  campanhas: 'campaigns',
+  campanha: 'campaigns',
   // notification
-  notify: 'notification', notificacao: 'notification', notificacoes: 'notification',
+  notify: 'notification',
+  notificacao: 'notification',
+  notificacoes: 'notification',
   // translation
-  traducao: 'translation', traduzir: 'translation', tradutor: 'translation',
-  translate: 'translation', translete: 'translation',
+  traducao: 'translation',
+  traduzir: 'translation',
+  tradutor: 'translation',
+  translate: 'translation',
+  translete: 'translation',
   // segmentation
-  segmentations: 'segmentation', segmentacao: 'segmentation', segmentacoes: 'segmentation',
+  segmentations: 'segmentation',
+  segmentacao: 'segmentation',
+  segmentacoes: 'segmentation',
   // architecture
-  arquitetura: 'architecture', arch: 'architecture',
+  arquitetura: 'architecture',
+  arch: 'architecture',
   // docs
-  docs: 'doc', documentacao: 'doc',
+  docs: 'doc',
+  documentacao: 'doc',
   // outros PT → EN
-  seguranca: 'security', codigo: 'code', erros: 'error',
+  seguranca: 'security',
+  codigo: 'code',
+  erros: 'error',
   observabilidade: 'observability',
   // test
-  teste: 'test', testado: 'test', testing: 'test',
+  teste: 'test',
+  testado: 'test',
+  testing: 'test',
   // alerts
-  alertas: 'alerts', alarme: 'alerts', alarmes: 'alerts',
+  alertas: 'alerts',
+  alarme: 'alerts',
+  alarmes: 'alerts',
   // typos
-  playwrite: 'playwright', hugginface: 'huggingface', tollkit: 'toolkit',
-  couta: 'cota', coutas: 'cotas',
+  playwrite: 'playwright',
+  hugginface: 'huggingface',
+  tollkit: 'toolkit',
+  couta: 'cota',
+  coutas: 'cotas',
 };
 
 // datas/períodos → removidas (não são tema).
@@ -89,9 +121,16 @@ for (const ep of eps) {
       body: JSON.stringify({ tags: neo }),
     });
     if (r.ok) changed++;
-    else { failed++; console.log(`  ✗ ${ep}/${it.id} → HTTP ${r.status}`); }
+    else {
+      failed++;
+      console.log(`  ✗ ${ep}/${it.id} → HTTP ${r.status}`);
+    }
   }
 }
 
-console.log(`\nescaneadas: ${scanned} · alteradas: ${changed} · falhas: ${failed}`);
-console.log(`tags únicas: ${before.size} → ${after.size} (−${before.size - after.size})`);
+console.log(
+  `\nescaneadas: ${scanned} · alteradas: ${changed} · falhas: ${failed}`,
+);
+console.log(
+  `tags únicas: ${before.size} → ${after.size} (−${before.size - after.size})`,
+);

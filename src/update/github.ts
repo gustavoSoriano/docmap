@@ -6,6 +6,7 @@ export type UpdateStatus = {
   readonly available: boolean;
   readonly url: string | null;
   readonly assetUrl: string | null;
+  readonly checksumUrl: string | null;
   readonly checkedAt: string;
   readonly error?: string;
 };
@@ -34,6 +35,7 @@ export const checkForUpdate = async (): Promise<UpdateStatus> => {
     available: false,
     url: null,
     assetUrl: null,
+    checksumUrl: null,
     checkedAt: new Date().toISOString(),
   };
   try {
@@ -51,13 +53,22 @@ export const checkForUpdate = async (): Promise<UpdateStatus> => {
       assets: Array<{ name: string; browser_download_url: string }>;
     };
     const latest = rel.tag_name;
-    const asset = rel.assets?.find((a) => a.name === assetName());
+    const expectedAsset = assetName();
+    const asset = rel.assets?.find((a) => a.name === expectedAsset);
+    const checksum = rel.assets?.find((a) =>
+      a.name === `${expectedAsset}.sha256` || a.name === 'SHA256SUMS'
+    );
+    const available = isNewer(latest, APP_VERSION) && !!asset && !!checksum;
     return {
       ...base,
       latest,
-      available: isNewer(latest, APP_VERSION),
+      available,
       url: rel.html_url,
       assetUrl: asset?.browser_download_url ?? null,
+      checksumUrl: checksum?.browser_download_url ?? null,
+      ...(!checksum && asset && isNewer(latest, APP_VERSION)
+        ? { error: 'Release sem checksum SHA-256' }
+        : {}),
     };
   } catch (err) {
     return {

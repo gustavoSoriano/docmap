@@ -1039,8 +1039,9 @@ curl -X POST http://127.0.0.1:3333/canvas/clear
 
 ### Rede
 
-- A UI (\`:3333\`) binda em \`0.0.0.0\` por padrao (acessivel na LAN).
-  Feche com \`DOCMAP_HOST=127.0.0.1\` se quiser só local.
+- A UI (\`:3333\`) binda em \`127.0.0.1\` por padrão (somente local).
+- Use \`DOCMAP_HOST=0.0.0.0\` apenas para expor o canvas na LAN; rotas
+  sensíveis continuam bloqueadas fora de loopback.
 - A AI API (\`:3334\`) continua exclusiva em \`127.0.0.1\` (loopback).
 - \`GET /system/network\` lista os IPv4 da maquina (usado pela pagina e settings).
 

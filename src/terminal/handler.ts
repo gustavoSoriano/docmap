@@ -2,6 +2,7 @@
 
 import { resizeShell, spawnShell, writeStdin } from './shell.ts';
 import type { ShellProcess, TerminalClientMessage } from './types.ts';
+import { isLoopbackOrigin } from '../server/security.ts';
 import type { HandlerDeps } from '../server/types.ts';
 
 // ── Constantes ──
@@ -13,47 +14,6 @@ const MAX_WS_MESSAGE = 65_536;
 const MIN_COLS = 2;
 /** Mínimo de linhas aceitas no resize */
 const MIN_ROWS = 1;
-
-// ── Origin validation ──
-
-/** Sub-redes LAN privadas (IPv4) — RFC 1918 */
-const LAN_PATTERNS: readonly RegExp[] = [
-  /^192\.168\./, // 192.168.0.0/16
-  /^10\./, // 10.0.0.0/8
-  /^172\.(1[6-9]|2\d|3[01])\./, // 172.16.0.0/12
-];
-
-const isAllowedOrigin = (origin: string | null): boolean => {
-  // Webview mesma origem (same-origin) ou origens opacas como file://
-  // podem enviar o header Origin como ausente ou como string literal "null"
-  if (!origin || origin === 'null') return true;
-
-  let hostname: string;
-  try {
-    hostname = new URL(origin).hostname;
-  } catch {
-    return false;
-  }
-
-  // Loopback
-  if (
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '::1'
-  ) {
-    return true;
-  }
-
-  // mDNS / Bonjour (.local)
-  if (hostname.endsWith('.local')) return true;
-
-  // LAN (RFC 1918)
-  for (const pattern of LAN_PATTERNS) {
-    if (pattern.test(hostname)) return true;
-  }
-
-  return false;
-};
 
 // ── Helpers de validação ──
 
@@ -74,7 +34,7 @@ const isValidResize = (
 
 const handleWebSocket = (req: Request): Response => {
   const origin = req.headers.get('Origin');
-  if (!isAllowedOrigin(origin)) {
+  if (!isLoopbackOrigin(origin)) {
     return new Response('Forbidden', { status: 403 });
   }
 

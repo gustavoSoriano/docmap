@@ -12,17 +12,21 @@ import { podcastsHandler } from '../podcasts/handler.ts';
 import { workflowsHandler } from '../workflows/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
 import { notFound } from '../server/response.ts';
+import { isLoopbackOrigin } from '../server/security.ts';
 import type { HandlerDeps } from '../server/types.ts';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+const corsHeaders = (origin: string | null): HeadersInit => ({
+  'Access-Control-Allow-Origin': origin && origin !== 'null'
+    ? origin
+    : 'http://127.0.0.1',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
-};
+  'Vary': 'Origin',
+});
 
-const withCors = (res: Response): Response => {
+const withCors = (res: Response, origin: string | null): Response => {
   const headers = new Headers(res.headers);
-  for (const [k, v] of Object.entries(CORS_HEADERS)) headers.set(k, v);
+  for (const [k, v] of Object.entries(corsHeaders(origin))) headers.set(k, v);
   return new Response(res.body, { status: res.status, headers });
 };
 
@@ -41,8 +45,13 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const debug = createDebugApiHandler();
 
   return async (req: Request): Promise<Response> => {
+    const origin = req.headers.get('origin');
+    if (!isLoopbackOrigin(origin)) {
+      return new Response('Forbidden', { status: 403 });
+    }
+
     if (req.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+      return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
     const url = new URL(req.url);
@@ -70,6 +79,6 @@ export const createApiRouter = (deps: HandlerDeps) => {
     ) res = await workflows(req, url);
     else res = notFound();
 
-    return withCors(res);
+    return withCors(res, origin);
   };
 };

@@ -121,7 +121,9 @@ const migrations: Migration[] = [
   // `checklist: []` para leitura uniforme. Idempotente.
   async (kv) => {
     for await (
-      const entry of kv.list<{ checklist?: unknown }>({ prefix: ['tasks', '_global_'] })
+      const entry of kv.list<{ checklist?: unknown }>({
+        prefix: ['tasks', '_global_'],
+      })
     ) {
       const v = entry.value;
       if (!v || Array.isArray(v.checklist)) continue;

@@ -476,9 +476,7 @@ const renderTaskDescPreview = () => {
   const pv = $('task-desc-preview');
   if (!ta || !pv) return;
   const raw = ta.value;
-  pv.innerHTML = window.marked
-    ? marked.parse(raw)
-    : `<pre>${escHtml(raw)}</pre>`;
+  pv.innerHTML = renderMarkdown(raw);
 };
 
 const setTaskDescMode = (mode) => {

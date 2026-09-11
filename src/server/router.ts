@@ -16,6 +16,7 @@ import { createDebugHandler } from '../debug/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
 import { notFound } from './response.ts';
+import { isLoopbackHost, isPublicLanCanvasRequest } from './security.ts';
 import type { HandlerDeps } from './types.ts';
 
 export const createRouter = (deps: HandlerDeps) => {
@@ -37,6 +38,13 @@ export const createRouter = (deps: HandlerDeps) => {
   return (req: Request): Response | Promise<Response> => {
     const url = new URL(req.url);
     const { pathname } = url;
+
+    if (
+      !isLoopbackHost(req.headers.get('host')) &&
+      !isPublicLanCanvasRequest(req.method, pathname)
+    ) {
+      return new Response('Forbidden', { status: 403 });
+    }
 
     if (pathname === '/') return serveIndex();
     if (pathname === '/debug' || pathname.startsWith('/debug/')) {

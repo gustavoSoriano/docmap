@@ -37,10 +37,13 @@ const startWithRetry = async (deps: HandlerDeps): Promise<void> => {
 };
 
 const boot = async (): Promise<void> => {
-  // Assume o lugar de qualquer instância anterior.
-  await freePort(UI_PORT);
-  await freePort(API_PORT);
-  await freePort(MOCK_PORT);
+  // Em desenvolvimento local dá para assumir portas antigas explicitamente.
+  // Em builds públicos, matar processos alheios sem opt-in é surpreendente.
+  if (Deno.env.get('DOCMAP_KILL_PORTS') === 'true') {
+    await freePort(UI_PORT);
+    await freePort(API_PORT);
+    await freePort(MOCK_PORT);
+  }
 
   const kv = await openAppKv();
   await runMigrations(kv);

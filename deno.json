@@ -4,7 +4,7 @@
   "license": "MIT",
   "exports": "./src/main.ts",
   "tasks": {
-    "dev": "deno run --allow-read --allow-write scripts/bundle-ui.ts && deno run --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --allow-sys=networkInterfaces --unstable-kv src/main.ts",
+    "dev": "deno run --allow-read --allow-write scripts/bundle-ui.ts && deno run --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --allow-sys=networkInterfaces --unstable-kv src/dev.ts",
     "bundle-ui": "deno run --allow-read --allow-write scripts/bundle-ui.ts",
     "vendor-quickdraw": "deno run --allow-net --allow-write --allow-env scripts/vendor-quickdraw.ts",
     "gen-skill": "deno run --allow-read --allow-write --allow-env scripts/gen-skill.ts",
@@ -12,7 +12,7 @@
     "release": "deno task bundle-ui && deno compile --allow-read --allow-write --allow-net --allow-env --allow-run --allow-ffi --allow-sys=networkInterfaces --unstable-kv --include src/worker.ts --include src/server/handlers/ui-bundle.gen.ts --output ../docmap-release/docmap-macos-aarch64 src/main.ts && cp install.sh ../docmap-release/install.sh && cp -R resources ../docmap-release/resources && echo '\\n✓ Release gerado em ../docmap-release/'",
     "lint": "deno lint src/",
     "fmt": "deno fmt src/ ui/",
-    "check": "deno check src/main.ts",
+    "check": "deno check src/main.ts src/dev.ts",
     "test": "deno test --allow-read --allow-write --allow-env --unstable-kv"
   },
   "imports": {
@@ -33,6 +33,6 @@
   "fmt": {
     "indentWidth": 2,
     "singleQuote": true,
-    "exclude": ["ui/scripts/"]
+    "exclude": ["ui/scripts/", "ui/vendor/"]
   }
 }

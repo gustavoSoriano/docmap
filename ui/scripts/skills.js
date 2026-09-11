@@ -421,7 +421,7 @@ const setSkillPreview = (on) => {
   const pv  = $('skill-preview');
   const btn = $('btn-skill-preview');
   if (on) {
-    pv.innerHTML = window.marked ? marked.parse(ta.value) : `<pre>${escHtml(ta.value)}</pre>`;
+    pv.innerHTML = renderMarkdown(ta.value);
     ta.style.display = 'none';
     pv.classList.add('visible');
     btn.innerHTML = `${ICON('pencil')} Editar`;

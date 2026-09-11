@@ -28,7 +28,9 @@ export const normalizeChecklist = (
     .filter((item) => item && typeof item.text === 'string' && item.text.trim())
     .slice(0, 100)
     .map((item) => ({
-      id: typeof item.id === 'string' && item.id ? item.id : crypto.randomUUID(),
+      id: typeof item.id === 'string' && item.id
+        ? item.id
+        : crypto.randomUUID(),
       text: item.text.trim().slice(0, 500),
       done: item.done === true,
     }));
