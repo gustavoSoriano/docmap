@@ -25,6 +25,7 @@ export const buildKnowledgeGraph = (
     id: entityId(e),
     label: e.label.trim() || '(sem título)',
     kind: e.kind,
+    tags: e.tags,
   }));
   const links: GraphLink[] = [];
   const ids = new Set(nodes.map((n) => n.id));
@@ -44,7 +45,7 @@ export const buildKnowledgeGraph = (
   for (const [tag, group] of byTag) {
     if (group.length < TAG_HUB_MIN) continue;
     const tid = `tag:${tag}`;
-    nodes.push({ id: tid, label: `#${tag}`, kind: 'tag' });
+    nodes.push({ id: tid, label: `#${tag}`, kind: 'tag', tags: [tag] });
     for (const eid of group) {
       links.push({ source: eid, target: tid, kind: 'tagged' });
     }

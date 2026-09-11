@@ -957,6 +957,14 @@
             <button class="kg-tool-btn" onclick="fitKg()">⤢ Ajustar</button>
             <button class="kg-tool-btn"
               onclick="clearKgSelection()">Limpar seleção</button>
+            <div id="kg-tag-search-wrap" title="Buscar por tag">
+              <span data-icon="search"></span>
+              <input id="kg-tag-search" type="text" list="kg-tag-options"
+                placeholder="Buscar tag" autocomplete="off" />
+              <button id="kg-tag-search-clear" type="button"
+                title="Limpar busca" data-icon="x"></button>
+              <datalist id="kg-tag-options"></datalist>
+            </div>
             <div id="kg-legend"></div>
           </div>
           <div id="kg-canvas">

@@ -24,6 +24,7 @@ export type GraphNode = {
   readonly id: string; // "<tipo>:<uuid>" (entidade) | "tag:<slug>" (hub)
   readonly label: string;
   readonly kind: NodeKind;
+  readonly tags?: readonly string[];
 };
 
 export type LinkKind = 'tagged' | 'reference';

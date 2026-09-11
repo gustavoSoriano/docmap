@@ -9,6 +9,7 @@ let kgLinkSel = null;
 let kgNodeSel = null;
 let kgLinks = [];
 let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
+let kgTagQuery = '';
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
 const KG_KINDS = ['note', 'task', 'drawing', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'tag'];
@@ -22,6 +23,27 @@ const KG_COLOR = {};
 const kgCss = (name) => {
   const host = $('mode-graph');
   return (host && getComputedStyle(host).getPropertyValue(name).trim()) || '#888';
+};
+
+const normalizeKgTagQuery = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/^#+/, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const kgNodeTags = (node) => Array.isArray(node.tags) ? node.tags.map(String) : [];
+
+const kgTagFromNode = (node) =>
+  node.kind === 'tag' ? node.id.slice('tag:'.length) : '';
+
+const kgMatchesTagQuery = (node, term) => {
+  if (!term) return true;
+  if (node.kind === 'tag') return kgTagFromNode(node).includes(term);
+  return kgNodeTags(node).some((tag) => tag.toLowerCase().includes(term));
 };
 
 // Duplo-clique numa entidade → abre no modo dela.
@@ -55,6 +77,7 @@ const loadGraph = async () => {
   try {
     const res = await fetch('/graph');
     kgRaw = await res.json();
+    updateKgTagOptions();
     drawKgGraph();
   } catch (err) {
     console.error('Erro ao carregar grafo:', err);
@@ -65,7 +88,41 @@ const loadGraph = async () => {
 // Aplica o filtro por tipo e (re)desenha. Não refaz o fetch.
 const drawKgGraph = () => {
   if (!kgRaw) return;
-  const nodes = kgRaw.nodes.filter((n) => !kgHidden.has(n.kind));
+  const visibleNodes = kgRaw.nodes.filter((n) => !kgHidden.has(n.kind));
+  const visibleById = new Map(visibleNodes.map((n) => [n.id, n]));
+  const term = normalizeKgTagQuery(kgTagQuery);
+
+  let nodes = visibleNodes;
+  if (term) {
+    const keepIds = new Set();
+    const matchingTagIds = new Set();
+
+    for (const node of visibleNodes) {
+      if (!kgMatchesTagQuery(node, term)) continue;
+      keepIds.add(node.id);
+      if (node.kind === 'tag') {
+        matchingTagIds.add(node.id);
+      } else {
+        for (const tag of kgNodeTags(node)) {
+          if (!tag.toLowerCase().includes(term)) continue;
+          const tagId = `tag:${tag}`;
+          if (visibleById.has(tagId)) keepIds.add(tagId);
+        }
+      }
+    }
+
+    for (const link of kgRaw.links) {
+      if (link.kind !== 'tagged') continue;
+      const source = link.source.id || link.source;
+      const target = link.target.id || link.target;
+      if (!matchingTagIds.has(source) && !matchingTagIds.has(target)) continue;
+      if (visibleById.has(source)) keepIds.add(source);
+      if (visibleById.has(target)) keepIds.add(target);
+    }
+
+    nodes = visibleNodes.filter((n) => keepIds.has(n.id));
+  }
+
   const keep = new Set(nodes.map((n) => n.id));
   const links = kgRaw.links.filter((l) =>
     keep.has(l.source.id || l.source) && keep.has(l.target.id || l.target));
@@ -87,6 +144,19 @@ const buildKgLegend = () => {
   ).join('');
 };
 
+const updateKgTagOptions = () => {
+  const el = $('kg-tag-options');
+  if (!el || !kgRaw) return;
+  const tags = new Set();
+  for (const node of kgRaw.nodes) {
+    if (node.kind === 'tag') tags.add(kgTagFromNode(node));
+    for (const tag of kgNodeTags(node)) tags.add(tag);
+  }
+  el.innerHTML = [...tags].sort((a, b) => a.localeCompare(b))
+    .map((tag) => `<option value="${escHtml(tag)}"></option>`)
+    .join('');
+};
+
 const renderKnowledgeGraph = (data) => {
   KG_KINDS.forEach((k) => { KG_COLOR[k] = kgCss('--kg-' + k); });
   buildKgLegend();
@@ -106,6 +176,12 @@ const renderKnowledgeGraph = (data) => {
   const empty = $('kg-empty');
   if (!data.nodes.length) {
     if (empty) empty.dataset.show = '1';
+    const hint = empty?.querySelector('.kg-empty-hint');
+    if (hint) {
+      hint.textContent = kgTagQuery.trim()
+        ? 'Nenhuma entidade encontrada com essa tag.'
+        : 'Nenhuma entidade ainda. Crie notas, tasks, desenhos... e adicione tags; elas viram os nós que conectam tudo por tema.';
+    }
     return;
   }
   if (empty) empty.dataset.show = '0';
@@ -203,6 +279,12 @@ const filterGraph = (q) => {
       !(match.has(l.source.id || l.source) && match.has(l.target.id || l.target)));
 };
 
+const setKgTagQuery = (value) => {
+  kgTagQuery = value || '';
+  $('kg-tag-search-clear')?.classList.toggle('visible', !!kgTagQuery.trim());
+  drawKgGraph();
+};
+
 const fitKg = () => {
   if (!kgG || !kgZoom) return;
   const host = $('kg-canvas');
@@ -233,3 +315,14 @@ const moveKgTip = (e) => {
   el.style.top = (e.clientY - 8) + 'px';
 };
 const hideKgTip = () => { $('tooltip').style.opacity = '0'; };
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = $('kg-tag-search');
+  const clear = $('kg-tag-search-clear');
+  input?.addEventListener('input', (e) => setKgTagQuery(e.target.value));
+  clear?.addEventListener('click', () => {
+    if (input) input.value = '';
+    setKgTagQuery('');
+    input?.focus();
+  });
+});
