@@ -12,11 +12,11 @@ let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
 let kgTagQuery = '';
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'drawing', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'tag'];
+const KG_KINDS = ['note', 'task', 'drawing', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'agentchat', 'tag'];
 const KG_LABELS = {
   note: 'Notas', task: 'Tasks', drawing: 'Desenhos', macro: 'Macros',
   podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
-  workflow: 'Workflows', tag: 'Tags',
+  workflow: 'Workflows', agentchat: 'Chats', tag: 'Tags',
 };
 const KG_COLOR = {};
 
@@ -56,6 +56,7 @@ const OPEN_BY_KIND = {
   task: (id) => { setMode('tasks'); openTaskModal(id); },
   mock: (id) => { setMode('mocks'); if (typeof openMockEditor === 'function') openMockEditor(id); },
   workflow: (id) => { setMode('workflows'); if (typeof openWorkflow === 'function') openWorkflow(id); },
+  agentchat: (id) => { setMode('agentchats'); if (typeof openAgentChat === 'function') openAgentChat(id); },
   // Favorito é um link salvo → abre a URL no browser (registra acesso).
   favorite: async (id) => {
     try {

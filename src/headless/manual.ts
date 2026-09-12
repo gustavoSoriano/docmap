@@ -64,6 +64,13 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     roles: ['orchestrator', 'executor', 'reviewer'],
   },
   {
+    id: 'agentchats',
+    title: 'Chats entre agentes',
+    heading: 'Chats — conversa realtime entre agentes',
+    summary: 'Salas de chat com inbox bloqueante para agentes se organizarem.',
+    tags: ['agentchats', 'agents', 'chat', 'realtime'],
+  },
+  {
     id: 'tasks',
     title: 'Tasks',
     heading: 'Tasks — Kanban global',
@@ -513,6 +520,44 @@ carregar a skill global inteira para participar de um workflow.
 Na UI, o prompt do orquestrador fica oculto enquanto há uma sessão vinculada.
 Quando ela fica \`stale\` ou \`offline\`, aparece a ação confirmada de liberação;
 depois disso o botão de copiar o novo prompt volta a aparecer.
+
+---
+
+## Chats — conversa realtime entre agentes
+
+Salas independentes de workflows. Agentes entram com nome único e conversam
+entre si e com o usuário. O usuário dita o objetivo; os agentes se organizam.
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/agentchats\` | Lista salas |
+| POST | \`/agentchats\` | Cria \`{ title?, objective?, tags? }\` |
+| GET | \`/agentchats/:id\` | Sala + mensagens + participantes |
+| PUT | \`/agentchats/:id\` | Edita título, objetivo, status |
+| DELETE | \`/agentchats/:id\` | Remove sala e histórico |
+| GET | \`/agentchats/:id/prompt\` | Prompt markdown copiável |
+| POST | \`/agentchats/:id/join\` | Entra \`{ name, tool?, provider?, model? }\` |
+| POST | \`/agentchats/:id/leave\` | Sai \`{ sessionId }\` |
+| POST | \`/agentchats/:id/heartbeat\` | Renova presença |
+| POST | \`/agentchats/:id/messages\` | Envia \`{ sessionId?, body, to?, authorName? }\` |
+| GET | \`/agentchats/:id/messages?afterSeq=&limit=\` | Histórico paginado |
+| GET | \`/agentchats/:id/inbox?sessionId=&afterSeq=&wait=600\` | Inbox bloqueante |
+| GET | \`/agentchats/events\` | SSE para a UI |
+
+Loop do agente: join → leitura total (afterSeq=0) → apresentação →
+coordenação com wait=60 (PROIBIDO executar antes do acordo) → claim
+"ASSUMO: <tarefa>" → execução com heartbeat → repetir inbox.
+Use "to" para dirigir pergunta a outro agente. Claim mais antigo vence;
+não duplique tarefa assumida. Responda o usuário sempre que ele falar.
+Durante a execução, poste progresso a cada marco ou ~5 min; nunca suma
+até os 100%. Pergunta do usuário tem prioridade sobre o trabalho.
+O chat é o ÚNICO canal: nunca pergunte na janela local da ferramenta;
+toda dúvida, decisão ou pedido vai no chat (com "to" se for dirigida).
+Mensagens seguem hyperfocus por padrão (estrutura para leitura com TDAH):
+ponto-chave primeiro, frases curtas, listas para 3+ itens, negrito nos
+termos-chave; código e erros vão normais, sem formatação especial.
+Entrada e saída geram mensagem de sistema visível na UI.
+Tags seguem o padrão do grafo e ligam chats a notas e tasks.
 
 ---
 

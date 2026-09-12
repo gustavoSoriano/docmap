@@ -9311,6 +9311,7 @@ mark.fav-hl {
   --kg-skill: #22d3ee;
   --kg-mock: #a8a29e;
   --kg-workflow: #ef4444;
+  --kg-agentchat: #a3e635;
   --kg-tag: var(--text-3);
 }
 
@@ -9464,6 +9465,9 @@ mark.fav-hl {
 .kg-leg-workflow i {
   background: var(--kg-workflow);
 }
+.kg-leg-agentchat i {
+  background: var(--kg-agentchat);
+}
 .kg-leg-tag i {
   background: var(--kg-tag);
 }
@@ -9604,6 +9608,603 @@ svg#kg-svg:active {
     font-size: 12px;
     max-width: 260px;
   }
+}
+
+</style>
+    <style>
+/* ==== Agent chats — salas realtime entre agentes ==== */
+
+#mode-agentchats {
+  display: none;
+  flex-direction: row;
+  height: 100%;
+  min-height: 0;
+}
+
+#mode-agentchats.active {
+  display: flex;
+}
+
+#ac-sidebar {
+  width: var(--sidebar-w);
+  min-width: 240px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#ac-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+#ac-sidebar-title {
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+
+#ac-sidebar-count {
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+#ac-new-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--surface-3);
+  color: var(--text-2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#ac-new-btn:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+#ac-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-3);
+}
+
+#ac-search {
+  flex: 1;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  outline: none;
+  font-size: 0.8rem;
+}
+
+#ac-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ac-card {
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.ac-card.active {
+  border-color: var(--accent-line);
+  background: var(--surface-3);
+}
+
+.ac-card-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.ac-card-meta {
+  font-size: 0.72rem;
+  color: var(--text-2);
+}
+
+#ac-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+#ac-sidebar-hint {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-3);
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+#ac-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-2);
+  text-align: center;
+  padding: 24px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+#ac-empty-title {
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+#ac-empty-desc {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+#ac-empty-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+  text-align: left;
+}
+
+#ac-empty-steps b {
+  color: var(--accent);
+}
+
+.ac-primary-btn {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+#ac-active {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#ac-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+#ac-toolbar-title {
+  font-weight: 650;
+}
+
+#ac-toolbar-objective {
+  font-size: 0.78rem;
+  color: var(--text-2);
+  margin-top: 4px;
+  max-width: 640px;
+}
+
+#ac-toolbar-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+#ac-toolbar-tags .note-tag {
+  font-size: 0.7rem;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: var(--text-2);
+}
+
+.ac-card-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.ac-card-tags .note-tag {
+  font-size: 0.68rem;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  color: var(--text-2);
+}
+
+#ac-toolbar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ac-tool-btn {
+  background: var(--surface-3);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ac-tool-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+}
+
+.ac-tool-btn.accent {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: transparent;
+  font-weight: 650;
+}
+
+.ac-tool-btn.danger {
+  color: var(--danger);
+}
+
+#ac-participants {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+.ac-presence {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ac-presence.online {
+  border-color: var(--accent-line);
+  color: var(--text);
+}
+
+.ac-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-4);
+}
+
+.ac-presence.online .ac-dot {
+  background: var(--accent);
+}
+
+#ac-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ac-msg {
+  max-width: 720px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.ac-msg.mine {
+  align-self: flex-end;
+  border-color: var(--accent-line);
+}
+
+.ac-msg:not(.mine):not(.system) {
+  border-left: 3px solid var(--ac-color, var(--border-hi));
+}
+
+.ac-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--ac-color, var(--surface-4));
+  color: #0b0c0e;
+  margin-top: 2px;
+}
+
+.ac-avatar svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.ac-msg-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ac-msg-foot {
+  margin-top: 6px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ac-reply-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: 0.7rem;
+  padding: 3px 9px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.ac-msg:hover .ac-reply-btn,
+.ac-reply-btn:focus-visible {
+  opacity: 1;
+}
+
+.ac-reply-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+}
+
+@media (hover: none) {
+  .ac-reply-btn {
+    opacity: 1;
+  }
+}
+
+.ac-msg.system {
+  align-self: center;
+  display: block;
+  background: transparent;
+  border-style: dashed;
+  color: var(--text-2);
+  font-size: 0.78rem;
+}
+
+.ac-msg-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  color: var(--text-2);
+  margin-bottom: 4px;
+}
+
+.ac-msg-author {
+  font-weight: 650;
+  color: var(--ac-color, var(--text));
+}
+
+.ac-msg-kind {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  color: var(--text-2);
+}
+
+.ac-msg-kind.ac-kind-agent {
+  border-color: var(--ac-color, var(--border-hi));
+  color: var(--ac-color, var(--text-2));
+}
+
+.ac-msg-time {
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--text-3);
+}
+
+.ac-msg-to {
+  color: var(--type-question);
+}
+
+.ac-msg-body {
+  font-size: 0.86rem;
+  line-height: 1.55;
+  word-break: break-word;
+  color: var(--text);
+}
+.ac-msg-body > :first-child { margin-top: 0; }
+.ac-msg-body > :last-child { margin-bottom: 0; }
+.ac-msg-body h1,
+.ac-msg-body h2,
+.ac-msg-body h3 {
+  font-weight: 700;
+  margin: 12px 0 6px;
+  line-height: 1.25;
+}
+.ac-msg-body h1 { font-size: 1.1rem; }
+.ac-msg-body h2 { font-size: 0.95rem; }
+.ac-msg-body h3 { font-size: 0.88rem; }
+.ac-msg-body p { margin: 8px 0; }
+.ac-msg-body code {
+  font-family: var(--font-mono);
+  background: var(--surface-3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+.ac-msg-body pre {
+  background: var(--surface-2);
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  overflow-x: auto;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  white-space: pre;
+}
+.ac-msg-body pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+.ac-msg-body blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+  color: var(--text-2);
+  margin: 10px 0;
+}
+.ac-msg-body ul,
+.ac-msg-body ol {
+  padding-left: 22px;
+  margin: 8px 0;
+}
+.ac-msg-body li { margin: 3px 0; }
+.ac-msg-body li::marker { color: var(--ac-color, var(--accent)); }
+.ac-msg-body a { color: var(--accent); }
+.ac-msg-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
+.ac-msg-body input[type="checkbox"] {
+  accent-color: var(--accent);
+  margin-right: 4px;
+}
+
+#ac-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+#ac-composer-row {
+  display: flex;
+  gap: 8px;
+}
+
+#ac-reply-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-sm);
+  padding: 6px 8px 6px 12px;
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+#ac-reply-chip[hidden] {
+  display: none;
+}
+
+#ac-reply-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ac-reply-cancel {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ac-reply-cancel:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+#ac-input {
+  flex: 1;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  outline: none;
+  font-size: 0.85rem;
+  font-family: var(--font-ui);
+}
+
+#ac-input:focus {
+  border-color: var(--accent-line);
 }
 
 </style>
@@ -9860,6 +10461,10 @@ svg#kg-svg:active {
         <button class="rail-btn" id="rail-workflows"
           onclick="setMode('workflows')" title="Workflows de agentes">
     <span class="rail-ico" data-icon="workflow"></span><span class="rail-lbl">Flows</span>
+  </button>
+        <button class="rail-btn" id="rail-agentchats"
+          onclick="setMode('agentchats')" title="Chats entre agentes">
+    <span class="rail-ico" data-icon="message-square"></span><span class="rail-lbl">Chats</span>
   </button>
         <button class="rail-btn" id="rail-favorites"
           onclick="setMode('favorites')" title="Favoritos">
@@ -10404,6 +11009,124 @@ svg#kg-svg:active {
             </div>
           </div>
         </main>
+
+        <!-- ═══ MODE: AGENT CHATS ═══ -->
+        <main id="mode-agentchats" class="mode">
+          <aside id="ac-sidebar">
+            <div id="ac-sidebar-head">
+              <div>
+                <div id="ac-sidebar-title">Chats de agentes</div>
+                <div id="ac-sidebar-count">0 salas</div>
+              </div>
+              <button id="ac-new-btn" onclick="openAgentChatModal()"
+                title="Novo chat" data-icon="plus"></button>
+            </div>
+            <div id="ac-sidebar-hint">Salas onde IAs conversam entre si para cumprir seu objetivo.</div>
+            <div id="ac-search-wrap">
+              <span data-icon="search"></span>
+              <input id="ac-search" type="text" placeholder="Buscar chats"
+                autocomplete="off" spellcheck="false" oninput="renderAgentChatsList()">
+            </div>
+            <div id="ac-list"></div>
+          </aside>
+
+          <section id="ac-workspace">
+            <div id="ac-empty">
+              <div id="ac-empty-title">Chat de agentes: você dita o objetivo, as IAs se organizam</div>
+              <div id="ac-empty-desc">Cada sala é um grupo de trabalho com inteligências artificiais
+                (Claude, Codex, opencode e outras). Você escreve o que precisa,
+                copia o prompt e cola em quantos agentes quiser. Eles entram na sala,
+                combinam entre si quem faz o quê e executam — tudo visível aqui no chat,
+                em tempo real. Você pode intervir a qualquer momento.</div>
+              <div id="ac-empty-steps">
+                <span><b>1.</b> Crie a sala com um objetivo claro</span>
+                <span><b>2.</b> Copie o prompt e cole nos agentes</span>
+                <span><b>3.</b> Acompanhe o acordo e o progresso no chat</span>
+              </div>
+              <button class="ac-primary-btn" onclick="openAgentChatModal()">
+              <span data-icon="plus"></span> Novo chat
+            </button>
+            </div>
+
+            <div id="ac-active" style="display:none">
+              <header id="ac-toolbar">
+                <div>
+                  <div id="ac-toolbar-title"></div>
+                  <div id="ac-toolbar-objective"></div>
+                  <div id="ac-toolbar-tags"></div>
+                </div>
+                <div id="ac-toolbar-actions">
+                  <button class="ac-tool-btn accent" onclick="copyAgentChatPrompt()"
+                    title="Copiar prompt para os agentes entrarem">
+                    <span data-icon="copy"></span>
+                    <span>Copiar prompt</span>
+                  </button>
+                  <button class="ac-tool-btn" onclick="openAgentChatModal(currentAgentChatId)"
+                    title="Editar título, objetivo e tags" data-icon="pencil"></button>
+                  <button class="ac-tool-btn" onclick="refreshCurrentAgentChat()"
+                    title="Recarregar" data-icon="refresh-cw"></button>
+                  <button class="ac-tool-btn danger" onclick="deleteCurrentAgentChat()"
+                    title="Excluir chat" data-icon="trash"></button>
+                </div>
+              </header>
+
+              <div id="ac-participants"></div>
+              <div id="ac-messages"></div>
+
+              <div id="ac-composer">
+                <div id="ac-reply-chip" hidden>
+                  <span id="ac-reply-label"></span>
+                  <button class="ac-reply-cancel" onclick="cancelAcReply()"
+                    title="Cancelar resposta" data-icon="x"></button>
+                </div>
+                <div id="ac-composer-row">
+                  <input id="ac-input" type="text"
+                    placeholder="Fale como usuário… use @nome para dirigir a um agente"
+                    autocomplete="off">
+                  <button class="ac-primary-btn" onclick="sendAgentChatMessage()">Enviar</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- Agent chat modal: criar/editar em formulário único -->
+        <div class="wf-modal-overlay" id="ac-modal-overlay"
+          onclick="closeAgentChatModal(event)">
+          <form class="wf-modal" id="ac-modal-form"
+            onsubmit="saveAgentChatFromModal(event)">
+            <div class="wf-modal-head">
+              <span id="ac-modal-title-label">Novo chat</span>
+              <button type="button" onclick="closeAgentChatModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="wf-modal-body">
+              <input id="ac-modal-edit-id" type="hidden" value="">
+              <label>
+                <span>Título</span>
+                <input id="ac-modal-title" required maxlength="120"
+                  placeholder="Ex: Refatoração API">
+              </label>
+              <label>
+                <span>Objetivo para os agentes</span>
+                <textarea id="ac-modal-objective" rows="4"
+                  placeholder="Ex: Dividam entre si e entreguem o plano"></textarea>
+              </label>
+              <label>
+                <span>Tags</span>
+                <input id="ac-modal-tags" placeholder="api, backend, produto">
+              </label>
+            </div>
+            <div class="wf-modal-actions">
+              <button type="button" class="wf-secondary-btn"
+                onclick="closeAgentChatModal()">Cancelar</button>
+              <button type="submit" class="wf-primary-btn">
+                <span data-icon="plus"></span>
+                <span id="ac-modal-submit-label">Criar chat</span>
+              </button>
+            </div>
+          </form>
+        </div>
 
         <!-- ═══ MODE: AGENT WORKFLOWS ═══ -->
         <main id="mode-workflows" class="mode">
@@ -11452,7 +12175,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', workflows: 'Workflows', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', workflows: 'Workflows', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -11464,6 +12187,7 @@ const PANEL_BY_MODE = {
   favorites: 'fav-sidebar',
   podcasts:  'pod-col',
   workflows: 'wf-sidebar',
+  agentchats: 'ac-sidebar',
 };
 
 const toggleSidebar = () => {
@@ -11496,6 +12220,7 @@ const setMode = (mode) => {
   else if (mode === 'skills')    loadSkillsList();
   else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
   else if (mode === 'workflows') loadWorkflows();
+  else if (mode === 'agentchats') loadAgentChatsList();
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
@@ -13932,6 +14657,358 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveKey = (e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'Enter');
     if (saveKey) { e.preventDefault(); saveCurrentTask(); }
   });
+});
+
+</script>
+    <script>
+// ==== Agent chats — UI realtime via SSE (agentes usam inbox bloqueante) ====
+
+let allAgentChats = [];
+let currentAgentChatId = null;
+let currentAgentChatDetail = null;
+let agentChatEventsOn = false;
+let agentChatRefreshTimer = null;
+let acReplyTo = null; // { name, snippet }
+let acMsgById = {};
+
+const loadAgentChatsList = async () => {
+  try {
+    const res = await fetch('/agentchats');
+    allAgentChats = await res.json();
+    renderAgentChatsList();
+    ensureAgentChatEvents();
+  } catch (err) {
+    console.error('Erro ao carregar chats:', err);
+  }
+};
+
+const renderAgentChatsList = () => {
+  const q = ($('ac-search')?.value || '').toLowerCase();
+  const list = $('ac-list');
+  if (!list) return;
+  const filtered = allAgentChats.filter((c) =>
+    !q || (c.title || '').toLowerCase().includes(q) ||
+    (c.objective || '').toLowerCase().includes(q) ||
+    (c.tags || []).join(' ').toLowerCase().includes(q)
+  );
+  $('ac-sidebar-count').textContent = allAgentChats.length + ' salas';
+  list.innerHTML = filtered.map((c) =>
+    \`<button class="ac-card \${c.id === currentAgentChatId ? 'active' : ''}" onclick="openAgentChat('\${c.id}')">\` +
+    \`<div class="ac-card-title">\${escHtml(c.title || 'Sem título')}</div>\` +
+    \`<div class="ac-card-meta">\${escHtml((c.objective || '').slice(0, 80))}</div>\` +
+    ((c.tags || []).length ? \`<div class="ac-card-tags">\${c.tags.map((t) => \`<span class="note-tag">#\${escHtml(t)}</span>\`).join('')}</div>\` : '') +
+    \`</button>\`
+  ).join('') || '<div class="ac-card-meta">Nenhuma sala. Crie a primeira.</div>';
+};
+
+const openAgentChatModal = (id) => {
+  // Sem id => sempre CRIAR nova sala (nunca herda a aberta).
+  // Com id => editar a sala indicada.
+  const targetId = id ?? null;
+  const chat = targetId
+    ? (currentAgentChatDetail?.chat?.id === targetId
+      ? currentAgentChatDetail.chat
+      : allAgentChats.find((c) => c.id === targetId))
+    : null;
+  $('ac-modal-form').reset();
+  $('ac-modal-edit-id').value = chat?.id || '';
+  $('ac-modal-title').value = chat?.title || '';
+  $('ac-modal-objective').value = chat?.objective || '';
+  $('ac-modal-tags').value = (chat?.tags || []).join(', ');
+  $('ac-modal-title-label').textContent = chat ? 'Editar chat' : 'Novo chat';
+  $('ac-modal-submit-label').textContent = chat ? 'Salvar' : 'Criar chat';
+  $('ac-modal-overlay').classList.add('visible');
+  setTimeout(() => $('ac-modal-title').focus(), 0);
+};
+
+// Alias antigo (botões legados e console): abre o formulário único.
+const openNewAgentChat = () => openAgentChatModal();
+
+const closeAgentChatModal = (event) => {
+  if (event && event.target !== $('ac-modal-overlay')) return;
+  $('ac-modal-overlay').classList.remove('visible');
+};
+
+const saveAgentChatFromModal = async (event) => {
+  event.preventDefault();
+  const editId = $('ac-modal-edit-id').value.trim();
+  const title = $('ac-modal-title').value.trim();
+  const objective = $('ac-modal-objective').value.trim();
+  const tags = $('ac-modal-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
+  try {
+    const res = editId
+      ? await fetch(\`/agentchats/\${editId}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, objective, tags }),
+      })
+      : await fetch('/agentchats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title || 'Chat sem título', objective, tags }),
+      });
+    if (!res.ok) throw new Error(await res.text());
+    const chat = await res.json();
+    closeAgentChatModal();
+    await loadAgentChatsList();
+    openAgentChat(chat.id);
+    if (editId) toast('Sala atualizada');
+  } catch (err) {
+    toast(err.message || 'Falha ao salvar sala');
+  }
+};
+
+const editCurrentAgentChat = () => openAgentChatModal();
+
+const openAgentChat = async (id) => {
+  currentAgentChatId = id;
+  acReplyTo = null;
+  renderAgentChatsList();
+  await refreshCurrentAgentChat();
+};
+
+const refreshCurrentAgentChat = async () => {
+  if (!currentAgentChatId) return;
+  try {
+    const res = await fetch(\`/agentchats/\${currentAgentChatId}?limit=200\`);
+    if (!res.ok) throw new Error(await res.text());
+    currentAgentChatDetail = await res.json();
+    renderAgentChatDetail();
+  } catch (err) {
+    console.error('Erro ao abrir chat:', err);
+  }
+};
+
+// ── Identidade visual por autor (cor determinística + iniciais) ──
+const acColorFor = (name) => {
+  const s = String(name || '?').toLowerCase();
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
+  return \`hsl(\${h} 65% 55%)\`;
+};
+
+const acInitials = (name) => {
+  const parts = String(name || '?').trim().split(/[\\s_-]+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+// ── Robozinho determinístico por agente (olhos + boca + antena variam) ──
+const acRobotSvg = (name) => {
+  const s = String(name || '?');
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  const eyes = h % 3;
+  const mouth = (h >> 2) % 3;
+  const antenna = (h >> 4) % 3;
+
+  const eyeSvg = eyes === 0
+    ? '<circle cx="12" cy="13.5" r="1.7" fill="#ffffff" stroke="none"/>' +
+      '<circle cx="20" cy="13.5" r="1.7" fill="#ffffff" stroke="none"/>'
+    : eyes === 1
+    ? '<path d="M10.2 14.2 Q12 12 13.8 14.2"/><path d="M18.2 14.2 Q20 12 21.8 14.2"/>'
+    : '<path d="M10.3 13.8 h3.2"/><path d="M18.5 13.8 h3.2"/>';
+
+  const mouthSvg = mouth === 0
+    ? '<path d="M12 17.6 Q16 20.6 20 17.6"/>'
+    : mouth === 1
+    ? '<rect x="12.4" y="16.4" width="7.2" height="3.2" rx="1.6" fill="#ffffff" stroke="none"/>'
+    : '<path d="M13 18.2 h6"/>';
+
+  const antennaSvg = antenna === 0
+    ? '<path d="M16 8 V4.4"/><circle cx="16" cy="3" r="1.5" fill="#ffffff" stroke="none"/>'
+    : antenna === 1
+    ? '<path d="M16 8 V5"/><path d="M14.6 5 L16.4 2.8 L15.4 2.8 L17 0.8"/>'
+    : '';
+
+  return \`<svg viewBox="0 0 32 32" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">\` +
+    antennaSvg +
+    \`<rect x="5.5" y="11" width="2.6" height="6" rx="1.3"/><rect x="23.9" y="11" width="2.6" height="6" rx="1.3"/>\` +
+    \`<rect x="8" y="8" width="16" height="13.5" rx="4.5"/>\` +
+    eyeSvg + mouthSvg + \`</svg>\`;
+};
+
+const acTime = (iso) => {
+  try {
+    return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+};
+
+// ── Responder: preenche @nome, mostra chip e foca o input ──
+const replyToAgentChatById = (msgId) => {
+  const m = acMsgById[msgId];
+  if (!m) return;
+  acReplyTo = { name: m.authorName, snippet: String(m.body || '').slice(0, 120) };
+  const input = $('ac-input');
+  if (input && !input.value.trim()) input.value = \`@\${m.authorName} \`;
+  else if (input && !input.value.includes(\`@\${m.authorName}\`)) {
+    input.value = \`@\${m.authorName} \` + input.value;
+  }
+  renderAcReplyChip();
+  $('ac-input')?.focus();
+};
+
+const renderAcReplyChip = () => {
+  const chip = $('ac-reply-chip');
+  if (!chip) return;
+  if (!acReplyTo) {
+    chip.hidden = true;
+    return;
+  }
+  chip.hidden = false;
+  $('ac-reply-label').textContent =
+    \`Respondendo a \${acReplyTo.name}: \${acReplyTo.snippet}\`;
+  if (window.hydrateIcons) hydrateIcons(chip);
+};
+
+const cancelAcReply = () => {
+  acReplyTo = null;
+  renderAcReplyChip();
+};
+
+const renderAgentChatDetail = () => {
+  const detail = currentAgentChatDetail;
+  const has = !!(detail && detail.chat);
+  $('ac-empty').style.display = has ? 'none' : 'flex';
+  $('ac-active').style.display = has ? 'flex' : 'none';
+  if (!has) return;
+  $('ac-toolbar-title').textContent = detail.chat.title || 'Sem título';
+  $('ac-toolbar-objective').textContent = detail.chat.objective
+    ? 'Objetivo: ' + detail.chat.objective
+    : 'Sem objetivo definido. Edite e diga aos agentes o que fazer.';
+  $('ac-toolbar-tags').innerHTML = (detail.chat.tags || [])
+    .map((t) => \`<span class="note-tag">#\${escHtml(t)}</span>\`).join('');
+
+  const parts = detail.participants || [];
+  $('ac-participants').innerHTML = parts.length
+    ? parts.map((p) =>
+      \`<span class="ac-presence \${p.presence === 'online' ? 'online' : ''}">\` +
+      \`<span class="ac-dot" style="background:\${acColorFor(p.name)}"></span>\` +
+      \`<span class="ac-presence-name">\${escHtml(p.name)}</span>\` +
+      \`<span class="ac-presence-state"> · \${escHtml(p.presence)}</span></span>\`
+    ).join('')
+    : '<span>Nenhum agente conectado. Copie o prompt e chame os agentes.</span>';
+
+  const box = $('ac-messages');
+  const messages = detail.messages || [];
+  acMsgById = {};
+  for (const m of messages) acMsgById[m.id] = m;
+  box.innerHTML = messages.map((m) => {
+    if (m.authorKind === 'system') {
+      return \`<div class="ac-msg system">\${escHtml(m.body)}</div>\`;
+    }
+    const mine = m.authorKind === 'user' ? ' mine' : '';
+    const color = m.authorKind === 'user' ? 'var(--accent)' : acColorFor(m.authorName);
+    const avatar = m.authorKind === 'user'
+      ? escHtml(acInitials(m.authorName))
+      : acRobotSvg(m.authorName);
+    const to = m.to ? \`<span class="ac-msg-to">→ \${escHtml(m.to)}</span>\` : '';
+    const time = m.createdAt ? \`<span class="ac-msg-time">\${escHtml(acTime(m.createdAt))}</span>\` : '';
+    const kind = \`<span class="ac-msg-kind ac-kind-\${escHtml(m.authorKind)}">\${escHtml(m.authorKind)}</span>\`;
+    return \`<div class="ac-msg\${mine}" style="--ac-color:\${color}">\` +
+      \`<div class="ac-avatar" aria-hidden="true" title="\${escHtml(m.authorName)}">\${avatar}</div>\` +
+      \`<div class="ac-msg-main">\` +
+      \`<div class="ac-msg-head"><span class="ac-msg-author">\${escHtml(m.authorName)}</span>\` +
+      \`\${kind}\${to}\${time}</div>\` +
+      \`<div class="ac-msg-body">\${renderMarkdown(m.body)}</div>\` +
+      \`<div class="ac-msg-foot"><button class="ac-reply-btn" onclick="replyToAgentChatById('\${m.id}')" title="Responder \${escHtml(m.authorName)}">Responder</button></div>\` +
+      \`</div></div>\`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+  renderAcReplyChip();
+};
+
+const sendAgentChatMessage = async () => {
+  if (!currentAgentChatId) return;
+  const input = $('ac-input');
+  const body = (input.value || '').trim();
+  if (!body) return;
+  const toMatch = body.match(/^@([\\w-]+)\\s+/);
+  const to = toMatch ? toMatch[1] : (acReplyTo ? acReplyTo.name : undefined);
+  try {
+    const res = await fetch(\`/agentchats/\${currentAgentChatId}/messages\`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body, authorName: 'Você', ...(to ? { to } : {}) }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    input.value = '';
+    acReplyTo = null;
+    renderAcReplyChip();
+    await refreshCurrentAgentChat();
+  } catch (err) {
+    toast(err.message || 'Falha ao enviar');
+  }
+};
+
+const copyAgentChatPrompt = async () => {
+  if (!currentAgentChatId) return;
+  try {
+    const res = await fetch(\`/agentchats/\${currentAgentChatId}/prompt\`);
+    if (!res.ok) throw new Error(await res.text());
+    const text = await res.text();
+    if (!text.includes('Você é um agente do chat Docmap.')) {
+      throw new Error('A API retornou um prompt inesperado');
+    }
+    copyToClipboard(text, 'Prompt do agente copiado');
+  } catch (err) {
+    toast(err.message || 'Falha ao copiar prompt');
+  }
+};
+
+const deleteCurrentAgentChat = async () => {
+  if (!currentAgentChatId) return;
+  const ok = await confirmDialog('Excluir esta sala e todo o histórico?', {
+    okLabel: 'Excluir',
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    const res = await fetch(\`/agentchats/\${currentAgentChatId}\`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(await res.text());
+    currentAgentChatId = null;
+    currentAgentChatDetail = null;
+    $('ac-empty').style.display = 'flex';
+    $('ac-active').style.display = 'none';
+    await loadAgentChatsList();
+    toast('Sala excluída');
+  } catch (err) {
+    toast(err.message || 'Falha ao excluir');
+  }
+};
+
+const scheduleAgentChatRefresh = () => {
+  clearTimeout(agentChatRefreshTimer);
+  agentChatRefreshTimer = setTimeout(async () => {
+    if (currentMode !== 'agentchats') return;
+    await loadAgentChatsList();
+    if (currentAgentChatId) await refreshCurrentAgentChat();
+  }, 180);
+};
+
+const ensureAgentChatEvents = () => {
+  if (agentChatEventsOn) return;
+  try {
+    agentChatEventsOn = true;
+    const src = new EventSource('/agentchats/events');
+    for (const name of ['chat.message', 'chat.join', 'chat.leave', 'chat.updated', 'chat.deleted']) {
+      src.addEventListener(name, scheduleAgentChatRefresh);
+    }
+  } catch {
+    agentChatEventsOn = false;
+  }
+};
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && acReplyTo) {
+    cancelAcReply();
+    return;
+  }
+  if (e.key === 'Enter' && document.activeElement?.id === 'ac-input') {
+    sendAgentChatMessage();
+  }
 });
 
 </script>
@@ -17560,11 +18637,11 @@ let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
 let kgTagQuery = '';
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'drawing', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'tag'];
+const KG_KINDS = ['note', 'task', 'drawing', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'agentchat', 'tag'];
 const KG_LABELS = {
   note: 'Notas', task: 'Tasks', drawing: 'Desenhos', macro: 'Macros',
   podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
-  workflow: 'Workflows', tag: 'Tags',
+  workflow: 'Workflows', agentchat: 'Chats', tag: 'Tags',
 };
 const KG_COLOR = {};
 
@@ -17604,6 +18681,7 @@ const OPEN_BY_KIND = {
   task: (id) => { setMode('tasks'); openTaskModal(id); },
   mock: (id) => { setMode('mocks'); if (typeof openMockEditor === 'function') openMockEditor(id); },
   workflow: (id) => { setMode('workflows'); if (typeof openWorkflow === 'function') openWorkflow(id); },
+  agentchat: (id) => { setMode('agentchats'); if (typeof openAgentChat === 'function') openAgentChat(id); },
   // Favorito é um link salvo → abre a URL no browser (registra acesso).
   favorite: async (id) => {
     try {

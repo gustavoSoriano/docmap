@@ -10,6 +10,7 @@ import { projectsHandler } from '../projects/handler.ts';
 import { mocksHandler } from '../mocks/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
 import { workflowsHandler } from '../workflows/handler.ts';
+import { agentChatsHandler } from '../agentchats/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
 import { notFound } from '../server/response.ts';
 import { isLoopbackOrigin } from '../server/security.ts';
@@ -42,6 +43,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const mocks = mocksHandler(deps.kv);
   const podcasts = podcastsHandler(deps.kv);
   const workflows = workflowsHandler(deps.kv);
+  const agentChats = agentChatsHandler(deps.kv);
   const debug = createDebugApiHandler();
 
   return async (req: Request): Promise<Response> => {
@@ -72,6 +74,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/favorites')) res = await favorites(req, url);
     else if (pathname.startsWith('/mocks')) res = await mocks(req, url);
     else if (pathname.startsWith('/podcasts')) res = await podcasts(req, url);
+    else if (pathname.startsWith('/agentchats')) res = await agentChats(req, url);
     else if (
       pathname.startsWith('/workflows') ||
       pathname.startsWith('/agents') ||

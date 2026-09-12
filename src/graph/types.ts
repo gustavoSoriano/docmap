@@ -16,7 +16,8 @@ export type EntityKind =
   | 'favorite'
   | 'skill'
   | 'mock'
-  | 'workflow';
+  | 'workflow'
+  | 'agentchat';
 
 export type NodeKind = EntityKind | 'tag';
 

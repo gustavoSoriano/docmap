@@ -130,6 +130,23 @@ const migrations: Migration[] = [
       await kv.set(entry.key, { ...v, checklist: [] });
     }
   },
+
+  // v12 — chats entre agentes. Prefixos novos, sem dados para transformar.
+  async (_kv) => {},
+
+  // v13 — chats ganham `tags: []` para aparecer no grafo por tema.
+  // Idempotente: só preenche quem ainda não tem o campo.
+  async (kv) => {
+    for await (
+      const entry of kv.list<{ tags?: unknown }>({
+        prefix: ['agentchats', '_global_'],
+      })
+    ) {
+      const v = entry.value;
+      if (!v || Array.isArray(v.tags)) continue;
+      await kv.set(entry.key, { ...v, tags: [] });
+    }
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

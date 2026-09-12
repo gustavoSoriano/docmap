@@ -41,6 +41,7 @@
     <link rel="stylesheet" href="/styles/favorites.css">
     <link rel="stylesheet" href="/styles/podcasts.css">
     <link rel="stylesheet" href="/styles/graph.css">
+    <link rel="stylesheet" href="/styles/agentchats.css">
     <link rel="stylesheet" href="/styles/terminal.css">
   </head>
   <body>
@@ -85,6 +86,10 @@
         <button class="rail-btn" id="rail-workflows"
           onclick="setMode('workflows')" title="Workflows de agentes">
     <span class="rail-ico" data-icon="workflow"></span><span class="rail-lbl">Flows</span>
+  </button>
+        <button class="rail-btn" id="rail-agentchats"
+          onclick="setMode('agentchats')" title="Chats entre agentes">
+    <span class="rail-ico" data-icon="message-square"></span><span class="rail-lbl">Chats</span>
   </button>
         <button class="rail-btn" id="rail-favorites"
           onclick="setMode('favorites')" title="Favoritos">
@@ -629,6 +634,124 @@
             </div>
           </div>
         </main>
+
+        <!-- ═══ MODE: AGENT CHATS ═══ -->
+        <main id="mode-agentchats" class="mode">
+          <aside id="ac-sidebar">
+            <div id="ac-sidebar-head">
+              <div>
+                <div id="ac-sidebar-title">Chats de agentes</div>
+                <div id="ac-sidebar-count">0 salas</div>
+              </div>
+              <button id="ac-new-btn" onclick="openAgentChatModal()"
+                title="Novo chat" data-icon="plus"></button>
+            </div>
+            <div id="ac-sidebar-hint">Salas onde IAs conversam entre si para cumprir seu objetivo.</div>
+            <div id="ac-search-wrap">
+              <span data-icon="search"></span>
+              <input id="ac-search" type="text" placeholder="Buscar chats"
+                autocomplete="off" spellcheck="false" oninput="renderAgentChatsList()">
+            </div>
+            <div id="ac-list"></div>
+          </aside>
+
+          <section id="ac-workspace">
+            <div id="ac-empty">
+              <div id="ac-empty-title">Chat de agentes: você dita o objetivo, as IAs se organizam</div>
+              <div id="ac-empty-desc">Cada sala é um grupo de trabalho com inteligências artificiais
+                (Claude, Codex, opencode e outras). Você escreve o que precisa,
+                copia o prompt e cola em quantos agentes quiser. Eles entram na sala,
+                combinam entre si quem faz o quê e executam — tudo visível aqui no chat,
+                em tempo real. Você pode intervir a qualquer momento.</div>
+              <div id="ac-empty-steps">
+                <span><b>1.</b> Crie a sala com um objetivo claro</span>
+                <span><b>2.</b> Copie o prompt e cole nos agentes</span>
+                <span><b>3.</b> Acompanhe o acordo e o progresso no chat</span>
+              </div>
+              <button class="ac-primary-btn" onclick="openAgentChatModal()">
+              <span data-icon="plus"></span> Novo chat
+            </button>
+            </div>
+
+            <div id="ac-active" style="display:none">
+              <header id="ac-toolbar">
+                <div>
+                  <div id="ac-toolbar-title"></div>
+                  <div id="ac-toolbar-objective"></div>
+                  <div id="ac-toolbar-tags"></div>
+                </div>
+                <div id="ac-toolbar-actions">
+                  <button class="ac-tool-btn accent" onclick="copyAgentChatPrompt()"
+                    title="Copiar prompt para os agentes entrarem">
+                    <span data-icon="copy"></span>
+                    <span>Copiar prompt</span>
+                  </button>
+                  <button class="ac-tool-btn" onclick="openAgentChatModal(currentAgentChatId)"
+                    title="Editar título, objetivo e tags" data-icon="pencil"></button>
+                  <button class="ac-tool-btn" onclick="refreshCurrentAgentChat()"
+                    title="Recarregar" data-icon="refresh-cw"></button>
+                  <button class="ac-tool-btn danger" onclick="deleteCurrentAgentChat()"
+                    title="Excluir chat" data-icon="trash"></button>
+                </div>
+              </header>
+
+              <div id="ac-participants"></div>
+              <div id="ac-messages"></div>
+
+              <div id="ac-composer">
+                <div id="ac-reply-chip" hidden>
+                  <span id="ac-reply-label"></span>
+                  <button class="ac-reply-cancel" onclick="cancelAcReply()"
+                    title="Cancelar resposta" data-icon="x"></button>
+                </div>
+                <div id="ac-composer-row">
+                  <input id="ac-input" type="text"
+                    placeholder="Fale como usuário… use @nome para dirigir a um agente"
+                    autocomplete="off">
+                  <button class="ac-primary-btn" onclick="sendAgentChatMessage()">Enviar</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- Agent chat modal: criar/editar em formulário único -->
+        <div class="wf-modal-overlay" id="ac-modal-overlay"
+          onclick="closeAgentChatModal(event)">
+          <form class="wf-modal" id="ac-modal-form"
+            onsubmit="saveAgentChatFromModal(event)">
+            <div class="wf-modal-head">
+              <span id="ac-modal-title-label">Novo chat</span>
+              <button type="button" onclick="closeAgentChatModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="wf-modal-body">
+              <input id="ac-modal-edit-id" type="hidden" value="">
+              <label>
+                <span>Título</span>
+                <input id="ac-modal-title" required maxlength="120"
+                  placeholder="Ex: Refatoração API">
+              </label>
+              <label>
+                <span>Objetivo para os agentes</span>
+                <textarea id="ac-modal-objective" rows="4"
+                  placeholder="Ex: Dividam entre si e entreguem o plano"></textarea>
+              </label>
+              <label>
+                <span>Tags</span>
+                <input id="ac-modal-tags" placeholder="api, backend, produto">
+              </label>
+            </div>
+            <div class="wf-modal-actions">
+              <button type="button" class="wf-secondary-btn"
+                onclick="closeAgentChatModal()">Cancelar</button>
+              <button type="submit" class="wf-primary-btn">
+                <span data-icon="plus"></span>
+                <span id="ac-modal-submit-label">Criar chat</span>
+              </button>
+            </div>
+          </form>
+        </div>
 
         <!-- ═══ MODE: AGENT WORKFLOWS ═══ -->
         <main id="mode-workflows" class="mode">
@@ -1438,6 +1561,7 @@
     <script src="/scripts/macros.js"></script>
     <script src="/scripts/skills.js"></script>
     <script src="/scripts/tasks.js"></script>
+    <script src="/scripts/agentchats.js"></script>
     <script src="/scripts/workflows.js"></script>
     <script src="/scripts/mocks.js"></script>
     <script src="/scripts/favorites.js"></script>

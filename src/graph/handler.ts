@@ -11,6 +11,7 @@ import { listFavorites } from '../favorites/store.ts';
 import { listSkills } from '../skills/store.ts';
 import { listMocks } from '../mocks/store.ts';
 import { listWorkflows } from '../workflows/store.ts';
+import { listChats } from '../agentchats/store.ts';
 import type { Workflow } from '../workflows/types.ts';
 import { buildKnowledgeGraph } from './build.ts';
 import { json } from '../server/response.ts';
@@ -28,6 +29,7 @@ export const graphHandler =
       skills,
       mocks,
       workflows,
+      agentchats,
     ] = await Promise.all([
       listNotes(kv),
       listTasks(kv),
@@ -38,6 +40,7 @@ export const graphHandler =
       listSkills(kv),
       listMocks(kv),
       listWorkflows(kv) as Promise<Workflow[]>,
+      listChats(kv),
     ]);
 
     const entities: GraphEntity[] = [
@@ -95,6 +98,12 @@ export const graphHandler =
         kind: 'workflow' as const,
         label: w.title,
         tags: w.tags,
+      })),
+      ...agentchats.map((c) => ({
+        id: c.id,
+        kind: 'agentchat' as const,
+        label: c.title,
+        tags: c.tags,
       })),
     ];
 
