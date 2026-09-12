@@ -53,6 +53,10 @@ Deno.test('macro manual documents collections and composed execution', () => {
     'manual de macros deveria documentar helpers de composição',
   );
   assert(
+    manual.includes('inputLabel') && manual.includes('DOCMAP_INPUT'),
+    'manual de macros deveria documentar parametro unico',
+  );
+  assert(
     manual.includes('macro_not_found'),
     'manual de macros deveria documentar erro de referência ausente',
   );

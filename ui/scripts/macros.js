@@ -351,6 +351,7 @@ const newMacro = () => {
   currentMacro = null;
   $('macro-title-input').value = '';
   $('macro-desc-input').value  = '';
+  $('macro-input-label').value = '';
   $('macro-tags-input').value  = '';
   $('macro-slug-value').textContent = '';
   $('macro-slug-copy-btn').style.display = 'none';
@@ -368,6 +369,7 @@ const newMacro = () => {
 const fillMacroEditor = (m) => {
   $('macro-title-input').value       = m.title;
   $('macro-desc-input').value        = m.description || '';
+  $('macro-input-label').value       = m.inputLabel || '';
   $('macro-tags-input').value        = (m.tags || []).join(', ');
   populateMacroCollectionSelect(m.collectionId);
   macroSet(m.script);
@@ -407,9 +409,10 @@ const copyCurrentMacroSlug = () => {
 const saveCurrentMacro = async () => {
   const title  = $('macro-title-input').value.trim();
   const desc   = $('macro-desc-input').value.trim();
+  const inputLabel = $('macro-input-label').value.trim();
   const script = macroGet().trim();
-  if (!title)  { $('macro-title-input').focus(); return toast('Dê um nome à macro'); }
-  if (!script) { macroFocus();                   return toast('Script vazio'); }
+  if (!title)  { $('macro-title-input').focus(); toast('Dê um nome à macro'); return false; }
+  if (!script) { macroFocus();                   toast('Script vazio'); return false; }
 
   const tags   = $('macro-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
   const collectionId = $('macro-collection-select').value || null;
@@ -419,9 +422,9 @@ const saveCurrentMacro = async () => {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, name: title, description: desc, script, tags, collectionId }),
+      body: JSON.stringify({ title, name: title, description: desc, script, inputLabel: inputLabel || null, tags, collectionId }),
     });
-    if (!res.ok) return toast(await res.text() || 'Erro ao salvar');
+    if (!res.ok) { toast(await res.text() || 'Erro ao salvar'); return false; }
     currentMacro = await res.json();
     fillMacroEditor(currentMacro);
     const listRes = await fetch('/macros');
@@ -430,7 +433,8 @@ const saveCurrentMacro = async () => {
     renderMacrosList();
     updateMacrosClearBtn();
     toast('Macro salva');
-  } catch { toast('Erro ao salvar'); }
+    return true;
+  } catch { toast('Erro ao salvar'); return false; }
 };
 
 const deleteCurrentMacro = async () => {
@@ -455,7 +459,19 @@ const runCurrentMacro = async () => {
   if (!currentMacro) return;
 
   // salva antes de rodar pra garantir que executa a versão atual
-  await saveCurrentMacro();
+  const saved = await saveCurrentMacro();
+  if (!saved) return;
+
+  const inputLabel = currentMacro.inputLabel?.trim();
+  let input;
+  if (inputLabel) {
+    const value = await promptDialog(inputLabel, {
+      okLabel: 'Executar',
+      placeholder: 'Valor em texto',
+    });
+    if (value === null) return;
+    input = value;
+  }
 
   setRunning(true);
   clearOutput();
@@ -463,7 +479,13 @@ const runCurrentMacro = async () => {
   appendOutput(`─────────────────────────────────────\n`, 'info');
 
   try {
-    const res = await fetch(`/macros/${currentMacro.id}/run`, { method: 'POST' });
+    const res = await fetch(`/macros/${currentMacro.id}/run`, inputLabel
+      ? {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input }),
+      }
+      : { method: 'POST' });
 
     if (res.status === 403) {
       const data = await res.json();

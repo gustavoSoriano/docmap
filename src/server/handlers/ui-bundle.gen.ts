@@ -1251,6 +1251,22 @@ body::before {
   color: var(--text);
   margin-bottom: 20px;
 }
+#modal-input {
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 0 10px;
+  outline: none;
+  margin: -8px 0 18px;
+}
+#modal-input:focus {
+  border-color: var(--accent-line);
+}
 #modal-actions {
   display: flex;
   gap: 9px;
@@ -2891,7 +2907,8 @@ body::before {
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-#macro-desc-input {
+#macro-desc-input,
+#macro-input-label {
   flex: 1;
   height: 30px;
   border: 1px solid var(--border);
@@ -2918,10 +2935,12 @@ body::before {
 #macro-collection-select:focus {
   border-color: var(--accent-line);
 }
-#macro-desc-input:focus {
+#macro-desc-input:focus,
+#macro-input-label:focus {
   border-color: var(--accent-line);
 }
-#macro-desc-input::placeholder {
+#macro-desc-input::placeholder,
+#macro-input-label::placeholder {
   color: var(--text-3);
 }
 
@@ -10023,7 +10042,7 @@ svg#kg-svg:active {
 
             <div id="macro-path-hint">
             <span data-icon="info"></span>
-            Use <code>run_macro "slug"</code> no Bash ou <code>await runMacro("slug")</code> no Deno para executar outra macro.
+            Use <code>run_macro "slug" "valor"</code> no Bash ou <code>await runMacro("slug", "valor")</code> no Deno para executar outra macro com parâmetro.
           </div>
 
             <div id="macros-editor-form">
@@ -10058,6 +10077,8 @@ svg#kg-svg:active {
                   title="Collection da macro"></select>
                 <input id="macro-desc-input" type="text"
                   placeholder="Descrição curta…" />
+                <input id="macro-input-label" type="text"
+                  placeholder="Label do parâmetro opcional…" />
                 <input id="macro-tags-input" type="text"
                   placeholder="tags, separadas, por vírgula" />
               </div>
@@ -11333,8 +11354,10 @@ const confirmDialog = (message, opts = {}) =>
     const overlay = $('modal-overlay');
     const ok = $('modal-ok');
     const cancel = $('modal-cancel');
+    $('modal-input')?.remove();
     $('modal-msg').textContent = message;
     ok.textContent = opts.okLabel || 'Confirmar';
+    cancel.textContent = opts.cancelLabel || 'Cancelar';
     ok.classList.toggle('danger', !!opts.danger);
     overlay.classList.add('visible');
 
@@ -11352,6 +11375,44 @@ const confirmDialog = (message, opts = {}) =>
     cancel.onclick = () => finish(false);
     overlay.onclick = (e) => { if (e.target === overlay) finish(false); };
     document.addEventListener('keydown', onKey, true);
+  });
+
+const promptDialog = (message, opts = {}) =>
+  new Promise((resolve) => {
+    const overlay = $('modal-overlay');
+    const ok = $('modal-ok');
+    const cancel = $('modal-cancel');
+    $('modal-input')?.remove();
+    $('modal-msg').textContent = message;
+
+    const input = document.createElement('input');
+    input.id = 'modal-input';
+    input.type = 'text';
+    input.value = opts.value ?? '';
+    input.placeholder = opts.placeholder ?? '';
+    $('modal').insertBefore(input, $('modal-actions'));
+
+    ok.textContent = opts.okLabel || 'Confirmar';
+    cancel.textContent = opts.cancelLabel || 'Cancelar';
+    ok.classList.toggle('danger', false);
+    overlay.classList.add('visible');
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') finish(null);
+      if (e.key === 'Enter') finish(input.value);
+    };
+    const finish = (val) => {
+      overlay.classList.remove('visible');
+      input.remove();
+      ok.onclick = cancel.onclick = overlay.onclick = null;
+      document.removeEventListener('keydown', onKey, true);
+      resolve(val);
+    };
+    ok.onclick = () => finish(input.value);
+    cancel.onclick = () => finish(null);
+    overlay.onclick = (e) => { if (e.target === overlay) finish(null); };
+    document.addEventListener('keydown', onKey, true);
+    setTimeout(() => input.focus(), 0);
   });
 
 </script>
@@ -12418,6 +12479,7 @@ const newMacro = () => {
   currentMacro = null;
   $('macro-title-input').value = '';
   $('macro-desc-input').value  = '';
+  $('macro-input-label').value = '';
   $('macro-tags-input').value  = '';
   $('macro-slug-value').textContent = '';
   $('macro-slug-copy-btn').style.display = 'none';
@@ -12435,6 +12497,7 @@ const newMacro = () => {
 const fillMacroEditor = (m) => {
   $('macro-title-input').value       = m.title;
   $('macro-desc-input').value        = m.description || '';
+  $('macro-input-label').value       = m.inputLabel || '';
   $('macro-tags-input').value        = (m.tags || []).join(', ');
   populateMacroCollectionSelect(m.collectionId);
   macroSet(m.script);
@@ -12474,9 +12537,10 @@ const copyCurrentMacroSlug = () => {
 const saveCurrentMacro = async () => {
   const title  = $('macro-title-input').value.trim();
   const desc   = $('macro-desc-input').value.trim();
+  const inputLabel = $('macro-input-label').value.trim();
   const script = macroGet().trim();
-  if (!title)  { $('macro-title-input').focus(); return toast('Dê um nome à macro'); }
-  if (!script) { macroFocus();                   return toast('Script vazio'); }
+  if (!title)  { $('macro-title-input').focus(); toast('Dê um nome à macro'); return false; }
+  if (!script) { macroFocus();                   toast('Script vazio'); return false; }
 
   const tags   = $('macro-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
   const collectionId = $('macro-collection-select').value || null;
@@ -12486,9 +12550,9 @@ const saveCurrentMacro = async () => {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, name: title, description: desc, script, tags, collectionId }),
+      body: JSON.stringify({ title, name: title, description: desc, script, inputLabel: inputLabel || null, tags, collectionId }),
     });
-    if (!res.ok) return toast(await res.text() || 'Erro ao salvar');
+    if (!res.ok) { toast(await res.text() || 'Erro ao salvar'); return false; }
     currentMacro = await res.json();
     fillMacroEditor(currentMacro);
     const listRes = await fetch('/macros');
@@ -12497,7 +12561,8 @@ const saveCurrentMacro = async () => {
     renderMacrosList();
     updateMacrosClearBtn();
     toast('Macro salva');
-  } catch { toast('Erro ao salvar'); }
+    return true;
+  } catch { toast('Erro ao salvar'); return false; }
 };
 
 const deleteCurrentMacro = async () => {
@@ -12522,7 +12587,19 @@ const runCurrentMacro = async () => {
   if (!currentMacro) return;
 
   // salva antes de rodar pra garantir que executa a versão atual
-  await saveCurrentMacro();
+  const saved = await saveCurrentMacro();
+  if (!saved) return;
+
+  const inputLabel = currentMacro.inputLabel?.trim();
+  let input;
+  if (inputLabel) {
+    const value = await promptDialog(inputLabel, {
+      okLabel: 'Executar',
+      placeholder: 'Valor em texto',
+    });
+    if (value === null) return;
+    input = value;
+  }
 
   setRunning(true);
   clearOutput();
@@ -12530,7 +12607,13 @@ const runCurrentMacro = async () => {
   appendOutput(\`─────────────────────────────────────\\n\`, 'info');
 
   try {
-    const res = await fetch(\`/macros/\${currentMacro.id}/run\`, { method: 'POST' });
+    const res = await fetch(\`/macros/\${currentMacro.id}/run\`, inputLabel
+      ? {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input }),
+      }
+      : { method: 'POST' });
 
     if (res.status === 403) {
       const data = await res.json();

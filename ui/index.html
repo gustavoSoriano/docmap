@@ -267,7 +267,7 @@
 
             <div id="macro-path-hint">
             <span data-icon="info"></span>
-            Use <code>run_macro "slug"</code> no Bash ou <code>await runMacro("slug")</code> no Deno para executar outra macro.
+            Use <code>run_macro "slug" "valor"</code> no Bash ou <code>await runMacro("slug", "valor")</code> no Deno para executar outra macro com parâmetro.
           </div>
 
             <div id="macros-editor-form">
@@ -302,6 +302,8 @@
                   title="Collection da macro"></select>
                 <input id="macro-desc-input" type="text"
                   placeholder="Descrição curta…" />
+                <input id="macro-input-label" type="text"
+                  placeholder="Label do parâmetro opcional…" />
                 <input id="macro-tags-input" type="text"
                   placeholder="tags, separadas, por vírgula" />
               </div>

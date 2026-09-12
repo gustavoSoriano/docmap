@@ -43,6 +43,42 @@ const validateMacroName = (name: string): Response | null => {
   return null;
 };
 
+const validateInputLabel = (body: Record<string, unknown>): Response | null => {
+  if (body.inputLabel === undefined || body.inputLabel === null) return null;
+  if (typeof body.inputLabel !== 'string') {
+    return badRequest('inputLabel must be a string');
+  }
+  if (body.inputLabel.trim().length > 120) {
+    return badRequest('inputLabel must be 120 characters or fewer');
+  }
+  return null;
+};
+
+const readMacroInput = async (
+  req: Request,
+): Promise<{ input?: string; error?: Response }> => {
+  if (!req.body) return {};
+  const contentType = req.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return { error: badRequest('Invalid JSON') };
+    }
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+      return { error: badRequest('body must be an object') };
+    }
+    const input = (body as Record<string, unknown>).input;
+    if (input === undefined || input === null) return {};
+    if (typeof input !== 'string') {
+      return { error: badRequest('input must be a string') };
+    }
+    return { input };
+  }
+  return { input: await req.text() };
+};
+
 const runByRef = async (
   kv: Deno.Kv,
   req: Request,
@@ -57,9 +93,11 @@ const runByRef = async (
     return conflict(`Circular macro call detected: ${macro.name}`);
   }
   const stack = [...parentStack, macro.id];
+  const { input, error } = await readMacroInput(req);
+  if (error) return error;
 
   if (buffered) {
-    const result = await invokeMacro(macro, { stack });
+    const result = await invokeMacro(macro, { stack, input });
     if (result.blocked) {
       return json({ error: 'blocked', reason: result.reason }, 403);
     }
@@ -73,7 +111,7 @@ const runByRef = async (
     });
   }
 
-  const result = await runMacro(macro, { stack });
+  const result = await runMacro(macro, { stack, input });
   if (result.blocked) {
     return json({ error: 'blocked', reason: result.reason }, 403);
   }
@@ -186,6 +224,11 @@ const postMacro = async (kv: Deno.Kv, req: Request): Promise<Response> => {
     return badRequest('Invalid JSON');
   }
   const input = body as CreateMacroInput;
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    return badRequest('body must be an object');
+  }
+  const invalidInputLabel = validateInputLabel(body as Record<string, unknown>);
+  if (invalidInputLabel) return invalidInputLabel;
   if (!input.title || !input.script) {
     return badRequest('title and script required');
   }
@@ -222,6 +265,11 @@ const putMacro = async (
     return badRequest('Invalid JSON');
   }
   const input = body as UpdateMacroInput;
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    return badRequest('body must be an object');
+  }
+  const invalidInputLabel = validateInputLabel(body as Record<string, unknown>);
+  if (invalidInputLabel) return invalidInputLabel;
   const invalidCollection = await validateCollection(kv, input.collectionId);
   if (invalidCollection) return invalidCollection;
   if (input.name !== undefined) {

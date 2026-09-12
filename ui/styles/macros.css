@@ -233,7 +233,8 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-#macro-desc-input {
+#macro-desc-input,
+#macro-input-label {
   flex: 1;
   height: 30px;
   border: 1px solid var(--border);
@@ -260,10 +261,12 @@
 #macro-collection-select:focus {
   border-color: var(--accent-line);
 }
-#macro-desc-input:focus {
+#macro-desc-input:focus,
+#macro-input-label:focus {
   border-color: var(--accent-line);
 }
-#macro-desc-input::placeholder {
+#macro-desc-input::placeholder,
+#macro-input-label::placeholder {
   color: var(--text-3);
 }
 

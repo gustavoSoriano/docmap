@@ -142,3 +142,38 @@ Deno.test('macro slugs are unique so composed calls stay deterministic', async (
     assert(reserved.status === 409, 'slug de rota deveria ser reservado');
   });
 });
+
+Deno.test('macro input label is saved, listed and can be cleared', async () => {
+  await withKv(async (kv) => {
+    const created = await jsonBody(
+      await request(kv, 'POST', '/macros', {
+        name: 'build-param',
+        title: 'Build com parâmetro',
+        script: '#!/bin/bash\necho "$DOCMAP_INPUT"',
+        inputLabel: 'Nome do projeto',
+      }),
+    );
+    assert(
+      created.inputLabel === 'Nome do projeto',
+      'inputLabel deveria ser salvo',
+    );
+
+    const listed = await request(kv, 'GET', '/macros').then((response) =>
+      response.json()
+    ) as Record<string, unknown>[];
+    assert(
+      listed[0].inputLabel === 'Nome do projeto',
+      'preview deveria incluir inputLabel',
+    );
+
+    const updated = await jsonBody(
+      await request(kv, 'PUT', `/macros/${String(created.id)}`, {
+        inputLabel: null,
+      }),
+    );
+    assert(
+      updated.inputLabel === undefined,
+      'inputLabel deveria poder ser removido',
+    );
+  });
+});

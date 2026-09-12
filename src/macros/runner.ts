@@ -27,6 +27,7 @@ export type InvokeResult = {
 export type RunMacroOptions = {
   readonly stack?: readonly string[];
   readonly apiUrl?: string;
+  readonly input?: string;
 };
 
 const checkBlocklist = (script: string): string | null => {
@@ -38,15 +39,20 @@ const checkBlocklist = (script: string): string | null => {
 
 const denoPrelude = `Object.defineProperty(globalThis, 'runMacro', {
   configurable: true,
-  value: async (reference) => {
+  value: async (reference, input) => {
     if (!reference || typeof reference !== 'string') {
       throw new Error('runMacro requires a macro UUID or slug');
     }
     const api = Deno.env.get('DOCMAP_API');
     const stack = Deno.env.get('DOCMAP_MACRO_STACK') ?? '';
+    const init = { method: 'POST', headers: { 'X-Docmap-Macro-Stack': stack } };
+    if (input !== undefined) {
+      init.headers['Content-Type'] = 'application/json';
+      init.body = JSON.stringify({ input: String(input) });
+    }
     const response = await fetch(
       api + '/macros/' + encodeURIComponent(reference) + '/invoke',
-      { method: 'POST', headers: { 'X-Docmap-Macro-Stack': stack } },
+      init,
     );
     const output = await response.text();
     if (!response.ok) throw new Error(output || ('Macro failed: HTTP ' + response.status));
@@ -61,10 +67,19 @@ const bashPrelude = `run_macro() {
     echo "run_macro requires a macro UUID or slug" >&2
     return 64
   fi
-  curl --fail-with-body --silent --show-error \\
-    -X POST \\
-    -H "X-Docmap-Macro-Stack: \${DOCMAP_MACRO_STACK:-}" \\
-    "\${DOCMAP_API}/macros/\${1}/invoke"
+  if [ "\${2+x}" = "x" ]; then
+    printf '%s' "\${2}" | curl --fail-with-body --silent --show-error \\
+      -X POST \\
+      -H "X-Docmap-Macro-Stack: \${DOCMAP_MACRO_STACK:-}" \\
+      -H "Content-Type: text/plain; charset=utf-8" \\
+      --data-binary @- \\
+      "\${DOCMAP_API}/macros/\${1}/invoke"
+  else
+    curl --fail-with-body --silent --show-error \\
+      -X POST \\
+      -H "X-Docmap-Macro-Stack: \${DOCMAP_MACRO_STACK:-}" \\
+      "\${DOCMAP_API}/macros/\${1}/invoke"
+  fi
 }
 `;
 
@@ -87,9 +102,12 @@ const prepareMacro = async (
   await Deno.writeTextFile(tmpFile, script);
   if (macro.interpreter === 'bash') await Deno.chmod(tmpFile, 0o755);
 
-  const cmd = macro.interpreter === 'deno'
+  const baseCmd = macro.interpreter === 'deno'
     ? ['deno', 'run', '--allow-all', '--unstable-kv', tmpFile]
     : ['bash', tmpFile];
+  const cmd = options.input !== undefined
+    ? [...baseCmd, options.input]
+    : baseCmd;
 
   const env: Record<string, string> = {
     ...Object.fromEntries(
@@ -98,6 +116,7 @@ const prepareMacro = async (
       ),
     ),
     DOCMAP_API: options.apiUrl ?? 'http://127.0.0.1:3334',
+    DOCMAP_INPUT: options.input ?? '',
     DOCMAP_KV: `${
       Deno.env.get('HOME')
     }/Library/Application Support/docmap/data.sqlite3`,

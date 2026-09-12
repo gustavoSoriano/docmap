@@ -31,6 +31,13 @@ const normalizeMacro = (macro: Macro): Macro => ({
   lifecycle: macro.lifecycle ?? (macro.workflowId ? 'workflow' : 'persistent'),
 });
 
+const normalizeInputLabel = (
+  value: string | null | undefined,
+): string | undefined => {
+  const label = value?.trim();
+  return label ? label : undefined;
+};
+
 export const listMacroCollections = async (
   kv: Deno.Kv,
 ): Promise<MacroCollection[]> => {
@@ -126,6 +133,7 @@ const toPreview = (value: Macro): MacroPreview => {
     title: m.title,
     description: m.description,
     interpreter: m.interpreter,
+    ...(m.inputLabel ? { inputLabel: m.inputLabel } : {}),
     tags: m.tags,
     ...(m.collectionId ? { collectionId: m.collectionId } : {}),
     lifecycle: m.lifecycle,
@@ -141,12 +149,14 @@ export const createMacro = async (
 ): Promise<Macro> => {
   const workflowId = input.workflowId?.trim();
   const lifecycle = input.lifecycle ?? (workflowId ? 'workflow' : 'persistent');
+  const inputLabel = normalizeInputLabel(input.inputLabel);
   const macro: Macro = {
     id: crypto.randomUUID(),
     name: normalizeMacroName(input.name || input.title),
     title: input.title,
     description: input.description ?? '',
     script: input.script,
+    ...(inputLabel ? { inputLabel } : {}),
     interpreter: detectInterpreter(input.script),
     tags: normalizeTags(input.tags),
     ...(input.collectionId ? { collectionId: input.collectionId } : {}),
@@ -217,6 +227,10 @@ export const updateMacro = async (
       ? (requestedWorkflowId ? 'workflow' : 'persistent')
       : existing.lifecycle);
   const workflowId = lifecycle === 'workflow' ? requestedWorkflowId : undefined;
+  const inputLabel = input.inputLabel !== undefined
+    ? normalizeInputLabel(input.inputLabel)
+    : existing.inputLabel;
+  const shouldClearInputLabel = input.inputLabel !== undefined && !inputLabel;
   const updated: Macro = {
     ...existing,
     ...(input.name !== undefined
@@ -229,6 +243,7 @@ export const updateMacro = async (
     ...(input.script !== undefined
       ? { script, interpreter: detectInterpreter(script) }
       : {}),
+    ...(inputLabel ? { inputLabel } : {}),
     ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     ...(input.collectionId !== undefined && input.collectionId !== null
       ? { collectionId: input.collectionId }
@@ -237,10 +252,11 @@ export const updateMacro = async (
     ...(workflowId ? { workflowId } : {}),
     updatedAt: new Date().toISOString(),
   };
-  if (!workflowId || input.collectionId === null) {
+  if (!workflowId || input.collectionId === null || shouldClearInputLabel) {
     const base = { ...updated } as Record<string, unknown>;
     if (!workflowId) delete base.workflowId;
     if (input.collectionId === null) delete base.collectionId;
+    if (!inputLabel) delete base.inputLabel;
     await kv.set(key(id), base as Macro);
     return base as Macro;
   }
@@ -312,6 +328,7 @@ export const archiveAndDeleteWorkflowMacros = async (
       title: macro.title,
       interpreter: macro.interpreter,
       script: macro.script,
+      ...(macro.inputLabel ? { inputLabel: macro.inputLabel } : {}),
       scriptHash: await scriptHash(macro.script),
       archivedAt: new Date().toISOString(),
     };

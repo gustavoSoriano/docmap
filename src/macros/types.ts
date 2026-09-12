@@ -14,6 +14,7 @@ export type Macro = {
   readonly title: string;
   readonly description: string;
   readonly script: string;
+  readonly inputLabel?: string;
   readonly interpreter: MacroInterpreter;
   readonly tags: readonly string[]; // tema/assunto — eixo do grafo
   readonly collectionId?: string;
@@ -30,6 +31,7 @@ export type CreateMacroInput = {
   readonly title: string;
   readonly description?: string;
   readonly script: string;
+  readonly inputLabel?: string | null;
   readonly tags?: readonly string[];
   readonly collectionId?: string;
   readonly lifecycle?: MacroLifecycle;
@@ -54,6 +56,7 @@ export type WorkflowMacroArchive = {
   readonly title: string;
   readonly interpreter: MacroInterpreter;
   readonly script: string;
+  readonly inputLabel?: string;
   readonly scriptHash: string;
   readonly archivedAt: string;
 };

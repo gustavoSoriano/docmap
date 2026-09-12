@@ -201,7 +201,7 @@ Categoria: texto livre (\`general\`, \`ai\`, etc.).
 |--------|----------|-----------|
 | GET | \`/macros\` | Lista macros; aceite \`?collectionId=<id>\` para filtrar |
 | GET | \`/macros/:idOrName\` | Macro completa por UUID ou slug \`name\` |
-| POST | \`/macros\` | Cria \`{ name, title, description?, script, tags?, collectionId?, lifecycle?, workflowId? }\` |
+| POST | \`/macros\` | Cria \`{ name, title, description?, script, inputLabel?, tags?, collectionId?, lifecycle?, workflowId? }\` |
 | PUT | \`/macros/:id\` | Edita (campos parciais) |
 | DELETE | \`/macros/:id\` | Remove uma macro |
 | POST | \`/macros/:idOrName/run\` | Executa com output SSE em tempo real |
@@ -211,17 +211,27 @@ O \`interpreter\` (\`bash\` ou \`deno\`) é detectado automaticamente pelo sheba
 O \`name\` é um slug global e único, para que chamadas entre collections sejam
 determinísticas. \`collectionId: null\` remove uma macro da collection atual.
 
+\`inputLabel?: string\` declara que a macro aceita um único parâmetro textual.
+Na UI, o Docmap abre uma modal antes da execução usando esse label. Na API,
+\`POST /macros/:idOrName/run\` e \`POST /macros/:idOrName/invoke\` aceitam
+\`{ "input": "valor" }\` em JSON ou o valor puro em \`text/plain\`. O valor é
+sempre entregue como texto: \`DOCMAP_INPUT\` no ambiente e primeiro argumento do
+processo (\`$1\` no Bash, \`Deno.args[0]\` no Deno). A macro converte para
+número, booleano ou outro formato quando precisar.
+
 Toda macro pode executar outra por UUID ou slug:
 
 \`\`\`bash
 #!/bin/bash
 set -e
 run_macro "preparar-dados"
+run_macro "preparar-dados" "docmap"
 \`\`\`
 
 \`\`\`ts
 #!/usr/bin/env -S deno run --allow-all
 await runMacro('preparar-dados')
+await runMacro('preparar-dados', 'docmap')
 \`\`\`
 
 \`run_macro\` (Bash) retorna status diferente de zero e \`runMacro\` (Deno)

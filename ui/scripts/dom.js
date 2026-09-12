@@ -70,8 +70,10 @@ const confirmDialog = (message, opts = {}) =>
     const overlay = $('modal-overlay');
     const ok = $('modal-ok');
     const cancel = $('modal-cancel');
+    $('modal-input')?.remove();
     $('modal-msg').textContent = message;
     ok.textContent = opts.okLabel || 'Confirmar';
+    cancel.textContent = opts.cancelLabel || 'Cancelar';
     ok.classList.toggle('danger', !!opts.danger);
     overlay.classList.add('visible');
 
@@ -89,4 +91,42 @@ const confirmDialog = (message, opts = {}) =>
     cancel.onclick = () => finish(false);
     overlay.onclick = (e) => { if (e.target === overlay) finish(false); };
     document.addEventListener('keydown', onKey, true);
+  });
+
+const promptDialog = (message, opts = {}) =>
+  new Promise((resolve) => {
+    const overlay = $('modal-overlay');
+    const ok = $('modal-ok');
+    const cancel = $('modal-cancel');
+    $('modal-input')?.remove();
+    $('modal-msg').textContent = message;
+
+    const input = document.createElement('input');
+    input.id = 'modal-input';
+    input.type = 'text';
+    input.value = opts.value ?? '';
+    input.placeholder = opts.placeholder ?? '';
+    $('modal').insertBefore(input, $('modal-actions'));
+
+    ok.textContent = opts.okLabel || 'Confirmar';
+    cancel.textContent = opts.cancelLabel || 'Cancelar';
+    ok.classList.toggle('danger', false);
+    overlay.classList.add('visible');
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') finish(null);
+      if (e.key === 'Enter') finish(input.value);
+    };
+    const finish = (val) => {
+      overlay.classList.remove('visible');
+      input.remove();
+      ok.onclick = cancel.onclick = overlay.onclick = null;
+      document.removeEventListener('keydown', onKey, true);
+      resolve(val);
+    };
+    ok.onclick = () => finish(input.value);
+    cancel.onclick = () => finish(null);
+    overlay.onclick = (e) => { if (e.target === overlay) finish(null); };
+    document.addEventListener('keydown', onKey, true);
+    setTimeout(() => input.focus(), 0);
   });
