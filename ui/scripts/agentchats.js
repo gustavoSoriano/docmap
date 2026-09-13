@@ -7,6 +7,12 @@ let agentChatEventsOn = false;
 let agentChatRefreshTimer = null;
 let acReplyTo = null; // { name, snippet }
 let acMsgById = {};
+let acStickToBottom = true;
+let acLastOpenChatId = null;
+let acLastMsgCount = 0;
+let acForceScrollBottom = false;
+let acScrollListenerOn = false;
+let acPendingNewCount = 0;
 
 const loadAgentChatsList = async () => {
   try {
@@ -100,6 +106,8 @@ const editCurrentAgentChat = () => openAgentChatModal();
 const openAgentChat = async (id) => {
   currentAgentChatId = id;
   acReplyTo = null;
+  acForceScrollBottom = true;
+  acPendingNewCount = 0;
   renderAgentChatsList();
   await refreshCurrentAgentChat();
 };
@@ -229,7 +237,13 @@ const renderAgentChatDetail = () => {
     : '<span>Nenhum agente conectado. Copie o prompt e chame os agentes.</span>';
 
   const box = $('ac-messages');
+  ensureAcScrollListener();
   const messages = detail.messages || [];
+  const isChatSwitch = acLastOpenChatId !== detail.chat.id;
+  const prevCount = isChatSwitch ? messages.length : acLastMsgCount;
+  // Mede antes de trocar o DOM: se o usuário estava lendo em cima, não puxa.
+  const wasNearBottom = acIsNearBottom(box);
+  const prevScrollTop = box.scrollTop;
   acMsgById = {};
   for (const m of messages) acMsgById[m.id] = m;
   box.innerHTML = messages.map((m) => {
@@ -253,8 +267,65 @@ const renderAgentChatDetail = () => {
       `<div class="ac-msg-foot"><button class="ac-reply-btn" onclick="replyToAgentChatById('${m.id}')" title="Responder ${escHtml(m.authorName)}">Responder</button></div>` +
       `</div></div>`;
   }).join('');
-  box.scrollTop = box.scrollHeight;
+  const shouldStick = acForceScrollBottom || isChatSwitch || wasNearBottom;
+  if (shouldStick) {
+    box.scrollTop = box.scrollHeight;
+    acStickToBottom = true;
+    acPendingNewCount = 0;
+  } else {
+    // Preserva a posição de leitura; acumula contador p/ a pílula.
+    box.scrollTop = prevScrollTop;
+    acStickToBottom = false;
+    if (messages.length > prevCount) acPendingNewCount += messages.length - prevCount;
+  }
+  acLastOpenChatId = detail.chat.id;
+  acLastMsgCount = messages.length;
+  acForceScrollBottom = false;
+  renderAcNewMsgPill();
   renderAcReplyChip();
+};
+
+// ── Scroll inteligente: só desce sozinho se o usuário já estava no final ──
+const acIsNearBottom = (box, threshold = 80) => {
+  const el = box || $('ac-messages');
+  if (!el) return true;
+  return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+};
+
+const acScrollToBottom = () => {
+  const box = $('ac-messages');
+  if (box) box.scrollTop = box.scrollHeight;
+  acStickToBottom = true;
+  acPendingNewCount = 0;
+  renderAcNewMsgPill();
+};
+
+const acJumpToBottom = () => acScrollToBottom();
+
+const renderAcNewMsgPill = () => {
+  const pill = $('ac-new-msg');
+  if (!pill) return;
+  const show = !acStickToBottom && acPendingNewCount > 0;
+  pill.hidden = !show;
+  if (show) {
+    pill.textContent = acPendingNewCount === 1
+      ? '↓ 1 nova mensagem'
+      : `↓ ${acPendingNewCount} novas mensagens`;
+  }
+};
+
+const ensureAcScrollListener = () => {
+  if (acScrollListenerOn) return;
+  const box = $('ac-messages');
+  if (!box) return;
+  acScrollListenerOn = true;
+  box.addEventListener('scroll', () => {
+    acStickToBottom = acIsNearBottom(box);
+    if (acStickToBottom) {
+      acPendingNewCount = 0;
+    }
+    renderAcNewMsgPill();
+  }, { passive: true });
 };
 
 const sendAgentChatMessage = async () => {
@@ -274,6 +345,7 @@ const sendAgentChatMessage = async () => {
     input.value = '';
     acReplyTo = null;
     renderAcReplyChip();
+    acForceScrollBottom = true;
     await refreshCurrentAgentChat();
   } catch (err) {
     toast(err.message || 'Falha ao enviar');
