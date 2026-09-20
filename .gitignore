@@ -18,3 +18,4 @@ docmap-backup-*.json
 dist/
 release/
 docmap-release/
+.opencode/
