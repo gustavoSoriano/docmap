@@ -9719,11 +9719,14 @@ svg#kg-svg:active {
   font-weight: 600;
   font-size: 0.85rem;
   margin-bottom: 4px;
+  /* Títulos com URL longa: sem isto a linha vaza a borda do card */
+  overflow-wrap: anywhere;
 }
 
 .ac-card-meta {
   font-size: 0.72rem;
   color: var(--text-2);
+  overflow-wrap: anywhere;
 }
 
 #ac-workspace {
@@ -9858,6 +9861,9 @@ svg#kg-svg:active {
   border-radius: 999px;
   padding: 1px 7px;
   color: var(--text-2);
+  /* tag muito longa não pode esticar o card */
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 #ac-toolbar-actions {
