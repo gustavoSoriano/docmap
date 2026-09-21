@@ -102,30 +102,67 @@ export const skillsUiHandler =
     return json({ error: 'method_not_allowed' }, 405);
   };
 
-// AI handler — GET only (por id ou name)
+// AI/headless handler — escrita básica para agentes externos
 export const skillsApiHandler =
   (kv: Deno.Kv) => async (req: Request, url: URL): Promise<Response> => {
-    if (req.method !== 'GET') return json({ error: 'read_only' }, 405);
     const parts = url.pathname.replace(/^\/skills\/?/, '').split('/').filter(
       Boolean,
     );
     const id = parts[0] || '';
     if (id === 'collections') {
       const collectionId = parts[1];
-      if (!collectionId) return json(await listSkillCollections(kv));
-      const collection = await getSkillCollection(kv, collectionId);
-      if (!collection) return notFound();
-      return json({
-        ...collection,
-        skills: await listSkills(kv, collectionId),
-      });
+      if (req.method === 'GET' && !collectionId) {
+        return json(await listSkillCollections(kv));
+      }
+      if (req.method === 'GET' && collectionId && !parts[2]) {
+        const collection = await getSkillCollection(kv, collectionId);
+        if (!collection) return notFound();
+        return json({
+          ...collection,
+          skills: await listSkills(kv, collectionId),
+        });
+      }
+      if (req.method === 'POST' && !collectionId) {
+        let body: unknown;
+        try {
+          body = await req.json();
+        } catch {
+          return badRequest('Invalid JSON');
+        }
+        const { name } = body as CreateSkillCollectionInput;
+        if (!name?.trim()) return badRequest('name required');
+        return json(await createSkillCollection(kv, name.trim()), 201);
+      }
+      if (req.method === 'PUT' && collectionId && !parts[2]) {
+        let body: unknown;
+        try {
+          body = await req.json();
+        } catch {
+          return badRequest('Invalid JSON');
+        }
+        const { name } = body as CreateSkillCollectionInput;
+        if (!name?.trim()) return badRequest('name required');
+        const updated = await updateSkillCollection(
+          kv,
+          collectionId,
+          name.trim(),
+        );
+        return updated ? json(updated) : notFound();
+      }
+      return json({ error: 'method_not_allowed' }, 405);
     }
     if (!id) {
+      if (req.method === 'POST') return postSkill(kv, req);
+      if (req.method !== 'GET') {
+        return json({ error: 'method_not_allowed' }, 405);
+      }
       return json(
         await listSkills(kv, url.searchParams.get('collectionId') ?? undefined),
       );
     }
-    return getSkill(kv, id);
+    if (req.method === 'GET') return getSkill(kv, id);
+    if (req.method === 'PUT') return putSkill(kv, id, req);
+    return json({ error: 'method_not_allowed' }, 405);
   };
 
 // ── helpers ──
@@ -174,7 +211,9 @@ const putSkill = async (
   }
   const invalidCollection = await validateCollection(kv, input.collectionId);
   if (invalidCollection) return invalidCollection;
-  const updated = await updateSkill(kv, id, input);
+  const existing = await resolveSkill(kv, id);
+  if (!existing) return notFound();
+  const updated = await updateSkill(kv, existing.id, input);
   return updated ? json(updated) : notFound();
 };
 

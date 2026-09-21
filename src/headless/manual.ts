@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '12.0.0';
+export const HEADLESS_MANUAL_VERSION = '12.1.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -43,8 +43,8 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
   {
     id: 'skills',
     title: 'Skills de usuario',
-    heading: 'Skills (read-only)',
-    summary: 'Skills salvas pelo usuario no KV; separadas do Headless Manual.',
+    heading: 'Skills',
+    summary: 'CRUD parcial de skills salvas pelo usuario no KV.',
     tags: ['skills', 'user-content'],
   },
   {
@@ -168,7 +168,7 @@ Categoria: texto livre (\`general\`, \`ai\`, etc.).
 
 ---
 
-## Skills (read-only)
+## Skills
 
 ### Collections
 
@@ -176,6 +176,8 @@ Categoria: texto livre (\`general\`, \`ai\`, etc.).
 |--------|----------|-----------|
 | GET | \`/skills/collections\` | Lista collections de skills |
 | GET | \`/skills/collections/:id\` | Collection + suas skills |
+| POST | \`/skills/collections\` | Cria \`{ name }\` |
+| PUT | \`/skills/collections/:id\` | Renomeia \`{ name }\` |
 
 ### Skills
 
@@ -183,6 +185,8 @@ Categoria: texto livre (\`general\`, \`ai\`, etc.).
 |--------|----------|-----------|
 | GET | \`/skills\` | Lista (id, name, title, description, tags); aceite \`?collectionId=<id>\` para filtrar |
 | GET | \`/skills/:nameOrId\` | Skill completa com \`content\` em markdown |
+| POST | \`/skills\` | Cria \`{ name?, title, description?, content, tags?, collectionId? }\` |
+| PUT | \`/skills/:nameOrId\` | Edita campos parciais; use \`collectionId: null\` para remover da collection |
 
 \`name\` é o slug legível (ex: \`analyze-pr\`). Acesse por nome ou UUID.
 \`collectionId: null\` remove uma skill da collection atual.

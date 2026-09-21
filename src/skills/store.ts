@@ -126,7 +126,7 @@ export const createSkill = async (
     id: crypto.randomUUID(),
     name: toSlug(input.name) || toSlug(input.title),
     title: input.title,
-    description: input.description,
+    description: input.description ?? '',
     content: input.content,
     tags: normalizeTags(input.tags),
     ...(input.collectionId ? { collectionId: input.collectionId } : {}),

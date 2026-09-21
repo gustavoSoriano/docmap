@@ -22,7 +22,7 @@ export type SkillPreview = Omit<Skill, 'content'>;
 export type CreateSkillInput = {
   readonly name: string;
   readonly title: string;
-  readonly description: string;
+  readonly description?: string;
   readonly content: string;
   readonly tags?: string[];
   readonly collectionId?: string;

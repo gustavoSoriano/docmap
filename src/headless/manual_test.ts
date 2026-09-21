@@ -62,6 +62,23 @@ Deno.test('macro manual documents collections and composed execution', () => {
   );
 });
 
+Deno.test('skills manual documents headless POST and PUT', () => {
+  const manual = renderHeadlessManual({ features: ['skills'] });
+  assert(manual.includes('## Skills'), 'manual deveria conter skills');
+  assert(
+    manual.includes('| POST | `/skills` |'),
+    'manual deveria documentar criacao de skills',
+  );
+  assert(
+    manual.includes('| PUT | `/skills/:nameOrId` |'),
+    'manual deveria documentar edicao de skills',
+  );
+  assert(
+    !manual.includes('## Skills (read-only)'),
+    'manual nao deveria marcar skills como read-only',
+  );
+});
+
 Deno.test('headless role selection resolves workflow protocol', () => {
   const selected = selectHeadlessFeatures({ role: 'executor' });
   assert(
