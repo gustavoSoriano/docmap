@@ -2,7 +2,7 @@
 // Salvar/abrir usa o board ao vivo (hub) como fonte/destino; o documento
 // vai pro filesystem e só os metadados ficam no KV.
 
-import { boardHub } from './hub.ts';
+import { boardHub, validateSnapshot } from './hub.ts';
 import {
   createCollection,
   createDrawing,
@@ -115,7 +115,9 @@ export const createLibraryHandler = (deps: HandlerDeps) => {
       return json(await listDrawings(kv, colId));
     }
 
-    // POST /canvas/drawings { collectionId?, name, tags? } — salva o board.
+    // POST /canvas/drawings { collectionId?, name, tags?, snapshot? } — salva o board.
+    // Aceita snapshot do cliente (Fase 1: rascunho local pode estar à frente
+    // do hub se o WS atrasou). Sem snapshot, usa o hub como antes.
     if (req.method === 'POST' && !id) {
       const body = await readJson(req);
       if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -128,12 +130,21 @@ export const createLibraryHandler = (deps: HandlerDeps) => {
         ? await getCollection(kv, rec.collectionId)
         : await ensureDefaultCollection(kv);
       if (!col) return notFound();
+      let snapshot = boardHub.getSnapshot();
+      let shapes = boardHub.shapeCount;
+      if (rec.snapshot !== undefined) {
+        if (validateSnapshot(rec.snapshot) !== null) {
+          return badRequest('invalid_snapshot');
+        }
+        snapshot = rec.snapshot as typeof snapshot;
+        shapes = Object.keys(snapshot.document.store).length;
+      }
       const saved = await createDrawing(kv, {
         collectionId: col.id,
         name,
         tags: Array.isArray(rec.tags) ? rec.tags.map(String) : undefined,
-        snapshot: boardHub.getSnapshot(),
-        shapes: boardHub.shapeCount,
+        snapshot,
+        shapes,
       });
       if (!saved) return badRequest('invalid_snapshot');
       return json(saved, 201);
@@ -157,11 +168,22 @@ export const createLibraryHandler = (deps: HandlerDeps) => {
     }
 
     // POST /canvas/drawings/:id/save — sobrescreve com o board atual.
+    // Aceita { snapshot? } do cliente; sem ele, usa o hub (compat).
     if (req.method === 'POST' && action === 'save') {
-      const updated = await overwriteDrawing(kv, id, {
-        snapshot: boardHub.getSnapshot(),
-        shapes: boardHub.shapeCount,
-      });
+      const body = await readJson(req).catch(() => null);
+      let snapshot = boardHub.getSnapshot();
+      let shapes = boardHub.shapeCount;
+      if (body && typeof body === 'object' && !Array.isArray(body)) {
+        const rec = body as Record<string, unknown>;
+        if (rec.snapshot !== undefined) {
+          if (validateSnapshot(rec.snapshot) !== null) {
+            return badRequest('invalid_snapshot');
+          }
+          snapshot = rec.snapshot as typeof snapshot;
+          shapes = Object.keys(snapshot.document.store).length;
+        }
+      }
+      const updated = await overwriteDrawing(kv, id, { snapshot, shapes });
       if (!updated) return notFound();
       return json(updated);
     }

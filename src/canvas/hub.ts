@@ -250,8 +250,15 @@ class BoardHub {
    */
   insertShapes(inputs: readonly ShapeInput[]): string[] {
     const placed = placeShapes(inputs, this.#records);
-    const startZ = this.#maxZ() + 1;
-    const records = buildRecords(placed, startZ);
+    const records = buildRecords(placed, this.#maxZ() + 1);
+    return this.insertRecords(records);
+  }
+
+  /**
+   * Insere records pré-construídos (proposta aplicada — Fase 3).
+   * Ids já vêm únicos do build; aqui só aplica + difunde. Retorna os ids.
+   */
+  insertRecords(records: readonly BoardRecord[]): string[] {
     const added: Record<string, BoardRecord> = {};
     for (const rec of records) {
       this.#records.set(rec.id, rec);
@@ -260,6 +267,21 @@ class BoardHub {
     this.#updatedAt = new Date().toISOString();
     this.#broadcast({ type: 'diff', diff: { added } });
     return records.map((rec) => rec.id);
+  }
+
+  /** Avisa todos de uma nova proposta da IA (consentimento — Fase 3). */
+  notifyProposal(proposal: {
+    readonly id: string;
+    readonly label: string;
+    readonly count: number;
+    readonly createdAt: string;
+  }): void {
+    this.#broadcast({ type: 'proposal', proposal });
+  }
+
+  /** Avisa todos que a proposta saiu (aplicada/descartada — Fase 3). */
+  notifyProposalRetracted(id: string): void {
+    this.#broadcast({ type: 'proposal-retracted', id });
   }
 
   #maxZ(): number {

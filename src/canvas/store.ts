@@ -5,7 +5,10 @@
 import { drawingsDir } from '../config.ts';
 import { normalizeTags } from '../tags/normalize.ts';
 import { validateSnapshot } from './hub.ts';
+import { buildRecords, placeShapes } from './shapes.ts';
+import type { ShapeInput } from './shapes.ts';
 import type {
+  BoardRecord,
   BoardSnapshot,
   DrawingCollection,
   DrawingDocument,
@@ -217,6 +220,80 @@ export const deleteDrawing = async (
   await deleteDocument(existing.collectionId, id);
   await kv.delete(metaKey(existing.collectionId, id));
   return true;
+};
+
+// ── IA isolada (Fase 3): desenha direto no desenho salvo, sem live ──
+
+/**
+ * Anexa shapes da IA a um desenho salvo (posiciona abaixo do conteúdo
+ * existente do próprio desenho). Não toca no board ao vivo — isolamento.
+ * Retorna metadados atualizados + ids, ou null se desenho/inputs inválidos.
+ */
+export const appendShapesToDrawing = async (
+  kv: Deno.Kv,
+  id: string,
+  inputs: readonly ShapeInput[],
+): Promise<{ meta: DrawingMeta; ids: string[] } | null> => {
+  const existing = await getDrawing(kv, id);
+  if (!existing) return null;
+  const doc = await readDocument(existing.collectionId, id);
+  if (!doc) return null;
+  const placed = placeShapes(inputs, doc.snapshot.document.store);
+  let maxZ = 0;
+  for (const rec of Object.values(doc.snapshot.document.store)) {
+    const recZ = rec.z;
+    if (typeof recZ === 'number' && Number.isFinite(recZ) && recZ > maxZ) {
+      maxZ = recZ;
+    }
+  }
+  const records = buildRecords(placed, maxZ + 1);
+  const store: Record<string, BoardRecord> = {
+    ...doc.snapshot.document.store,
+  };
+  for (const rec of records) store[rec.id] = rec;
+  const snapshot: BoardSnapshot = { document: { store } };
+  if (validateSnapshot(snapshot) !== null) return null;
+  await writeDocument(existing.collectionId, id, snapshot);
+  const updated: DrawingMeta = {
+    ...existing,
+    shapes: Object.keys(store).length,
+    updatedAt: now(),
+  };
+  await kv.set(metaKey(existing.collectionId, id), updated);
+  return { meta: updated, ids: records.map((rec) => rec.id) };
+};
+
+/**
+ * Cria um desenho isolado a partir de records prontos (proposta salva —
+ * Fase 3). Snapshot vai pro filesystem como nos saves normais.
+ */
+export const createDrawingFromRecords = async (
+  kv: Deno.Kv,
+  input: {
+    collectionId: string;
+    name: string;
+    tags?: readonly string[];
+    records: readonly BoardRecord[];
+  },
+): Promise<DrawingMeta | null> => {
+  const col = await getCollection(kv, input.collectionId);
+  if (!col) return null;
+  const store: Record<string, BoardRecord> = {};
+  for (const rec of input.records) store[rec.id] = rec;
+  const snapshot: BoardSnapshot = { document: { store } };
+  if (validateSnapshot(snapshot) !== null) return null;
+  const meta: DrawingMeta = {
+    id: crypto.randomUUID(),
+    collectionId: input.collectionId,
+    name: input.name,
+    tags: normalizeTags(input.tags ?? col.tags),
+    shapes: input.records.length,
+    createdAt: now(),
+    updatedAt: now(),
+  };
+  await writeDocument(input.collectionId, meta.id, snapshot);
+  await kv.set(metaKey(input.collectionId, meta.id), meta);
+  return meta;
 };
 
 // ── Documentos (filesystem) ──────────────────────────────────────────────────

@@ -76,8 +76,10 @@ html[data-theme='light']{--bg:#f6f7f9;--surface:#ffffff;--surface-2:#eef0f4;--bo
 html[data-theme='light'] #header{background:#ffffff}
 html[data-theme='light'] #conn-count{background:rgba(0,0,0,.06)}
 html[data-theme='light'] #toast{background:#ffffff}
-#toast{position:fixed;bottom:16px;right:16px;background:var(--surface-2);border:1px solid var(--border);padding:6px 14px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
-#toast.show{opacity:1}
+#toast{position:fixed;bottom:16px;right:16px;background:var(--surface-2);border:1px solid var(--border);padding:6px 14px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;display:flex;align-items:center;gap:10px;max-width:min(420px,90vw)}
+#toast.show{opacity:1;pointer-events:auto;flex-wrap:wrap}
+#toast button{background:var(--accent-dim);border:1px solid var(--accent-line);color:var(--text);padding:2px 10px;border-radius:5px;font-size:11px;cursor:pointer;white-space:nowrap}
+#toast button:hover{background:var(--hover)}
 </style>
 </head>
 <body>
@@ -236,6 +238,26 @@ function showToast(msg){
   toastEl._hide = setTimeout(function(){ toastEl.classList.remove('show'); }, 2500);
 }
 
+// Toast com ação (Fase 2: Desfazer após abrir/limpar/troca remota).
+function showToastUndo(msg, actionLabel, onAction, timeoutMs){
+  if (!toastEl) return;
+  toastEl.innerHTML = '';
+  var span = document.createElement('span');
+  span.textContent = msg;
+  var btn = document.createElement('button');
+  btn.textContent = actionLabel || 'Desfazer';
+  btn.onclick = function(){
+    try { toastEl.classList.remove('show'); } catch(e){}
+    try { clearTimeout(toastEl._hide); } catch(e){}
+    onAction();
+  };
+  toastEl.appendChild(span);
+  toastEl.appendChild(btn);
+  toastEl.classList.add('show');
+  clearTimeout(toastEl._hide);
+  toastEl._hide = setTimeout(function(){ toastEl.classList.remove('show'); }, timeoutMs || 8000);
+}
+
 // Envia ao servidor só edições locais ('user'). Diffs 'remote' aplicados
 // abaixo não re-emitem (filtro do listen) — sem loop de eco.
 store.listen(function(diff){
@@ -330,8 +352,41 @@ function connect(){
   ws.onmessage = function(e){
     try {
       var msg = JSON.parse(e.data);
-      if (msg.type === 'diff' && msg.diff) store.applyDiff(msg.diff, 'remote');
-      else if (msg.type === 'snapshot' && msg.snapshot) applySnapshot(msg.snapshot);
+      if (msg.type === 'diff' && msg.diff) {
+        store.applyDiff(msg.diff, 'remote');
+        try { detectAiDiff(msg.diff); } catch(errAi){}
+      }
+      else if (msg.type === 'snapshot' && msg.snapshot) {
+        // Snapshot remoto (outro usuário abriu desenho, limpou, ou IA).
+        // Nunca perde silenciosamente: backup + rascunho antes de aplicar.
+        var hadWork = false;
+        try {
+          hadWork = (typeof isDirty === 'function' && isDirty()) || (typeof store !== 'undefined' && store.size > 0);
+          if (hadWork) {
+            if (typeof takeBackup === 'function') takeBackup('troca remota');
+            if (typeof backupDraftNow === 'function') backupDraftNow();
+          }
+          if (typeof cancelAutoSave === 'function') cancelAutoSave();
+        } catch(err2){}
+        applySnapshot(msg.snapshot);
+        // Board remoto não pertence mais ao desenho aberto local.
+        try {
+          if (typeof currentDrawing !== 'undefined' && currentDrawing) {
+            currentDrawing = null;
+            if (typeof dirty !== 'undefined') dirty = false;
+            if (typeof updateDrawingLabel === 'function') updateDrawingLabel();
+          }
+        } catch(err3){}
+        try {
+          if (hadWork && typeof showUndoToast === 'function') showUndoToast('Board trocado por outro — rascunho guardado');
+        } catch(err4){}
+      }
+      else if (msg.type === 'proposal' && msg.proposal) {
+        try { showProposalToast(msg.proposal); } catch(errP){}
+      }
+      else if (msg.type === 'proposal-retracted' && msg.id) {
+        try { hideProposalToast(msg.id); } catch(errR){}
+      }
       else if (msg.type === 'peers') setPeers(msg.count);
     } catch (err) {
       console.warn('canvas WS: invalid message', err);
@@ -409,27 +464,364 @@ function apiSend(method, p, body){
 
 function updateDrawingLabel(){
   if (!drawingNameEl) return;
-  if (!currentDrawing) { drawingNameEl.textContent = ''; drawingNameEl.className = ''; return; }
-  drawingNameEl.textContent = currentDrawing.name;
+  if (savingState) {
+    var base = currentDrawing ? currentDrawing.name : 'Sem título';
+    drawingNameEl.textContent = base + ' • Salvando…';
+    drawingNameEl.className = 'dirty';
+    drawingNameEl.title = 'salvando…';
+    return;
+  }
+  if (!currentDrawing) {
+    if (store.size === 0) { drawingNameEl.textContent = ''; drawingNameEl.className = ''; drawingNameEl.title = ''; return; }
+    drawingNameEl.textContent = 'Sem título • Editado';
+    drawingNameEl.className = 'dirty';
+    drawingNameEl.title = 'rascunho não salvo — salve para guardar';
+    return;
+  }
+  drawingNameEl.textContent = dirty ? (currentDrawing.name + ' • Editado') : currentDrawing.name;
   drawingNameEl.className = dirty ? 'dirty' : '';
-  drawingNameEl.title = dirty ? 'alterações não salvas' : 'desenho aberto';
+  drawingNameEl.title = dirty ? 'editado — autosave em segundos (Ctrl+S salva agora)' : 'desenho aberto — salvo';
 }
 
+function isDirty(){ return dirty; }
+
+var editSeq = 0;
 function markDirty(){
-  if (currentDrawing && !dirty) { dirty = true; updateDrawingLabel(); }
+  editSeq++;
+  if (!dirty) { dirty = true; updateDrawingLabel(); }
+  scheduleDraftSave();
+  scheduleAutoSave();
 }
-store.listen(function(){ markDirty(); });
+function markClean(){
+  dirty = false;
+  cancelAutoSave();
+  updateDrawingLabel();
+}
+// Só edição local suja o desenho. Mudança remota (IA, outro usuário,
+// snapshot de abertura) nunca marca dirty — sem falso "Editado".
+store.listen(function(){ markDirty(); }, { source: 'user' });
+
+// ── Rascunho local (Fase 1: sobrevive a fechar sem salvar) ──
+var DRAFT_KEY = 'docmap-canvas-draft-v1';
+var savingState = false;
+var draftTimer = 0;
+// ── Autosave servidor (Fase 2: salva sozinho após idle) ──
+var autoSaveTimer = 0;
+var autoSaving = false;
+var inboxCreating = false;
+var AUTO_SAVE_MS = 2500;
+var AUTO_INBOX_MS = 5000;
+// ── Backup p/ Desfazer (Fase 2: abrir/limpar/remoto) ──
+var lastBackup = null;
+
+function scheduleDraftSave(){
+  try {
+    if (draftTimer) clearTimeout(draftTimer);
+    draftTimer = setTimeout(function(){ draftTimer = 0; saveDraftLocal(); }, 1500);
+  } catch(e){}
+}
+function saveDraftLocal(){
+  try {
+    if (store.size === 0) {
+      // Board vazio não precisa de rascunho — limpa resto antigo.
+      try { localStorage.removeItem(DRAFT_KEY); } catch(e){}
+      return;
+    }
+    var snap = store.getSnapshot();
+    var payload = { snapshot: snap, updatedAt: new Date().toISOString(), drawingId: currentDrawing ? currentDrawing.id : null, drawingName: currentDrawing ? currentDrawing.name : null };
+    var body = JSON.stringify(payload);
+    // localStorage tem ~5MB — acima disso, ignora (o save real valida 20MB).
+    if (body.length > 4 * 1024 * 1024) return;
+    localStorage.setItem(DRAFT_KEY, body);
+  } catch(e){}
+}
+function getDraftLocal(){
+  try {
+    var raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    var p = JSON.parse(raw);
+    if (!p || !p.snapshot || !p.snapshot.document || !p.snapshot.document.store) return null;
+    return p;
+  } catch(e){ return null; }
+}
+function clearDraftLocal(){
+  try {
+    if (draftTimer) { clearTimeout(draftTimer); draftTimer = 0; }
+    localStorage.removeItem(DRAFT_KEY);
+  } catch(e){}
+}
+function backupDraftNow(){
+  try { if (draftTimer) { clearTimeout(draftTimer); draftTimer = 0; } } catch(e){}
+  saveDraftLocal();
+}
+
+// ── Autosave servidor (Fase 2) ──
+// Com desenho aberto: atualiza silencioso após 2,5s parado.
+// Sem desenho (rascunho): cria "Rascunho <data>" após 5s parado, uma vez.
+function scheduleAutoSave(){
+  try {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    var delay = currentDrawing ? AUTO_SAVE_MS : AUTO_INBOX_MS;
+    autoSaveTimer = setTimeout(function(){ autoSaveTimer = 0; autoSaveNow(); }, delay);
+  } catch(e){}
+}
+function cancelAutoSave(){
+  try { if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = 0; } } catch(e){}
+}
+function autoSaveNow(){
+  try {
+    if (!isDirty()) return;
+    if (savingState || autoSaving || inboxCreating) { scheduleAutoSave(); return; }
+    if (store.size === 0) return;
+    // Board vazio com desenho aberto: nunca apaga sozinho (exige ação manual).
+    if (currentDrawing) {
+      autoSaving = true;
+      savingState = true; updateDrawingLabel();
+      var seq = editSeq;
+      var snap = store.getSnapshot();
+      apiSend('POST', '/canvas/drawings/' + encodeURIComponent(currentDrawing.id) + '/save', { snapshot: snap }).then(function(){
+        autoSaving = false; savingState = false;
+        // Editou durante o save? Mantém dirty e reagenda (sem perder traço).
+        if (seq !== editSeq) { dirty = true; updateDrawingLabel(); scheduleDraftSave(); scheduleAutoSave(); return; }
+        markClean();
+        clearDraftLocal();
+      }).catch(function(){
+        autoSaving = false; savingState = false; updateDrawingLabel();
+        scheduleAutoSave();
+      });
+    } else {
+      inboxCreating = true;
+      savingState = true; updateDrawingLabel();
+      var seq2 = editSeq;
+      var snap2 = store.getSnapshot();
+      var d = new Date();
+      var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+      var autoName = 'Rascunho ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      var body = { name: autoName, snapshot: snap2 };
+      if (selectedCol) body.collectionId = selectedCol;
+      apiSend('POST', '/canvas/drawings', body).then(function(meta){
+        inboxCreating = false; savingState = false;
+        currentDrawing = { id: meta.id, name: meta.name };
+        if (seq2 !== editSeq) { dirty = true; updateDrawingLabel(); scheduleDraftSave(); scheduleAutoSave(); }
+        else { markClean(); clearDraftLocal(); }
+        showToast('Rascunho salvo automaticamente');
+        refreshLibrary().then(function(){
+          selectedCol = meta.collectionId; storeCol(selectedCol);
+          renderCols(); return refreshDrawings();
+        }).catch(function(){});
+      }).catch(function(){
+        inboxCreating = false; savingState = false; updateDrawingLabel();
+        scheduleAutoSave();
+      });
+    }
+  } catch(e){}
+}
+
+// ── Backup + Desfazer (Fase 2) ──
+function takeBackup(reason){
+  try {
+    if (store.size === 0) return;
+    lastBackup = {
+      snapshot: store.getSnapshot(),
+      drawing: currentDrawing ? { id: currentDrawing.id, name: currentDrawing.name } : null,
+      reason: reason || 'alteração',
+      at: new Date().toISOString()
+    };
+  } catch(e){}
+}
+function restoreBackup(){
+  if (!lastBackup) { showToast('Nada a desfazer'); return; }
+  try {
+    // Como 'user': volta a sincronizar via WS e marca dirty.
+    store.loadSnapshot(lastBackup.snapshot, 'user');
+    if (lastBackup.drawing) currentDrawing = { id: lastBackup.drawing.id, name: lastBackup.drawing.name };
+    else currentDrawing = null;
+    dirty = true;
+    updateDrawingLabel();
+    scheduleDraftSave();
+    scheduleAutoSave();
+    try { board.editor.fitContent(); } catch(e){}
+    lastBackup = null;
+    showToast('Desfeito');
+  } catch(e){ showToast('Falha ao desfazer'); }
+}
+function showUndoToast(msg){
+  try {
+    if (!lastBackup) { showToast(msg); return; }
+    showToastUndo(msg, 'Desfazer', restoreBackup, 9000);
+  } catch(e){ showToast(msg); }
+}
+
+// ── IA com consentimento (Fase 3) ──
+var shownProposalId = null;
+var recentAppliedAi = {};
+
+function hideProposalToast(id){
+  if (id && shownProposalId !== id) return;
+  shownProposalId = null;
+  try {
+    if (toastEl) {
+      toastEl.classList.remove('show');
+      clearTimeout(toastEl._hide);
+    }
+  } catch(e){}
+}
+
+function showProposalToast(p){
+  if (!p || !p.id) return;
+  if (!toastEl) return;
+  shownProposalId = p.id;
+  var label = p.label || 'proposta da IA';
+  var count = p.count || 0;
+  toastEl.innerHTML = '';
+  var span = document.createElement('span');
+  span.textContent = 'IA propõe "' + label + '" (' + count + ' shapes). Aplicar?';
+  var applyBtn = document.createElement('button');
+  applyBtn.textContent = 'Aplicar';
+  applyBtn.onclick = function(){ applyProposal(p.id); };
+  var newBtn = document.createElement('button');
+  newBtn.textContent = 'Novo desenho';
+  newBtn.onclick = function(){ saveProposalAsDrawing(p.id, label); };
+  var noBtn = document.createElement('button');
+  noBtn.textContent = 'Descartar';
+  noBtn.onclick = function(){ dismissProposal(p.id); };
+  toastEl.appendChild(span);
+  toastEl.appendChild(applyBtn);
+  toastEl.appendChild(newBtn);
+  toastEl.appendChild(noBtn);
+  toastEl.classList.add('show');
+  clearTimeout(toastEl._hide);
+  toastEl._hide = setTimeout(function(){
+    if (shownProposalId === p.id) {
+      toastEl.classList.remove('show');
+      shownProposalId = null;
+    }
+  }, 60000);
+}
+
+function applyProposal(id){
+  apiSend('POST', '/canvas/proposals/' + encodeURIComponent(id) + '/apply').then(function(res){
+    hideProposalToast(id);
+    var ids = (res && res.ids) || [];
+    for (var i = 0; i < ids.length; i++) recentAppliedAi[ids[i]] = Date.now();
+    showToastUndo('IA adicionou ' + ids.length + ' shapes', 'Desfazer', function(){ undoAiShapes(ids); }, 9000);
+    showNextProposal();
+  }).catch(function(e){ showToast(e.message || 'Falha ao aplicar'); });
+}
+
+function dismissProposal(id){
+  hideProposalToast(id);
+  apiSend('DELETE', '/canvas/proposals/' + encodeURIComponent(id)).then(function(){
+    showNextProposal();
+  }).catch(function(){ showNextProposal(); });
+}
+
+function saveProposalAsDrawing(id, label){
+  var body = { name: (label || 'Desenho da IA').slice(0, 120) };
+  if (selectedCol) body.collectionId = selectedCol;
+  apiSend('POST', '/canvas/proposals/' + encodeURIComponent(id) + '/save', body).then(function(meta){
+    hideProposalToast(id);
+    refreshLibrary().then(function(){
+      if (meta && meta.collectionId) { selectedCol = meta.collectionId; storeCol(selectedCol); }
+      renderCols(); return refreshDrawings();
+    }).catch(function(){});
+    showToastUndo('Desenho "' + ((meta && meta.name) || label) + '" criado', 'Abrir', function(){
+      if (meta && meta.id) openDrawing(meta.id);
+    }, 9000);
+    showNextProposal();
+  }).catch(function(e){ showToast(e.message || 'Falha ao salvar proposta'); });
+}
+
+function showNextProposal(){
+  apiGet('/canvas/proposals').then(function(list){
+    if (list && list.length) showProposalToast(list[list.length - 1]);
+  }).catch(function(){});
+}
+
+// Rede de segurança: IA no modo imediato (POST /canvas/shapes live).
+// Detecta records shape:ai-* vindos da rede e oferece Desfazer preciso.
+function detectAiDiff(diff){
+  var added = (diff && diff.added) || {};
+  var ids = Object.keys(added).filter(function(k){
+    return k.indexOf('shape:ai-') === 0;
+  });
+  // Remove os que acabamos de aplicar (já têm toast com Desfazer).
+  var fresh = [];
+  var cutoff = Date.now() - 10000;
+  for (var i = 0; i < ids.length; i++) {
+    var at = recentAppliedAi[ids[i]];
+    if (at && at > cutoff) delete recentAppliedAi[ids[i]];
+    else fresh.push(ids[i]);
+  }
+  if (!fresh.length) return;
+  showToastUndo('IA adicionou ' + fresh.length + ' shapes no board', 'Desfazer', function(){ undoAiShapes(fresh); }, 12000);
+}
+
+function undoAiShapes(ids){
+  try {
+    var existing = [];
+    for (var i = 0; i < ids.length; i++) {
+      if (store.records && store.records.has ? store.records.has(ids[i]) : store.getSnapshot().document.store[ids[i]]) existing.push(ids[i]);
+    }
+    if (!existing.length) { showToast('Nada a desfazer'); return; }
+    store.remove(existing, 'user');
+    showToast('Shapes da IA removidos');
+  } catch(e){ showToast('Falha ao desfazer'); }
+}
 
 var confirmResolve = null;
+var tripleResolve = null;
 function askConfirm(msg, okLabel){
+  tripleResolve = null;
   document.getElementById('confirm-msg').textContent = msg;
-  document.getElementById('confirm-ok').textContent = okLabel || 'Confirmar';
+  var actions = document.getElementById('confirm-actions');
+  actions.innerHTML = '';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.onclick = function(){ window.confirmLib(false); };
+  var okBtn = document.createElement('button');
+  okBtn.className = 'btn';
+  okBtn.id = 'confirm-ok';
+  okBtn.textContent = okLabel || 'Confirmar';
+  okBtn.onclick = function(){ window.confirmLib(true); };
+  actions.appendChild(cancelBtn);
+  actions.appendChild(okBtn);
   document.getElementById('confirm-overlay').classList.add('open');
   return new Promise(function(res){ confirmResolve = res; });
 }
 window.confirmLib = function(ok){
   document.getElementById('confirm-overlay').classList.remove('open');
   if (confirmResolve) { confirmResolve(!!ok); confirmResolve = null; }
+};
+// Guarda de 3 vias: Salvar / Descartar / Cancelar. Evita perda silenciosa.
+function askTriple(msg){
+  confirmResolve = null;
+  document.getElementById('confirm-msg').textContent = msg;
+  var actions = document.getElementById('confirm-actions');
+  actions.innerHTML = '';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.onclick = function(){ window.confirmTriple('cancel'); };
+  var discardBtn = document.createElement('button');
+  discardBtn.className = 'btn btn-danger';
+  discardBtn.textContent = 'Descartar';
+  discardBtn.onclick = function(){ window.confirmTriple('discard'); };
+  var saveBtn = document.createElement('button');
+  saveBtn.className = 'btn';
+  saveBtn.id = 'confirm-ok';
+  saveBtn.textContent = 'Salvar';
+  saveBtn.onclick = function(){ window.confirmTriple('save'); };
+  actions.appendChild(cancelBtn);
+  actions.appendChild(discardBtn);
+  actions.appendChild(saveBtn);
+  document.getElementById('confirm-overlay').classList.add('open');
+  return new Promise(function(res){ tripleResolve = res; });
+}
+window.confirmTriple = function(choice){
+  document.getElementById('confirm-overlay').classList.remove('open');
+  if (tripleResolve) { tripleResolve(choice); tripleResolve = null; }
 };
 
 function storedCol(){ try { return localStorage.getItem('docmap-canvas-col'); } catch(e){ return null; } }
@@ -591,37 +983,86 @@ window.saveDrawing = function(){
   var name = input ? input.value.trim() : '';
   if (!name) { showToast('Dê um nome ao desenho'); if (input) input.focus(); return; }
   if (store.size === 0) { showToast('Board vazio — nada a salvar'); return; }
-  var body = { name: name };
+  var body = { name: name, snapshot: store.getSnapshot() };
   if (selectedCol) body.collectionId = selectedCol;
+  cancelAutoSave();
+  savingState = true; updateDrawingLabel();
   apiSend('POST', '/canvas/drawings', body).then(function(meta){
     if (input) input.value = '';
     currentDrawing = { id: meta.id, name: meta.name };
-    dirty = false; updateDrawingLabel();
+    savingState = false;
+    markClean();
+    clearDraftLocal();
     return refreshLibrary().then(function(){
       selectedCol = meta.collectionId; storeCol(selectedCol);
       renderCols(); return refreshDrawings();
     });
   }).then(function(){ showToast('Desenho salvo'); })
-  .catch(function(e){ showToast(e.message || 'Falha ao salvar'); });
+  .catch(function(e){ savingState = false; updateDrawingLabel(); showToast(e.message || 'Falha ao salvar'); scheduleAutoSave(); });
 };
 
-function openDrawing(id){
-  apiSend('POST', '/canvas/drawings/' + encodeURIComponent(id) + '/open').then(function(res){
+// Salvamento silencioso no desenho atual (Ctrl+S, guarda de troca).
+// Envia o snapshot do cliente — não depende do hub estar sincronizado.
+function saveCurrentDrawing(){
+  if (!currentDrawing) return Promise.reject(new Error('sem desenho aberto'));
+  if (store.size === 0) { showToast('Board vazio — nada a salvar'); return Promise.reject(new Error('board vazio')); }
+  cancelAutoSave();
+  savingState = true; updateDrawingLabel();
+  var seq = editSeq;
+  return apiSend('POST', '/canvas/drawings/' + encodeURIComponent(currentDrawing.id) + '/save', { snapshot: store.getSnapshot() }).then(function(){
+    savingState = false;
+    // Traço durante o save: não limpa — reagenda para salvar o resto.
+    if (seq !== editSeq) { dirty = true; updateDrawingLabel(); scheduleDraftSave(); scheduleAutoSave(); refreshDrawings(); return; }
+    markClean();
+    clearDraftLocal();
+    refreshDrawings();
+    showToast('Desenho salvo');
+  }).catch(function(e){
+    savingState = false; updateDrawingLabel();
+    showToast(e.message || 'Falha ao salvar');
+    scheduleAutoSave();
+    throw e;
+  });
+}
+
+function doOpenDrawing(id){
+  takeBackup('abertura');
+  cancelAutoSave();
+  return apiSend('POST', '/canvas/drawings/' + encodeURIComponent(id) + '/open').then(function(res){
     currentDrawing = { id: res.drawing.id, name: res.drawing.name };
-    dirty = false;
+    markClean();
+    clearDraftLocal();
     applySnapshot(res.snapshot);
     try { board.editor.fitContent(); } catch(e){}
     updateDrawingLabel(); renderDrawings();
-    showToast('Desenho aberto');
+    showUndoToast('Desenho aberto');
   }).catch(function(e){ showToast(e.message || 'Falha ao abrir'); });
+}
+
+function openDrawing(id){
+  if (currentDrawing && currentDrawing.id === id) return;
+  if (!isDirty()) { doOpenDrawing(id); return; }
+  var label = currentDrawing ? ('"' + currentDrawing.name + '"') : 'rascunho sem título';
+  askTriple('Você tem alterações não salvas em ' + label + '. Salvar antes de trocar?').then(function(choice){
+    if (choice === 'cancel' || choice === null || choice === undefined) return;
+    if (choice === 'discard') { clearDraftLocal(); markClean(); doOpenDrawing(id); return; }
+    // choice === 'save'
+    if (!currentDrawing) {
+      showToast('Dê um nome acima para salvar o rascunho antes de trocar');
+      var input = document.getElementById('new-drawing-input');
+      if (input) input.focus();
+      return;
+    }
+    saveCurrentDrawing().then(function(){ doOpenDrawing(id); }).catch(function(){});
+  });
 }
 
 function overwriteDrawing(id){
   var d = findDrawing(id);
   askConfirm('Sobrescrever "' + (d ? d.name : '') + '" com o board atual?', 'Salvar').then(function(ok){
     if (!ok) return;
-    apiSend('POST', '/canvas/drawings/' + encodeURIComponent(id) + '/save').then(function(){
-      if (currentDrawing && currentDrawing.id === id) { dirty = false; updateDrawingLabel(); }
+    apiSend('POST', '/canvas/drawings/' + encodeURIComponent(id) + '/save', { snapshot: store.getSnapshot() }).then(function(){
+      if (currentDrawing && currentDrawing.id === id) { markClean(); clearDraftLocal(); }
       refreshDrawings();
       showToast('Desenho atualizado');
     }).catch(function(e){ showToast(e.message || 'Falha ao salvar'); });
@@ -633,11 +1074,108 @@ function deleteDrawing(id){
   askConfirm('Excluir "' + (d ? d.name : '') + '"?', 'Excluir').then(function(ok){
     if (!ok) return;
     apiSend('DELETE', '/canvas/drawings/' + encodeURIComponent(id)).then(function(){
-      if (currentDrawing && currentDrawing.id === id) { currentDrawing = null; dirty = false; updateDrawingLabel(); }
+      if (currentDrawing && currentDrawing.id === id) {
+        currentDrawing = null;
+        // Board continua na tela — vira rascunho não salvo.
+        if (store.size > 0) { dirty = true; scheduleDraftSave(); }
+        else { dirty = false; clearDraftLocal(); }
+        updateDrawingLabel();
+      }
       refreshDrawings(); refreshLibraryCounts();
       showToast('Desenho excluído');
     }).catch(function(){ showToast('Falha ao excluir'); });
   });
+}
+
+// ── Limpar com guarda (afeta todos — confirma sempre) ──
+function doClearBoard(){
+  takeBackup('limpeza');
+  cancelAutoSave();
+  fetch('/canvas/clear', { method: 'POST' }).then(function(){
+    // Board limpo vira tela vazia sem vínculo — sem dirty fantasma.
+    currentDrawing = null;
+    dirty = false;
+    clearDraftLocal();
+    updateDrawingLabel();
+    showUndoToast('Board limpo para todos');
+  }).catch(function(){ showToast('Erro ao limpar'); });
+}
+function guardedClearBoard(){
+  if (isDirty()) {
+    var label = currentDrawing ? ('"' + currentDrawing.name + '"') : 'rascunho sem título';
+    askTriple('Você tem alterações não salvas em ' + label + '. Salvar antes de limpar?').then(function(choice){
+      if (choice === 'cancel' || choice === null || choice === undefined) return;
+      if (choice === 'discard') { doClearBoard(); return; }
+      if (!currentDrawing) {
+        showToast('Dê um nome acima para salvar o rascunho antes de limpar');
+        var input = document.getElementById('new-drawing-input');
+        if (input) input.focus();
+        return;
+      }
+      saveCurrentDrawing().then(function(){ doClearBoard(); }).catch(function(){});
+    });
+    return;
+  }
+  if (store.size === 0) { showToast('Board já está vazio'); return; }
+  askConfirm('Limpar o board para todos?', 'Limpar').then(function(ok){
+    if (ok) doClearBoard();
+  });
+}
+window.clearBoard = guardedClearBoard;
+
+// ── Ctrl+S salva no desenho atual ──
+window.addEventListener('keydown', function(e){
+  try {
+    var isSave = (e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 's';
+    if (!isSave) return;
+    // Não rouba o Ctrl+S de inputs de texto (rename inline).
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    e.preventDefault();
+    if (currentDrawing) saveCurrentDrawing().catch(function(){});
+    else window.saveDrawing();
+  } catch(err){}
+});
+
+// ── Sair sem salvar avisa (Fase 1: rascunho + aviso nativo) ──
+window.addEventListener('beforeunload', function(e){
+  try {
+    if (isDirty()) {
+      backupDraftNow();
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  } catch(err){}
+});
+
+// ── Restaura rascunho após fechar sem salvar ──
+function maybeRestoreDraft(){
+  try {
+    var hasOpen = false;
+    try { hasOpen = !!new URLSearchParams(location.search).get('open'); } catch(e){}
+    if (hasOpen) return;
+    var draft = getDraftLocal();
+    if (!draft) return;
+    var count = draft.snapshot && draft.snapshot.document && draft.snapshot.document.store ? Object.keys(draft.snapshot.document.store).length : 0;
+    if (count === 0) { clearDraftLocal(); return; }
+    var when = draft.updatedAt ? fmtDate(draft.updatedAt) : '';
+    var who = draft.drawingName ? ('"' + draft.drawingName + '"') : 'rascunho sem título';
+    askConfirm('Restaurar ' + who + (when ? (' de ' + when) : '') + ' (' + count + ' shapes)?', 'Restaurar').then(function(ok){
+      if (ok) {
+        try {
+          // Como 'user': gera diff, sincroniza via WS e marca dirty.
+          store.loadSnapshot(draft.snapshot, 'user');
+          if (draft.drawingId) currentDrawing = { id: draft.drawingId, name: draft.drawingName || 'Sem título' };
+          dirty = true;
+          updateDrawingLabel();
+          try { board.editor.fitContent(); } catch(e){}
+          showToast('Rascunho restaurado');
+        } catch(e){ showToast('Falha ao restaurar rascunho'); }
+      } else {
+        clearDraftLocal();
+      }
+    });
+  } catch(e){}
 }
 
 function refreshLibraryCounts(){
@@ -653,7 +1191,8 @@ try {
   if (openId && /^[0-9a-f-]{36}$/i.test(openId)) {
     apiSend('POST', '/canvas/drawings/' + openId + '/open').then(function(res){
       currentDrawing = { id: res.drawing.id, name: res.drawing.name };
-      dirty = false;
+      markClean();
+      clearDraftLocal();
       applySnapshot(res.snapshot);
       try { board.editor.fitContent(); } catch(e){}
       updateDrawingLabel();
@@ -666,6 +1205,10 @@ connect();
 
 // Sidebar aberta por padrão (padrão docmap: logo alterna).
 refreshLibrary();
+// Rascunho local volta após o sync inicial — sem brigar com o WS.
+setTimeout(maybeRestoreDraft, 900);
+// Propostas da IA pendentes (criadas com a página fechada).
+setTimeout(function(){ try { showNextProposal(); } catch(e){} }, 1500);
 <\/script>
 </body>
 </html>`;

@@ -34,7 +34,9 @@ export type ClientMessage = {
 export type ServerMessage =
   | { readonly type: 'snapshot'; readonly snapshot: BoardSnapshot }
   | { readonly type: 'diff'; readonly diff: BoardDiff }
-  | { readonly type: 'peers'; readonly count: number };
+  | { readonly type: 'peers'; readonly count: number }
+  | { readonly type: 'proposal'; readonly proposal: ProposalNotice }
+  | { readonly type: 'proposal-retracted'; readonly id: string };
 
 export interface CanvasInfoResponse {
   readonly vendor: string;
@@ -99,4 +101,24 @@ export interface DrawingDocument {
 export interface DrawingOpenResponse {
   readonly drawing: DrawingMeta;
   readonly snapshot: BoardSnapshot;
+}
+
+// ── Propostas da IA (Fase 3: consentimento antes de invadir o board) ──
+
+export interface ProposalNotice {
+  readonly id: string;
+  readonly label: string;
+  readonly count: number;
+  readonly createdAt: string;
+}
+
+export interface ProposalCreateResponse {
+  readonly ok: boolean;
+  readonly proposal: ProposalNotice;
+}
+
+export interface ProposalApplyResponse {
+  readonly ok: boolean;
+  readonly ids: readonly string[];
+  readonly count: number;
 }

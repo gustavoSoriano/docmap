@@ -1,7 +1,19 @@
 import { serveCanvasPage } from './page.ts';
 import { boardHub, validateDiff, validateFrame } from './hub.ts';
 import { createLibraryHandler } from './library-handler.ts';
+import {
+  createProposal,
+  dismissProposal,
+  getProposal,
+  listProposalNotices,
+} from './proposals.ts';
 import { validateShapeInputs } from './shapes.ts';
+import {
+  appendShapesToDrawing,
+  createDrawingFromRecords,
+  ensureDefaultCollection,
+  getCollection,
+} from './store.ts';
 import { isVendorFile, serveVendorFile, vendorVersion } from './vendor.ts';
 import { json } from '../server/response.ts';
 import type { HandlerDeps } from '../server/types.ts';
@@ -12,6 +24,8 @@ import type {
   CanvasShapesResponse,
   CanvasSnapshotResponse,
   ClientMessage,
+  ProposalApplyResponse,
+  ProposalCreateResponse,
 } from './types.ts';
 
 const VENDOR_PREFIX = '/canvas/vendor/quickdraw/';
@@ -92,6 +106,24 @@ export const createCanvasHandler = (deps: HandlerDeps) => {
       return json({ ok: true, connections: boardHub.connectionCount });
     }
 
+    // Propostas da IA (Fase 3: consentimento — nada entra no live sem Aplicar).
+    if (
+      pathname === '/canvas/proposals' ||
+      pathname.startsWith('/canvas/proposals/')
+    ) {
+      return handleProposals(deps, req, url);
+    }
+
+    // IA isolada num desenho salvo (Fase 3: sem tocar no board ao vivo).
+    // POST /canvas/drawings/:id/shapes — intercepta antes da biblioteca.
+    if (
+      req.method === 'POST' &&
+      /^\/canvas\/drawings\/[^/]+\/shapes$/.test(pathname)
+    ) {
+      const drawingId = pathname.split('/')[3] ?? '';
+      return handleDrawingShapes(deps, req, drawingId);
+    }
+
     // Biblioteca: /canvas/collections… e /canvas/drawings…
     if (
       pathname === '/canvas/collections' ||
@@ -149,6 +181,149 @@ async function handleShapes(req: Request): Promise<Response> {
   const ids = boardHub.insertShapes(parsed.shapes);
   const res: CanvasShapesResponse = { ok: true, ids, count: ids.length };
   return json(res);
+}
+
+// ── Propostas da IA (Fase 3) ──
+
+const readJsonBody = async (req: Request): Promise<unknown> => {
+  try {
+    return await req.json();
+  } catch {
+    return null;
+  }
+};
+
+const cleanLabel = (v: unknown): string => {
+  if (typeof v !== 'string') return '';
+  return v.trim().slice(0, 120);
+};
+
+async function handleProposals(
+  deps: HandlerDeps,
+  req: Request,
+  url: URL,
+): Promise<Response> {
+  const { kv } = deps;
+  const seg = url.pathname.replace(/^\/canvas\/proposals\/?/, '')
+    .split('/')
+    .filter(Boolean);
+  const [id, action] = seg;
+
+  // GET /canvas/proposals — pendências (avisos leves, sem records).
+  if (req.method === 'GET' && !id) {
+    return json(listProposalNotices());
+  }
+
+  // POST /canvas/proposals { shapes, label? } — segura sem tocar no live.
+  if (req.method === 'POST' && !id) {
+    const body = await readJsonBody(req);
+    const parsed = validateShapeInputs(body);
+    if ('error' in parsed) {
+      return json({ error: 'invalid_shapes', message: parsed.error }, 400);
+    }
+    const label = body && typeof body === 'object' && !Array.isArray(body)
+      ? cleanLabel((body as Record<string, unknown>).label)
+      : '';
+    const proposal = createProposal(
+      parsed.shapes,
+      boardHub.getSnapshot().document.store,
+      label,
+    );
+    boardHub.notifyProposal({
+      id: proposal.id,
+      label: proposal.label,
+      count: proposal.records.length,
+      createdAt: proposal.createdAt,
+    });
+    const res: ProposalCreateResponse = {
+      ok: true,
+      proposal: {
+        id: proposal.id,
+        label: proposal.label,
+        count: proposal.records.length,
+        createdAt: proposal.createdAt,
+      },
+    };
+    return json(res, 201);
+  }
+
+  if (!id) return json({ error: 'method_not_allowed' }, 405);
+
+  // POST /canvas/proposals/:id/apply — humano consentiu: entra no live.
+  if (req.method === 'POST' && action === 'apply') {
+    const proposal = getProposal(id);
+    if (!proposal) return json({ error: 'not_found' }, 404);
+    const ids = boardHub.insertRecords(proposal.records);
+    dismissProposal(id);
+    boardHub.notifyProposalRetracted(id);
+    const res: ProposalApplyResponse = { ok: true, ids, count: ids.length };
+    return json(res);
+  }
+
+  // POST /canvas/proposals/:id/save { name?, collectionId?, tags? } —
+  // vira desenho novo isolado (sem tocar no live).
+  if (req.method === 'POST' && action === 'save') {
+    const proposal = getProposal(id);
+    if (!proposal) return json({ error: 'not_found' }, 404);
+    const body = await readJsonBody(req);
+    const rec = body && typeof body === 'object' && !Array.isArray(body)
+      ? (body as Record<string, unknown>)
+      : {};
+    const rawName = typeof rec.name === 'string' ? rec.name.trim() : '';
+    const name = (rawName || proposal.label || 'Proposta da IA').slice(0, 120);
+    if (!name) return json({ error: 'name required (1-120 chars)' }, 400);
+    const col = typeof rec.collectionId === 'string' && rec.collectionId
+      ? await getCollection(kv, rec.collectionId)
+      : await ensureDefaultCollection(kv);
+    if (!col) return json({ error: 'not_found' }, 404);
+    const meta = await createDrawingFromRecords(kv, {
+      collectionId: col.id,
+      name,
+      tags: Array.isArray(rec.tags) ? rec.tags.map(String) : undefined,
+      records: proposal.records,
+    });
+    if (!meta) return json({ error: 'invalid_snapshot' }, 400);
+    dismissProposal(id);
+    boardHub.notifyProposalRetracted(id);
+    return json(meta, 201);
+  }
+
+  // DELETE /canvas/proposals/:id ou POST .../dismiss — descarta.
+  if (
+    (req.method === 'DELETE' && !action) ||
+    (req.method === 'POST' && action === 'dismiss')
+  ) {
+    const proposal = getProposal(id);
+    if (!proposal) return json({ error: 'not_found' }, 404);
+    dismissProposal(id);
+    boardHub.notifyProposalRetracted(id);
+    return json({ ok: true });
+  }
+
+  return json({ error: 'method_not_allowed' }, 405);
+}
+
+// ── IA num desenho salvo (Fase 3: isolado do live) ──
+
+async function handleDrawingShapes(
+  deps: HandlerDeps,
+  req: Request,
+  drawingId: string,
+): Promise<Response> {
+  const { kv } = deps;
+  const body = await readJsonBody(req);
+  const parsed = validateShapeInputs(body);
+  if ('error' in parsed) {
+    return json({ error: 'invalid_shapes', message: parsed.error }, 400);
+  }
+  const result = await appendShapesToDrawing(kv, drawingId, parsed.shapes);
+  if (!result) return json({ error: 'not_found' }, 404);
+  return json({
+    ok: true,
+    ids: result.ids,
+    count: result.ids.length,
+    shapes: result.meta.shapes,
+  });
 }
 
 // ── WebSocket upgrade ──

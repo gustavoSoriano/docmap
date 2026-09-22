@@ -955,7 +955,12 @@ UI; botão Tema no topo, acompanha a preferência salva).
 | GET | \`/canvas/snapshot\` | Documento + textos extraídos (leitura precisa p/ IA) |
 | GET | \`/canvas/frame.png\` | PNG atual do board (visão p/ IA) |
 | POST | \`/canvas/frame\` | Viewers enviam o frame (body = PNG) |
-| POST | \`/canvas/shapes\` | IA desenha shapes (texto, sticky, formas, setas) |
+  | POST | \`/canvas/shapes\` | IA desenha IMEDIATO no live (prefira proposals) |
+  | GET | \`/canvas/proposals\` | Lista propostas pendentes da IA |
+  | POST | \`/canvas/proposals\` | IA propõe \`{ shapes, label? }\` (sem tocar no live) |
+  | POST | \`/canvas/proposals/:id/apply\` | Aplica proposta no board ao vivo |
+  | POST | \`/canvas/proposals/:id/save\` | Proposta vira desenho novo \`{ name?, collectionId? }\` |
+  | DELETE | \`/canvas/proposals/:id\` | Descarta proposta |
 | GET | \`/canvas/collections\` | Lista collections de desenhos (com contagem) |
 | POST | \`/canvas/collections\` | Cria collection \`{ name }\` |
 | PUT | \`/canvas/collections/:id\` | Renomeia collection |
@@ -1010,12 +1015,47 @@ de magic bytes; 415 se não for PNG). Servidor guarda o último
 (last-write-wins); \`POST /canvas/clear\` invalida o frame. Viewers não
 enviam frame de board vazio.
 
-### IA desenhando — \`POST /canvas/shapes\`
+  ### IA desenhando — \`POST /canvas/proposals\` (preferido)
 
-A IA desenha sem WebSocket: manda shapes de alto nível, o servidor converte
-em records Quickdraw, aplica no op-log e difunde a todos (com undo normal
-para os humanos). Fluxo sugerido: consulte \`GET /canvas/frame.png\` e/ou
-\`/canvas/snapshot\` para escolher coordenadas livres, depois poste.
+  Por padrão a IA NÃO invade o board: ela propõe, o humano aplica.
+  O servidor segura os shapes como proposta e avisa todos via WS
+  (\`{ type: 'proposal', proposal: { id, label, count, createdAt } }\`).
+  A página mostra **Aplicar / Novo desenho / Descartar**.
+
+  Body \`{ shapes: [...], label? }\` (max 50 por request, mesmos kinds
+  da tabela abaixo). Resposta \`201 { ok: true, proposal: { id, ... } }\`.
+
+  \`\`\`bash
+  # 1. Propõe (não toca na tela de ninguém)
+  curl -X POST http://127.0.0.1:3333/canvas/proposals \\
+    -H "Content-Type: application/json" \\
+    -d '{"label":"fluxo de login","shapes":[
+      {"kind":"geo","geo":"rectangle","label":"coleta","color":"blue"},
+      {"kind":"geo","geo":"ellipse","label":"pronto","color":"green"}
+    ]}'
+
+  # 2a. Humano aplica na página — ou via API (consentimento registrado):
+  curl -X POST http://127.0.0.1:3333/canvas/proposals/<id>/apply
+
+  # 2b. Ou vira desenho novo isolado (sem tocar no board ao vivo):
+  curl -X POST http://127.0.0.1:3333/canvas/proposals/<id>/save \\
+    -H "Content-Type: application/json" \\
+    -d '{"name":"fluxo de login"}'
+
+  # 2c. Ou descarta:
+  curl -X DELETE http://127.0.0.1:3333/canvas/proposals/<id>
+
+  # Pendências:
+  curl http://127.0.0.1:3333/canvas/proposals
+  \`\`\`
+
+  ### IA desenhando direto — \`POST /canvas/shapes\` (imediato)
+
+  Aplica na hora no board ao vivo e difunde a todos (com undo normal
+  para os humanos; a página oferece **Desfazer** ao detectar os shapes).
+  Use só quando o humano já pediu "desenha aqui agora". Fluxo sugerido:
+  consulte \`GET /canvas/frame.png\` e/ou \`/canvas/snapshot\` para escolher
+  coordenadas livres, depois poste. Prefira \`/canvas/proposals\`.
 
 Body \`{ shapes: [...] }\` (max 50 por request). Kinds:
 
@@ -1055,13 +1095,15 @@ página — aberta por padrão, a logo abre/fecha — ou API abaixo). Metadados 
 filesystem (\`<dataDir>/drawings/<collectionId>/<drawingId>.json\`, pois
 podem passar de 64 KiB com imagens embutidas).
 
-- Salvar (\`POST /canvas/drawings { name, collectionId?, tags? }\`) fotografa o
-  board atual do servidor; sem \`collectionId\` usa/cria a "Geral". Sem
+- Salvar (\`POST /canvas/drawings { name, collectionId?, tags?, snapshot? }\`) fotografa o
+  board (aceita o snapshot do cliente; sem ele usa o do servidor); sem \`collectionId\` usa/cria a "Geral". Sem
   \`tags\`, herda as da collection. Desenhos entram no \`/graph\` como
   \`kind: 'drawing'\` (conectados por tag, igual às outras entidades).
 - Abrir (\`POST /canvas/drawings/:id/open\`) substitui o board ao vivo
   para TODOS e retorna \`{ drawing, snapshot }\`.
-- Sobrescrever (\`POST /canvas/drawings/:id/save\`) atualiza com o board atual.
+- Sobrescrever (\`POST /canvas/drawings/:id/save\`) atualiza com o board atual (aceita \`{ snapshot? }\`).
+- IA isolada (\`POST /canvas/drawings/:id/shapes { shapes }\`) anexa shapes
+  direto no desenho salvo, sem tocar no board ao vivo.
 - Renomear/mover/retaguear via \`PUT { name?, collectionId?, tags? }\`;
   excluir collection apaga os desenhos junto.
 - Deep link: \`http://127.0.0.1:3333/#drawing/<id>\` abre o desenho direto
