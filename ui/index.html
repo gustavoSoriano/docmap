@@ -691,6 +691,16 @@
               <input id="trilha-search" type="text" placeholder="Buscar trilhas"
                 autocomplete="off" spellcheck="false" oninput="renderTrilhasList()">
             </div>
+            <div class="tr-filter-row" role="tablist" aria-label="Filtrar trilhas">
+              <button type="button" class="tr-filter-chip on" data-trilha-filter="all"
+                onclick="setTrilhaFilter('all')">Todas</button>
+              <button type="button" class="tr-filter-chip" data-trilha-filter="running"
+                onclick="setTrilhaFilter('running')">Ativas</button>
+              <button type="button" class="tr-filter-chip" data-trilha-filter="draft"
+                onclick="setTrilhaFilter('draft')">Rascunhos</button>
+              <button type="button" class="tr-filter-chip" data-trilha-filter="done"
+                onclick="setTrilhaFilter('done')">Prontas</button>
+            </div>
             <div id="trilha-list"></div>
           </aside>
 
@@ -820,60 +830,77 @@
                 <input id="trilha-node-title" required maxlength="140"
                   placeholder="Ex: Investigar front-end-admin">
               </label>
-              <label>
-                <span>Detalhes (você e a IA editam aqui)</span>
-              </label>
-              <div class="tr-seg" role="tablist" aria-label="Modo dos detalhes">
-                <button type="button" id="trilha-node-tab-preview"
-                  class="tr-seg-btn" onclick="setTrilhaDetailsMode('preview')">Preview</button>
-                <button type="button" id="trilha-node-tab-edit"
-                  class="tr-seg-btn" onclick="setTrilhaDetailsMode('edit')">Editar</button>
+              <div class="tr-tabs" role="tablist" aria-label="Seções do bloco">
+                <button type="button" id="trilha-node-tabbtn-conteudo"
+                  class="tr-tab-btn on" role="tab" aria-selected="true"
+                  onclick="setTrilhaNodeTab('conteudo')">Conteúdo</button>
+                <button type="button" id="trilha-node-tabbtn-entrega"
+                  class="tr-tab-btn" role="tab" aria-selected="false"
+                  onclick="setTrilhaNodeTab('entrega')">Entrega</button>
+                <button type="button" id="trilha-node-tabbtn-config"
+                  class="tr-tab-btn" role="tab" aria-selected="false"
+                  onclick="setTrilhaNodeTab('config')">Config</button>
               </div>
-              <textarea id="trilha-node-details" rows="8"
-                placeholder="Passos, arquivos, critérios, links… (markdown)"
-                oninput="onTrilhaDetailsInput()"></textarea>
-              <div id="trilha-node-details-preview"></div>
-              <label>
-                <span>Resultado da entrega (relatório — a IA preenche aqui)</span>
-                <textarea id="trilha-node-result" rows="4"
-                  placeholder="O que foi feito, evidências, arquivos alterados…"></textarea>
-              </label>
-              <label>
-                <span>Critérios de pronto (um por linha — done exige relatório)</span>
-                <textarea id="trilha-node-criteria" rows="3"
-                  placeholder="Ex: teste XPTO passa&#10;Ex: sem regressão no login"></textarea>
-              </label>
-              <label>
-                <span>Motivo do bloqueio (quando status = Bloqueado)</span>
-                <input id="trilha-node-blocked-reason" maxlength="280"
-                  placeholder="Ex: aguardando acesso ao staging">
-              </label>
-              <div class="app-form-grid">
+              <div id="trilha-node-tab-conteudo" class="tr-tab-panel on" role="tabpanel">
                 <label>
-                  <span>Status</span>
-                  <select id="trilha-node-status">
-                    <option value="todo">A fazer</option>
-                    <option value="doing">Fazendo</option>
-                    <option value="done">Pronto</option>
-                    <option value="blocked">Bloqueado</option>
-                  </select>
+                  <span>Detalhes (você e a IA editam aqui)</span>
+                </label>
+                <div class="tr-seg" role="tablist" aria-label="Modo dos detalhes">
+                  <button type="button" id="trilha-node-tab-preview"
+                    class="tr-seg-btn" onclick="setTrilhaDetailsMode('preview')">Preview</button>
+                  <button type="button" id="trilha-node-tab-edit"
+                    class="tr-seg-btn" onclick="setTrilhaDetailsMode('edit')">Editar</button>
+                </div>
+                <textarea id="trilha-node-details" rows="14"
+                  placeholder="Passos, arquivos, critérios, links… (markdown)"
+                  oninput="onTrilhaDetailsInput()"></textarea>
+                <div id="trilha-node-details-preview"></div>
+              </div>
+              <div id="trilha-node-tab-entrega" class="tr-tab-panel" role="tabpanel">
+                <label>
+                  <span>Resultado da entrega (relatório — a IA preenche aqui)</span>
+                  <textarea id="trilha-node-result" rows="8"
+                    placeholder="O que foi feito, evidências, arquivos alterados…"></textarea>
                 </label>
                 <label>
-                  <span>Responsável</span>
-                  <select id="trilha-node-assignee-kind">
-                    <option value="ai">IA</option>
-                    <option value="human">Humano</option>
-                  </select>
+                  <span>Critérios de pronto (um por linha — done exige relatório)</span>
+                  <textarea id="trilha-node-criteria" rows="5"
+                    placeholder="Ex: teste XPTO passa&#10;Ex: sem regressão no login"></textarea>
                 </label>
               </div>
-              <label>
-                <span>Nome do responsável</span>
-                <input id="trilha-node-assignee-label" maxlength="60"
-                  placeholder="Ex: Você, codex, claude">
-              </label>
-              <div id="trilha-node-deps-wrap">
-                <span class="app-field-label">Depende de (setas de entrada)</span>
-                <div id="trilha-node-deps"></div>
+              <div id="trilha-node-tab-config" class="tr-tab-panel" role="tabpanel">
+                <label>
+                  <span>Motivo do bloqueio (quando status = Bloqueado)</span>
+                  <input id="trilha-node-blocked-reason" maxlength="280"
+                    placeholder="Ex: aguardando acesso ao staging">
+                </label>
+                <div class="app-form-grid">
+                  <label>
+                    <span>Status</span>
+                    <select id="trilha-node-status">
+                      <option value="todo">A fazer</option>
+                      <option value="doing">Fazendo</option>
+                      <option value="done">Pronto</option>
+                      <option value="blocked">Bloqueado</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Responsável</span>
+                    <select id="trilha-node-assignee-kind">
+                      <option value="ai">IA</option>
+                      <option value="human">Humano</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  <span>Nome do responsável</span>
+                  <input id="trilha-node-assignee-label" maxlength="60"
+                    placeholder="Ex: Você, codex, claude">
+                </label>
+                <div id="trilha-node-deps-wrap">
+                  <span class="app-field-label">Depende de (setas de entrada)</span>
+                  <div id="trilha-node-deps"></div>
+                </div>
               </div>
             </div>
             <div class="app-modal-actions">

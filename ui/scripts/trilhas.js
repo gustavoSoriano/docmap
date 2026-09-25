@@ -79,30 +79,47 @@ const loadTrilhas = async () => {
   }
 };
 
+let trilhaFilter = 'all';
+
+const setTrilhaFilter = (f) => {
+  trilhaFilter = f || 'all';
+  document.querySelectorAll('.tr-filter-chip').forEach((chip) => {
+    chip.classList.toggle('on', chip.dataset.trilhaFilter === trilhaFilter);
+  });
+  renderTrilhasList();
+};
+
 const renderTrilhasList = () => {
   const list = $('trilha-list');
   if (!list) return;
   const q = ($('trilha-search')?.value || '').trim().toLowerCase();
-  const items = allTrilhas.filter((t) =>
-    !q || t.title.toLowerCase().includes(q) ||
-    (t.objective || '').toLowerCase().includes(q) ||
-    (t.tags || []).join(' ').toLowerCase().includes(q)
-  );
+  const items = allTrilhas.filter((t) => {
+    if (trilhaFilter !== 'all' && t.status !== trilhaFilter) return false;
+    return !q || t.title.toLowerCase().includes(q) ||
+      (t.objective || '').toLowerCase().includes(q) ||
+      (t.tags || []).join(' ').toLowerCase().includes(q);
+  });
+  const total = allTrilhas.length;
   $('trilha-sidebar-count').textContent =
-    `${allTrilhas.length} ${allTrilhas.length === 1 ? 'trilha' : 'trilhas'}`;
+    trilhaFilter === 'all' || items.length === total
+      ? `${total} ${total === 1 ? 'trilha' : 'trilhas'}`
+      : `${items.length} de ${total}`;
   if (!items.length) {
-    list.innerHTML = '<div class="trilha-sidebar-empty">Nenhuma trilha</div>';
+    list.innerHTML = q || trilhaFilter !== 'all'
+      ? '<div class="trilha-sidebar-empty">Nada por aqui.<br>Tente outro filtro ou busca.</div>'
+      : '<div class="trilha-sidebar-empty">Nenhuma trilha ainda.<br>Crie a primeira para começar.</div>';
     return;
   }
   list.innerHTML = items.map((t) => {
     const active = currentTrilhaDetail?.trilha.id === t.id;
+    const blocks = t.nodeCount || 0;
     return `<button class="trilha-list-item${active ? ' active' : ''}" data-trilha-id="${t.id}">
       <span class="trilha-list-title">${escHtml(t.title)}</span>
-      <span class="trilha-list-objective">${escHtml(t.objective || '')}</span>
+      ${t.objective ? `<span class="trilha-list-objective">${escHtml(t.objective)}</span>` : ''}
       <span class="trilha-list-meta">
         <span class="tr-status-dot ${t.status}"></span>
         <span>${escHtml(TR_STATUS_LABEL[t.status] || t.status)}</span>
-        <span>${t.nodeCount || 0} ${(t.nodeCount || 0) === 1 ? 'bloco' : 'blocos'}</span>
+        <span class="trilha-list-count">${blocks} ${blocks === 1 ? 'bloco' : 'blocos'}</span>
       </span>
     </button>`;
   }).join('');
@@ -466,8 +483,8 @@ const renderTrilhaInspector = () => {
   if (trilhaActivityOpen) {
     panel.hidden = false;
     content.innerHTML = `
-      <div class="tr-inspector-head">
-        <span>Atividade</span>
+      <div class="tr-insp-top">
+        <span class="tr-insp-title-sm">Atividade</span>
         <button class="tr-inspector-close" onclick="toggleTrilhaActivity()" title="Fechar">${ICON('x')}</button>
       </div>
       <div id="trilha-activity-list"><div class="tr-inspector-empty">Carregando…</div></div>`;
@@ -491,12 +508,18 @@ const renderTrilhaInspector = () => {
   const a = node.assignee || { kind: 'ai', label: 'IA' };
   const stale = node.claimedBy ? trilhaStaleText(node) : '';
   content.innerHTML = `
-    <div class="tr-inspector-head">
-      <span class="tr-status-dot ${node.status}"></span>
-      <span>${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
+    <div class="tr-insp-top">
+      <span class="tr-insp-pill st-${node.status}"><span class="tr-status-dot ${node.status}"></span>${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
       <button class="tr-inspector-close" onclick="closeTrilhaInspector()" title="Fechar">${ICON('x')}</button>
     </div>
     <div class="tr-inspector-title">${escHtml(node.title)}</div>
+    <div class="tr-insp-sub">
+      <span class="tr-insp-assignee ${a.kind}">${a.kind === 'ai' ? ICON('bot') : ICON('user')} ${escHtml(a.label)}</span>
+      <span class="tr-insp-sep">·</span>
+      ${node.claimedBy
+        ? `<span class="tr-insp-claim${stale ? ' stale' : ''}">${ICON('lock')} ${escHtml(node.claimedBy)}${stale ? ` · sem sinal ${stale}` : ''}</span>`
+        : '<span class="tr-insp-free">Trava livre</span>'}
+    </div>
     <div class="tr-inspector-row">
       ${['todo', 'doing', 'done', 'blocked'].map((s) =>
         `<button class="tr-status-btn${node.status === s ? ' on' : ''}" onclick="setTrilhaNodeStatus('${node.id}','${s}')">${escHtml(TR_NODE_STATUS_LABEL[s])}</button>`
@@ -505,33 +528,45 @@ const renderTrilhaInspector = () => {
     ${node.status === 'blocked' && node.blockedReason
       ? `<div class="tr-inspector-blocked"><b>Bloqueio:</b> ${escHtml(node.blockedReason)}</div>`
       : ''}
-    <div class="tr-inspector-label">Responsável</div>
-    <div class="tr-inspector-assignee ${a.kind}">${a.kind === 'ai' ? ICON('bot') : ICON('user')} ${escHtml(a.label)}</div>
-    <div class="tr-inspector-label">Trava</div>
-    ${node.claimedBy
-      ? `<div class="tr-inspector-claim locked">${ICON('lock')} Reservado por <b>${escHtml(node.claimedBy)}</b>${stale ? ` — <span class="tr-stale">sem sinal ${stale}</span>` : ''}</div>`
-      : '<div class="tr-inspector-empty">Livre — assuma antes de executar.</div>'}
-    ${node.details ? `<div class="tr-inspector-label">Detalhes (briefing)</div><div class="tr-inspector-details">${renderMarkdown(node.details)}</div>` : '<div class="tr-inspector-empty">Sem detalhes ainda — edite para documentar.</div>'}
-    ${(node.doneCriteria?.length) ? `<div class="tr-inspector-label">Critérios de pronto (${node.doneCriteria.length})</div><ul class="tr-inspector-criteria">${node.doneCriteria.map((c) => `<li>${escHtml(c)}</li>`).join('')}</ul>` : ''}
-    ${node.result ? `<div class="tr-inspector-label">Resultado da entrega</div><div class="tr-inspector-details result">${renderMarkdown(node.result)}</div>` : ''}
-    <div class="tr-inspector-label">Depende de (${incoming.length})</div>
-    ${incoming.length ? incoming.map((e) => {
-      const from = trilhaNodeById(e.fromNodeId);
-      return `<div class="tr-inspector-dep"><span>← ${escHtml(from?.title || '?')}</span><button onclick="removeTrilhaEdge('${e.id}')" title="Remover seta">${ICON('x')}</button></div>`;
-    }).join('') : '<div class="tr-inspector-empty">Nenhuma — pode começar em paralelo.</div>'}
-    <div class="tr-inspector-label">Libera (${outgoing.length})</div>
-    ${outgoing.length ? outgoing.map((e) => {
-      const to = trilhaNodeById(e.toNodeId);
-      return `<div class="tr-inspector-dep"><span>→ ${escHtml(to?.title || '?')}</span><button onclick="removeTrilhaEdge('${e.id}')" title="Remover seta">${ICON('x')}</button></div>`;
-    }).join('') : '<div class="tr-inspector-empty">Nenhum bloco depende deste.</div>'}
+    <section class="tr-insp-card">
+      <div class="tr-insp-card-h"><span>Briefing</span></div>
+      ${node.details ? `<div class="tr-inspector-details">${renderMarkdown(node.details)}</div>` : '<div class="tr-inspector-empty">Sem detalhes ainda — edite para documentar.</div>'}
+    </section>
+    ${(node.doneCriteria?.length)
+      ? `<section class="tr-insp-card">
+          <div class="tr-insp-card-h"><span>Critérios de pronto · ${node.doneCriteria.length}</span></div>
+          <ul class="tr-inspector-criteria">${node.doneCriteria.map((c) => `<li>${escHtml(c)}</li>`).join('')}</ul>
+        </section>`
+      : ''}
+    ${node.result
+      ? `<section class="tr-insp-card">
+          <div class="tr-insp-card-h"><span>Resultado da entrega</span></div>
+          <div class="tr-inspector-details result">${renderMarkdown(node.result)}</div>
+        </section>`
+      : ''}
+    <section class="tr-insp-card">
+      <div class="tr-insp-card-h"><span>Conexões</span></div>
+      <div class="tr-insp-conn-h">Depende de · ${incoming.length}</div>
+      ${incoming.length ? incoming.map((e) => {
+        const from = trilhaNodeById(e.fromNodeId);
+        return `<div class="tr-inspector-dep"><span>← ${escHtml(from?.title || '?')}</span><button onclick="removeTrilhaEdge('${e.id}')" title="Remover seta">${ICON('x')}</button></div>`;
+      }).join('') : '<div class="tr-inspector-empty">Nenhuma — pode começar em paralelo.</div>'}
+      <div class="tr-insp-conn-h">Libera · ${outgoing.length}</div>
+      ${outgoing.length ? outgoing.map((e) => {
+        const to = trilhaNodeById(e.toNodeId);
+        return `<div class="tr-inspector-dep"><span>→ ${escHtml(to?.title || '?')}</span><button onclick="removeTrilhaEdge('${e.id}')" title="Remover seta">${ICON('x')}</button></div>`;
+      }).join('') : '<div class="tr-inspector-empty">Nenhum bloco depende deste.</div>'}
+    </section>
     <div class="tr-inspector-actions">
       ${node.claimedBy
         ? `<button class="app-secondary-btn danger" onclick="releaseTrilhaNode()">Liberar</button>`
-        : `<button class="app-secondary-btn" onclick="claimTrilhaNode()">Assumir</button>`}
-      <button class="app-secondary-btn" onclick="copyTrilhaNodeId('${node.id}')">${ICON('copy')} ID</button>
-      <button class="app-secondary-btn" onclick="copyTrilhaNodePackage('${node.id}')">Pacote p/ IA</button>
+        : `<button class="app-primary-btn" onclick="claimTrilhaNode()">Assumir</button>`}
       <button class="app-secondary-btn" onclick="openNodeModal('${node.id}')">Editar</button>
-      <button class="app-secondary-btn danger" onclick="deleteSelectedTrilhaNode()">Excluir</button>
+    </div>
+    <div class="tr-inspector-actions sub">
+      <button class="tr-insp-ghost" onclick="copyTrilhaNodePackage('${node.id}')">${ICON('copy')} Pacote p/ IA</button>
+      <button class="tr-insp-ghost" onclick="copyTrilhaNodeId('${node.id}')">${ICON('copy')} ID</button>
+      <button class="tr-insp-ghost danger" onclick="deleteSelectedTrilhaNode()">Excluir</button>
     </div>`;
   hydrateIcons(content);
 };
@@ -790,7 +825,26 @@ const deleteCurrentTrilha = async () => {
   toast('Trilha excluída');
 };
 
-// ── Modal bloco ──
+// ── Modal bloco: abas ──
+// Conteúdo (briefing) | Entrega (resultado + critérios) | Config (status, dono, deps).
+// Título fica fixo fora das abas para o submit nunca esconder campo required.
+
+const TR_NODE_TABS = ['conteudo', 'entrega', 'config'];
+
+let trNodeTab = 'conteudo';
+
+const setTrilhaNodeTab = (tab) => {
+  if (!TR_NODE_TABS.includes(tab)) return;
+  trNodeTab = tab;
+  TR_NODE_TABS.forEach((t) => {
+    $(`trilha-node-tab-${t}`)?.classList.toggle('on', t === tab);
+    const btn = $(`trilha-node-tabbtn-${t}`);
+    btn?.classList.toggle('on', t === tab);
+    btn?.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+  });
+};
+
+// ── Modal bloco: detalhes preview/edit ──
 // Os detalhes são markdown (é assim que a IA devolve o relatório). O preview
 // é o modo padrão: quem abre o bloco lê formatado, quem edita troca pra texto.
 
@@ -841,6 +895,7 @@ const openNodeModal = (id) => {
       `<label class="tr-dep-check"><input type="checkbox" data-dep-id="${n.id}"${currentDeps.has(n.id) ? ' checked' : ''}><span>${escHtml(n.title)}</span></label>`
     ).join('') || '<div class="tr-inspector-empty">Nenhum outro bloco ainda.</div>';
   $('trilha-node-modal-overlay').classList.add('visible');
+  setTrilhaNodeTab('conteudo');
   setTrilhaDetailsMode(node?.details ? 'preview' : 'edit');
   setTimeout(() => $('trilha-node-title')?.focus(), 60);
 };

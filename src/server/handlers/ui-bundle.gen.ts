@@ -5418,17 +5418,54 @@ body::before {
 
 /* ── Inspetor ── */
 #trilha-inspector {
-  width: 330px;
+  width: 366px;
   flex-shrink: 0;
   border-left: 1px solid var(--border);
   background: var(--surface);
   overflow-y: auto;
-  padding: 16px;
+  padding: 0;
 }
 #trilha-inspector-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 13px;
+  padding: 18px 18px 14px;
+}
+.tr-insp-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tr-insp-title-sm {
+  font-size: 13px;
+  font-weight: 700;
+}
+.tr-insp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 11px;
+}
+.tr-insp-pill.st-done {
+  border-color: var(--tr-done);
+  color: var(--tr-done);
+}
+.tr-insp-pill.st-blocked {
+  border-color: var(--tr-blocked);
+  color: var(--tr-blocked);
+}
+.tr-insp-pill.st-doing {
+  border-color: var(--tr-doing);
+  color: var(--tr-doing);
 }
 .tr-inspector-head {
   display: flex;
@@ -5451,13 +5488,57 @@ body::before {
   height: 15px;
 }
 .tr-inspector-title {
-  font-size: 15px;
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.tr-insp-sub {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: -6px;
+}
+.tr-insp-assignee {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.tr-insp-assignee .ico {
+  width: 13px;
+  height: 13px;
+}
+.tr-insp-assignee.ai {
+  color: var(--accent);
+}
+.tr-insp-sep {
+  opacity: 0.5;
+}
+.tr-insp-claim {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.tr-insp-claim .ico {
+  width: 12px;
+  height: 12px;
+}
+.tr-insp-claim.stale {
+  color: var(--tr-blocked);
   font-weight: 700;
 }
+.tr-insp-free {
+  color: var(--text-3);
+}
 .tr-inspector-row {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
 }
 .tr-status-btn {
   flex: 1;
@@ -5676,8 +5757,42 @@ body::before {
   font-style: italic;
 }
 .tr-inspector-empty {
-  font-size: 11px;
+  font-size: 11.5px;
+  line-height: 1.5;
   color: var(--text-3);
+}
+/* Cards do inspetor: um assunto por cartão, menos muro de texto */
+.tr-insp-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  padding: 12px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tr-insp-card-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+}
+.tr-insp-card .tr-inspector-details {
+  background: var(--surface);
+  max-height: 220px;
+}
+.tr-insp-card .tr-inspector-empty {
+  padding: 2px 0;
+}
+.tr-insp-conn-h {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-2);
+  margin-top: 2px;
 }
 .tr-inspector-dep {
   display: flex;
@@ -5685,10 +5800,15 @@ body::before {
   justify-content: space-between;
   gap: 8px;
   font-size: 12px;
-  padding: 6px 10px;
+  padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  background: var(--surface-2);
+  background: var(--surface);
+}
+.tr-inspector-dep > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tr-inspector-dep button {
   border: none;
@@ -5707,11 +5827,49 @@ body::before {
 }
 .tr-inspector-actions {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 6px;
+  gap: 8px;
+  margin-top: 2px;
+  position: sticky;
+  bottom: -14px;
+  background: var(--surface);
+  padding: 10px 0 6px;
+  border-top: 1px solid var(--border);
 }
-.tr-inspector-actions .ico {
+.tr-inspector-actions .app-primary-btn,
+.tr-inspector-actions .app-secondary-btn {
+  flex: 1;
+  min-height: 34px;
+}
+.tr-inspector-actions.sub {
+  position: static;
+  border-top: none;
+  padding: 0;
+  margin-top: -5px;
+}
+.tr-insp-ghost {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font: 600 10.5px var(--font-ui);
+  padding: 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.tr-insp-ghost:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.tr-insp-ghost.danger:hover {
+  color: var(--tr-blocked);
+}
+.tr-inspector-actions .ico,
+.tr-insp-ghost .ico {
   width: 13px;
   height: 13px;
 }
@@ -5733,7 +5891,7 @@ body::before {
 
 @media (max-width: 1050px) {
   #trilha-inspector {
-    width: 280px;
+    width: 320px;
   }
 }
 
@@ -5766,6 +5924,206 @@ body::before {
 .tr-seg-btn.on {
   background: var(--surface-3);
   color: var(--text);
+}
+
+/* ── Modal do bloco: abas + respiro ── */
+#trilha-node-modal-form.app-modal.wide {
+  width: min(1020px, 96vw);
+  height: min(800px, calc(100vh - 48px));
+  max-height: calc(100vh - 48px);
+}
+#trilha-node-modal-form .app-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.tr-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  align-self: stretch;
+  flex-shrink: 0;
+}
+.tr-tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font: 700 11px var(--font-ui);
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.tr-tab-btn:hover {
+  color: var(--text-2);
+}
+.tr-tab-btn.on {
+  background: var(--surface-3);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--border-hi);
+}
+.tr-tab-panel {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.tr-tab-panel.on {
+  display: flex;
+}
+#trilha-node-tab-conteudo.on {
+  flex: 1;
+  min-height: 0;
+}
+#trilha-node-tab-conteudo #trilha-node-details {
+  flex: 1;
+  min-height: 280px;
+  resize: vertical;
+  line-height: 1.65;
+  font-size: 12px;
+}
+#trilha-node-tab-conteudo #trilha-node-details-preview.visible {
+  flex: 1;
+  min-height: 280px;
+  max-height: none;
+}
+#trilha-node-tab-entrega #trilha-node-result {
+  min-height: 170px;
+  resize: vertical;
+  line-height: 1.65;
+}
+#trilha-node-tab-entrega #trilha-node-criteria {
+  min-height: 110px;
+  resize: vertical;
+}
+#trilha-node-tab-config #trilha-node-deps {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 190px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  background: var(--surface-2);
+}
+
+/* ── Sidebar da trilha: respiro ── */
+#trilha-sidebar {
+  width: 322px;
+}
+#trilha-sidebar-head {
+  padding: 20px 18px 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+#trilha-sidebar-title {
+  font-size: 19px;
+}
+#trilha-sidebar-count {
+  font-size: 11px;
+  margin-top: 2px;
+}
+#trilha-search-wrap {
+  padding: 0 18px 8px;
+}
+#trilha-search {
+  height: 34px;
+  border-radius: 10px;
+}
+.tr-filter-row {
+  display: flex;
+  gap: 6px;
+  padding: 0 18px 12px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.tr-filter-chip {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-3);
+  font: 700 10.5px var(--font-ui);
+  padding: 5px 11px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.tr-filter-chip:hover {
+  color: var(--text-2);
+  border-color: var(--border-hi);
+}
+.tr-filter-chip.on {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+#trilha-list {
+  padding: 2px 14px 18px;
+  gap: 10px;
+}
+.trilha-list-item {
+  gap: 5px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  transition: border-color 0.12s, background 0.12s, transform 0.12s;
+}
+.trilha-list-item:hover {
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+}
+.trilha-list-item.active {
+  border-color: var(--accent-line);
+  background: var(--surface-3);
+  box-shadow: 0 0 0 1px var(--accent-line);
+}
+.trilha-list-title {
+  font-size: 13.5px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.trilha-list-objective {
+  font-size: 11.5px;
+  line-height: 1.45;
+  -webkit-line-clamp: 1;
+}
+.trilha-list-meta {
+  gap: 8px;
+  font-size: 10.5px;
+  margin-top: 3px;
+}
+.trilha-list-count {
+  margin-left: auto;
+  font-weight: 700;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1px 8px;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.trilha-list-item.active .trilha-list-count {
+  border-color: var(--accent-line);
+}
+.trilha-sidebar-empty {
+  padding: 28px 16px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+  #trilha-sidebar {
+    width: 272px;
+  }
 }
 
 </style>
@@ -10330,6 +10688,16 @@ svg#kg-svg:active {
               <input id="trilha-search" type="text" placeholder="Buscar trilhas"
                 autocomplete="off" spellcheck="false" oninput="renderTrilhasList()">
             </div>
+            <div class="tr-filter-row" role="tablist" aria-label="Filtrar trilhas">
+              <button type="button" class="tr-filter-chip on" data-trilha-filter="all"
+                onclick="setTrilhaFilter('all')">Todas</button>
+              <button type="button" class="tr-filter-chip" data-trilha-filter="running"
+                onclick="setTrilhaFilter('running')">Ativas</button>
+              <button type="button" class="tr-filter-chip" data-trilha-filter="draft"
+                onclick="setTrilhaFilter('draft')">Rascunhos</button>
+              <button type="button" class="tr-filter-chip" data-trilha-filter="done"
+                onclick="setTrilhaFilter('done')">Prontas</button>
+            </div>
             <div id="trilha-list"></div>
           </aside>
 
@@ -10459,60 +10827,77 @@ svg#kg-svg:active {
                 <input id="trilha-node-title" required maxlength="140"
                   placeholder="Ex: Investigar front-end-admin">
               </label>
-              <label>
-                <span>Detalhes (você e a IA editam aqui)</span>
-              </label>
-              <div class="tr-seg" role="tablist" aria-label="Modo dos detalhes">
-                <button type="button" id="trilha-node-tab-preview"
-                  class="tr-seg-btn" onclick="setTrilhaDetailsMode('preview')">Preview</button>
-                <button type="button" id="trilha-node-tab-edit"
-                  class="tr-seg-btn" onclick="setTrilhaDetailsMode('edit')">Editar</button>
+              <div class="tr-tabs" role="tablist" aria-label="Seções do bloco">
+                <button type="button" id="trilha-node-tabbtn-conteudo"
+                  class="tr-tab-btn on" role="tab" aria-selected="true"
+                  onclick="setTrilhaNodeTab('conteudo')">Conteúdo</button>
+                <button type="button" id="trilha-node-tabbtn-entrega"
+                  class="tr-tab-btn" role="tab" aria-selected="false"
+                  onclick="setTrilhaNodeTab('entrega')">Entrega</button>
+                <button type="button" id="trilha-node-tabbtn-config"
+                  class="tr-tab-btn" role="tab" aria-selected="false"
+                  onclick="setTrilhaNodeTab('config')">Config</button>
               </div>
-              <textarea id="trilha-node-details" rows="8"
-                placeholder="Passos, arquivos, critérios, links… (markdown)"
-                oninput="onTrilhaDetailsInput()"></textarea>
-              <div id="trilha-node-details-preview"></div>
-              <label>
-                <span>Resultado da entrega (relatório — a IA preenche aqui)</span>
-                <textarea id="trilha-node-result" rows="4"
-                  placeholder="O que foi feito, evidências, arquivos alterados…"></textarea>
-              </label>
-              <label>
-                <span>Critérios de pronto (um por linha — done exige relatório)</span>
-                <textarea id="trilha-node-criteria" rows="3"
-                  placeholder="Ex: teste XPTO passa&#10;Ex: sem regressão no login"></textarea>
-              </label>
-              <label>
-                <span>Motivo do bloqueio (quando status = Bloqueado)</span>
-                <input id="trilha-node-blocked-reason" maxlength="280"
-                  placeholder="Ex: aguardando acesso ao staging">
-              </label>
-              <div class="app-form-grid">
+              <div id="trilha-node-tab-conteudo" class="tr-tab-panel on" role="tabpanel">
                 <label>
-                  <span>Status</span>
-                  <select id="trilha-node-status">
-                    <option value="todo">A fazer</option>
-                    <option value="doing">Fazendo</option>
-                    <option value="done">Pronto</option>
-                    <option value="blocked">Bloqueado</option>
-                  </select>
+                  <span>Detalhes (você e a IA editam aqui)</span>
+                </label>
+                <div class="tr-seg" role="tablist" aria-label="Modo dos detalhes">
+                  <button type="button" id="trilha-node-tab-preview"
+                    class="tr-seg-btn" onclick="setTrilhaDetailsMode('preview')">Preview</button>
+                  <button type="button" id="trilha-node-tab-edit"
+                    class="tr-seg-btn" onclick="setTrilhaDetailsMode('edit')">Editar</button>
+                </div>
+                <textarea id="trilha-node-details" rows="14"
+                  placeholder="Passos, arquivos, critérios, links… (markdown)"
+                  oninput="onTrilhaDetailsInput()"></textarea>
+                <div id="trilha-node-details-preview"></div>
+              </div>
+              <div id="trilha-node-tab-entrega" class="tr-tab-panel" role="tabpanel">
+                <label>
+                  <span>Resultado da entrega (relatório — a IA preenche aqui)</span>
+                  <textarea id="trilha-node-result" rows="8"
+                    placeholder="O que foi feito, evidências, arquivos alterados…"></textarea>
                 </label>
                 <label>
-                  <span>Responsável</span>
-                  <select id="trilha-node-assignee-kind">
-                    <option value="ai">IA</option>
-                    <option value="human">Humano</option>
-                  </select>
+                  <span>Critérios de pronto (um por linha — done exige relatório)</span>
+                  <textarea id="trilha-node-criteria" rows="5"
+                    placeholder="Ex: teste XPTO passa&#10;Ex: sem regressão no login"></textarea>
                 </label>
               </div>
-              <label>
-                <span>Nome do responsável</span>
-                <input id="trilha-node-assignee-label" maxlength="60"
-                  placeholder="Ex: Você, codex, claude">
-              </label>
-              <div id="trilha-node-deps-wrap">
-                <span class="app-field-label">Depende de (setas de entrada)</span>
-                <div id="trilha-node-deps"></div>
+              <div id="trilha-node-tab-config" class="tr-tab-panel" role="tabpanel">
+                <label>
+                  <span>Motivo do bloqueio (quando status = Bloqueado)</span>
+                  <input id="trilha-node-blocked-reason" maxlength="280"
+                    placeholder="Ex: aguardando acesso ao staging">
+                </label>
+                <div class="app-form-grid">
+                  <label>
+                    <span>Status</span>
+                    <select id="trilha-node-status">
+                      <option value="todo">A fazer</option>
+                      <option value="doing">Fazendo</option>
+                      <option value="done">Pronto</option>
+                      <option value="blocked">Bloqueado</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Responsável</span>
+                    <select id="trilha-node-assignee-kind">
+                      <option value="ai">IA</option>
+                      <option value="human">Humano</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  <span>Nome do responsável</span>
+                  <input id="trilha-node-assignee-label" maxlength="60"
+                    placeholder="Ex: Você, codex, claude">
+                </label>
+                <div id="trilha-node-deps-wrap">
+                  <span class="app-field-label">Depende de (setas de entrada)</span>
+                  <div id="trilha-node-deps"></div>
+                </div>
               </div>
             </div>
             <div class="app-modal-actions">
@@ -14306,30 +14691,47 @@ const loadTrilhas = async () => {
   }
 };
 
+let trilhaFilter = 'all';
+
+const setTrilhaFilter = (f) => {
+  trilhaFilter = f || 'all';
+  document.querySelectorAll('.tr-filter-chip').forEach((chip) => {
+    chip.classList.toggle('on', chip.dataset.trilhaFilter === trilhaFilter);
+  });
+  renderTrilhasList();
+};
+
 const renderTrilhasList = () => {
   const list = $('trilha-list');
   if (!list) return;
   const q = ($('trilha-search')?.value || '').trim().toLowerCase();
-  const items = allTrilhas.filter((t) =>
-    !q || t.title.toLowerCase().includes(q) ||
-    (t.objective || '').toLowerCase().includes(q) ||
-    (t.tags || []).join(' ').toLowerCase().includes(q)
-  );
+  const items = allTrilhas.filter((t) => {
+    if (trilhaFilter !== 'all' && t.status !== trilhaFilter) return false;
+    return !q || t.title.toLowerCase().includes(q) ||
+      (t.objective || '').toLowerCase().includes(q) ||
+      (t.tags || []).join(' ').toLowerCase().includes(q);
+  });
+  const total = allTrilhas.length;
   $('trilha-sidebar-count').textContent =
-    \`\${allTrilhas.length} \${allTrilhas.length === 1 ? 'trilha' : 'trilhas'}\`;
+    trilhaFilter === 'all' || items.length === total
+      ? \`\${total} \${total === 1 ? 'trilha' : 'trilhas'}\`
+      : \`\${items.length} de \${total}\`;
   if (!items.length) {
-    list.innerHTML = '<div class="trilha-sidebar-empty">Nenhuma trilha</div>';
+    list.innerHTML = q || trilhaFilter !== 'all'
+      ? '<div class="trilha-sidebar-empty">Nada por aqui.<br>Tente outro filtro ou busca.</div>'
+      : '<div class="trilha-sidebar-empty">Nenhuma trilha ainda.<br>Crie a primeira para começar.</div>';
     return;
   }
   list.innerHTML = items.map((t) => {
     const active = currentTrilhaDetail?.trilha.id === t.id;
+    const blocks = t.nodeCount || 0;
     return \`<button class="trilha-list-item\${active ? ' active' : ''}" data-trilha-id="\${t.id}">
       <span class="trilha-list-title">\${escHtml(t.title)}</span>
-      <span class="trilha-list-objective">\${escHtml(t.objective || '')}</span>
+      \${t.objective ? \`<span class="trilha-list-objective">\${escHtml(t.objective)}</span>\` : ''}
       <span class="trilha-list-meta">
         <span class="tr-status-dot \${t.status}"></span>
         <span>\${escHtml(TR_STATUS_LABEL[t.status] || t.status)}</span>
-        <span>\${t.nodeCount || 0} \${(t.nodeCount || 0) === 1 ? 'bloco' : 'blocos'}</span>
+        <span class="trilha-list-count">\${blocks} \${blocks === 1 ? 'bloco' : 'blocos'}</span>
       </span>
     </button>\`;
   }).join('');
@@ -14693,8 +15095,8 @@ const renderTrilhaInspector = () => {
   if (trilhaActivityOpen) {
     panel.hidden = false;
     content.innerHTML = \`
-      <div class="tr-inspector-head">
-        <span>Atividade</span>
+      <div class="tr-insp-top">
+        <span class="tr-insp-title-sm">Atividade</span>
         <button class="tr-inspector-close" onclick="toggleTrilhaActivity()" title="Fechar">\${ICON('x')}</button>
       </div>
       <div id="trilha-activity-list"><div class="tr-inspector-empty">Carregando…</div></div>\`;
@@ -14718,12 +15120,18 @@ const renderTrilhaInspector = () => {
   const a = node.assignee || { kind: 'ai', label: 'IA' };
   const stale = node.claimedBy ? trilhaStaleText(node) : '';
   content.innerHTML = \`
-    <div class="tr-inspector-head">
-      <span class="tr-status-dot \${node.status}"></span>
-      <span>\${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
+    <div class="tr-insp-top">
+      <span class="tr-insp-pill st-\${node.status}"><span class="tr-status-dot \${node.status}"></span>\${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
       <button class="tr-inspector-close" onclick="closeTrilhaInspector()" title="Fechar">\${ICON('x')}</button>
     </div>
     <div class="tr-inspector-title">\${escHtml(node.title)}</div>
+    <div class="tr-insp-sub">
+      <span class="tr-insp-assignee \${a.kind}">\${a.kind === 'ai' ? ICON('bot') : ICON('user')} \${escHtml(a.label)}</span>
+      <span class="tr-insp-sep">·</span>
+      \${node.claimedBy
+        ? \`<span class="tr-insp-claim\${stale ? ' stale' : ''}">\${ICON('lock')} \${escHtml(node.claimedBy)}\${stale ? \` · sem sinal \${stale}\` : ''}</span>\`
+        : '<span class="tr-insp-free">Trava livre</span>'}
+    </div>
     <div class="tr-inspector-row">
       \${['todo', 'doing', 'done', 'blocked'].map((s) =>
         \`<button class="tr-status-btn\${node.status === s ? ' on' : ''}" onclick="setTrilhaNodeStatus('\${node.id}','\${s}')">\${escHtml(TR_NODE_STATUS_LABEL[s])}</button>\`
@@ -14732,33 +15140,45 @@ const renderTrilhaInspector = () => {
     \${node.status === 'blocked' && node.blockedReason
       ? \`<div class="tr-inspector-blocked"><b>Bloqueio:</b> \${escHtml(node.blockedReason)}</div>\`
       : ''}
-    <div class="tr-inspector-label">Responsável</div>
-    <div class="tr-inspector-assignee \${a.kind}">\${a.kind === 'ai' ? ICON('bot') : ICON('user')} \${escHtml(a.label)}</div>
-    <div class="tr-inspector-label">Trava</div>
-    \${node.claimedBy
-      ? \`<div class="tr-inspector-claim locked">\${ICON('lock')} Reservado por <b>\${escHtml(node.claimedBy)}</b>\${stale ? \` — <span class="tr-stale">sem sinal \${stale}</span>\` : ''}</div>\`
-      : '<div class="tr-inspector-empty">Livre — assuma antes de executar.</div>'}
-    \${node.details ? \`<div class="tr-inspector-label">Detalhes (briefing)</div><div class="tr-inspector-details">\${renderMarkdown(node.details)}</div>\` : '<div class="tr-inspector-empty">Sem detalhes ainda — edite para documentar.</div>'}
-    \${(node.doneCriteria?.length) ? \`<div class="tr-inspector-label">Critérios de pronto (\${node.doneCriteria.length})</div><ul class="tr-inspector-criteria">\${node.doneCriteria.map((c) => \`<li>\${escHtml(c)}</li>\`).join('')}</ul>\` : ''}
-    \${node.result ? \`<div class="tr-inspector-label">Resultado da entrega</div><div class="tr-inspector-details result">\${renderMarkdown(node.result)}</div>\` : ''}
-    <div class="tr-inspector-label">Depende de (\${incoming.length})</div>
-    \${incoming.length ? incoming.map((e) => {
-      const from = trilhaNodeById(e.fromNodeId);
-      return \`<div class="tr-inspector-dep"><span>← \${escHtml(from?.title || '?')}</span><button onclick="removeTrilhaEdge('\${e.id}')" title="Remover seta">\${ICON('x')}</button></div>\`;
-    }).join('') : '<div class="tr-inspector-empty">Nenhuma — pode começar em paralelo.</div>'}
-    <div class="tr-inspector-label">Libera (\${outgoing.length})</div>
-    \${outgoing.length ? outgoing.map((e) => {
-      const to = trilhaNodeById(e.toNodeId);
-      return \`<div class="tr-inspector-dep"><span>→ \${escHtml(to?.title || '?')}</span><button onclick="removeTrilhaEdge('\${e.id}')" title="Remover seta">\${ICON('x')}</button></div>\`;
-    }).join('') : '<div class="tr-inspector-empty">Nenhum bloco depende deste.</div>'}
+    <section class="tr-insp-card">
+      <div class="tr-insp-card-h"><span>Briefing</span></div>
+      \${node.details ? \`<div class="tr-inspector-details">\${renderMarkdown(node.details)}</div>\` : '<div class="tr-inspector-empty">Sem detalhes ainda — edite para documentar.</div>'}
+    </section>
+    \${(node.doneCriteria?.length)
+      ? \`<section class="tr-insp-card">
+          <div class="tr-insp-card-h"><span>Critérios de pronto · \${node.doneCriteria.length}</span></div>
+          <ul class="tr-inspector-criteria">\${node.doneCriteria.map((c) => \`<li>\${escHtml(c)}</li>\`).join('')}</ul>
+        </section>\`
+      : ''}
+    \${node.result
+      ? \`<section class="tr-insp-card">
+          <div class="tr-insp-card-h"><span>Resultado da entrega</span></div>
+          <div class="tr-inspector-details result">\${renderMarkdown(node.result)}</div>
+        </section>\`
+      : ''}
+    <section class="tr-insp-card">
+      <div class="tr-insp-card-h"><span>Conexões</span></div>
+      <div class="tr-insp-conn-h">Depende de · \${incoming.length}</div>
+      \${incoming.length ? incoming.map((e) => {
+        const from = trilhaNodeById(e.fromNodeId);
+        return \`<div class="tr-inspector-dep"><span>← \${escHtml(from?.title || '?')}</span><button onclick="removeTrilhaEdge('\${e.id}')" title="Remover seta">\${ICON('x')}</button></div>\`;
+      }).join('') : '<div class="tr-inspector-empty">Nenhuma — pode começar em paralelo.</div>'}
+      <div class="tr-insp-conn-h">Libera · \${outgoing.length}</div>
+      \${outgoing.length ? outgoing.map((e) => {
+        const to = trilhaNodeById(e.toNodeId);
+        return \`<div class="tr-inspector-dep"><span>→ \${escHtml(to?.title || '?')}</span><button onclick="removeTrilhaEdge('\${e.id}')" title="Remover seta">\${ICON('x')}</button></div>\`;
+      }).join('') : '<div class="tr-inspector-empty">Nenhum bloco depende deste.</div>'}
+    </section>
     <div class="tr-inspector-actions">
       \${node.claimedBy
         ? \`<button class="app-secondary-btn danger" onclick="releaseTrilhaNode()">Liberar</button>\`
-        : \`<button class="app-secondary-btn" onclick="claimTrilhaNode()">Assumir</button>\`}
-      <button class="app-secondary-btn" onclick="copyTrilhaNodeId('\${node.id}')">\${ICON('copy')} ID</button>
-      <button class="app-secondary-btn" onclick="copyTrilhaNodePackage('\${node.id}')">Pacote p/ IA</button>
+        : \`<button class="app-primary-btn" onclick="claimTrilhaNode()">Assumir</button>\`}
       <button class="app-secondary-btn" onclick="openNodeModal('\${node.id}')">Editar</button>
-      <button class="app-secondary-btn danger" onclick="deleteSelectedTrilhaNode()">Excluir</button>
+    </div>
+    <div class="tr-inspector-actions sub">
+      <button class="tr-insp-ghost" onclick="copyTrilhaNodePackage('\${node.id}')">\${ICON('copy')} Pacote p/ IA</button>
+      <button class="tr-insp-ghost" onclick="copyTrilhaNodeId('\${node.id}')">\${ICON('copy')} ID</button>
+      <button class="tr-insp-ghost danger" onclick="deleteSelectedTrilhaNode()">Excluir</button>
     </div>\`;
   hydrateIcons(content);
 };
@@ -15017,7 +15437,26 @@ const deleteCurrentTrilha = async () => {
   toast('Trilha excluída');
 };
 
-// ── Modal bloco ──
+// ── Modal bloco: abas ──
+// Conteúdo (briefing) | Entrega (resultado + critérios) | Config (status, dono, deps).
+// Título fica fixo fora das abas para o submit nunca esconder campo required.
+
+const TR_NODE_TABS = ['conteudo', 'entrega', 'config'];
+
+let trNodeTab = 'conteudo';
+
+const setTrilhaNodeTab = (tab) => {
+  if (!TR_NODE_TABS.includes(tab)) return;
+  trNodeTab = tab;
+  TR_NODE_TABS.forEach((t) => {
+    $(\`trilha-node-tab-\${t}\`)?.classList.toggle('on', t === tab);
+    const btn = $(\`trilha-node-tabbtn-\${t}\`);
+    btn?.classList.toggle('on', t === tab);
+    btn?.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+  });
+};
+
+// ── Modal bloco: detalhes preview/edit ──
 // Os detalhes são markdown (é assim que a IA devolve o relatório). O preview
 // é o modo padrão: quem abre o bloco lê formatado, quem edita troca pra texto.
 
@@ -15068,6 +15507,7 @@ const openNodeModal = (id) => {
       \`<label class="tr-dep-check"><input type="checkbox" data-dep-id="\${n.id}"\${currentDeps.has(n.id) ? ' checked' : ''}><span>\${escHtml(n.title)}</span></label>\`
     ).join('') || '<div class="tr-inspector-empty">Nenhum outro bloco ainda.</div>';
   $('trilha-node-modal-overlay').classList.add('visible');
+  setTrilhaNodeTab('conteudo');
   setTrilhaDetailsMode(node?.details ? 'preview' : 'edit');
   setTimeout(() => $('trilha-node-title')?.focus(), 60);
 };
