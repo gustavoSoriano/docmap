@@ -8,6 +8,8 @@ import { API_PORT, startApiServer } from './api/server.ts';
 import { MOCK_PORT, startMockServer } from './mocks/server.ts';
 import { openAppKv } from './kv/path.ts';
 import { runMigrations } from './kv/migrate.ts';
+import { boardHub } from './canvas/hub.ts';
+import { readBoardDocument } from './canvas/board-file.ts';
 import { checkForUpdate } from './update/github.ts';
 import { freePort } from './net/free-port.ts';
 import type { HandlerDeps } from './server/types.ts';
@@ -47,6 +49,15 @@ const boot = async (): Promise<void> => {
 
   const kv = await openAppKv();
   await runMigrations(kv);
+
+  // Lousa única: restaura o snapshot persistido (se houver) antes de
+  // aceitar conexões — late joiners já recebem o board completo.
+  try {
+    const doc = await readBoardDocument();
+    if (doc) boardHub.restore(doc.snapshot, doc.updatedAt);
+  } catch (err) {
+    console.error('canvas: falha ao restaurar board persistido', err);
+  }
 
   await startWithRetry({ kv });
 

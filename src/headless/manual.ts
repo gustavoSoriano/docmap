@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '12.1.0';
+export const HEADLESS_MANUAL_VERSION = '13.2.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -104,8 +104,8 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     title: 'Canvas',
     heading: 'Canvas — lousa realtime compartilhada na rede',
     summary:
-      'Lousa infinita realtime: tablet na mesma rede desenha, todos veem.',
-    tags: ['canvas', 'realtime', 'whiteboard', 'library'],
+      'Lousa única realtime: tablet na mesma rede desenha, todos veem, tudo persiste.',
+    tags: ['canvas', 'realtime', 'whiteboard'],
   },
   {
     id: 'debug',
@@ -128,7 +128,7 @@ focadas e \`GET /headless/manual?feature=workflows&role=executor\` para
 protocolos especificos de papel.
 
 
-> **Tags = tema.** Notas, tarefas, workflows, desenhos, macros, podcasts e favoritos
+> **Tags = tema.** Notas, tarefas, workflows, macros, podcasts e favoritos
 > aceitam \`tags?: string[]\` (opcional) — o ASSUNTO da entidade, eixo pelo qual
 > o docmap conecta itens do mesmo tema. São normalizadas ao salvar: minúsculas,
 > sem acento, slug ("Machine Learning" → \`machine-learning\`; "Programação" →
@@ -143,11 +143,11 @@ protocolos especificos de papel.
 
 ## Grafo de conhecimento
 
-- \`GET /graph\` — grafo de TODAS as entidades do docmap (notas, tasks, desenhos,
+- \`GET /graph\` — grafo de TODAS as entidades do docmap (notas, tasks,
   macros, podcasts, favoritos, skills, mocks, workflows) conectadas por TEMA. Read-only; reflete o
   estado atual do KV.
   - \`nodes\`: \`{ id, label, kind, tags? }\` — \`id\` = \`"<tipo>:<uuid>"\` (entidade) ou
-    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|drawing|macro|podcast|favorite|skill|mock|workflow|tag\`.
+    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|macro|podcast|favorite|skill|mock|workflow|tag\`.
   - \`links\`: \`{ source, target, kind }\` — \`kind\` = \`tagged\` (entidade→tag) ou
     \`reference\` (task→nota via \`noteId\`).
   - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por
@@ -161,10 +161,40 @@ protocolos especificos de papel.
 | GET | \`/notes/:id\` | Nota completa com \`content\` em markdown |
 | POST | \`/notes\` | Cria \`{ title, content, tags?, category? }\` |
 | PUT | \`/notes/:id\` | Edita (campos parciais) |
-| DELETE | \`/notes/:id\` | Remove |
+| DELETE | \`/notes/:id\` | Remove (+ apaga imagens anexadas) |
 | GET | \`/search?q=termo\` | Busca full-text nas notas |
 
-Categoria: texto livre (\`general\`, \`ai\`, etc.).
+Categoria: id (slug) de uma categoria cadastrada — \`general\`, \`estudos\`, etc.
+String vazia ('') = nota sem categoria. Omitir ou enviar vazio não força
+mais \`general\`.
+
+> **Protocolo de categoria — siga nesta ordem:** antes de criar ou editar
+> nota com \`category\`, liste \`GET /categories?q=<tema>\` e reaproveite uma
+> existente. Só crie via \`POST /categories { name, description }\` se nenhuma
+> servir — com \`description\` preenchida para a próxima IA entender o
+> propósito. Enviar texto livre em \`POST /notes\` ainda funciona (a API
+> converte para o slug), mas cria a categoria com descrição vazia — evite.
+> Complete descrições ausentes via \`PUT /categories/:id\`.
+
+### Categorias de notas
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/categories\` | Lista com contagem \`notes\`; aceita \`?q=<texto>\` e \`?limit=<n>\` (default 200, máx 500, total no header \`X-Total-Count\`) |
+| GET | \`/categories/:id\` | Categoria + contagem \`notes\` |
+| POST | \`/categories\` | Cria \`{ name, description? }\` (409 se o slug existir) |
+| PUT | \`/categories/:id\` | Edita \`{ name?, description? }\` (id imutável) |
+| DELETE | \`/categories/:id\` | Remove (notas vinculadas ficam sem categoria; vale p/ \`general\`) |
+
+### Imagens nas notas (UI :3333)
+
+Imagens ficam no filesystem (\`<dataDir>/notes/<noteId>/\`), nunca em base64
+no KV. O \`content\` guarda só \`![](/notes/:id/attachments/<arquivo>)\`.
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | \`/notes/:id/attachments\` | Upload raw \`image/png|jpeg|gif|webp\` (máx 5MB) ou JSON \`{ filePath }\` (print copiado como referência) → \`{ filename, url, markdown }\` |
+| GET | \`/notes/:id/attachments/:file\` | Serve a imagem |
 
 ---
 
@@ -936,12 +966,14 @@ LAN — nenhum CDN externo).
 ### Ferramentas (toolbar do board)
 
 Caneta com pressao (caneta) / velocidade (mouse), marca-texto, formas
-(retangulo, elipse, triangulo, diamante, hexagono, estrela) com traço
-hand-drawn, setas com curva arrastavel, linha, texto, sticky notes, imagens
-(colar/arrastar — vao embutidas no documento), laser pointer (efemero, nao
-salva), selecao (mover/redimensionar/rotacionar/duplicar), pan + zoom
-(scroll/pinch), palm rejection (com stylus, o dedo move a camera e a caneta
-desenha), undo/redo por gesto, export PNG (menu ⋮ → "Export as PNG").
+(retangulo, elipse, triangulo, diamante, hexagono, estrela) com traço reto
+por padrão (o ondulado hand-drawn está no menu de estilo), setas com curva
+arrastavel, linha, texto, sticky notes, imagens (colar/arrastar — vao
+embutidas no documento; o botão de inserir por arquivo fica oculto),
+laser pointer (efemero, nao salva), selecao
+(mover/redimensionar/rotacionar/duplicar), pan + zoom (scroll/pinch),
+palm rejection (com stylus, o dedo move a camera e a caneta desenha),
+undo/redo por gesto, export PNG (menu ⋮ → "Export as PNG").
 Tema claro/escuro casado com o docmap (papel, grid e seleção nos tokens da
 UI; botão Tema no topo, acompanha a preferência salva).
 
@@ -955,23 +987,7 @@ UI; botão Tema no topo, acompanha a preferência salva).
 | GET | \`/canvas/snapshot\` | Documento + textos extraídos (leitura precisa p/ IA) |
 | GET | \`/canvas/frame.png\` | PNG atual do board (visão p/ IA) |
 | POST | \`/canvas/frame\` | Viewers enviam o frame (body = PNG) |
-  | POST | \`/canvas/shapes\` | IA desenha IMEDIATO no live (prefira proposals) |
-  | GET | \`/canvas/proposals\` | Lista propostas pendentes da IA |
-  | POST | \`/canvas/proposals\` | IA propõe \`{ shapes, label? }\` (sem tocar no live) |
-  | POST | \`/canvas/proposals/:id/apply\` | Aplica proposta no board ao vivo |
-  | POST | \`/canvas/proposals/:id/save\` | Proposta vira desenho novo \`{ name?, collectionId? }\` |
-  | DELETE | \`/canvas/proposals/:id\` | Descarta proposta |
-| GET | \`/canvas/collections\` | Lista collections de desenhos (com contagem) |
-| POST | \`/canvas/collections\` | Cria collection \`{ name }\` |
-| PUT | \`/canvas/collections/:id\` | Renomeia collection |
-| DELETE | \`/canvas/collections/:id\` | Exclui collection + desenhos (cascata) |
-| GET | \`/canvas/drawings?collectionId=\` | Lista metadados (sem snapshot) |
-| POST | \`/canvas/drawings\` | Salva o board atual \`{ name, collectionId? }\` |
-| GET | \`/canvas/drawings/:id\` | Metadados de um desenho |
-| PUT | \`/canvas/drawings/:id\` | Renomeia/move \`{ name?, collectionId? }\` |
-| POST | \`/canvas/drawings/:id/save\` | Sobrescreve com o board atual |
-| POST | \`/canvas/drawings/:id/open\` | Carrega no board ao vivo p/ todos |
-| DELETE | \`/canvas/drawings/:id\` | Exclui desenho |
+| POST | \`/canvas/shapes\` | IA desenha direto na lousa única |
 | POST | \`/canvas/clear\` | Apaga o board para todos |
 
 ### Protocolo WS \`/canvas/ws\`
@@ -1015,59 +1031,26 @@ de magic bytes; 415 se não for PNG). Servidor guarda o último
 (last-write-wins); \`POST /canvas/clear\` invalida o frame. Viewers não
 enviam frame de board vazio.
 
-  ### IA desenhando — \`POST /canvas/proposals\` (preferido)
+  ### IA desenhando — \`POST /canvas/shapes\` (direto na lousa única)
 
-  Por padrão a IA NÃO invade o board: ela propõe, o humano aplica.
-  O servidor segura os shapes como proposta e avisa todos via WS
-  (\`{ type: 'proposal', proposal: { id, label, count, createdAt } }\`).
-  A página mostra **Aplicar / Novo desenho / Descartar**.
+  Aplica na hora no board e difunde a todos (a página oferece
+  **Desfazer** ao detectar os shapes). Fluxo sugerido: consulte
+  \`GET /canvas/frame.png\` e/ou \`/canvas/snapshot\` para escolher
+  coordenadas livres, depois poste.
 
-  Body \`{ shapes: [...], label? }\` (max 50 por request, mesmos kinds
-  da tabela abaixo). Resposta \`201 { ok: true, proposal: { id, ... } }\`.
-
-  \`\`\`bash
-  # 1. Propõe (não toca na tela de ninguém)
-  curl -X POST http://127.0.0.1:3333/canvas/proposals \\
-    -H "Content-Type: application/json" \\
-    -d '{"label":"fluxo de login","shapes":[
-      {"kind":"geo","geo":"rectangle","label":"coleta","color":"blue"},
-      {"kind":"geo","geo":"ellipse","label":"pronto","color":"green"}
-    ]}'
-
-  # 2a. Humano aplica na página — ou via API (consentimento registrado):
-  curl -X POST http://127.0.0.1:3333/canvas/proposals/<id>/apply
-
-  # 2b. Ou vira desenho novo isolado (sem tocar no board ao vivo):
-  curl -X POST http://127.0.0.1:3333/canvas/proposals/<id>/save \\
-    -H "Content-Type: application/json" \\
-    -d '{"name":"fluxo de login"}'
-
-  # 2c. Ou descarta:
-  curl -X DELETE http://127.0.0.1:3333/canvas/proposals/<id>
-
-  # Pendências:
-  curl http://127.0.0.1:3333/canvas/proposals
-  \`\`\`
-
-  ### IA desenhando direto — \`POST /canvas/shapes\` (imediato)
-
-  Aplica na hora no board ao vivo e difunde a todos (com undo normal
-  para os humanos; a página oferece **Desfazer** ao detectar os shapes).
-  Use só quando o humano já pediu "desenha aqui agora". Fluxo sugerido:
-  consulte \`GET /canvas/frame.png\` e/ou \`/canvas/snapshot\` para escolher
-  coordenadas livres, depois poste. Prefira \`/canvas/proposals\`.
-
-Body \`{ shapes: [...] }\` (max 50 por request). Kinds:
+  Body \`{ shapes: [...] }\` (max 50 por request). Kinds:
 
 | Kind | Campos | Efeito |
 |------|--------|--------|
 | \`text\` | \`text*\`, \`x?\`, \`y?\`, \`color?\`, \`size?\` (\`s/m/l/xl\`), \`font?\` | Texto digitado |
 | \`note\` | \`text*\`, \`x?\`, \`y?\`, \`color?\`, \`font?\` | Sticky note |
-| \`geo\` | \`geo?\` (\`rectangle/ellipse/triangle/diamond/hexagon/star\`), \`label?\`, \`w?\`, \`h?\`, \`x?\`, \`y?\`, \`color?\`, \`size?\`, \`fill?\`, \`font?\` | Forma (default 220×140) |
+| \`geo\` | \`geo?\` (\`rectangle/ellipse/triangle/diamond/hexagon/star\`), \`label?\`, \`w?\`, \`h?\`, \`x?\`, \`y?\`, \`color?\`, \`size?\`, \`fill?\`, \`font?\`, \`dash?\` | Forma (default 220×140, traço reto) |
 | \`arrow\`/\`line\` | \`x2*\`, \`y2*\`, \`x1?\`, \`y1?\`, \`bend?\`, \`color?\`, \`size?\` | Seta/linha por endpoints |
 
 - Cores: \`black/grey/light-violet/violet/blue/light-blue/yellow/orange/green/light-green/light-red/red\`
   (default \`black\`); fontes: \`draw/sans/serif/mono\` (default \`draw\`, traço à mão).
+- Traço (\`dash\` em geo): \`solid/dashed/dotted/draw\` (default \`solid\`,
+  reto). Use \`draw\` só quando quiser o ondulado hand-drawn de propósito.
 - \`x/y\` omitidos → empilha abaixo do conteúdo existente (cursor automático).
   Coordenadas em px do board; textos até 500 chars, labels até 200.
 - Resposta \`{ ok: true, ids, count }\` com os ids gerados (\`shape:ai-…\`).
@@ -1088,36 +1071,19 @@ curl -X POST http://127.0.0.1:3333/canvas/shapes \\
   -d '{"shapes":[{"kind":"arrow","x1":100,"y1":100,"x2":300,"y2":200,"color":"red"}]}'
 \`\`\`
 
-### Biblioteca: collections e desenhos salvos
+### Canvas único persistido
 
-O board ao vivo é efêmero; para guardar, salve na biblioteca (sidebar da
-página — aberta por padrão, a logo abre/fecha — ou API abaixo). Metadados no KV, snapshots no
-filesystem (\`<dataDir>/drawings/<collectionId>/<drawingId>.json\`, pois
-podem passar de 64 KiB com imagens embutidas).
+Não há collections nem desenhos salvos: o canvas é UM board só e o
+servidor persiste automaticamente a cada mudança em
+\`<dataDir>/canvas/board.json\` (vai pro filesystem pois pode passar de
+64 KiB com imagens embutidas). Restart não apaga nada — o boot restaura
+o snapshot e late joiners recebem o board completo via WS.
 
-- Salvar (\`POST /canvas/drawings { name, collectionId?, tags?, snapshot? }\`) fotografa o
-  board (aceita o snapshot do cliente; sem ele usa o do servidor); sem \`collectionId\` usa/cria a "Geral". Sem
-  \`tags\`, herda as da collection. Desenhos entram no \`/graph\` como
-  \`kind: 'drawing'\` (conectados por tag, igual às outras entidades).
-- Abrir (\`POST /canvas/drawings/:id/open\`) substitui o board ao vivo
-  para TODOS e retorna \`{ drawing, snapshot }\`.
-- Sobrescrever (\`POST /canvas/drawings/:id/save\`) atualiza com o board atual (aceita \`{ snapshot? }\`).
-- IA isolada (\`POST /canvas/drawings/:id/shapes { shapes }\`) anexa shapes
-  direto no desenho salvo, sem tocar no board ao vivo.
-- Renomear/mover/retaguear via \`PUT { name?, collectionId?, tags? }\`;
-  excluir collection apaga os desenhos junto.
-- Deep link: \`http://127.0.0.1:3333/#drawing/<id>\` abre o desenho direto
-  no app (modo canvas carrega com \`?open=<id>\`).
-
-\`\`\`bash
-# Salvar o board atual
-curl -X POST http://127.0.0.1:3333/canvas/drawings \\
-  -H "Content-Type: application/json" \\
-  -d '{"name":"fluxo token bucket"}'
-
-# Reabrir depois (todos veem)
-curl -X POST http://127.0.0.1:3333/canvas/drawings/<id>/open
-\`\`\`
+- Tudo que a IA desenha (\`POST /canvas/shapes\`) cai no canvas e é salvo.
+- Toda edição humana (diffs via WS) é salva com debounce curto.
+- \`POST /canvas/clear\` apaga para todos (a página pede confirmação e
+  oferece Desfazer; o servidor persiste o board vazio).
+- O canvas não entra no \`/graph\` (não é entidade tagueável).
 
 ### Quick start
 
@@ -1145,6 +1111,15 @@ curl -X POST http://127.0.0.1:3333/canvas/clear
   sensíveis continuam bloqueadas fora de loopback.
 - A AI API (\`:3334\`) continua exclusiva em \`127.0.0.1\` (loopback).
 - \`GET /system/network\` lista os IPv4 da maquina (usado pela pagina e settings).
+
+### Breaking change (v13)
+
+O canvas virou lousa única persistida: endpoints \`/canvas/proposals*\`,
+\`/canvas/collections*\`, \`/canvas/drawings*\` e deep links \`#drawing/<id>\`
+foram removidos, junto com o kind \`drawing\` no \`/graph\`. A IA desenha
+sempre direto via \`POST /canvas/shapes\` e o servidor salva cada mudança
+em \`<dataDir>/canvas/board.json\`. Desenhos e collections antigos são
+purgados pela migração de schema v15 (conteúdo perdido, sem volta).
 
 ### Breaking change (v12)
 

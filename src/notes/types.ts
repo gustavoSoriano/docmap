@@ -1,4 +1,6 @@
-// Categoria é texto livre — o usuário define as próprias.
+// Categoria é o id (slug) de uma Category cadastrada em src/categories/.
+// String vazia ('') = nota sem categoria.
+// Notas antigas com texto livre são migradas para o slug correspondente.
 export type NoteCategory = string;
 
 export type Note = {

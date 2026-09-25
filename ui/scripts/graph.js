@@ -12,9 +12,9 @@ let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
 let kgTagQuery = '';
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'drawing', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'agentchat', 'tag'];
+const KG_KINDS = ['note', 'task', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'agentchat', 'tag'];
 const KG_LABELS = {
-  note: 'Notas', task: 'Tasks', drawing: 'Desenhos', macro: 'Macros',
+  note: 'Notas', task: 'Tasks', macro: 'Macros',
   podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
   workflow: 'Workflows', agentchat: 'Chats', tag: 'Tags',
 };
@@ -49,7 +49,6 @@ const kgMatchesTagQuery = (node, term) => {
 // Duplo-clique numa entidade → abre no modo dela.
 const OPEN_BY_KIND = {
   note: (id) => openNote(id),
-  drawing: (id) => openDrawing(id),
   macro: (id) => openMacro(id),
   podcast: (id) => openPodcast(id),
   skill: (id) => openSkill(id),
@@ -181,7 +180,7 @@ const renderKnowledgeGraph = (data) => {
     if (hint) {
       hint.textContent = kgTagQuery.trim()
         ? 'Nenhuma entidade encontrada com essa tag.'
-        : 'Nenhuma entidade ainda. Crie notas, tasks, desenhos... e adicione tags; elas viram os nós que conectam tudo por tema.';
+        : 'Nenhuma entidade ainda. Crie notas, tasks, macros... e adicione tags; elas viram os nós que conectam tudo por tema.';
     }
     return;
   }

@@ -5,7 +5,6 @@
   /* cor por tipo de nó — lidas pelo graph.js via getComputedStyle */
   --kg-note: #6ea8fe;
   --kg-task: #f6a06a;
-  --kg-drawing: #a78bfa;
   --kg-macro: #4ade80;
   --kg-podcast: #f472b6;
   --kg-favorite: #fbbf24;
@@ -144,9 +143,6 @@
 }
 .kg-leg-task i {
   background: var(--kg-task);
-}
-.kg-leg-drawing i {
-  background: var(--kg-drawing);
 }
 .kg-leg-macro i {
   background: var(--kg-macro);

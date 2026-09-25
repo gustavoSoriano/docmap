@@ -3,10 +3,11 @@ import type { Note } from './types.ts';
 const formatNote = (note: Note): string => {
   const tags = note.tags.length ? `\n> Tags: ${note.tags.join(', ')}` : '';
   const date = note.updatedAt.slice(0, 10);
+  const category = note.category || 'Sem categoria';
   return [
     `## ${note.title}`,
     ``,
-    `> Categoria: ${note.category} · Atualizado: ${date}${tags}`,
+    `> Categoria: ${category} · Atualizado: ${date}${tags}`,
     ``,
     note.content,
     ``,

@@ -4,7 +4,6 @@
 
 import { listNotes } from '../notes/store.ts';
 import { listTasks } from '../tasks/store.ts';
-import { listDrawings } from '../canvas/store.ts';
 import { listMacros } from '../macros/store.ts';
 import { listPodcasts } from '../podcasts/store.ts';
 import { listFavorites } from '../favorites/store.ts';
@@ -22,7 +21,6 @@ export const graphHandler =
     const [
       notes,
       tasks,
-      drawings,
       macros,
       podcasts,
       favorites,
@@ -33,7 +31,6 @@ export const graphHandler =
     ] = await Promise.all([
       listNotes(kv),
       listTasks(kv),
-      listDrawings(kv),
       listMacros(kv),
       listPodcasts(kv),
       listFavorites(kv),
@@ -56,12 +53,6 @@ export const graphHandler =
         label: t.title,
         tags: t.tags,
         ...(t.noteId ? { noteId: t.noteId } : {}),
-      })),
-      ...drawings.map((d) => ({
-        id: d.id,
-        kind: 'drawing' as const,
-        label: d.name,
-        tags: d.tags,
       })),
       ...macros.map((m) => ({
         id: m.id,

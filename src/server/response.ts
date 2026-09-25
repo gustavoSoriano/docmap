@@ -16,8 +16,15 @@ const HTML_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
 };
 
-export const json = (data: unknown, status = 200): Response =>
-  new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
+export const json = (
+  data: unknown,
+  status = 200,
+  extra?: Record<string, string>,
+): Response =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { ...JSON_HEADERS, ...extra },
+  });
 
 export const html = (body: string, status = 200): Response =>
   new Response(body, { status, headers: HTML_HEADERS });

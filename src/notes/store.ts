@@ -4,6 +4,8 @@ import type {
   NotePreview,
   UpdateNoteInput,
 } from './types.ts';
+import { ensureCategory } from '../categories/store.ts';
+import { deleteNoteAttachments } from './attachments.ts';
 import { normalizeTags } from '../tags/normalize.ts';
 
 // Notas são globais — não dependem do workspace aberto.
@@ -21,16 +23,28 @@ const toPreview = (note: Note): NotePreview => ({
   preview: note.content.slice(0, 120),
 });
 
+// Categoria vazia ('') = nota sem categoria. Só chama ensureCategory quando
+// há texto — assim nada é forçado para 'general' nem recriado à toa.
+const resolveCategory = async (
+  kv: Deno.Kv,
+  raw: string | undefined,
+): Promise<string> => {
+  const trimmed = (raw ?? '').trim();
+  if (!trimmed) return '';
+  return (await ensureCategory(kv, trimmed)).id;
+};
+
 export const createNote = async (
   kv: Deno.Kv,
   input: CreateNoteInput,
 ): Promise<Note> => {
+  const category = await resolveCategory(kv, input.category);
   const note: Note = {
     id: crypto.randomUUID(),
     title: input.title,
     content: input.content,
     tags: normalizeTags(input.tags),
-    category: input.category?.trim() || 'general',
+    category,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -53,12 +67,15 @@ export const updateNote = async (
 ): Promise<Note | null> => {
   const existing = await getNoteById(kv, id);
   if (!existing) return null;
+  const category = input.category !== undefined
+    ? await resolveCategory(kv, input.category)
+    : existing.category;
   const updated: Note = {
     ...existing,
     ...(input.title !== undefined ? { title: input.title } : {}),
     ...(input.content !== undefined ? { content: input.content } : {}),
     ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
-    ...(input.category !== undefined ? { category: input.category } : {}),
+    category,
     updatedAt: new Date().toISOString(),
   };
   await kv.set(key(id), updated);
@@ -69,6 +86,7 @@ export const deleteNote = async (kv: Deno.Kv, id: string): Promise<boolean> => {
   const exists = await getNoteById(kv, id);
   if (!exists) return false;
   await kv.delete(key(id));
+  await deleteNoteAttachments(id);
   return true;
 };
 

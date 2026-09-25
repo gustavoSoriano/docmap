@@ -13,7 +13,7 @@ const scoreNote = (note: Note, q: string): number => {
   if (note.title.toLowerCase().includes(ql)) score += 3;
   if (note.content.toLowerCase().includes(ql)) score += 1;
   if (note.tags.some((t) => t.toLowerCase().includes(ql))) score += 2;
-  if (note.category.toLowerCase().includes(ql)) score += 1;
+  if ((note.category || '').toLowerCase().includes(ql)) score += 1;
   return score;
 };
 

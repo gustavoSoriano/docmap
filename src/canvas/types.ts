@@ -34,9 +34,7 @@ export type ClientMessage = {
 export type ServerMessage =
   | { readonly type: 'snapshot'; readonly snapshot: BoardSnapshot }
   | { readonly type: 'diff'; readonly diff: BoardDiff }
-  | { readonly type: 'peers'; readonly count: number }
-  | { readonly type: 'proposal'; readonly proposal: ProposalNotice }
-  | { readonly type: 'proposal-retracted'; readonly id: string };
+  | { readonly type: 'peers'; readonly count: number };
 
 export interface CanvasInfoResponse {
   readonly vendor: string;
@@ -73,52 +71,4 @@ export interface CanvasShapesResponse {
   readonly count: number;
 }
 
-// ── Biblioteca: collections + desenhos (metadados no KV, snapshot no FS) ──
 
-export interface DrawingCollection {
-  readonly id: string;
-  readonly name: string;
-  readonly tags: readonly string[];
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
-
-export interface DrawingMeta {
-  readonly id: string;
-  readonly collectionId: string;
-  readonly name: string;
-  readonly tags: readonly string[];
-  readonly shapes: number;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
-
-export interface DrawingDocument {
-  readonly version: 1;
-  readonly snapshot: BoardSnapshot;
-}
-
-export interface DrawingOpenResponse {
-  readonly drawing: DrawingMeta;
-  readonly snapshot: BoardSnapshot;
-}
-
-// ── Propostas da IA (Fase 3: consentimento antes de invadir o board) ──
-
-export interface ProposalNotice {
-  readonly id: string;
-  readonly label: string;
-  readonly count: number;
-  readonly createdAt: string;
-}
-
-export interface ProposalCreateResponse {
-  readonly ok: boolean;
-  readonly proposal: ProposalNotice;
-}
-
-export interface ProposalApplyResponse {
-  readonly ok: boolean;
-  readonly ids: readonly string[];
-  readonly count: number;
-}

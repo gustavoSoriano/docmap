@@ -1,4 +1,5 @@
 import { createApiNotesHandler } from './handlers/notes.ts';
+import { categoriesHandler } from '../categories/handler.ts';
 import { createApiMacrosHandler } from './handlers/macros.ts';
 import { createApiSearchHandler } from './handlers/search.ts';
 import { createApiFavoritesHandler } from './handlers/favorites.ts';
@@ -33,6 +34,7 @@ const withCors = (res: Response, origin: string | null): Response => {
 
 export const createApiRouter = (deps: HandlerDeps) => {
   const notes = createApiNotesHandler(deps);
+  const categories = categoriesHandler(deps);
   const macros = createApiMacrosHandler(deps);
   const search = createApiSearchHandler(deps);
   const graph = graphHandler(deps.kv);
@@ -64,7 +66,8 @@ export const createApiRouter = (deps: HandlerDeps) => {
       res = await debug(req, url);
     } else if (pathname.startsWith('/headless')) {
       res = headlessHandler(req, url);
-    } else if (pathname.startsWith('/notes')) res = await notes(req, url);
+    }     else if (pathname.startsWith('/notes')) res = await notes(req, url);
+    else if (pathname.startsWith('/categories')) res = await categories(req, url);
     else if (pathname.startsWith('/macros')) res = await macros(req, url);
     else if (pathname.startsWith('/skills')) res = await skills(req, url);
     else if (pathname.startsWith('/tasks')) res = await tasks(req, url);

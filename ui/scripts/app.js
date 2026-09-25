@@ -18,14 +18,8 @@ const PANEL_BY_MODE = {
 };
 
 const toggleSidebar = () => {
-  // No modo canvas a sidebar vive dentro do iframe (/canvas) — pede via postMessage.
-  if (currentMode === 'canvas') {
-    const iframe = document.getElementById('canvas-iframe');
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ type: 'docmap-canvas-toggle-drawer' }, location.origin);
-    }
-    return;
-  }
+  // No modo canvas não há sidebar (lousa única) — nada a alternar.
+  if (currentMode === 'canvas') return;
   const panelId = PANEL_BY_MODE[currentMode];
   if (!panelId) return;
   const panel = $(panelId);
@@ -96,8 +90,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ── Canvas mode ──
-// O canvas carrega via iframe apontando para /canvas (com ?open=<id> opcional
-// vindo de deep link #drawing/<id>).
+// O canvas (lousa única) carrega via iframe apontando para /canvas.
 const loadCanvas = () => {
   const iframe = document.getElementById('canvas-iframe');
   if (iframe && !iframe.getAttribute('src')) {

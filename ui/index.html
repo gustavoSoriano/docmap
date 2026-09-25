@@ -193,6 +193,8 @@
                   <input id="note-cat-input" list="note-cat-list"
                     placeholder="categoria" autocomplete="off" />
                   <datalist id="note-cat-list"></datalist>
+                  <button class="tool-btn" id="btn-cats" type="button"
+                    onclick="openCatsModal()" title="Gerenciar categorias">⚙</button>
                 </div>
                 <input id="note-tags-input" type="text"
                   placeholder="tags, separadas, por vírgula" />
@@ -232,6 +234,44 @@
           </section>
         </main>
 
+        <!-- Categorias: cadastro com descrição ( ajuda a IA a entender o uso ) -->
+        <div class="wf-modal-overlay" id="cats-modal-overlay"
+          onclick="closeCatsModal(event)">
+          <div class="wf-modal" id="cats-modal" role="dialog"
+            aria-label="Gerenciar categorias">
+            <div class="wf-modal-head">
+              <span>Categorias</span>
+              <button type="button" onclick="closeCatsModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="wf-modal-body">
+              <div id="cats-search-box">
+                <input id="cats-search" type="text"
+                  placeholder="Buscar categorias…" autocomplete="off"
+                  spellcheck="false" oninput="filterCatsDebounced(this.value)" />
+              </div>
+              <div id="cats-list"></div>
+              <label>
+                <span>Nova categoria</span>
+                <input id="cats-new-name" placeholder="Ex: Estudos" />
+              </label>
+              <label>
+                <span>Descrição (para a IA entender o uso)</span>
+                <input id="cats-new-desc"
+                  placeholder="Ex: notas de estudo e resumos" />
+              </label>
+            </div>
+            <div class="wf-modal-actions">
+              <button type="button" class="wf-secondary-btn"
+                onclick="closeCatsModal()">Fechar</button>
+              <button type="button" class="wf-primary-btn"
+                onclick="createCatFromModal()">
+                <span data-icon="plus"></span>
+                <span>Criar</span>
+              </button>
+            </div>
+          </div>
+        </div>
         <!-- ═══ MODE: MACROS ═══ -->
         <main id="mode-macros" class="mode">
           <section id="macros-col">
@@ -1100,7 +1140,7 @@
             <div id="kg-empty">
               <span class="kg-empty-mark" data-icon="waypoints"></span>
               <div
-                class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, desenhos… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
+                class="kg-empty-hint">Nenhuma entidade ainda. Crie notas, tasks, macros… e adicione <strong>tags</strong> — elas viram os nós que conectam tudo por tema.</div>
             </div>
           </div>
         </main>

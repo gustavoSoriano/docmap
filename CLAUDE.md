@@ -63,6 +63,7 @@ linhas, é sinal de que precisa ser dividido.
 ["_meta",          "schemaVersion"]              → number (versão do schema)
 ["_meta",          "update"]                     → UpdateStatus
 ["notes",          "_global_", noteId]           → Note
+["categories",     "_global_", categoryId]       → Category (id=slug, com descrição)
 ["tasks",          "_global_", taskId]           → Task
 ["projects",       "_global_", projectId]        → Project
 ["favorites",      id]                           → Favorite
@@ -72,8 +73,6 @@ linhas, é sinal de que precisa ser dividido.
 ["skills",         "_global_", skillId]          → Skill
 ["skill_collections", id]                      → SkillCollection
 ["comments",       "_global_", fileId]          → Comment[]
-["canvas_collections", id]                       → DrawingCollection
-["canvas_drawings",  collectionId, drawingId]    → DrawingMeta (snapshot vai em `<dataDir>/drawings/<collectionId>/<drawingId>.json`)
 ["podcasts",       "_global_", podcastId]        → Podcast (metadados; áudio MP3 vai no filesystem)
 ["mock_collections", id]                         → MockCollection
 ["mocks_data",     collectionId, mockId]         → Mock
@@ -99,8 +98,8 @@ Definido em `src/config.ts`. NUNCA usar `Deno.openKv()` sem caminho — o defaul
 Cada migração leva de N para N+1. Adicione novas ao array `migrations`, nunca
 edite as antigas.
 
-**Podcasts (binários externos):** o módulo `src/podcasts/` é o único domínio que
-escreve arquivos fora do KV — o áudio MP3 fica em `<dataDir>/podcasts/<id>.mp3`
+**Podcasts (binários externos):** o módulo `src/podcasts/` escreve arquivos
+fora do KV — o áudio MP3 fica em `<dataDir>/podcasts/<id>.mp3`
 (KV tem limite de ~64 KiB/valor, áudio é maior). A geração depende de **3
 binários externos não empacotados**: `edge-tts` (Python,
 `pip install edge-tts`), `ffmpeg` e `ffprobe` (`brew install ffmpeg`). Paths
@@ -114,8 +113,15 @@ slides podem ser enviados por agentes externos; o parser em
 `src/podcasts/parser.ts` valida as tags `<Person1>…</Person1>`. Sempre 2+
 personas com vozes pt-BR distintas.
 
+**Canvas (lousa única):** `src/canvas/` não usa o KV — o board persiste em
+`<dataDir>/canvas/board.json` (`src/canvas/board-file.ts`, teto 20MB).
+Toda mutação do hub (`src/canvas/hub.ts`) agenda save com debounce curto;
+o boot (`src/worker.ts`) restaura o arquivo. Sem collections, sem desenhos
+salvos, sem propostas — a IA desenha direto via `POST /canvas/shapes`.
+
 **Backup/restore:** `src/kv/backup.ts` — exporta/importa todo o KV em JSON.
-Endpoints `/system/backup` e `/system/restore`.
+Endpoints `/system/backup` e `/system/restore`. (O board do canvas fica fora
+do backup — é arquivo em `<dataDir>/canvas/board.json`.)
 
 **Env vars e `.env`:** apps GUI no macOS não herdam variáveis do shell
 (`~/.zshrc`). `src/env.ts` lê um arquivo `.env` no diretório de dados do app

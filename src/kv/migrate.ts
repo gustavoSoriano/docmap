@@ -109,7 +109,6 @@ const migrations: Migration[] = [
 
   // v10 — módulo de diagramas Mermaid removido (substituído pela lousa).
   // Purga chaves órfãs ["diagrams", ...]. Idempotente.
-  // (Os desenhos migrados vivem em ["canvas_drawings", ...] + disco.)
   async (kv) => {
     for await (const entry of kv.list<unknown>({ prefix: ['diagrams'] })) {
       await kv.delete(entry.key);
@@ -146,6 +145,66 @@ const migrations: Migration[] = [
       if (!v || Array.isArray(v.tags)) continue;
       await kv.set(entry.key, { ...v, tags: [] });
     }
+  },
+
+  // v14 — categorias de notas viram cadastro próprio com descrição.
+  // Cria ["categories","_global_",<slug>] a partir dos textos livres já
+  // usados (descrição nasce vazia, pronta pra edição) e normaliza
+  // note.category para o slug. Retro-compatível e idempotente.
+  async (kv) => {
+    const { toCategoryId } = await import('../categories/slug.ts');
+    const seen = new Map<string, string>();
+    for await (
+      const entry of kv.list<{ category?: unknown }>({
+        prefix: ['notes', '_global_'],
+      })
+    ) {
+      const v = entry.value;
+      if (!v) continue;
+      const raw = typeof v.category === 'string' && v.category.trim()
+        ? v.category.trim()
+        : 'general';
+      const id = toCategoryId(raw);
+      if (!seen.has(id)) seen.set(id, raw.slice(0, 60));
+      if (v.category !== id) {
+        await kv.set(entry.key, { ...v, category: id });
+      }
+    }
+    const stamp = new Date().toISOString();
+    if (!seen.has('general')) seen.set('general', 'general');
+    for (const [id, name] of seen) {
+      const current = await kv.get<unknown>(['categories', '_global_', id]);
+      if (current.value) continue;
+      await kv.set(['categories', '_global_', id], {
+        id,
+        name,
+        description: '',
+        createdAt: stamp,
+        updatedAt: stamp,
+      });
+    }
+  },
+
+  // v15 — canvas vira lousa única persistida em arquivo
+  // (<dataDir>/canvas/board.json). Purga as chaves órfãs da biblioteca
+  // removida (canvas_collections, canvas_drawings) e o diretório legado de
+  // desenhos. Os desenhos antigos se perdem (aceito) — sem migração de
+  // conteúdo. Idempotente.
+  async (kv) => {
+    const { dataDir } = await import('../config.ts');
+    for await (
+      const entry of kv.list<unknown>({ prefix: ['canvas_collections'] })
+    ) {
+      await kv.delete(entry.key);
+    }
+    for await (
+      const entry of kv.list<unknown>({ prefix: ['canvas_drawings'] })
+    ) {
+      await kv.delete(entry.key);
+    }
+    await Deno.remove(`${dataDir()}/drawings`, { recursive: true }).catch(
+      () => {},
+    );
   },
 ];
 

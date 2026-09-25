@@ -242,6 +242,8 @@
 .wf-toolbar-tags {
   display: inline-flex;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
   gap: 3px;
   vertical-align: middle;
 }
@@ -379,14 +381,16 @@
   padding: 8px 10px 8px 16px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 8px;
   gap: 12px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
 }
 
 #wf-toolbar-title-wrap {
-  flex: 1;
-  min-width: 120px;
+  flex: 1 1 220px;
+  min-width: 0;
 }
 
 #wf-toolbar-title {
@@ -402,7 +406,10 @@
   margin-top: 3px;
   display: flex;
   align-items: center;
-  gap: 7px;
+  flex-wrap: wrap;
+  row-gap: 4px;
+  column-gap: 7px;
+  min-width: 0;
   color: var(--text-3);
   font-size: 10px;
 }
@@ -410,14 +417,21 @@
 #wf-toolbar-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 6px;
   gap: 5px;
+  min-width: 0;
+  margin-left: auto;
 }
 
 .wf-prompt-actions {
   min-height: 38px;
+  max-width: 100%;
   padding: 3px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 4px;
   gap: 4px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
@@ -1751,7 +1765,7 @@
   }
 
   #wf-toolbar-title-wrap {
-    min-width: 80px;
+    flex-basis: 180px;
   }
 
   .wf-icon-btn {
@@ -1808,12 +1822,13 @@
 
   #wf-toolbar {
     align-items: flex-start;
+    padding: 8px 10px;
   }
 
   #wf-toolbar-actions {
-    max-width: 225px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    max-width: none;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .wf-form-grid,

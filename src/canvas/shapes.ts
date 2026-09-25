@@ -69,6 +69,7 @@ export type GeoShapeInput = {
   readonly size?: string;
   readonly fill?: string;
   readonly font?: string;
+  readonly dash?: string;
 };
 
 export type ArrowShapeInput = {
@@ -119,6 +120,7 @@ export type PlacedShape =
     readonly size: string;
     readonly fill: string;
     readonly font: string;
+    readonly dash: string;
   }
   | {
     readonly kind: 'arrow' | 'line';
@@ -237,6 +239,11 @@ export const validateShapeInputs = (
       if (!inList(font, SHAPE_FONTS)) {
         return { error: `${err}: font desconhecida` };
       }
+      // Traço reto por padrão; 'draw' = ondulado à mão.
+      const dash = r.dash === undefined ? 'solid' : r.dash;
+      if (!inList(dash, SHAPE_DASHES)) {
+        return { error: `${err}: dash desconhecido` };
+      }
       const x = optCoord(r.x);
       const y = optCoord(r.y);
       if (x === null || y === null) {
@@ -254,6 +261,7 @@ export const validateShapeInputs = (
         size,
         fill,
         font,
+        dash,
       });
     } else if (r.kind === 'arrow' || r.kind === 'line') {
       const x2 = boundedCoord(r.x2);
@@ -409,6 +417,7 @@ export const placeShapes = (
         size: s.size ?? 'm',
         fill: s.fill ?? 'none',
         font: s.font ?? 'draw',
+        dash: s.dash ?? 'solid',
       };
     }
     const x = s.x1 ?? AUTO_X;
@@ -494,7 +503,7 @@ export const buildRecords = (
           h: s.h,
           color: s.color,
           size: s.size,
-          dash: 'draw',
+          dash: s.dash,
           fill: s.fill,
           font: s.font,
           ...(s.label ? { label: s.label } : {}),

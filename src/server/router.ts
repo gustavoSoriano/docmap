@@ -1,5 +1,6 @@
 import { graphHandler } from '../graph/handler.ts';
 import { createNotesHandler } from './handlers/notes.ts';
+import { categoriesHandler } from '../categories/handler.ts';
 import { createCommentsHandler } from './handlers/comments.ts';
 import { createSystemHandler } from './handlers/system.ts';
 import { skillsUiHandler } from '../skills/handler.ts';
@@ -23,6 +24,7 @@ import type { HandlerDeps } from './types.ts';
 export const createRouter = (deps: HandlerDeps) => {
   const graph = graphHandler(deps.kv);
   const notes = createNotesHandler(deps);
+  const categories = categoriesHandler(deps);
   const comments = createCommentsHandler(deps);
   const system = createSystemHandler(deps);
   const skills = skillsUiHandler(deps.kv);
@@ -55,6 +57,7 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/headless')) return headlessHandler(req, url);
     if (pathname === '/graph') return graph(req, url);
     if (pathname.startsWith('/notes')) return notes(req, url);
+    if (pathname.startsWith('/categories')) return categories(req, url);
     if (pathname === '/comments') return comments(req, url);
     if (pathname.startsWith('/system')) return system(req, url);
     if (pathname.startsWith('/skills')) return skills(req, url);

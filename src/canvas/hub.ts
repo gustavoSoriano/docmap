@@ -1,8 +1,9 @@
-// Canvas Board Hub — singleton.
+// Canvas Board Hub — singleton da lousa única.
 // Relay de diffs do whiteboard: cada cliente desenha localmente e envia o
-// diff de origem 'user'; o hub aplica num mapa plano de records (op-log) e
-// repassa aos demais. Late joiners recebem o snapshot atual completo.
-// Diffs 'remote' nunca entram no undo local (regra do próprio Store).
+// diff de origem 'user'; o hub aplica num mapa plano de records (op-log),
+// persiste no disco (board-file, debounce) e repassa aos demais. Late
+// joiners recebem o snapshot atual completo. Diffs 'remote' nunca entram no
+// undo local (regra do próprio Store).
 
 import type {
   BoardDiff,
@@ -11,6 +12,7 @@ import type {
   ServerMessage,
   SnapshotText,
 } from './types.ts';
+import { scheduleBoardPersist } from './board-file.ts';
 import { buildRecords, placeShapes } from './shapes.ts';
 import type { ShapeInput } from './shapes.ts';
 
@@ -233,6 +235,7 @@ class BoardHub {
     }
     for (const id of Object.keys(diff.removed ?? {})) this.#records.delete(id);
     this.#updatedAt = new Date().toISOString();
+    this.#persist();
     this.#broadcast({ type: 'diff', diff }, sender);
   }
 
@@ -265,23 +268,9 @@ class BoardHub {
       added[rec.id] = rec;
     }
     this.#updatedAt = new Date().toISOString();
+    this.#persist();
     this.#broadcast({ type: 'diff', diff: { added } });
     return records.map((rec) => rec.id);
-  }
-
-  /** Avisa todos de uma nova proposta da IA (consentimento — Fase 3). */
-  notifyProposal(proposal: {
-    readonly id: string;
-    readonly label: string;
-    readonly count: number;
-    readonly createdAt: string;
-  }): void {
-    this.#broadcast({ type: 'proposal', proposal });
-  }
-
-  /** Avisa todos que a proposta saiu (aplicada/descartada — Fase 3). */
-  notifyProposalRetracted(id: string): void {
-    this.#broadcast({ type: 'proposal-retracted', id });
   }
 
   #maxZ(): number {
@@ -300,14 +289,15 @@ class BoardHub {
     this.#records.clear();
     this.#frame = null;
     this.#updatedAt = new Date().toISOString();
+    this.#persist();
     this.#broadcast({ type: 'snapshot', snapshot: emptySnapshot() });
   }
 
   /**
-   * Carrega um desenho salvo no board ao vivo (abrir da biblioteca).
-   * Substitui tudo, invalida o frame e avisa todos. Retorna erro se inválido.
+   * Restaura o snapshot persistido no boot. Sem broadcast (ainda não há
+   * conexões) e preservando o updatedAt gravado. Retorna erro se inválido.
    */
-  loadSnapshotData(snapshot: BoardSnapshot): string | null {
+  restore(snapshot: BoardSnapshot, updatedAt: string | null): string | null {
     const err = validateSnapshot(snapshot);
     if (err) return err;
     this.#records.clear();
@@ -315,9 +305,17 @@ class BoardHub {
       this.#records.set(rec.id, rec);
     }
     this.#frame = null;
-    this.#updatedAt = new Date().toISOString();
-    this.#broadcast({ type: 'snapshot', snapshot: this.getSnapshot() });
+    this.#updatedAt = updatedAt ?? new Date().toISOString();
     return null;
+  }
+
+  /** Agenda a persistência do estado atual (debounce em board-file). */
+  #persist(): void {
+    try {
+      scheduleBoardPersist(this.getSnapshot());
+    } catch (err) {
+      console.error('canvas: falha ao agendar persistência', err);
+    }
   }
 
   #remove(ws: WebSocket): void {

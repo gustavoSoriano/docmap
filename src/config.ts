@@ -35,11 +35,20 @@ export const kvPath = (): string => `${dataDir()}/data.sqlite3`;
 // Áudio MP3 fica fora do KV (limite de tamanho por valor), junto do data dir.
 export const podcastsDir = (): string => `${dataDir()}/podcasts`;
 
-// ════ Canvas: biblioteca de desenhos ════
-// Snapshots do board vão pro filesystem (podem passar de 64 KiB com imagens
-// embutidas); só os metadados ficam no KV. Override via DOCMAP_DRAWINGS_DIR.
-export const drawingsDir = (): string =>
-  Deno.env.get('DOCMAP_DRAWINGS_DIR') ?? `${dataDir()}/drawings`;
+// ════ Notas: anexos de imagem ════
+// Imagens coladas nas notas ficam fora do KV (limite de ~64 KiB por valor),
+// junto do data dir. O KV guarda só o markdown com a referência.
+export const notesDir = (): string => `${dataDir()}/notes`;
+
+export const noteAttachmentsDir = (noteId: string): string =>
+  `${notesDir()}/${noteId}`;
+
+// ════ Canvas: lousa única persistida ════
+// O board vai pro filesystem (pode passar de 64 KiB com imagens embutidas;
+// o KV tem limite por valor). Arquivo único — sem collections nem desenhos
+// salvos. Override via DOCMAP_CANVAS_FILE (usado nos testes).
+export const canvasFile = (): string =>
+  Deno.env.get('DOCMAP_CANVAS_FILE') ?? `${dataDir()}/canvas/board.json`;
 
 // Binários externos usados na síntese/concatenação de áudio.
 // edge-tts: CLI Python (pip install edge-tts). ffmpeg/ffprobe: brew install ffmpeg.
