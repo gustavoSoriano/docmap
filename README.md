@@ -49,7 +49,7 @@ Ideal para:
 | **🎙️ Podcasts em áudio**     | Sintetiza roteiros prontos com 2+ vozes                              |
 | **🎬 Slides sincronizados**  | CSS art puro animado que troca conforme o áudio avança               |
 | **✅ Kanban de tarefas**     | Organize tarefas e vincule a notas                                   |
-| **🔀 Workflows multiagente** | Coordene Claude, Codex, opencode e outros agentes externos em um DAG |
+| **🗺️ Trilhas visuais**        | Fluxograma editável humano+IA com blocos, status e paralelas         |
 | **🔖 Favoritos**             | Bookmarks inteligentes com tags, categorias e contador de acesso     |
 | **🧪 Mocks HTTP**            | Servidor local de mocks para testar integrações                      |
 | **🤖 API para agentes**      | Endpoint local para agentes e integrações próprias                   |
@@ -108,9 +108,7 @@ volte: os slides seguem o tempo do áudio naturalmente.
 ### 🧩 Extensível via API
 
 A porta `:3334` expõe uma API REST para agentes. Integrações próprias podem
-criar notas, desenhos, tasks, favoritos e podcasts, ou participar de workflows
-persistidos declarando ferramenta, provider e modelo. O docmap coordena
-dependências, claims, eventos e revisões sem iniciar nenhuma CLI.
+criar notas, tasks, favoritos, podcasts, chats e demais recursos via Headless API.
 
 ### 🚀 Auto-update transparente
 

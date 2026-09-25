@@ -12,7 +12,7 @@ import { favoritesHandler } from '../favorites/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
 import { createCanvasHandler } from '../canvas/handler.ts';
 import { createTerminalHandler } from '../terminal/handler.ts';
-import { workflowsHandler } from '../workflows/handler.ts';
+import { trilhasHandler } from '../trilhas/handler.ts';
 import { agentChatsHandler } from '../agentchats/handler.ts';
 import { createDebugHandler } from '../debug/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
@@ -36,7 +36,7 @@ export const createRouter = (deps: HandlerDeps) => {
   const podcasts = podcastsHandler(deps.kv);
   const canvas = createCanvasHandler(deps);
   const terminal = createTerminalHandler(deps);
-  const workflows = workflowsHandler(deps.kv);
+  const trilhas = trilhasHandler(deps.kv);
   const agentChats = agentChatsHandler(deps.kv);
   const debug = createDebugHandler();
   return (req: Request): Response | Promise<Response> => {
@@ -69,12 +69,8 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/podcasts')) return podcasts(req, url);
     if (pathname.startsWith('/canvas')) return canvas(req, url);
     if (pathname.startsWith('/terminal')) return terminal(req, url);
+    if (pathname.startsWith('/trilhas')) return trilhas(req, url);
     if (pathname.startsWith('/agentchats')) return agentChats(req, url);
-    if (
-      pathname.startsWith('/workflows') ||
-      pathname.startsWith('/agents') ||
-      pathname.startsWith('/orchestrator')
-    ) return workflows(req, url);
 
     return notFound();
   };

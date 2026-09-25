@@ -187,7 +187,7 @@ body::before {
 .col-collapsed#mocks-col,
 .col-collapsed#fav-sidebar,
 .col-collapsed#pod-col,
-.col-collapsed#wf-sidebar {
+.col-collapsed#trilha-sidebar {
   width: 0;
   min-width: 0;
   flex-shrink: 1;
@@ -200,7 +200,7 @@ body::before {
 }
 
 /* ════════ Sidebar standard ════════
-   Padrão único para todas as sidebars (notes, skills, podcasts, workflows,
+   Padrão único para todas as sidebars (notes, skills, podcasts, trilhas,
    macros, mocks, favorites):
    - largura var(--sidebar-w) / tablet var(--sidebar-w-tablet)
    - head: título 18px 700 + botão verde 30px
@@ -212,7 +212,7 @@ body::before {
 #notes-col,
 #skills-col,
 #pod-col,
-#wf-sidebar,
+#trilha-sidebar,
 #macros-col,
 #mocks-col,
 #fav-sidebar {
@@ -251,7 +251,7 @@ body::before {
 #skills-new-btn,
 #macros-new-btn,
 #mocks-new-btn,
-#wf-new-btn {
+#trilha-new-btn {
   width: 30px;
   height: 30px;
   border: none;
@@ -269,7 +269,7 @@ body::before {
 #skills-new-btn:hover,
 #macros-new-btn:hover,
 #mocks-new-btn:hover,
-#wf-new-btn:hover {
+#trilha-new-btn:hover {
   background: var(--accent-2);
   transform: scale(1.08);
 }
@@ -277,7 +277,7 @@ body::before {
 #skills-new-btn .ico,
 #macros-new-btn .ico,
 #mocks-new-btn .ico,
-#wf-new-btn .ico {
+#trilha-new-btn .ico {
   width: 15px;
   height: 15px;
 }
@@ -653,8 +653,7 @@ body::before {
 }
 
 /* ── Sidebar list active (notas, skills, podcasts, macros) ──
-   Mocks usa inset shadow por causa do badge de método; workflows usa card
-   com borda (lista densa com progresso). */
+   Mocks usa inset shadow por causa do badge de método. */
 .note-item.active,
 .skill-item.active,
 .pod-item.active,
@@ -1147,4 +1146,145 @@ body::before {
   #toast.visible {
     transform: translate(-50%, 0);
   }
+}
+
+/* ════════ Modal genérico (categorias, chats) ════════
+   Estilos compartilhados de overlay + modal + ações. */
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .68);
+  backdrop-filter: blur(4px);
+}
+.app-modal-overlay.visible {
+  display: flex;
+}
+.app-modal {
+  width: min(540px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--sh-lg);
+}
+.app-modal.wide {
+  width: min(780px, 100%);
+}
+.app-modal input[type="checkbox"],
+.app-modal input[type="radio"] {
+  accent-color: var(--accent);
+}
+.app-modal-head {
+  min-height: 52px;
+  padding: 0 14px 0 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+}
+.app-modal-head button {
+  width: 29px;
+  height: 29px;
+}
+.app-modal-body {
+  padding: 15px 17px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.app-modal label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.app-modal label > span {
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.app-modal input,
+.app-modal textarea,
+.app-modal select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  outline: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  font: 11px/17px var(--font-ui);
+}
+.app-modal input,
+.app-modal select {
+  height: 34px;
+  padding: 0 9px;
+}
+.app-modal textarea {
+  padding: 8px 9px;
+  resize: vertical;
+}
+.app-modal input:focus,
+.app-modal textarea:focus,
+.app-modal select:focus {
+  border-color: var(--accent-line);
+}
+.app-modal-actions {
+  min-height: 58px;
+  padding: 10px 17px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  border-top: 1px solid var(--border);
+}
+.app-secondary-btn,
+.app-primary-btn {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  font: 600 10px var(--font-ui);
+}
+.app-secondary-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+}
+.app-primary-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.app-primary-btn:hover {
+  background: var(--accent-2);
+}
+.app-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.app-field-label {
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
 }

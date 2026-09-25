@@ -15,10 +15,10 @@ const handleDeepLink = () => {
     history.replaceState(null, '', '/');
     return;
   }
-  const workflow = hash.match(/^#workflow\/([a-f0-9-]{36})$/);
-  if (workflow) {
-    setMode('workflows');
-    openWorkflow(workflow[1]);
+  const trilha = hash.match(/^#trilha\/([a-f0-9-]{36})$/);
+  if (trilha) {
+    setMode('trilhas');
+    openTrilha(trilha[1]);
     history.replaceState(null, '', '/');
     return;
   }

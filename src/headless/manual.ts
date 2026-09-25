@@ -56,14 +56,6 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     tags: ['macros', 'automation'],
   },
   {
-    id: 'workflows',
-    title: 'Workflows',
-    heading: 'Workflows — orquestração de agentes externos',
-    summary: 'Orquestracao de agentes externos, claims, inbox e revisao.',
-    tags: ['workflows', 'agents', 'orchestration'],
-    roles: ['orchestrator', 'executor', 'reviewer'],
-  },
-  {
     id: 'agentchats',
     title: 'Chats entre agentes',
     heading: 'Chats — conversa realtime entre agentes',
@@ -76,6 +68,13 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     heading: 'Tasks — Kanban global',
     summary: 'Kanban global com todo, in-progress, review e done.',
     tags: ['tasks', 'kanban'],
+  },
+  {
+    id: 'trilhas',
+    title: 'Trilhas',
+    heading: 'Trilhas — objetivo visual editável (humano + IA)',
+    summary: 'Fluxograma de blocos com detalhes, status, responsável e tags.',
+    tags: ['trilhas', 'visual', 'dag'],
   },
   {
     id: 'podcasts',
@@ -124,11 +123,11 @@ Formato: JSON. App precisa estar rodando.
 
 Use \`GET /headless/capabilities\` para descobrir as funcionalidades
 disponiveis. Use \`GET /headless/manual?feature=<id>\` para buscar instrucoes
-focadas e \`GET /headless/manual?feature=workflows&role=executor\` para
-protocolos especificos de papel.
+focadas e \`GET /headless/manual?feature=notes\` para
+protocolos especificos.
 
 
-> **Tags = tema.** Notas, tarefas, workflows, macros, podcasts e favoritos
+> **Tags = tema.** Notas, tarefas, macros, podcasts e favoritos
 > aceitam \`tags?: string[]\` (opcional) — o ASSUNTO da entidade, eixo pelo qual
 > o docmap conecta itens do mesmo tema. São normalizadas ao salvar: minúsculas,
 > sem acento, slug ("Machine Learning" → \`machine-learning\`; "Programação" →
@@ -144,10 +143,10 @@ protocolos especificos de papel.
 ## Grafo de conhecimento
 
 - \`GET /graph\` — grafo de TODAS as entidades do docmap (notas, tasks,
-  macros, podcasts, favoritos, skills, mocks, workflows) conectadas por TEMA. Read-only; reflete o
+  trilhas, macros, podcasts, favoritos, skills, mocks) conectadas por TEMA. Read-only; reflete o
   estado atual do KV.
   - \`nodes\`: \`{ id, label, kind, tags? }\` — \`id\` = \`"<tipo>:<uuid>"\` (entidade) ou
-    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|macro|podcast|favorite|skill|mock|workflow|tag\`.
+    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|trilha|macro|podcast|favorite|skill|mock|tag\`.
   - \`links\`: \`{ source, target, kind }\` — \`kind\` = \`tagged\` (entidade→tag) ou
     \`reference\` (task→nota via \`noteId\`).
   - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por
@@ -242,7 +241,7 @@ no KV. O \`content\` guarda só \`![](/notes/:id/attachments/<arquivo>)\`.
 |--------|----------|-----------|
 | GET | \`/macros\` | Lista macros; aceite \`?collectionId=<id>\` para filtrar |
 | GET | \`/macros/:idOrName\` | Macro completa por UUID ou slug \`name\` |
-| POST | \`/macros\` | Cria \`{ name, title, description?, script, inputLabel?, tags?, collectionId?, lifecycle?, workflowId? }\` |
+| POST | \`/macros\` | Cria \`{ name, title, description?, script, inputLabel?, tags?, collectionId?, lifecycle? }\` |
 | PUT | \`/macros/:id\` | Edita (campos parciais) |
 | DELETE | \`/macros/:id\` | Remove uma macro |
 | POST | \`/macros/:idOrName/run\` | Executa com output SSE em tempo real |
@@ -282,284 +281,9 @@ helpers, \`POST /macros/:idOrName/invoke\` retorna \`404\` com
 \`{ "error": "macro_not_found" }\` quando a referência não existe, \`422\`
 quando o script termina com erro e \`200\` quando conclui com sucesso.
 
-Macros temporárias de quality gate usam \`lifecycle: "workflow"\` e o
-\`workflowId\` correspondente. Quando o workflow é concluído, o Docmap arquiva
-script, hash SHA-256 e metadados e remove automaticamente a macro da lista
-ativa. Macros sem esses campos continuam persistentes.
-
----
-
-## Workflows — orquestração de agentes externos
-
-Workflows são apartados das tasks do Kanban. O Docmap **não chama CLIs nem
-LLMs** neste módulo: Claude Code, Codex, opencode e o próprio orquestrador são
-agentes externos iniciados manualmente. A API apenas coordena estado,
-dependências, claims, conflitos, eventos e histórico.
-
-### Regra fundamental
-
-O executor nunca marca um nó como concluído. Ele envia
-\`POST /workflows/nodes/:id/return\`, que deixa o nó em \`returned\`. O usuário
-também pode registrar manualmente "fiz isso" pela UI ou por
-\`POST /workflows/nodes/:id/human-return\`; isso cria uma execução humana
-rastreável e também deixa o nó em \`returned\`. O orquestrador descobre o
-retorno pela inbox persistida e decide se aprova, solicita retrabalho, expande
-o fluxo ou pede intervenção humana.
-
-O \`POST .../return\` **não encerra o executor**. Depois de devolver, ele
-consulta \`GET /agents/:id/inbox?workflowId=...&wait=600\` e segue
-\`nextAction\`: \`await_review | rework | claim_next | capability_mismatch |
-wait | stop\`. Em \`await_review\`, mantém a inbox bloqueante conectada; em
-\`rework\`, relê o feedback e assume novamente o mesmo nó; somente depois de
-aprovação pode compactar/resetar contexto e pegar o próximo trabalho.
-Retrabalho fica reservado ao executor original enquanto sua sessão estiver
-ativa. Exceção: retrabalho de \`human-return\` (sessão sintética "Usuário",
-\`provider=human\`) não reserva — a sessão humana não executa, então o nó fica
-imediatamente disponível para qualquer executor com as capabilities exigidas.
-
-Capacidades são filtros estritos: o executor só recebe um nó quando declarou
-todas as \`requiredCapabilities\`. Prompts de workflow derivam automaticamente
-a união das capacidades dos nós atuais e prompts de nó usam as capacidades
-daquele nó. Se uma sessão antiga não for compatível, a inbox retorna
-\`nextAction: capability_mismatch\`, \`missingCapabilities\` e os nós filtrados,
-em vez de aparentar que não existe trabalho. O agente só deve reconectar
-declarando capacidades que realmente possui.
-
-### Papel estrito do orquestrador
-
-O orquestrador **não executa trabalho de nó**. Ele não altera arquivos, não roda
-testes, não implementa código, não cria branch/worktree, não faz commits e não
-deve chamar endpoints de execução de nó como \`/workflows/nodes/:id/claim\`,
-\`/start\` ou \`/return\`. O papel dele é somente:
-
-- decompor o objetivo em nós;
-- criar dependências e escopos;
-- recomendar ferramenta/provider/modelo e complexidade;
-- responder perguntas dos executores;
-- revisar retornos \`returned\` e decidir \`approve | rework | expand |
-  human_intervention | cancel\`;
-- concluir o workflow quando a inbox indicar que ele está concluível.
-
-Para saber se uma tarefa terminou, o orquestrador deve consultar
-\`GET /orchestrator/inbox?agentSessionId=...&compact=true&wait=600\`. A view
-compacta retorna \`nextActions\`, contagens e URLs dos pacotes necessários sem
-repetir todo o estado. Com \`wait\`, a chamada retorna imediatamente quando já
-há uma ação; caso contrário, fica aberta até um evento relevante ou timeout.
-Consultar a inbox renova automaticamente a presença. O ciclo é:
-
-1. consultar a inbox;
-2. processar \`nextActions\` em ordem de \`priority\`, drenando
-   \`review_return\` antes de criar ou expandir nós;
-3. usar o \`decisionRequest\` pronto de cada pacote de revisão;
-4. se \`wait.reason=timeout\`, repetir imediatamente a mesma chamada bloqueante,
-   sem sleep e sem uma nova inferência do modelo.
-
-O orquestrador não deve dizer apenas "vou verificar depois" e parar; ele precisa
-manter essa cadência enquanto estiver conectado. \`pollAfterSeconds\` permanece
-somente como fallback para ferramentas que não consigam manter HTTP bloqueante.
-
-### Conectar um agente
-
-\`\`\`http
-POST /agents/connect
-Content-Type: application/json
-
-{
-  "name": "codex-backend-1",
-  "tool": "codex-cli",
-  "provider": "openai",
-  "model": "gpt-5-codex",
-  "role": "executor",
-  "capabilities": ["code", "deno", "tests"]
-}
-\`\`\`
-
-Guarde o \`agentSessionId\` retornado. Durante trabalhos longos, envie
-\`POST /agents/:agentSessionId/heartbeat\`. A interface mostra nome,
-ferramenta, provider, modelo, papel, presença e nó atual.
-
-### Endpoints de agentes
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | \`/agents\` | Sessões e presença dos agentes |
-| POST | \`/agents/connect\` | Conecta e declara identidade |
-| POST | \`/agents/:id/heartbeat\` | Mantém a sessão ativa |
-| GET | \`/agents/:id/inbox?workflowId=...&wait=600\` | Trabalho filtrado pelo workflow; espera bloqueante opcional |
-| POST | \`/agents/:id/disconnect\` | Encerra sessão sem trabalho ativo |
-| GET | \`/orchestrator/inbox?agentSessionId=...&compact=true&wait=600\` | Próximas ações compactas com espera bloqueante opcional |
-
-### Endpoints de workflows
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | \`/workflows\` | Lista demandas e contagens por estado |
-| GET | \`/workflows/protocol?role=...\` | Protocolo compacto específico do papel |
-| POST | \`/workflows\` | Cria \`{ title, objective, description?, tags?, conflictPolicy?, defaultMaxAttempts? }\` |
-| GET | \`/workflows/:id\` | Workflow, nós, arestas, runs, perguntas e agentes |
-| GET | \`/workflows/:id?view=planning|status\` | Pacote compacto para decisão |
-| GET | \`/workflows/:id/macro-archives\` | Macros efêmeras arquivadas com script/hash |
-| PUT | \`/workflows/:id\` | Edita metadados |
-| DELETE | \`/workflows/:id\` | Remove workflow e histórico |
-| POST | \`/workflows/:id/claim-orchestration\` | Orquestrador assume o workflow |
-| POST | \`/workflows/:id/release-orchestration\` | Libera o orquestrador |
-| POST | \`/workflows/:id/start\` | Inicia e libera nós sem bloqueios |
-| POST | \`/workflows/:id/final-barriers\` | Cria/reutiliza gate, auditoria e arestas em uma chamada idempotente |
-| POST | \`/workflows/:id/complete\` | Conclusão explícita quando \`canComplete=true\` |
-| GET | \`/workflows/:id/events\` | Event log persistido |
-| GET | \`/workflows/events\` | SSE de atualizações em tempo real |
-| GET | \`/workflows/:id/prompt?role=orchestrator|executor\` | Prompt sincronizado com a API |
-
-### Nós e dependências
-
-\`\`\`http
-POST /workflows/:workflowId/nodes
-Content-Type: application/json
-
-{
-  "title": "Implementar store",
-  "description": "Criar persistência e regras determinísticas",
-  "acceptanceCriteria": ["check passa", "claim é atômico"],
-  "contextRefs": [{"kind": "file", "ref": "src/tasks/store.ts"}],
-  "complexity": "m",
-  "kind": "code",
-  "requiredCapabilities": ["deno", "tests"],
-  "recommendedAgent": {
-    "tool": "codex-cli",
-    "provider": "openai",
-    "model": "gpt-5-codex"
-  },
-  "readScopes": ["src/tasks/"],
-  "writeScopes": ["src/workflows/"],
-  "isolation": "worktree",
-  "maxAttempts": 3,
-  "dependsOn": ["<node-id>"]
-}
-\`\`\`
-
-Complexidade: \`xs | s | m | l | xl\`. Isolamento:
-\`shared | branch | worktree\`. O agente externo cria a branch/worktree; o
-Docmap apenas registra e valida o contrato.
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | \`/workflows/available?agentSessionId=...&workflowId=...\` | Nós prontos compatíveis com capacidades |
-| POST | \`/workflows/:id/nodes\` | Cria nó |
-| POST | \`/workflows/:id/edges\` | Cria \`{ fromNodeId, toNodeId, kind }\` |
-| GET | \`/workflows/nodes/:id\` | Pacote completo + dependências aprovadas |
-| GET | \`/workflows/nodes/:id?view=review\` | Pacote compacto do retorno atual |
-| GET | \`/workflows/nodes/:id/prompt\` | Prompt específico copiável |
-| POST | \`/workflows/nodes/:id/claim\` | Claim atômico \`{ agentSessionId }\` |
-| POST | \`/workflows/nodes/:id/start\` | Inicia e registra ambiente/worktree |
-| POST | \`/workflows/nodes/:id/questions\` | Registra dúvida sem falhar |
-| POST | \`/workflows/questions/:id/answer\` | Orquestrador/humano responde |
-| POST | \`/workflows/nodes/:id/return\` | Executor devolve resultado |
-| POST | \`/workflows/nodes/:id/human-return\` | Usuário registra execução manual e envia para revisão |
-| POST | \`/workflows/nodes/:id/decision\` | Revisa o retorno |
-| POST | \`/workflows/nodes/:id/release\` | Abandona tentativa e libera nó |
-
-### Retorno estruturado
-
-\`\`\`json
-{
-  "agentSessionId": "...",
-  "outcome": "success",
-  "summary": "Implementação concluída",
-  "result": "Decisões e detalhes para o orquestrador",
-  "logs": ["deno task check: ok"],
-  "changedFiles": ["src/workflows/store.ts"],
-  "diff": "...",
-  "tests": [{"command": "deno task check", "status": "passed"}],
-  "artifacts": []
-}
-\`\`\`
-
-\`outcome\`: \`success | partial | failed | blocked | needs_input\`.
-
-### Retorno humano
-
-\`POST /workflows/nodes/:id/human-return\` usa o mesmo contrato de evidências do
-retorno estruturado, mas não exige \`agentSessionId\`. O Docmap cria uma sessão
-sintética \`docmap-ui · human · manual\`, registra uma tentativa e move o nó para
-\`returned\`. O orquestrador continua sendo responsável por revisar e decidir.
-
-### Revisão
-
-\`\`\`json
-POST /workflows/nodes/:id/decision
-{
-  "agentSessionId": "<sessão do orquestrador>",
-  "decision": "approve",
-  "feedback": "Critérios atendidos",
-  "acceptanceChecks": [
-    {
-      "criterion": "texto exato do critério",
-      "status": "pass",
-      "evidence": "comando, saída, arquivo ou comportamento observado"
-    }
-  ]
-}
-\`\`\`
-
-\`decision\`: \`approve | rework | expand | human_intervention | cancel\`.
-Uma aprovação exige um item \`acceptanceChecks\` com \`status=pass\` e evidência
-não vazia para cada critério do nó. A avaliação fica persistida no run.
-Use o \`decisionRequest\` retornado por
-\`GET /workflows/nodes/:id?view=review\`: ele já contém os textos exatos dos
-critérios. Nunca crie um nó para representar aprovação.
-Em \`expand\`, envie também \`newNodes\`; os novos nós dependerão do nó revisado.
-Ao esgotar \`maxAttempts\`, retrabalho vira \`human_intervention\`.
-
-### Barreira obrigatória de conclusão
-
-Novos workflows exigem dois nós finais, criados depois do trabalho normal:
-
-1. \`kind: "quality_gate"\`: depende de todas as folhas de implementação,
-   não altera código e executa format/lint/typecheck/test/build/smoke e checks
-   específicos da demanda.
-2. \`kind: "final_audit"\`: depende por aresta \`blocks\` do quality gate e
-   revisa de forma independente qualidade, bugs, crashes, regressões,
-   segurança, efeitos fora do escopo e riscos residuais.
-
-O orquestrador não deve montar esses payloads e arestas manualmente. Use:
-
-\`\`\`json
-POST /workflows/:id/final-barriers
-{"agentSessionId":"<sessão do orquestrador>"}
-\`\`\`
-
-A operação é idempotente, identifica as folhas de trabalho, cria ou reutiliza
-as duas barreiras e garante todas as arestas necessárias.
-
-\`completionReadiness.canComplete\` só fica verdadeiro quando todos os nós
-estão aprovados, não há cancelamento/pergunta aberta e o gate + auditoria
-válidos são posteriores ao último trabalho normal. Se uma correção for criada
-depois deles, crie um novo par de gate/auditoria.
-
-As barreiras de gate e auditoria valem enquanto esses nós EXISTIREM no fluxo.
-Se forem removidos (ex.: o humano validou manualmente), a conclusão fica
-liberada com os nós de trabalho aprovados. Workflow nunca iniciado
-(draft/planning) sem nós de trabalho continua bloqueado por \`work_nodes\`;
-um workflow já iniciado que esvaziou (nós excluídos) é concluível.
-
-### Prompts prontos
-
-- \`GET /workflows/prompts/connect?role=orchestrator|executor|reviewer\`
-- \`GET /workflows/protocol?role=orchestrator|executor|reviewer\`
-- \`GET /workflows/:id/prompt?role=orchestrator|executor|reviewer\`
-- \`GET /workflows/nodes/:id/prompt\`
-
-Os prompts são autocontidos e priorizam views compactas. Não é necessário
-carregar a skill global inteira para participar de um workflow.
-Na UI, o prompt do orquestrador fica oculto enquanto há uma sessão vinculada.
-Quando ela fica \`stale\` ou \`offline\`, aparece a ação confirmada de liberação;
-depois disso o botão de copiar o novo prompt volta a aparecer.
-
----
-
 ## Chats — conversa realtime entre agentes
 
-Salas independentes de workflows. Agentes entram com nome único e conversam
+Salas independentes. Agentes entram com nome único e conversam
 entre si e com o usuário. O usuário dita o objetivo; os agentes se organizam.
 
 | Método | Endpoint | Descrição |
@@ -620,6 +344,67 @@ Ordem dentro da coluna = prioridade (menor \`order\` = mais prioritário).
 - \`checklist\` (array de \`{ id?, text, done? }\`, opcional) — itens de verificação
 
 **Deep link**: \`GET /tasks/:id\` retorna \`{ deepLink: "http://127.0.0.1:3333/#task/<id>" }\`.
+
+---
+
+## Trilhas — objetivo visual editável (humano + IA)
+
+Uma trilha é um objetivo com contexto + blocos (nós) com detalhes + setas de
+dependência (DAG). Humano e IA leem e editam os mesmos nós. Paralelismo é
+liberado: só o que tem seta precisa esperar.
+
+Status da trilha: \`draft | running | done | cancelled\`.
+Status do nó: \`todo | doing | done | blocked\`.
+Responsável: \`assignee: { kind: "human" | "ai", label }\`.
+Critérios de pronto: \`doneCriteria: string[]\` por bloco — \`done\` exige
+\`result\` não vazio quando há critérios (400 senão).
+Bloqueio: \`blockedReason\` diz o que falta (fila "aguardando humano").
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/trilhas\` | Lista com \`nodeCount\` + \`deepLink\` |
+| POST | \`/trilhas\` | Cria \`{ title, objective, description?, tags? }\` |
+| GET | \`/trilhas/:id\` | Trilha + \`nodes\` + \`edges\` |
+| PUT | \`/trilhas/:id\` | Edita (parcial, inclui \`status\`) |
+| DELETE | \`/trilhas/:id\` | Remove trilha + nós + arestas + eventos |
+| GET | \`/trilhas/:id/next?by=<nome>\` | Próximo bloco acionável (todo + deps done); com \`by\`, já reserva; 404 \`no_work\` se vazio |
+| GET | \`/trilhas/:id/events?limit=100\` | Log append-only (criações, status, claims, setas) |
+| GET | \`/trilhas/:id/nodes\` | Lista nós da trilha |
+| POST | \`/trilhas/:id/nodes\` | Cria \`{ title, details?, result?, doneCriteria?, blockedReason?, status?, assignee?, position?, dependsOn? }\` |
+| GET | \`/trilhas/:id/nodes/:nodeId\` | Nó avulso (para a IA executar só ele) |
+| PUT | \`/trilhas/:id/nodes/:nodeId\` | Edita nó; aceita \`by\` e \`expectedUpdatedAt\` (409 em conflito/trava alheia) |
+| DELETE | \`/trilhas/:id/nodes/:nodeId\` | Remove nó + arestas ligadas |
+| GET | \`/trilhas/:id/edges\` | Lista arestas |
+| POST | \`/trilhas/:id/edges\` | Cria \`{ fromNodeId, toNodeId }\` (409 se formar ciclo) |
+| DELETE | \`/trilhas/:id/edges/:edgeId\` | Remove aresta |
+| POST | \`/trilhas/:id/nodes/:nodeId/claim\` | Reserva \`{ by, force? }\` (409 se outro dono; \`force\` toma trava obsoleta) |
+| POST | \`/trilhas/:id/nodes/:nodeId/heartbeat\` | Sinal de vida \`{ by }\` (não toca \`updatedAt\`) |
+| POST | \`/trilhas/:id/nodes/:nodeId/release\` | Libera a trava (válvula de escape manual) |
+
+Para delegar um nó a uma IA, copie o **ID do nó** e envie
+\`GET /trilhas/:id/nodes/:nodeId\` — o pacote contém título, briefing,
+relatório, critérios, status e dependências.
+
+### Loop de execução
+
+Cada bloco tem dois textos com papéis distintos: \`details\` é o briefing
+(o que fazer — escrito pelo humano ou pela IA ao criar o bloco) e \`result\`
+é o relatório da entrega (o que foi feito). A IA **nunca sobrescreve**
+\`details\`; o resultado vai em \`result\` via \`PUT\`.
+
+Rotina por bloco: \`claim { by }\` → \`heartbeat\` a cada ~2min →
+\`doing\` → executa → \`result\` + \`done\` (trava libera sozinha) →
+\`GET /trilhas/:id/next?by=<nome>\` para o próximo. Sem \`by\`, o \`next\`
+só espreita sem reservar. Travas sem sinal há 5+ min são obsoletas: o
+\`next\` as reassume e \`claim\` com \`force: true\` as toma.
+
+Concorrência otimista: \`PUT\` com \`expectedUpdatedAt\` volta 409 se o nó
+mudou desde a leitura — recarregue e tente de novo. Vale contra colisão
+acidental entre agentes (trava é por label, sem auth), não contra agente
+malicioso. Se um dono travar ou morrer, qualquer humano libera pela UI
+(botão Liberar) ou via \`POST .../release\`.
+
+**Deep link**: \`GET /trilhas\` retorna \`{ deepLink: "http://127.0.0.1:3333/#trilha/<id>" }\`.
 
 ---
 
@@ -1323,7 +1108,7 @@ export const headlessBootstrapMarkdown = (): string =>
 Base URL: \`http://127.0.0.1:3334\`
 
 O docmap expõe uma Headless API local para agentes externos operarem notas,
-tasks, workflows, macros, podcasts, mocks, canvas e demais recursos sem depender
+tasks, macros, podcasts, mocks, canvas e demais recursos sem depender
 da UI.
 
 Antes de agir, descubra as capacidades atuais:
@@ -1341,7 +1126,7 @@ curl http://127.0.0.1:3334/headless/manual
 Para reduzir contexto, busque apenas a funcionalidade necessária:
 
 \`\`\`bash
-curl 'http://127.0.0.1:3334/headless/manual?feature=workflows&role=executor'
+curl 'http://127.0.0.1:3334/headless/manual?feature=notes'
 curl 'http://127.0.0.1:3334/headless/manual?feature=podcasts'
 curl 'http://127.0.0.1:3334/headless/manual?feature=canvas'
 \`\`\`

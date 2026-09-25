@@ -1,17 +1,17 @@
 ---
 name: docmap
-version: 12.0.0
+version: 13.2.0
 description: >
   Bootstrap da Headless API local do docmap desktop. Use para descobrir as
   instruções atualizadas via GET /headless/capabilities e /headless/manual,
-  incluindo notas, desenhos, skills de usuário, macros, tasks, workflows,
+  incluindo notas, desenhos, skills de usuário, macros, tasks, trilhas,
   podcasts, mocks, favoritos, canvas e debug.
   Use quando o usuário mencionar notas, desenhos, diagramas, skills, macros, tasks,
-  kanban, agentes, orquestração, workflows, favoritos, podcasts, slides, mocks,
+  trilhas, fluxos, kanban, agentes, chats, favoritos, podcasts, slides, mocks,
   canvas, canva, ou compartilhar um ID/link do docmap. O app precisa estar rodando.
 metadata:
   category: productivity
-  tags: [notes, skills, tasks, agents, orchestration, workflows, podcasts, mocks, canvas, knowledge-base]
+  tags: [notes, skills, tasks, trilhas, agents, chats, podcasts, mocks, canvas, knowledge-base]
 ---
 
 # docmap — Headless API
@@ -19,7 +19,7 @@ metadata:
 Base URL: `http://127.0.0.1:3334`
 
 O docmap expõe uma Headless API local para agentes externos operarem notas,
-tasks, workflows, macros, podcasts, mocks, canvas e demais recursos sem depender
+tasks, macros, podcasts, mocks, canvas e demais recursos sem depender
 da UI.
 
 Antes de agir, descubra as capacidades atuais:
@@ -37,7 +37,7 @@ curl http://127.0.0.1:3334/headless/manual
 Para reduzir contexto, busque apenas a funcionalidade necessária:
 
 ```bash
-curl 'http://127.0.0.1:3334/headless/manual?feature=workflows&role=executor'
+curl 'http://127.0.0.1:3334/headless/manual?feature=notes'
 curl 'http://127.0.0.1:3334/headless/manual?feature=podcasts'
 curl 'http://127.0.0.1:3334/headless/manual?feature=canvas'
 ```

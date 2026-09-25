@@ -571,7 +571,7 @@ body::before {
 .col-collapsed#mocks-col,
 .col-collapsed#fav-sidebar,
 .col-collapsed#pod-col,
-.col-collapsed#wf-sidebar {
+.col-collapsed#trilha-sidebar {
   width: 0;
   min-width: 0;
   flex-shrink: 1;
@@ -584,7 +584,7 @@ body::before {
 }
 
 /* ════════ Sidebar standard ════════
-   Padrão único para todas as sidebars (notes, skills, podcasts, workflows,
+   Padrão único para todas as sidebars (notes, skills, podcasts, trilhas,
    macros, mocks, favorites):
    - largura var(--sidebar-w) / tablet var(--sidebar-w-tablet)
    - head: título 18px 700 + botão verde 30px
@@ -596,7 +596,7 @@ body::before {
 #notes-col,
 #skills-col,
 #pod-col,
-#wf-sidebar,
+#trilha-sidebar,
 #macros-col,
 #mocks-col,
 #fav-sidebar {
@@ -635,7 +635,7 @@ body::before {
 #skills-new-btn,
 #macros-new-btn,
 #mocks-new-btn,
-#wf-new-btn {
+#trilha-new-btn {
   width: 30px;
   height: 30px;
   border: none;
@@ -653,7 +653,7 @@ body::before {
 #skills-new-btn:hover,
 #macros-new-btn:hover,
 #mocks-new-btn:hover,
-#wf-new-btn:hover {
+#trilha-new-btn:hover {
   background: var(--accent-2);
   transform: scale(1.08);
 }
@@ -661,7 +661,7 @@ body::before {
 #skills-new-btn .ico,
 #macros-new-btn .ico,
 #mocks-new-btn .ico,
-#wf-new-btn .ico {
+#trilha-new-btn .ico {
   width: 15px;
   height: 15px;
 }
@@ -1037,8 +1037,7 @@ body::before {
 }
 
 /* ── Sidebar list active (notas, skills, podcasts, macros) ──
-   Mocks usa inset shadow por causa do badge de método; workflows usa card
-   com borda (lista densa com progresso). */
+   Mocks usa inset shadow por causa do badge de método. */
 .note-item.active,
 .skill-item.active,
 .pod-item.active,
@@ -1531,6 +1530,147 @@ body::before {
   #toast.visible {
     transform: translate(-50%, 0);
   }
+}
+
+/* ════════ Modal genérico (categorias, chats) ════════
+   Estilos compartilhados de overlay + modal + ações. */
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .68);
+  backdrop-filter: blur(4px);
+}
+.app-modal-overlay.visible {
+  display: flex;
+}
+.app-modal {
+  width: min(540px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--sh-lg);
+}
+.app-modal.wide {
+  width: min(780px, 100%);
+}
+.app-modal input[type="checkbox"],
+.app-modal input[type="radio"] {
+  accent-color: var(--accent);
+}
+.app-modal-head {
+  min-height: 52px;
+  padding: 0 14px 0 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+}
+.app-modal-head button {
+  width: 29px;
+  height: 29px;
+}
+.app-modal-body {
+  padding: 15px 17px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.app-modal label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.app-modal label > span {
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.app-modal input,
+.app-modal textarea,
+.app-modal select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  outline: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  font: 11px/17px var(--font-ui);
+}
+.app-modal input,
+.app-modal select {
+  height: 34px;
+  padding: 0 9px;
+}
+.app-modal textarea {
+  padding: 8px 9px;
+  resize: vertical;
+}
+.app-modal input:focus,
+.app-modal textarea:focus,
+.app-modal select:focus {
+  border-color: var(--accent-line);
+}
+.app-modal-actions {
+  min-height: 58px;
+  padding: 10px 17px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  border-top: 1px solid var(--border);
+}
+.app-secondary-btn,
+.app-primary-btn {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  font: 600 10px var(--font-ui);
+}
+.app-secondary-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hi);
+  background: var(--surface-3);
+}
+.app-primary-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.app-primary-btn:hover {
+  background: var(--accent-2);
+}
+.app-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.app-field-label {
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 </style>
@@ -4822,1843 +4962,810 @@ body::before {
 
 </style>
     <style>
-#mode-workflows {
-  --wf-draft: #8b95a5;
-  --wf-planning: #c084fc;
-  --wf-ready: #38bdf8;
-  --wf-running: #fbbf24;
-  --wf-review: #f472b6;
-  --wf-done: #34d399;
-  --wf-blocked: #fb7185;
-  flex-direction: row;
-  background: var(--bg);
+/* ════ Trilhas — objetivo visual editável ════ */
+#mode-trilhas {
+  --tr-todo: #6ea8fe;
+  --tr-doing: #f6a06a;
+  --tr-done: #4ade80;
+  --tr-blocked: #ef4444;
+  --tr-draft: #a8a29e;
+  --tr-running: #38bdf8;
+  --tr-cancelled: #71717a;
 }
 
-#wf-sidebar {
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  transition: width .25s cubic-bezier(.3,0,.2,1), min-width .25s, opacity .2s;
-}
-
-.col-collapsed#wf-sidebar {
-  width: 0;
-  min-width: 0;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-
-#wf-sidebar-head {
-  padding: 18px 18px 12px;
+#trilha-sidebar-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  padding: 18px 18px 12px;
   gap: 10px;
   flex-shrink: 0;
 }
-
-#wf-sidebar-title {
+#trilha-sidebar-title {
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -.02em;
-}
-
-#wf-sidebar-count {
-  margin-top: 3px;
-  color: var(--text-3);
-  font-size: 10px;
-}
-
-/* #wf-new-btn usa o padrão verde 30px do layout.css */
-.wf-icon-btn,
-.wf-modal-head button {
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text-2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background .14s, border-color .14s, color .14s;
-}
-
-#wf-new-btn:hover,
-.wf-primary-btn:hover {
-  background: var(--accent-2);
-  transform: scale(1.08);
-}
-
-.wf-icon-btn:hover,
-.wf-modal-head button:hover {
   color: var(--text);
-  border-color: var(--border-hi);
-  background: var(--surface-3);
 }
-
-.wf-icon-btn.danger:hover {
-  color: var(--wf-blocked);
-  border-color: color-mix(in srgb, var(--wf-blocked) 45%, transparent);
-  background: color-mix(in srgb, var(--wf-blocked) 10%, transparent);
+#trilha-sidebar-count {
+  font-size: 11px;
+  color: var(--text-3);
 }
-
-.wf-icon-btn:disabled {
-  opacity: .32;
-  cursor: default;
-  pointer-events: none;
-}
-
-#wf-search-wrap {
-  height: 34px;
-  margin: 0 12px 9px;
-  padding: 0 9px;
+#trilha-search-wrap {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
+  padding: 0 18px 10px;
+}
+#trilha-search-wrap .ico {
+  width: 14px;
+  height: 14px;
   color: var(--text-3);
+  flex-shrink: 0;
+}
+#trilha-search {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 9px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--surface-2);
-}
-
-#wf-search-wrap input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
   color: var(--text);
   font: 12px var(--font-ui);
-}
-
-#wf-search-wrap:focus-within {
-  border-color: var(--accent-line);
-}
-
-#wf-search-wrap .ico {
-  width: 13px;
-  height: 13px;
-}
-
-#wf-filter-row {
-  padding: 0 12px 10px;
-  border-bottom: 1px solid var(--border);
-}
-
-#wf-filter-row select {
-  width: 100%;
-  height: 30px;
-  padding: 0 7px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text-2);
-  font: 11px var(--font-ui);
   outline: 0;
 }
-
-#wf-list {
+#trilha-list {
   flex: 1;
-  min-height: 0;
   overflow-y: auto;
-  padding: 7px;
-}
-
-#wf-pagination {
-  min-height: 38px;
-  padding: 6px 10px;
+  padding: 0 12px 16px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 7px;
-  border-top: 1px solid var(--border);
-  color: var(--text-3);
-  font: 9px var(--font-mono);
+  flex-direction: column;
+  gap: 8px;
 }
-
-#wf-pagination[hidden] {
-  display: none;
-}
-
-.wf-page-btn {
-  width: 25px;
-  height: 25px;
-  display: inline-grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  background: var(--surface-2);
-  color: var(--text-2);
-  cursor: pointer;
-}
-
-.wf-page-btn:hover:not(:disabled) {
-  border-color: var(--border-hi);
-  background: var(--surface-3);
-  color: var(--text);
-}
-
-.wf-page-btn:disabled {
-  opacity: .35;
-  cursor: default;
-}
-
-.wf-page-btn .ico {
-  width: 12px;
-  height: 12px;
-}
-
-.wf-list-item {
-  width: 100%;
-  min-height: 78px;
-  padding: 10px;
-  margin-bottom: 4px;
-  border: 1px solid transparent;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.wf-list-item:hover {
-  background: var(--surface-2);
-}
-
-.wf-list-item.active {
-  border-color: var(--accent-line);
-  background: var(--accent-dim);
-}
-
-.wf-list-title {
-  display: block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.wf-list-objective {
-  display: -webkit-box;
-  height: 28px;
-  margin: 5px 0 7px;
-  overflow: hidden;
-  color: var(--text-3);
-  font-size: 10px;
-  line-height: 14px;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.wf-list-tags {
-  margin: 4px 0 6px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-
-.wf-toolbar-tags {
-  display: inline-flex;
-  flex-wrap: wrap;
-  min-width: 0;
-  max-width: 100%;
-  gap: 3px;
-  vertical-align: middle;
-}
-
-.wf-list-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-3);
-  font-size: 9px;
-}
-
-.wf-elapsed {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.wf-list-elapsed {
-  color: var(--accent);
-}
-
-.wf-status-dot {
-  width: 7px;
-  height: 7px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--wf-draft);
-}
-
-.wf-status-dot.planning {
-  background: var(--wf-planning);
-}
-.wf-status-dot.pending {
-  background: var(--wf-draft);
-}
-.wf-status-dot.ready {
-  background: var(--wf-ready);
-}
-.wf-status-dot.claimed,
-.wf-status-dot.in_progress {
-  background: var(--wf-running);
-}
-.wf-status-dot.waiting_input {
-  background: var(--wf-planning);
-}
-.wf-status-dot.returned {
-  background: var(--wf-review);
-}
-.wf-status-dot.needs_rework,
-.wf-status-dot.human_intervention {
-  background: var(--wf-blocked);
-}
-.wf-status-dot.running {
-  background: var(--wf-running);
-}
-.wf-status-dot.reviewing {
-  background: var(--wf-review);
-}
-.wf-status-dot.blocked {
-  background: var(--wf-blocked);
-}
-.wf-status-dot.done {
-  background: var(--wf-done);
-}
-.wf-status-dot.cancelled {
-  background: var(--text-4);
-}
-
-.wf-list-progress {
-  flex: 1;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--surface-4);
-}
-
-.wf-list-progress > span {
-  display: block;
-  height: 100%;
-  background: var(--wf-done);
-}
-
-.wf-sidebar-empty {
-  padding: 24px 14px;
-  color: var(--text-3);
-  font-size: 11px;
-  line-height: 17px;
+.trilha-sidebar-empty {
+  padding: 16px;
   text-align: center;
+  color: var(--text-3);
+  font-size: 12px;
+}
+.trilha-list-item {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  cursor: pointer;
+  color: var(--text);
+}
+.trilha-list-item:hover {
+  border-color: var(--border-hi);
+}
+.trilha-list-item.active {
+  border-color: var(--accent-line);
+}
+.trilha-list-title {
+  font-weight: 700;
+  font-size: 13px;
+}
+.trilha-list-objective {
+  font-size: 11px;
+  color: var(--text-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.trilha-list-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--text-3);
+}
+.tr-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  background: var(--tr-draft);
+}
+.tr-status-dot.draft { background: var(--tr-draft); }
+.tr-status-dot.running { background: var(--tr-running); }
+.tr-status-dot.done { background: var(--tr-done); }
+.tr-status-dot.cancelled { background: var(--tr-cancelled); }
+.tr-status-dot.todo { background: var(--tr-todo); }
+.tr-status-dot.doing { background: var(--tr-doing); }
+.tr-status-dot.blocked { background: var(--tr-blocked); }
+.tr-meta-alert {
+  color: var(--tr-blocked);
+  font-weight: 700;
 }
 
-#wf-workspace {
+/* ── Workspace ── */
+#trilha-workspace {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  position: relative;
 }
-
-#wf-empty,
-#wf-inspector-empty {
-  height: 100%;
+#trilha-empty {
+  margin: auto;
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: var(--text-3);
-  font-size: 12px;
+  gap: 10px;
+  max-width: 420px;
+  padding: 24px;
 }
-
-#wf-empty-icon .ico {
+#trilha-empty-icon .ico {
+  width: 40px;
+  height: 40px;
+  color: var(--text-3);
+}
+#trilha-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+#trilha-empty-desc {
+  font-size: 12px;
+  color: var(--text-2);
+}
+#trilha-active {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#trilha-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+#trilha-toolbar-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#trilha-toolbar-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+.tr-title-copy {
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.tr-title-copy:hover {
+  color: var(--text);
+}
+.tr-title-copy .ico {
+  width: 14px;
+  height: 14px;
+}
+#trilha-toolbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text-3);
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+#trilha-toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+.tr-tool-btn {
   width: 32px;
   height: 32px;
-  color: var(--text-4);
-}
-
-#wf-empty-title {
-  font-size: 13px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
   color: var(--text-2);
-}
-
-#wf-active {
-  display: none;
-  height: 100%;
-  min-height: 0;
-  flex-direction: column;
-}
-
-#wf-active.visible {
-  display: flex;
-}
-
-#wf-toolbar {
-  min-height: 58px;
-  padding: 8px 10px 8px 16px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  row-gap: 8px;
-  gap: 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-}
-
-#wf-toolbar-title-wrap {
-  flex: 1 1 220px;
-  min-width: 0;
-}
-
-#wf-toolbar-title {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-#wf-toolbar-meta {
-  margin-top: 3px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  row-gap: 4px;
-  column-gap: 7px;
-  min-width: 0;
-  color: var(--text-3);
-  font-size: 10px;
-}
-
-#wf-toolbar-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  row-gap: 6px;
-  gap: 5px;
-  min-width: 0;
-  margin-left: auto;
-}
-
-.wf-prompt-actions {
-  min-height: 38px;
-  max-width: 100%;
-  padding: 3px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  row-gap: 4px;
-  gap: 4px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-}
-
-.wf-prompt-actions > [hidden] {
-  display: none;
-}
-
-.wf-prompt-actions-label {
-  padding: 0 5px 0 7px;
-  color: var(--text-3);
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.wf-role-btn,
-.wf-role-state {
-  min-height: 30px;
-  padding: 0 9px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: var(--r-xs);
-  font: 650 10px var(--font-ui);
-  white-space: nowrap;
-}
-
-.wf-role-btn {
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: color .14s, background .14s, border-color .14s;
-}
-
-.wf-role-btn .ico,
-.wf-role-state .ico {
-  width: 14px;
-  height: 14px;
-}
-
-.wf-role-btn.orchestrator {
-  color: var(--wf-planning);
-  border-color: color-mix(in srgb, var(--wf-planning) 28%, transparent);
-  background: color-mix(in srgb, var(--wf-planning) 9%, var(--surface));
-}
-
-.wf-role-btn.orchestrator:hover {
-  border-color: color-mix(in srgb, var(--wf-planning) 55%, transparent);
-  background: color-mix(in srgb, var(--wf-planning) 16%, var(--surface));
-}
-
-.wf-role-btn.executor {
-  color: var(--wf-ready);
-  border-color: color-mix(in srgb, var(--wf-ready) 28%, transparent);
-  background: color-mix(in srgb, var(--wf-ready) 9%, var(--surface));
-}
-
-.wf-role-btn.executor:hover {
-  border-color: color-mix(in srgb, var(--wf-ready) 55%, transparent);
-  background: color-mix(in srgb, var(--wf-ready) 16%, var(--surface));
-}
-
-.wf-role-state {
-  color: var(--wf-done);
-  background: color-mix(in srgb, var(--wf-done) 9%, var(--surface));
-}
-
-.wf-role-state.inactive {
-  color: var(--wf-blocked);
-  background: color-mix(in srgb, var(--wf-blocked) 9%, var(--surface));
-}
-
-.wf-role-btn.release {
-  color: var(--wf-blocked);
-  border-color: color-mix(in srgb, var(--wf-blocked) 35%, transparent);
-  background: transparent;
-}
-
-.wf-role-btn.release:hover {
-  background: color-mix(in srgb, var(--wf-blocked) 12%, transparent);
-}
-
-.wf-toolbar-sep {
-  width: 1px;
-  height: 22px;
-  margin: 0 3px;
-  background: var(--border);
-}
-
-#wf-agent-strip {
-  min-height: 49px;
-  padding: 7px 12px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-}
-
-#wf-agent-strip:empty {
-  display: none;
-}
-
-.wf-agent {
-  height: 34px;
-  min-width: 150px;
-  max-width: 230px;
-  padding: 5px 8px;
-  display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-}
-
-.wf-agent-avatar {
-  width: 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--wf-ready);
-  background: color-mix(in srgb, var(--wf-ready) 12%, transparent);
-}
-
-.wf-agent-avatar .ico {
-  width: 12px;
-  height: 12px;
-}
-
-.wf-agent-info {
-  min-width: 0;
-}
-
-.wf-agent-name,
-.wf-agent-model {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.wf-agent-name {
-  font-size: 10px;
-  font-weight: 650;
-}
-
-.wf-agent-model {
-  color: var(--text-3);
-  font-size: 8px;
-}
-
-.wf-agent-presence {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--wf-done);
-}
-
-.wf-agent-presence.busy {
-  background: var(--wf-running);
-}
-.wf-agent-presence.stale {
-  background: var(--wf-blocked);
-}
-.wf-agent-presence.offline {
-  background: var(--text-4);
-}
-
-#wf-main-row {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  position: relative;
-}
-
-#wf-timeline {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  position: relative;
-  overflow: auto;
-  padding: 18px 20px 28px;
-  background: var(--bg);
-  cursor: grab;
-  overscroll-behavior: contain;
-}
-
-#wf-timeline.dragging {
-  cursor: grabbing;
-  user-select: none;
-}
-
-#wf-timeline.dragging .wf-node,
-#wf-timeline.dragging .wf-board-column {
-  cursor: grabbing;
-}
-
-#wf-timeline-list {
-  min-width: min-content;
-  height: 100%;
-}
-
-.wf-board {
-  min-width: min-content;
-  height: 100%;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(260px, 300px);
-  gap: 12px;
-  align-items: stretch;
-}
-
-.wf-board-column {
-  min-height: 260px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-}
-
-.wf-board-column-head {
-  min-height: 38px;
-  padding: 0 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-3);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.wf-board-column-head span:last-child {
-  min-width: 24px;
-  height: 22px;
-  display: inline-grid;
-  place-items: center;
-  border-radius: var(--r-xs);
-  background: var(--surface-3);
-  color: var(--text-2);
-  font: 700 10px var(--font-mono);
-}
-
-.wf-board-column-body {
-  flex: 1;
-  min-height: 0;
-  padding: 9px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-
-.wf-board-empty {
-  min-height: 64px;
-  padding: 12px;
-  display: grid;
-  place-items: center;
-  border: 1px dashed var(--border-mid);
-  border-radius: var(--r-sm);
-  color: var(--text-4);
-  font-size: 11px;
-  text-align: center;
-}
-
-.wf-node {
-  min-height: 188px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--border-mid);
-  border-left: 3px solid var(--wf-draft);
-  border-radius: var(--r-sm);
-  background: var(--surface);
-  box-shadow: var(--sh-sm);
   cursor: pointer;
 }
-
-.wf-node:hover {
-  border-top-color: var(--border-hi);
-  border-right-color: var(--border-hi);
-  border-bottom-color: var(--border-hi);
-}
-
-.wf-node.selected {
-  box-shadow: 0 0 0 1px var(--accent), var(--sh-sm);
-}
-
-.wf-node[data-status='ready'] {
-  border-left-color: var(--wf-ready);
-}
-.wf-node[data-status='claimed'],
-.wf-node[data-status='in_progress'] {
-  border-left-color: var(--wf-running);
-}
-.wf-node[data-status='waiting_input'] {
-  border-left-color: var(--wf-planning);
-}
-.wf-node[data-status='returned'] {
-  border-left-color: var(--wf-review);
-}
-.wf-node[data-status='needs_rework'],
-.wf-node[data-status='human_intervention'] {
-  border-left-color: var(--wf-blocked);
-}
-.wf-node[data-status='done'] {
-  border-left-color: var(--wf-done);
-}
-.wf-node[data-status='cancelled'] {
-  border-left-color: var(--text-4);
-  opacity: .7;
-}
-
-.wf-node.inactive-agent {
-  border-left-color: var(--wf-blocked);
-  background: color-mix(in srgb, var(--wf-blocked) 6%, var(--surface));
-}
-
-.wf-node-head {
-  min-height: 40px;
-  padding: 8px 10px 5px 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.wf-node-state {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-3);
-  font-size: 10px;
-  font-weight: 650;
-  text-transform: uppercase;
-}
-
-.wf-node-state span:last-child {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.wf-node-complexity {
-  height: 22px;
-  min-width: 28px;
-  padding: 0 7px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--r-xs);
-  color: var(--text-2);
-  background: var(--surface-3);
-  font: 700 10px var(--font-mono);
-}
-
-.wf-node-copy {
-  width: 26px;
-  height: 26px;
-  border: 0;
-  border-radius: var(--r-xs);
-  background: transparent;
-  color: var(--text-3);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.wf-node-copy:hover {
-  color: var(--accent);
-  background: var(--accent-dim);
-}
-
-.wf-node-human:hover {
-  color: var(--wf-done);
-  background: color-mix(in srgb, var(--wf-done) 12%, transparent);
-}
-
-.wf-node-copy .ico {
-  width: 14px;
-  height: 14px;
-}
-
-.wf-node-title {
-  min-height: 42px;
-  padding: 3px 13px 0;
-  overflow: hidden;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 19px;
-}
-
-.wf-node-description {
-  min-height: 40px;
-  padding: 7px 13px 2px;
-  overflow: hidden;
-  color: var(--text-3);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  font-size: 12px;
-  line-height: 18px;
-}
-
-.wf-node-meta {
-  min-height: 28px;
-  padding: 5px 13px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-  color: var(--text-3);
-  font-size: 10px;
-}
-
-.wf-node-kind {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--wf-ready);
-}
-
-.wf-node-dependencies {
-  margin: 2px 13px 9px;
-  padding: 7px 8px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border-radius: var(--r-xs);
-  background: var(--surface-2);
-  color: var(--text-3);
-  font-size: 10px;
-}
-
-.wf-node-agent {
-  min-height: 43px;
-  margin-top: auto;
-  padding: 8px 11px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  border-top: 1px solid var(--border);
-  background: var(--surface-2);
-}
-
-.wf-node-agent-avatar {
-  width: 22px;
-  height: 22px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--wf-running);
-  background: color-mix(in srgb, var(--wf-running) 11%, transparent);
-}
-
-.wf-node-agent-avatar .ico {
-  width: 12px;
-  height: 12px;
-}
-
-.wf-node-agent-text {
-  min-width: 0;
-}
-
-.wf-node-agent-name,
-.wf-node-agent-model {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.wf-node-agent-name {
-  font-size: 10px;
-  font-weight: 650;
-}
-
-.wf-node-agent-model {
-  color: var(--text-3);
-  font-size: 9px;
-}
-
-.wf-node-unassigned {
-  color: var(--text-4);
-  font-size: 10px;
-}
-
-#wf-timeline-empty {
-  position: absolute;
-  inset: 0;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--text-3);
-  font-size: 11px;
-  pointer-events: none;
-}
-
-#wf-timeline-empty.visible {
-  display: flex;
-}
-
-#wf-timeline-empty .ico {
-  width: 28px;
-  height: 28px;
-  color: var(--text-4);
-}
-
-#wf-inspector {
-  position: fixed;
-  inset: 0;
-  z-index: 260;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  border: 0;
-  background: rgba(0, 0, 0, .62);
-  backdrop-filter: blur(4px);
-  overflow: auto;
-}
-
-#wf-inspector.visible {
-  display: flex;
-}
-
-#wf-inspector-empty {
-  display: none;
-}
-
-#wf-inspector-empty .ico {
-  width: 24px;
-  height: 24px;
-  color: var(--text-4);
-}
-
-#wf-inspector-content {
-  display: none;
-  width: min(760px, calc(100vw - 48px));
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
-  border: 1px solid var(--border-hi);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  box-shadow: var(--sh-lg);
-}
-
-#wf-inspector-content.visible {
-  display: block;
-}
-
-.wf-inspector-head {
-  position: relative;
-  padding: 19px 20px 17px;
-  border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
-}
-
-.wf-inspector-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text-3);
-  cursor: pointer;
-}
-
-.wf-inspector-close:hover {
+.tr-tool-btn:hover {
   color: var(--text);
   border-color: var(--border-hi);
-  background: var(--surface-3);
 }
-
-.wf-inspector-close .ico {
+.tr-tool-btn.on {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.tr-tool-btn.wide {
+  width: auto;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 11px var(--font-ui);
+}
+.tr-tool-btn.danger:hover {
+  color: var(--tr-blocked);
+  border-color: var(--tr-blocked);
+}
+.tr-tool-btn .ico {
   width: 15px;
   height: 15px;
 }
 
-.wf-inspector-kicker {
-  padding-right: 38px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--text-3);
-  font-size: 10px;
-  font-weight: 650;
-  text-transform: uppercase;
-}
-
-.wf-inspector-kicker-separator {
-  color: var(--text-4);
-}
-
-.wf-inspector-title {
-  margin: 8px 0 4px;
-  overflow-wrap: anywhere;
-  font-size: 18px;
-  line-height: 24px;
-}
-
-.wf-inspector-sub {
-  color: var(--text-3);
-  font-size: 11px;
-}
-
-.wf-inspector-state {
-  max-width: calc(100% - 38px);
-  margin-top: 14px;
-  padding: 9px 11px;
-  display: grid;
-  gap: 3px;
-  border: 1px solid var(--border);
-  border-left: 2px solid var(--accent);
-  border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
-}
-
-.wf-inspector-state strong {
-  color: var(--text);
-  font-size: 11px;
-}
-
-.wf-inspector-state span,
-.wf-inspector-help {
-  color: var(--text-3);
-  font-size: 11px;
-  line-height: 17px;
-}
-
-.wf-inspector-flow {
-  padding: 13px 20px 12px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-2);
-}
-
-.wf-flow-step {
-  position: relative;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-4);
-  font-size: 10px;
-  font-weight: 650;
-}
-
-.wf-flow-step:not(:last-child)::after {
-  content: '';
-  height: 1px;
+/* ── Mapa ── */
+#trilha-main-row {
   flex: 1;
-  margin: 0 8px;
-  background: var(--border);
-}
-
-.wf-flow-index {
-  width: 19px;
-  height: 19px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--text-4);
-  font: 9px var(--font-mono);
-}
-
-.wf-flow-index .ico {
-  width: 10px;
-  height: 10px;
-}
-
-.wf-flow-step.complete,
-.wf-flow-step.current {
-  color: var(--text-2);
-}
-
-.wf-flow-step.complete .wf-flow-index {
-  border-color: color-mix(in srgb, var(--wf-done) 55%, transparent);
-  background: color-mix(in srgb, var(--wf-done) 14%, transparent);
-  color: var(--wf-done);
-}
-
-.wf-flow-step.current .wf-flow-index {
-  border-color: var(--accent-line);
-  background: var(--accent-dim);
-  color: var(--accent-2);
-}
-
-.wf-flow-step.complete:not(:last-child)::after {
-  background: color-mix(in srgb, var(--wf-done) 45%, transparent);
-}
-
-.wf-inspector-actions {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  padding: 10px 20px;
+  min-height: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(10px);
 }
-
-.wf-action-btn,
-.wf-primary-btn,
-.wf-secondary-btn {
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text-2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  cursor: pointer;
-  font: 600 10px var(--font-ui);
-}
-
-.wf-action-btn:hover,
-.wf-secondary-btn:hover {
-  color: var(--text);
-  border-color: var(--border-hi);
-  background: var(--surface-3);
-}
-
-.wf-action-btn.approve {
-  color: var(--wf-done);
-  border-color: color-mix(in srgb, var(--wf-done) 35%, transparent);
-}
-
-.wf-action-btn.rework {
-  color: var(--wf-running);
-  border-color: color-mix(in srgb, var(--wf-running) 35%, transparent);
-}
-
-.wf-action-btn.danger {
-  color: var(--wf-blocked);
-}
-
-.wf-primary-btn {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-}
-
-.wf-inspector-section {
-  padding: 17px 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.wf-inspector-section-primary {
-  background: color-mix(in srgb, var(--accent) 4%, transparent);
-}
-
-.wf-inspector-section-attention {
-  background: color-mix(in srgb, var(--wf-review) 5%, transparent);
-}
-
-.wf-inspector-section-danger {
-  background: color-mix(in srgb, var(--wf-blocked) 7%, transparent);
-}
-
-.wf-inline-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.wf-inspector-section-muted {
-  background: color-mix(in srgb, var(--surface-2) 58%, transparent);
-}
-
-.wf-inspector-section-heading {
+#trilha-map-wrap {
+  flex: 1;
   min-width: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.wf-inspector-heading {
-  margin-top: -3px;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.wf-inspector-count,
-.wf-inspector-badge {
-  min-width: 20px;
-  padding: 3px 7px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text-3);
-  font: 9px var(--font-mono);
-  text-align: center;
-  white-space: nowrap;
-}
-
-.wf-inspector-badge.review {
-  border-color: color-mix(in srgb, var(--wf-review) 42%, transparent);
-  color: var(--wf-review);
-}
-
-.wf-inspector-badge.danger {
-  border-color: color-mix(in srgb, var(--wf-blocked) 42%, transparent);
-  color: var(--wf-blocked);
-}
-
-.wf-inspector-help {
-  margin: 7px 0 11px;
-}
-
-.wf-inspector-label {
-  margin-bottom: 7px;
-  color: var(--text-3);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.wf-inspector-subgroup {
-  margin-top: 16px;
-}
-
-.wf-inspector-subgroup .wf-inspector-label {
-  margin-bottom: 6px;
-  font-size: 9px;
-  font-weight: 600;
-}
-
-.wf-inspector-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-}
-
-.wf-inspector-card {
-  min-width: 0;
-  min-height: 76px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-}
-
-.wf-inspector-card strong {
-  max-width: 100%;
-  overflow: hidden;
-  color: var(--text);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.wf-inspector-card > span:not(.wf-inspector-card-label):not(.wf-agent-inline-status) {
-  color: var(--text-3);
-  font-size: 10px;
-  line-height: 14px;
-  overflow-wrap: anywhere;
-}
-
-.wf-inspector-card-label {
-  color: var(--text-4);
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.wf-agent-inline-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--text-3);
-  font: 9px var(--font-mono);
-}
-
-.wf-agent-inline-status .wf-agent-presence {
-  width: 6px;
-  height: 6px;
-}
-
-.wf-inspector-text {
-  color: var(--text-2);
-  font-size: 12px;
-  line-height: 19px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.wf-inspector-textarea,
-.wf-inspector-input {
-  width: 100%;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  outline: 0;
-  background: var(--surface-2);
-  color: var(--text);
-  font: 11px/17px var(--font-ui);
-}
-
-.wf-inspector-textarea {
-  min-height: 84px;
-  padding: 8px;
-  resize: vertical;
-}
-
-.wf-inspector-input {
-  height: 32px;
-  margin-top: 7px;
-  padding: 0 8px;
-}
-
-.wf-inspector-textarea:focus,
-.wf-inspector-input:focus {
-  border-color: var(--accent-line);
-}
-
-.wf-human-return-panel .wf-action-btn {
-  margin-top: 8px;
-}
-
-.wf-question-answer-btn {
-  margin-top: 6px;
-}
-
-.wf-criteria {
-  padding-left: 17px;
-  color: var(--text-2);
-  font-size: 12px;
-  line-height: 20px;
-}
-
-.wf-review-criteria {
-  display: grid;
-  gap: 8px;
-}
-
-.wf-review-criterion {
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  background: var(--surface-2);
-}
-
-.wf-review-criterion label {
-  display: flex;
-  gap: 7px;
-  align-items: flex-start;
-  color: var(--text-2);
-  font-size: 11px;
-  line-height: 16px;
-}
-
-.wf-review-criterion input[type="checkbox"] {
-  margin-top: 2px;
-  accent-color: var(--wf-done);
-}
-
-.wf-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.wf-chip {
-  min-height: 21px;
-  max-width: 100%;
-  padding: 3px 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border-radius: var(--r-xs);
-  background: var(--surface-3);
-  color: var(--text-2);
-  font: 9px var(--font-mono);
-}
-
-.wf-conflict {
-  padding: 8px;
-  display: grid;
-  gap: 3px;
-  border-left: 2px solid var(--wf-blocked);
-  background: color-mix(in srgb, var(--wf-blocked) 8%, transparent);
-  color: var(--text-2);
-  font-size: 11px;
-  line-height: 17px;
-}
-
-.wf-conflict strong {
-  font-size: 11px;
-}
-
-.wf-conflict span {
-  color: var(--text-3);
-  font: 9px/14px var(--font-mono);
-  overflow-wrap: anywhere;
-}
-
-.wf-run {
-  padding: 8px 0;
-  border-top: 1px solid var(--border);
-}
-
-.wf-run:first-of-type {
-  border-top: 0;
-}
-
-.wf-run-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  color: var(--text-2);
-  font-size: 11px;
-}
-
-.wf-run-head time {
-  flex: none;
-  color: var(--text-4);
-  font: 9px var(--font-mono);
-}
-
-.wf-run-title {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.wf-run-title .wf-status-dot {
-  width: 6px;
-  height: 6px;
-}
-
-.wf-run-status {
-  padding: 2px 5px;
-  border-radius: 999px;
-  background: var(--surface-3);
-  color: var(--text-3);
-  font: 9px var(--font-mono);
-}
-
-.wf-run-summary {
-  margin-top: 5px;
-  color: var(--text-3);
-  font-size: 11px;
-  line-height: 17px;
-}
-
-.wf-run-meta {
-  margin-top: 7px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  color: var(--text-4);
-  font: 9px var(--font-mono);
-}
-
-.wf-run-meta > span {
-  padding: 2px 5px;
-  border-radius: var(--r-xs);
-  background: var(--surface-2);
-}
-
-.wf-run-outcome.success,
-.wf-run-outcome.passed {
-  color: var(--wf-done);
-}
-
-.wf-run-outcome.failed,
-.wf-run-outcome.blocked {
-  color: var(--wf-blocked);
-}
-
-.wf-run-feedback {
-  margin-top: 8px;
-  padding: 7px 8px;
-  border-left: 2px solid var(--wf-running);
-  background: color-mix(in srgb, var(--wf-running) 7%, transparent);
-  color: var(--text-3);
-  font-size: 10px;
-  line-height: 15px;
-}
-
-.wf-inspector-empty-text {
-  color: var(--text-4);
-  font-size: 11px;
-  line-height: 17px;
-}
-
-.wf-run details {
-  margin-top: 6px;
-  color: var(--text-3);
-  font-size: 10px;
-}
-
-.wf-run pre {
-  max-height: 180px;
-  margin-top: 6px;
-  padding: 7px;
   overflow: auto;
-  border-radius: var(--r-xs);
-  background: var(--bg);
-  color: var(--text-2);
-  font: 10px/16px var(--font-mono);
-  white-space: pre-wrap;
+  position: relative;
+  background:
+    radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
-
-.wf-question {
-  padding: 8px 0;
-  border-top: 1px solid var(--border);
+#trilha-canvas {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
 }
-
-.wf-question-status {
-  margin-bottom: 5px;
-  color: var(--text-4);
-  font: 9px var(--font-mono);
-  text-transform: uppercase;
-}
-
-.wf-question-status.open {
-  color: var(--wf-running);
-}
-
-.wf-question-status.answered {
-  color: var(--wf-done);
-}
-
-.wf-question:first-of-type {
-  border-top: 0;
-}
-
-.wf-question textarea {
-  width: 100%;
-  min-height: 62px;
-  margin-top: 7px;
-  padding: 7px;
-  resize: vertical;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  outline: 0;
-  background: var(--surface-2);
-  color: var(--text);
-  font: 10px/15px var(--font-ui);
-}
-
-.wf-question textarea:focus {
-  border-color: var(--accent-line);
-}
-
-.wf-modal-overlay {
-  position: fixed;
+#trilha-edges {
+  position: absolute;
   inset: 0;
-  z-index: 220;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(0, 0, 0, .68);
-  backdrop-filter: blur(4px);
+  pointer-events: none;
 }
-
-.wf-modal-overlay.visible {
-  display: flex;
+.tr-edge {
+  fill: none;
+  stroke: var(--text-3);
+  stroke-width: 1.8;
+  pointer-events: stroke;
 }
-
-.wf-modal {
-  width: min(540px, 100%);
-  max-height: calc(100vh - 48px);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+.tr-edge:hover {
+  stroke: var(--accent-line);
+}
+#trilha-nodes {
+  position: absolute;
+  inset: 0;
+}
+.tr-node {
+  position: absolute;
+  width: 232px;
   border: 1px solid var(--border-hi);
-  border-radius: var(--r-md);
+  border-left: 4px solid var(--tr-todo);
+  border-radius: var(--r-sm);
   background: var(--surface);
   box-shadow: var(--sh-lg);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
 }
-
-.wf-node-modal {
-  width: min(720px, 100%);
+.tr-node.st-todo { border-left-color: var(--tr-todo); }
+.tr-node.st-doing { border-left-color: var(--tr-doing); }
+.tr-node.st-done { border-left-color: var(--tr-done); opacity: .88; }
+.tr-node.st-blocked { border-left-color: var(--tr-blocked); }
+.tr-node.selected {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 1px;
 }
-
-.wf-modal-head {
-  min-height: 52px;
-  padding: 0 14px 0 17px;
+.tr-node.dragging {
+  cursor: grabbing;
+  opacity: .92;
+  z-index: 4;
+}
+.tr-node-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 700;
 }
-
-.wf-modal-head button {
-  width: 29px;
-  height: 29px;
-}
-
-.wf-modal-body {
-  padding: 15px 17px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.wf-modal label {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.wf-modal label > span {
-  color: var(--text-3);
+.tr-node-status {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-3);
 }
-
-.wf-modal input,
-.wf-modal textarea,
-.wf-modal select {
-  width: 100%;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  outline: 0;
-  background: var(--surface-2);
-  color: var(--text);
-  font: 11px/17px var(--font-ui);
+.tr-node-claim {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
 }
-
-.wf-modal input,
-.wf-modal select {
-  height: 34px;
-  padding: 0 9px;
-}
-
-.wf-modal textarea {
-  padding: 8px 9px;
-  resize: vertical;
-}
-
-.wf-modal select[multiple] {
-  height: 84px;
-  padding: 5px;
-}
-
-.wf-modal input:focus,
-.wf-modal textarea:focus,
-.wf-modal select:focus {
-  border-color: var(--accent-line);
-}
-
-.wf-form-grid {
+.tr-node-icon {
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 2px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  place-items: center;
+}
+.tr-node-icon:hover {
+  color: var(--text);
+}
+.tr-node-icon .ico {
+  width: 13px;
+  height: 13px;
+}
+.tr-node-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.tr-node-details {
+  font-size: 11px;
+  color: var(--text-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* No card o markdown é só um resumo: sem bloco de código estourando largura. */
+.tr-node-details > :first-child {
+  margin-top: 0;
+}
+.tr-node-details > :last-child {
+  margin-bottom: 0;
+}
+.tr-node-details p {
+  margin: 2px 0;
+}
+.tr-node-details h1,
+.tr-node-details h2,
+.tr-node-details h3,
+.tr-node-details h4 {
+  font-size: 11px;
+  font-weight: 700;
+  margin: 3px 0 1px;
+  line-height: 1.3;
+}
+.tr-node-details ul,
+.tr-node-details ol {
+  margin: 2px 0;
+  padding-left: 15px;
+}
+.tr-node-details li {
+  margin: 0;
+}
+.tr-node-details code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--surface-3);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+.tr-node-details pre,
+.tr-node-details table {
+  display: none;
+}
+.tr-node-details a {
+  color: var(--accent);
+}
+.tr-node-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 2px;
+}
+.tr-node-assignee {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tr-node-assignee .ico,
+.tr-node-claim .ico,
+.tr-inspector-assignee .ico,
+.tr-inspector-claim .ico {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+.tr-node-claim,
+.tr-inspector-claim.locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tr-node-claim.stale {
+  color: var(--tr-blocked);
+  border-bottom: 1px dashed var(--tr-blocked);
+}
+.tr-node.has-stale {
+  border-style: dashed;
+}
+.tr-stale {
+  color: var(--tr-blocked);
+  font-weight: 700;
+}
+.tr-node-assignee.ai {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.tr-node-deps {
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* ── Inspetor ── */
+#trilha-inspector {
+  width: 330px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  overflow-y: auto;
+  padding: 16px;
+}
+#trilha-inspector-content {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
-
-.wf-form-grid-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.wf-modal-actions {
-  min-height: 58px;
-  padding: 10px 17px;
+.tr-inspector-head {
   display: flex;
-  justify-content: flex-end;
-  gap: 7px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tr-inspector-close {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.tr-inspector-close .ico {
+  width: 15px;
+  height: 15px;
+}
+.tr-inspector-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.tr-inspector-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.tr-status-btn {
+  flex: 1;
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tr-status-btn.on {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.tr-inspector-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+.tr-inspector-assignee {
+  font-size: 12px;
+  font-weight: 600;
+}
+.tr-inspector-claim.locked {
+  font-size: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+.tr-inspector-criteria {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tr-inspector-blocked {
+  font-size: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--tr-blocked);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--tr-blocked) 8%, transparent);
+}
+.tr-activity-item {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.4;
+}
+.tr-activity-time {
+  color: var(--text-3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tr-activity-by {
+  color: var(--accent);
+  font-weight: 700;
+}
+.tr-inspector-details {
+  font-size: 12px;
+  line-height: 1.6;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  word-break: break-word;
+}
+/* ── Markdown (detalhes são markdown: enunciado + relatório da IA) ── */
+.tr-inspector-details > :first-child,
+#trilha-node-details-preview > :first-child {
+  margin-top: 0;
+}
+.tr-inspector-details > :last-child,
+#trilha-node-details-preview > :last-child {
+  margin-bottom: 0;
+}
+.tr-inspector-details h1,
+.tr-inspector-details h2,
+.tr-inspector-details h3,
+.tr-inspector-details h4,
+#trilha-node-details-preview h1,
+#trilha-node-details-preview h2,
+#trilha-node-details-preview h3,
+#trilha-node-details-preview h4 {
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 12px 0 5px;
+}
+.tr-inspector-details h1,
+#trilha-node-details-preview h1 {
+  font-size: 1.05rem;
+}
+.tr-inspector-details h2,
+#trilha-node-details-preview h2 {
+  font-size: 0.95rem;
+}
+.tr-inspector-details h3,
+.tr-inspector-details h4,
+#trilha-node-details-preview h3,
+#trilha-node-details-preview h4 {
+  font-size: 0.85rem;
+}
+.tr-inspector-details p,
+#trilha-node-details-preview p {
+  margin: 7px 0;
+}
+.tr-inspector-details ul,
+.tr-inspector-details ol,
+#trilha-node-details-preview ul,
+#trilha-node-details-preview ol {
+  margin: 7px 0;
+  padding-left: 18px;
+}
+.tr-inspector-details li,
+#trilha-node-details-preview li {
+  margin: 3px 0;
+}
+.tr-inspector-details li::marker,
+#trilha-node-details-preview li::marker {
+  color: var(--text-3);
+}
+.tr-inspector-details code,
+#trilha-node-details-preview code {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  background: var(--surface-3);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--accent);
+}
+.tr-inspector-details pre,
+#trilha-node-details-preview pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  margin: 9px 0;
+  overflow-x: auto;
+}
+.tr-inspector-details pre code,
+#trilha-node-details-preview pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+  font-size: 0.74rem;
+}
+.tr-inspector-details blockquote,
+#trilha-node-details-preview blockquote {
+  border-left: 3px solid var(--accent-line);
+  padding-left: 10px;
+  margin: 8px 0;
+  color: var(--text-2);
+}
+.tr-inspector-details hr,
+#trilha-node-details-preview hr {
+  border: none;
   border-top: 1px solid var(--border);
+  margin: 12px 0;
+}
+.tr-inspector-details a,
+#trilha-node-details-preview a {
+  color: var(--accent);
+}
+.tr-inspector-details table,
+#trilha-node-details-preview table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 9px 0;
+  font-size: 11px;
+}
+.tr-inspector-details th,
+.tr-inspector-details td,
+#trilha-node-details-preview th,
+#trilha-node-details-preview td {
+  border: 1px solid var(--border);
+  padding: 5px 7px;
+  text-align: left;
+}
+.tr-inspector-details strong,
+#trilha-node-details-preview strong {
+  color: var(--text);
 }
 
-.wf-secondary-btn,
-.wf-primary-btn {
-  min-height: 34px;
-  padding: 0 13px;
+/* Preview do modal de bloco */
+#trilha-node-details-preview {
+  display: none;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  word-break: break-word;
+}
+#trilha-node-details-preview.visible {
+  display: block;
+}
+#trilha-node-details-preview:empty::before {
+  content: 'Sem detalhes ainda — clique em Editar para escrever em markdown…';
+  color: var(--text-4);
+  font-style: italic;
+}
+.tr-inspector-empty {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.tr-inspector-dep {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+.tr-inspector-dep button {
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.tr-inspector-dep button:hover {
+  color: var(--tr-blocked);
+}
+.tr-inspector-dep .ico {
+  width: 13px;
+  height: 13px;
+}
+.tr-inspector-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.tr-inspector-actions .ico {
+  width: 13px;
+  height: 13px;
+}
+.tr-inspector-actions .danger {
+  color: var(--tr-blocked);
+}
+.tr-dep-check {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 0;
+}
+.tr-dep-check input {
+  width: auto !important;
+  height: auto !important;
 }
 
 @media (max-width: 1050px) {
-  #wf-timeline {
-    padding: 14px 14px 28px;
-  }
-
-  #wf-timeline-list {
-    height: 100%;
-  }
-
-  .wf-board {
-    grid-auto-columns: minmax(250px, 290px);
-  }
-
-  #wf-toolbar-title-wrap {
-    flex-basis: 180px;
-  }
-
-  .wf-icon-btn {
-    width: 30px;
-    height: 30px;
-  }
-
-  .wf-prompt-actions-label {
-    display: none;
+  #trilha-inspector {
+    width: 280px;
   }
 }
 
-@media (max-width: 780px) {
-  #wf-sidebar {
-    width: var(--sidebar-w-tablet);
-  }
-
-  #wf-timeline {
-    padding: 12px 10px 28px;
-  }
-
-  .wf-board {
-    grid-auto-columns: minmax(240px, 280px);
-  }
-
-  #wf-inspector {
-    padding: 12px;
-  }
-
-  #wf-inspector-content {
-    width: 100%;
-    max-height: calc(100vh - 24px);
-  }
-
-  .wf-inspector-head,
-  .wf-inspector-actions,
-  .wf-inspector-section,
-  .wf-inspector-flow {
-    padding-left: 14px;
-    padding-right: 14px;
-  }
-
-  .wf-inspector-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .wf-inspector-flow {
-    overflow-x: auto;
-  }
-
-  .wf-flow-step {
-    min-width: 92px;
-  }
-
-  #wf-toolbar {
-    align-items: flex-start;
-    padding: 8px 10px;
-  }
-
-  #wf-toolbar-actions {
-    max-width: none;
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .wf-form-grid,
-  .wf-form-grid-3 {
-    grid-template-columns: 1fr;
-  }
+/* Toggle Preview/Editar dos detalhes do bloco */
+.tr-seg {
+  display: inline-flex;
+  align-self: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+.tr-seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.tr-seg-btn:hover {
+  color: var(--text-2);
+}
+.tr-seg-btn.on {
+  background: var(--surface-3);
+  color: var(--text);
 }
 
 </style>
@@ -9431,7 +8538,7 @@ mark.fav-hl {
   --kg-favorite: #fbbf24;
   --kg-skill: #22d3ee;
   --kg-mock: #a8a29e;
-  --kg-workflow: #ef4444;
+  --kg-trilha: #38bdf8;
   --kg-agentchat: #a3e635;
   --kg-tag: var(--text-3);
 }
@@ -9580,8 +8687,8 @@ mark.fav-hl {
 .kg-leg-mock i {
   background: var(--kg-mock);
 }
-.kg-leg-workflow i {
-  background: var(--kg-workflow);
+.kg-leg-trilha i {
+  background: var(--kg-trilha);
 }
 .kg-leg-agentchat i {
   background: var(--kg-agentchat);
@@ -10615,9 +9722,9 @@ svg#kg-svg:active {
           title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
   </button>
-        <button class="rail-btn" id="rail-workflows"
-          onclick="setMode('workflows')" title="Workflows de agentes">
-    <span class="rail-ico" data-icon="workflow"></span><span class="rail-lbl">Flows</span>
+        <button class="rail-btn" id="rail-trilhas" onclick="setMode('trilhas')"
+          title="Trilhas visuais">
+    <span class="rail-ico" data-icon="route"></span><span class="rail-lbl">Trilhas</span>
   </button>
         <button class="rail-btn" id="rail-agentchats"
           onclick="setMode('agentchats')" title="Chats entre agentes">
@@ -10767,16 +9874,16 @@ svg#kg-svg:active {
         </main>
 
         <!-- Categorias: cadastro com descrição ( ajuda a IA a entender o uso ) -->
-        <div class="wf-modal-overlay" id="cats-modal-overlay"
+        <div class="app-modal-overlay" id="cats-modal-overlay"
           onclick="closeCatsModal(event)">
-          <div class="wf-modal" id="cats-modal" role="dialog"
+          <div class="app-modal" id="cats-modal" role="dialog"
             aria-label="Gerenciar categorias">
-            <div class="wf-modal-head">
+            <div class="app-modal-head">
               <span>Categorias</span>
               <button type="button" onclick="closeCatsModal()"
                 title="Fechar" data-icon="x"></button>
             </div>
-            <div class="wf-modal-body">
+            <div class="app-modal-body">
               <div id="cats-search-box">
                 <input id="cats-search" type="text"
                   placeholder="Buscar categorias…" autocomplete="off"
@@ -10793,10 +9900,10 @@ svg#kg-svg:active {
                   placeholder="Ex: notas de estudo e resumos" />
               </label>
             </div>
-            <div class="wf-modal-actions">
-              <button type="button" class="wf-secondary-btn"
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
                 onclick="closeCatsModal()">Fechar</button>
-              <button type="button" class="wf-primary-btn"
+              <button type="button" class="app-primary-btn"
                 onclick="createCatFromModal()">
                 <span data-icon="plus"></span>
                 <span>Criar</span>
@@ -11207,6 +10314,218 @@ svg#kg-svg:active {
           </div>
         </main>
 
+        <!-- ═══ MODE: TRILHAS ═══ -->
+        <main id="mode-trilhas" class="mode">
+          <aside id="trilha-sidebar">
+            <div id="trilha-sidebar-head">
+              <div>
+                <div id="trilha-sidebar-title">Trilhas</div>
+                <div id="trilha-sidebar-count">0 trilhas</div>
+              </div>
+              <button id="trilha-new-btn" onclick="openTrilhaModal()"
+                title="Nova trilha" data-icon="plus"></button>
+            </div>
+            <div id="trilha-search-wrap">
+              <span data-icon="search"></span>
+              <input id="trilha-search" type="text" placeholder="Buscar trilhas"
+                autocomplete="off" spellcheck="false" oninput="renderTrilhasList()">
+            </div>
+            <div id="trilha-list"></div>
+          </aside>
+
+          <section id="trilha-workspace">
+            <div id="trilha-empty">
+              <span id="trilha-empty-icon" data-icon="route"></span>
+              <div id="trilha-empty-title">Nenhuma trilha selecionada</div>
+              <div id="trilha-empty-desc">Crie uma trilha, adicione blocos com detalhes
+                e ligue as dependências. Você e a IA enxergam o mesmo mapa.</div>
+              <button class="app-primary-btn" onclick="openTrilhaModal()">
+                <span data-icon="plus"></span> Nova trilha
+              </button>
+            </div>
+
+            <div id="trilha-active" style="display:none">
+              <header id="trilha-toolbar">
+                <div id="trilha-toolbar-title-wrap">
+                  <div id="trilha-toolbar-title-row">
+                    <div id="trilha-toolbar-title"></div>
+                    <button id="trilha-copy-id-btn" class="tr-title-copy"
+                      onclick="copyTrilhaId()" title="Copiar ID da trilha">
+                      <span data-icon="copy"></span>
+                    </button>
+                  </div>
+                  <div id="trilha-toolbar-meta"></div>
+                </div>
+                <div id="trilha-toolbar-actions">
+                  <button class="tr-tool-btn wide" onclick="copyTrilhaPrompt()"
+                    title="Copiar prompt completo para a IA executar">
+                    <span data-icon="copy"></span><span>Prompt IA</span>
+                  </button>
+                  <button class="tr-tool-btn" onclick="openNodeModal()"
+                    title="Novo bloco" data-icon="plus"></button>
+                  <button class="tr-tool-btn" id="trilha-activity-btn"
+                    onclick="toggleTrilhaActivity()"
+                    title="Atividade recente da trilha" data-icon="clock"></button>
+                  <button class="tr-tool-btn" onclick="openTrilhaModal(currentTrilhaDetail?.trilha.id)"
+                    title="Editar trilha" data-icon="pencil"></button>
+                  <button class="tr-tool-btn" onclick="refreshCurrentTrilha()"
+                    title="Recarregar" data-icon="refresh-cw"></button>
+                  <button class="tr-tool-btn danger" onclick="deleteCurrentTrilha()"
+                    title="Excluir trilha" data-icon="trash"></button>
+                </div>
+              </header>
+
+              <div id="trilha-main-row">
+                <div id="trilha-map-wrap">
+                  <div id="trilha-canvas">
+                    <svg id="trilha-edges"></svg>
+                    <div id="trilha-nodes"></div>
+                  </div>
+                </div>
+                <aside id="trilha-inspector" hidden>
+                  <div id="trilha-inspector-content"></div>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- Trilha modal: criar/editar objetivo -->
+        <div class="app-modal-overlay" id="trilha-modal-overlay"
+          onclick="closeTrilhaModal(event)">
+          <form class="app-modal" id="trilha-modal-form"
+            onsubmit="saveTrilhaFromModal(event)">
+            <div class="app-modal-head">
+              <span id="trilha-modal-title-label">Nova trilha</span>
+              <button type="button" onclick="closeTrilhaModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="trilha-modal-edit-id" type="hidden" value="">
+              <label>
+                <span>Título</span>
+                <input id="trilha-modal-title" required maxlength="140"
+                  placeholder="Ex: Mapear app admin">
+              </label>
+              <label>
+                <span>Objetivo</span>
+                <textarea id="trilha-modal-objective" required rows="3"
+                  placeholder="O que precisa sair pronto no fim"></textarea>
+              </label>
+              <label>
+                <span>Contexto</span>
+                <textarea id="trilha-modal-description" rows="3"
+                  placeholder="Restrições e informações relevantes"></textarea>
+              </label>
+              <label>
+                <span>Status</span>
+                <select id="trilha-modal-status">
+                  <option value="draft">Rascunho</option>
+                  <option value="running">Em execução</option>
+                  <option value="done">Concluída</option>
+                  <option value="cancelled">Cancelada</option>
+                </select>
+              </label>
+              <label>
+                <span>Tags</span>
+                <input id="trilha-modal-tags" placeholder="api, backend, produto">
+              </label>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeTrilhaModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="plus"></span>
+                <span id="trilha-modal-submit-label">Criar trilha</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Bloco modal: criar/editar nó -->
+        <div class="app-modal-overlay" id="trilha-node-modal-overlay"
+          onclick="closeNodeModal(event)">
+          <form class="app-modal wide" id="trilha-node-modal-form"
+            onsubmit="saveNodeFromModal(event)">
+            <div class="app-modal-head">
+              <span id="trilha-node-modal-title-label">Novo bloco</span>
+              <button type="button" onclick="closeNodeModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="trilha-node-edit-id" type="hidden" value="">
+              <label>
+                <span>Título</span>
+                <input id="trilha-node-title" required maxlength="140"
+                  placeholder="Ex: Investigar front-end-admin">
+              </label>
+              <label>
+                <span>Detalhes (você e a IA editam aqui)</span>
+              </label>
+              <div class="tr-seg" role="tablist" aria-label="Modo dos detalhes">
+                <button type="button" id="trilha-node-tab-preview"
+                  class="tr-seg-btn" onclick="setTrilhaDetailsMode('preview')">Preview</button>
+                <button type="button" id="trilha-node-tab-edit"
+                  class="tr-seg-btn" onclick="setTrilhaDetailsMode('edit')">Editar</button>
+              </div>
+              <textarea id="trilha-node-details" rows="8"
+                placeholder="Passos, arquivos, critérios, links… (markdown)"
+                oninput="onTrilhaDetailsInput()"></textarea>
+              <div id="trilha-node-details-preview"></div>
+              <label>
+                <span>Resultado da entrega (relatório — a IA preenche aqui)</span>
+                <textarea id="trilha-node-result" rows="4"
+                  placeholder="O que foi feito, evidências, arquivos alterados…"></textarea>
+              </label>
+              <label>
+                <span>Critérios de pronto (um por linha — done exige relatório)</span>
+                <textarea id="trilha-node-criteria" rows="3"
+                  placeholder="Ex: teste XPTO passa&#10;Ex: sem regressão no login"></textarea>
+              </label>
+              <label>
+                <span>Motivo do bloqueio (quando status = Bloqueado)</span>
+                <input id="trilha-node-blocked-reason" maxlength="280"
+                  placeholder="Ex: aguardando acesso ao staging">
+              </label>
+              <div class="app-form-grid">
+                <label>
+                  <span>Status</span>
+                  <select id="trilha-node-status">
+                    <option value="todo">A fazer</option>
+                    <option value="doing">Fazendo</option>
+                    <option value="done">Pronto</option>
+                    <option value="blocked">Bloqueado</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Responsável</span>
+                  <select id="trilha-node-assignee-kind">
+                    <option value="ai">IA</option>
+                    <option value="human">Humano</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                <span>Nome do responsável</span>
+                <input id="trilha-node-assignee-label" maxlength="60"
+                  placeholder="Ex: Você, codex, claude">
+              </label>
+              <div id="trilha-node-deps-wrap">
+                <span class="app-field-label">Depende de (setas de entrada)</span>
+                <div id="trilha-node-deps"></div>
+              </div>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeNodeModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="plus"></span>
+                <span id="trilha-node-modal-submit-label">Criar bloco</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
         <!-- ═══ MODE: AGENT CHATS ═══ -->
         <main id="mode-agentchats" class="mode">
           <aside id="ac-sidebar">
@@ -11291,16 +10610,16 @@ svg#kg-svg:active {
         </main>
 
         <!-- Agent chat modal: criar/editar em formulário único -->
-        <div class="wf-modal-overlay" id="ac-modal-overlay"
+        <div class="app-modal-overlay" id="ac-modal-overlay"
           onclick="closeAgentChatModal(event)">
-          <form class="wf-modal" id="ac-modal-form"
+          <form class="app-modal" id="ac-modal-form"
             onsubmit="saveAgentChatFromModal(event)">
-            <div class="wf-modal-head">
+            <div class="app-modal-head">
               <span id="ac-modal-title-label">Novo chat</span>
               <button type="button" onclick="closeAgentChatModal()"
                 title="Fechar" data-icon="x"></button>
             </div>
-            <div class="wf-modal-body">
+            <div class="app-modal-body">
               <input id="ac-modal-edit-id" type="hidden" value="">
               <label>
                 <span>Título</span>
@@ -11317,154 +10636,16 @@ svg#kg-svg:active {
                 <input id="ac-modal-tags" placeholder="api, backend, produto">
               </label>
             </div>
-            <div class="wf-modal-actions">
-              <button type="button" class="wf-secondary-btn"
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
                 onclick="closeAgentChatModal()">Cancelar</button>
-              <button type="submit" class="wf-primary-btn">
+              <button type="submit" class="app-primary-btn">
                 <span data-icon="plus"></span>
                 <span id="ac-modal-submit-label">Criar chat</span>
               </button>
             </div>
           </form>
         </div>
-
-        <!-- ═══ MODE: AGENT WORKFLOWS ═══ -->
-        <main id="mode-workflows" class="mode">
-          <aside id="wf-sidebar">
-            <div id="wf-sidebar-head">
-              <div>
-                <div id="wf-sidebar-title">Workflows</div>
-                <div id="wf-sidebar-count">0 demandas</div>
-              </div>
-              <button id="wf-new-btn" onclick="openWorkflowModal()"
-                title="Novo workflow" data-icon="plus"></button>
-            </div>
-            <div id="wf-search-wrap">
-              <span data-icon="search"></span>
-              <input id="wf-search" type="text" placeholder="Buscar workflows"
-                autocomplete="off" spellcheck="false">
-            </div>
-            <div id="wf-filter-row">
-              <select id="wf-status-filter" onchange="loadWorkflows('')">
-                <option value="">Todos os estados</option>
-                <option value="draft">Rascunho</option>
-                <option value="planning">Planejamento</option>
-                <option value="running">Em execução</option>
-                <option value="reviewing">Em revisão</option>
-                <option value="blocked">Bloqueado</option>
-                <option value="done">Concluído</option>
-                <option value="cancelled">Cancelado</option>
-              </select>
-            </div>
-            <div id="wf-list"></div>
-            <div id="wf-pagination" hidden>
-              <button id="wf-page-prev" class="wf-page-btn" type="button"
-                title="Workflows mais recentes" disabled
-                data-icon="chevron-left"></button>
-              <span id="wf-page-label"></span>
-              <button id="wf-page-next" class="wf-page-btn" type="button"
-                title="Workflows anteriores" disabled
-                data-icon="chevron-right"></button>
-            </div>
-          </aside>
-
-          <section id="wf-workspace">
-            <div id="wf-empty">
-              <span id="wf-empty-icon" data-icon="workflow"></span>
-              <div id="wf-empty-title">Nenhum workflow selecionado</div>
-              <button class="wf-primary-btn" onclick="openWorkflowModal()">
-              <span data-icon="plus"></span> Nova demanda
-            </button>
-            </div>
-
-            <div id="wf-active">
-              <header id="wf-toolbar">
-                <div id="wf-toolbar-title-wrap">
-                  <div id="wf-toolbar-title"></div>
-                  <div id="wf-toolbar-meta"></div>
-                </div>
-                <div id="wf-toolbar-actions">
-                  <div class="wf-prompt-actions"
-                    aria-label="Copiar prompts dos agentes">
-                    <span class="wf-prompt-actions-label">Copiar prompt</span>
-                    <button
-                      class="wf-role-btn orchestrator"
-                      id="wf-copy-orchestrator-btn"
-                      onclick="copyWorkflowPrompt('orchestrator')"
-                      title="Copiar instruções exclusivas do orquestrador">
-                      <span data-icon="workflow"></span>
-                      <span>Orquestrador</span>
-                    </button>
-                    <span class="wf-role-state"
-                      id="wf-orchestrator-state" hidden>
-                      <span data-icon="workflow"></span>
-                      <span id="wf-orchestrator-state-label">
-                        Orquestrador conectado
-                      </span>
-                    </span>
-                    <button
-                      class="wf-role-btn release"
-                      id="wf-release-orchestrator-btn"
-                      onclick="releaseStaleWorkflowOrchestrator()"
-                      title="Liberar orquestrador inativo" hidden>
-                      <span data-icon="unlink"></span>
-                      <span>Liberar</span>
-                    </button>
-                    <button
-                      class="wf-role-btn executor"
-                      id="wf-copy-executor-btn"
-                      onclick="copyWorkflowPrompt('executor')"
-                      title="Copiar instruções exclusivas do executor">
-                      <span data-icon="terminal"></span>
-                      <span>Executor</span>
-                    </button>
-                  </div>
-                  <span class="wf-toolbar-sep"></span>
-                  <button class="wf-icon-btn" onclick="openEditWorkflowModal()"
-                    title="Editar workflow" data-icon="pencil"></button>
-                  <button class="wf-icon-btn" onclick="openNodeModal()"
-                    title="Adicionar nó" data-icon="plus"></button>
-                  <button class="wf-icon-btn" id="wf-start-btn"
-                    onclick="startCurrentWorkflow()" title="Iniciar workflow"
-                    data-icon="play"></button>
-                  <button class="wf-icon-btn" id="wf-complete-btn"
-                    onclick="completeCurrentWorkflow()"
-                    title="Concluir workflow"
-                    data-icon="check"></button>
-                  <button class="wf-icon-btn danger" id="wf-cancel-btn"
-                    onclick="cancelCurrentWorkflow()"
-                    title="Cancelar workflow"
-                    data-icon="x"></button>
-                  <button class="wf-icon-btn" onclick="refreshCurrentWorkflow()"
-                    title="Recarregar" data-icon="refresh-cw"></button>
-                  <button class="wf-icon-btn danger"
-                    onclick="deleteCurrentWorkflow()"
-                    title="Excluir workflow" data-icon="trash"></button>
-                </div>
-              </header>
-
-              <div id="wf-agent-strip"></div>
-
-              <div id="wf-main-row">
-                <div id="wf-timeline">
-                  <div id="wf-timeline-list"></div>
-                  <div id="wf-timeline-empty">
-                    <span data-icon="workflow"></span>
-                    <div>Workflow aguardando decomposição</div>
-                  </div>
-                </div>
-
-                <aside id="wf-inspector">
-                  <div id="wf-inspector-empty">
-                    <span data-icon="scan-line"></span>
-                    <div>Selecione um nó</div>
-                  </div>
-                  <div id="wf-inspector-content"></div>
-                </aside>
-              </div>
-            </div>
-          </section>
-        </main>
 
         <!-- ═══ MODE: FAVORITES ═══ -->
         <main id="mode-favorites" class="mode">
@@ -11676,160 +10857,6 @@ svg#kg-svg:active {
             </div>
           </div>
         </main>
-      </div>
-
-      <!-- Workflow modal -->
-      <div class="wf-modal-overlay" id="wf-modal-overlay"
-        onclick="closeWorkflowModal(event)">
-        <form class="wf-modal" id="wf-modal-form"
-          onsubmit="createWorkflowFromModal(event)">
-          <div class="wf-modal-head">
-            <span id="wf-modal-title-label">Nova demanda</span>
-            <button type="button" onclick="closeWorkflowModal()"
-              title="Fechar" data-icon="x"></button>
-          </div>
-          <div class="wf-modal-body">
-            <input id="wf-modal-edit-id" type="hidden" value="">
-            <label>
-              <span>Título</span>
-              <input id="wf-modal-title" required maxlength="140"
-                placeholder="Ex: Implementar autenticação">
-            </label>
-            <label>
-              <span>Objetivo</span>
-              <textarea id="wf-modal-objective" required rows="4"
-                placeholder="Resultado final esperado"></textarea>
-            </label>
-            <label>
-              <span>Contexto</span>
-              <textarea id="wf-modal-description" rows="3"
-                placeholder="Restrições e informações relevantes"></textarea>
-            </label>
-            <div class="wf-form-grid">
-              <label>
-                <span>Conflitos de escrita</span>
-                <select id="wf-modal-conflict">
-                  <option value="warn">Avisar</option>
-                  <option value="block">Bloquear claim</option>
-                </select>
-              </label>
-              <label>
-                <span>Máximo de tentativas</span>
-                <input id="wf-modal-attempts" type="number" min="1" max="20"
-                  value="3">
-              </label>
-            </div>
-            <label>
-              <span>Tags</span>
-              <input id="wf-modal-tags" placeholder="api, backend, produto">
-            </label>
-          </div>
-          <div class="wf-modal-actions">
-            <button type="button" class="wf-secondary-btn"
-              onclick="closeWorkflowModal()">Cancelar</button>
-            <button type="submit" class="wf-primary-btn">
-              <span id="wf-modal-submit-icon" data-icon="plus"></span>
-              <span id="wf-modal-submit-label">Criar workflow</span>
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Workflow node modal -->
-      <div class="wf-modal-overlay" id="wf-node-modal-overlay"
-        onclick="closeNodeModal(event)">
-        <form class="wf-modal wf-node-modal" id="wf-node-modal-form"
-          onsubmit="createNodeFromModal(event)">
-          <input id="wf-node-edit-id" type="hidden">
-          <div class="wf-modal-head">
-            <span id="wf-node-modal-title-label">Novo nó</span>
-            <button type="button" onclick="closeNodeModal()"
-              title="Fechar" data-icon="x"></button>
-          </div>
-          <div class="wf-modal-body">
-            <label>
-              <span>Título</span>
-              <input id="wf-node-title" required maxlength="140"
-                placeholder="Unidade de trabalho">
-            </label>
-            <label>
-              <span>Descrição</span>
-              <textarea id="wf-node-description" required rows="4"
-                placeholder="O que o agente deve fazer"></textarea>
-            </label>
-            <label>
-              <span>Critérios de aceite</span>
-              <textarea id="wf-node-criteria" required rows="4"
-                placeholder="Um critério por linha"></textarea>
-            </label>
-            <div class="wf-form-grid wf-form-grid-3">
-              <label>
-                <span>Complexidade</span>
-                <select id="wf-node-complexity">
-                  <option value="xs">XS</option>
-                  <option value="s">S</option>
-                  <option value="m" selected>M</option>
-                  <option value="l">L</option>
-                  <option value="xl">XL</option>
-                </select>
-              </label>
-              <label>
-                <span>Tipo</span>
-                <input id="wf-node-kind" value="code"
-                  placeholder="code, research, review">
-              </label>
-              <label>
-                <span>Isolamento</span>
-                <select id="wf-node-isolation">
-                  <option value="shared">Compartilhado</option>
-                  <option value="branch">Branch</option>
-                  <option value="worktree">Worktree</option>
-                </select>
-              </label>
-            </div>
-            <div class="wf-form-grid wf-form-grid-3">
-              <label>
-                <span>Ferramenta sugerida</span>
-                <input id="wf-node-tool" placeholder="codex-cli">
-              </label>
-              <label>
-                <span>Provider sugerido</span>
-                <input id="wf-node-provider" placeholder="openai">
-              </label>
-              <label>
-                <span>Modelo sugerido</span>
-                <input id="wf-node-model" placeholder="gpt-5-codex">
-              </label>
-            </div>
-            <label>
-              <span>Capacidades exigidas</span>
-              <input id="wf-node-capabilities"
-                placeholder="code, deno, tests">
-            </label>
-            <div class="wf-form-grid">
-              <label>
-                <span>Escopos de leitura</span>
-                <input id="wf-node-read-scopes" placeholder="src/, deno.json">
-              </label>
-              <label>
-                <span>Escopos de escrita</span>
-                <input id="wf-node-write-scopes" placeholder="src/auth/">
-              </label>
-            </div>
-            <label>
-              <span>Depende de</span>
-              <select id="wf-node-dependencies" multiple></select>
-            </label>
-          </div>
-          <div class="wf-modal-actions">
-            <button type="button" class="wf-secondary-btn"
-              onclick="closeNodeModal()">Cancelar</button>
-            <button type="submit" class="wf-primary-btn">
-              <span id="wf-node-modal-submit-icon" data-icon="plus"></span>
-              <span id="wf-node-modal-submit-label">Criar nó</span>
-            </button>
-          </div>
-        </form>
       </div>
 
       <!-- Quick-Add / Edit Modal -->
@@ -12133,7 +11160,7 @@ svg#kg-svg:active {
 
 const ICON_PATHS = {
   waypoints: '<circle cx="12" cy="4.5" r="2.5"/><path d="m10.2 6.3-3.9 3.9"/><circle cx="4.5" cy="12" r="2.5"/><path d="M7 12h10"/><circle cx="19.5" cy="12" r="2.5"/><path d="m13.8 17.7 3.9-3.9"/><circle cx="12" cy="19.5" r="2.5"/>',
-  workflow: '<rect width="8" height="6" x="3" y="3" rx="1"/><path d="M7 9v4"/><rect width="8" height="6" x="13" y="15" rx="1"/><path d="M7 13h10v2"/>',
+  route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
   map: '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
   notebook: '<path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/>',
   folder: '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
@@ -12157,6 +11184,8 @@ const ICON_PATHS = {
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
   bot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
+  user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   robot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
   kanban: '<rect width="5" height="6" x="3" y="15" rx="1"/><rect width="5" height="9" x="9" y="12" rx="1"/><rect width="5" height="14" x="15" y="7" rx="1"/><path d="M3 4h5"/><path d="M9 4h5"/><path d="M15 4h5"/>',
   minus: '<path d="M5 12h14"/>',
@@ -12375,7 +11404,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', workflows: 'Workflows', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -12386,7 +11415,7 @@ const PANEL_BY_MODE = {
   mocks:     'mocks-col',
   favorites: 'fav-sidebar',
   podcasts:  'pod-col',
-  workflows: 'wf-sidebar',
+  trilhas: 'trilha-sidebar',
   agentchats: 'ac-sidebar',
 };
 
@@ -12413,7 +11442,7 @@ const setMode = (mode) => {
   else if (mode === 'notes')     loadNotesList();
   else if (mode === 'skills')    loadSkillsList();
   else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
-  else if (mode === 'workflows') loadWorkflows();
+  else if (mode === 'trilhas') loadTrilhas();
   else if (mode === 'agentchats') loadAgentChatsList();
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
@@ -12511,10 +11540,10 @@ const handleDeepLink = () => {
     history.replaceState(null, '', '/');
     return;
   }
-  const workflow = hash.match(/^#workflow\\/([a-f0-9-]{36})$/);
-  if (workflow) {
-    setMode('workflows');
-    openWorkflow(workflow[1]);
+  const trilha = hash.match(/^#trilha\\/([a-f0-9-]{36})$/);
+  if (trilha) {
+    setMode('trilhas');
+    openTrilha(trilha[1]);
     history.replaceState(null, '', '/');
     return;
   }
@@ -15196,6 +14225,964 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
     <script>
+// ════ Trilhas — objetivo visual editável (humano + IA) ════
+// Mapa: blocos HTML arrastáveis + setas SVG. Sem libs, sem bundler.
+
+const TR_STATUS_LABEL = {
+  draft: 'Rascunho',
+  running: 'Em execução',
+  done: 'Concluída',
+  cancelled: 'Cancelada',
+};
+
+const TR_NODE_STATUS_LABEL = {
+  todo: 'A fazer',
+  doing: 'Fazendo',
+  done: 'Pronto',
+  blocked: 'Bloqueado',
+};
+
+const TR_NODE_W = 232;
+const TR_POLL_MS = 4000;
+
+let allTrilhas = [];
+let currentTrilhaDetail = null;
+let selectedTrilhaNodeId = null;
+let trilhaNodeHeights = new Map();
+let trilhaMe = null;
+let trilhaActivityOpen = false;
+
+const trilhaBody = (body) => trilhaMe ? { ...body, by: trilhaMe } : body;
+
+const trilhaStaleText = (node) => {
+  const beat = node.lastHeartbeatAt || node.claimedAt;
+  if (!node.claimedBy || !beat) return '';
+  const mins = Math.floor((Date.now() - new Date(beat).getTime()) / 60000);
+  if (mins < 5) return '';
+  return mins < 60 ? \`há \${mins}min\` : \`há \${Math.floor(mins / 60)}h\`;
+};
+
+const trilhaTime = (iso) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+let trBusy = false;
+let trDragging = false;
+let trPollTimer = null;
+
+const trilhaCsv = (value) =>
+  String(value || '').split(',').map((item) => item.trim()).filter(Boolean);
+
+const renderTrilhaTags = (tags) =>
+  (tags || []).map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('');
+
+const trilhaNodeById = (id) =>
+  currentTrilhaDetail?.nodes.find((n) => n.id === id);
+
+const trilhaIncoming = (nodeId) =>
+  (currentTrilhaDetail?.edges || []).filter((e) => e.toNodeId === nodeId);
+
+const trilhaOutgoing = (nodeId) =>
+  (currentTrilhaDetail?.edges || []).filter((e) => e.fromNodeId === nodeId);
+
+// ── Lista ──
+
+const loadTrilhas = async () => {
+  startTrilhaPolling();
+  try {
+    const res = await fetch('/trilhas');
+    if (!res.ok) throw new Error(await res.text());
+    allTrilhas = await res.json();
+    renderTrilhasList();
+  } catch (err) {
+    console.error('Erro ao carregar trilhas:', err);
+    toast('Falha ao carregar trilhas');
+  }
+};
+
+const renderTrilhasList = () => {
+  const list = $('trilha-list');
+  if (!list) return;
+  const q = ($('trilha-search')?.value || '').trim().toLowerCase();
+  const items = allTrilhas.filter((t) =>
+    !q || t.title.toLowerCase().includes(q) ||
+    (t.objective || '').toLowerCase().includes(q) ||
+    (t.tags || []).join(' ').toLowerCase().includes(q)
+  );
+  $('trilha-sidebar-count').textContent =
+    \`\${allTrilhas.length} \${allTrilhas.length === 1 ? 'trilha' : 'trilhas'}\`;
+  if (!items.length) {
+    list.innerHTML = '<div class="trilha-sidebar-empty">Nenhuma trilha</div>';
+    return;
+  }
+  list.innerHTML = items.map((t) => {
+    const active = currentTrilhaDetail?.trilha.id === t.id;
+    return \`<button class="trilha-list-item\${active ? ' active' : ''}" data-trilha-id="\${t.id}">
+      <span class="trilha-list-title">\${escHtml(t.title)}</span>
+      <span class="trilha-list-objective">\${escHtml(t.objective || '')}</span>
+      <span class="trilha-list-meta">
+        <span class="tr-status-dot \${t.status}"></span>
+        <span>\${escHtml(TR_STATUS_LABEL[t.status] || t.status)}</span>
+        <span>\${t.nodeCount || 0} \${(t.nodeCount || 0) === 1 ? 'bloco' : 'blocos'}</span>
+      </span>
+    </button>\`;
+  }).join('');
+  list.querySelectorAll('.trilha-list-item').forEach((item) => {
+    item.addEventListener('click', () => openTrilha(item.dataset.trilhaId));
+  });
+};
+
+// ── Abertura ──
+
+const openTrilha = async (id) => {
+  if (currentMode !== 'trilhas') setMode('trilhas');
+  trBusy = true;
+  try {
+    const res = await fetch(\`/trilhas/\${id}\`);
+    if (!res.ok) throw new Error(await res.text());
+    currentTrilhaDetail = await res.json();
+    selectedTrilhaNodeId = null;
+    trilhaMe = null;
+    trilhaActivityOpen = false;
+    renderTrilhasList();
+    renderCurrentTrilha();
+  } catch (err) {
+    console.error('Erro ao abrir trilha:', err);
+    toast('Falha ao abrir trilha');
+  } finally {
+    trBusy = false;
+  }
+};
+
+// ── Auto-refresh ──
+// A IA mexe na mesma trilha via API: polling leve para o mapa não ficar velho.
+// Só redesenha quando algo mudou de fato (assinatura), e nunca durante
+// arrasto de nó, modal aberto ou requisição em voo.
+
+const trilhaSignature = (detail) => JSON.stringify({
+  t: detail.trilha.status,
+  u: detail.trilha.updatedAt,
+  n: detail.nodes.map((n) => [n.id, n.status, n.title, n.details || '', n.position.x, n.position.y]),
+  e: detail.edges.map((e) => e.id),
+});
+
+const trilhaModalOpen = () => !!document.querySelector(
+  '#trilha-modal-overlay.visible, #trilha-node-modal-overlay.visible, #modal-overlay.visible, #fav-modal-overlay.visible',
+);
+
+const pollTrilhas = async () => {
+  const shouldSkip = !currentTrilhaDetail || currentMode !== 'trilhas' ||
+    trBusy || trDragging || trilhaModalOpen() ||
+    document.activeElement?.closest?.('#trilha-modal-form, #trilha-node-modal-form');
+  if (!shouldSkip) {
+    trBusy = true;
+    try {
+      const id = currentTrilhaDetail.trilha.id;
+      const res = await fetch(\`/trilhas/\${id}\`);
+      if (!res.ok) throw new Error(await res.text());
+      const fresh = await res.json();
+      if (currentTrilhaDetail?.trilha.id === id &&
+        trilhaSignature(fresh) !== trilhaSignature(currentTrilhaDetail)) {
+        currentTrilhaDetail = fresh;
+        if (!trilhaNodeById(selectedTrilhaNodeId)) selectedTrilhaNodeId = null;
+        renderTrilhasList();
+        renderCurrentTrilha();
+      }
+    } catch (err) {
+      console.error('Erro no auto-refresh da trilha:', err);
+    } finally {
+      trBusy = false;
+    }
+  }
+  trPollTimer = setTimeout(pollTrilhas, TR_POLL_MS);
+};
+
+const startTrilhaPolling = () => {
+  if (trPollTimer) return;
+  trPollTimer = setTimeout(pollTrilhas, TR_POLL_MS);
+};
+
+const refreshCurrentTrilha = async () => {
+  if (!currentTrilhaDetail) return;
+  trBusy = true;
+  try {
+    const res = await fetch(\`/trilhas/\${currentTrilhaDetail.trilha.id}\`);
+    if (!res.ok) throw new Error(await res.text());
+    currentTrilhaDetail = await res.json();
+    if (!trilhaNodeById(selectedTrilhaNodeId)) selectedTrilhaNodeId = null;
+    renderCurrentTrilha();
+    await loadTrilhas();
+  } catch (err) {
+    console.error('Erro ao atualizar trilha:', err);
+  } finally {
+    trBusy = false;
+  }
+};
+
+const renderCurrentTrilha = () => {
+  if (!currentTrilhaDetail) {
+    $('trilha-empty').style.display = '';
+    $('trilha-active').style.display = 'none';
+    return;
+  }
+  const { trilha, nodes, edges } = currentTrilhaDetail;
+  $('trilha-empty').style.display = 'none';
+  $('trilha-active').style.display = '';
+  $('trilha-toolbar-title').textContent = trilha.title;
+  const doneCount = nodes.filter((n) => n.status === 'done').length;
+  const blockedCount = nodes.filter((n) => n.status === 'blocked').length;
+  const staleCount = nodes.filter((n) => trilhaStaleText(n)).length;
+  $('trilha-toolbar-meta').innerHTML = \`
+    <span class="tr-status-dot \${trilha.status}"></span>
+    <span>\${escHtml(TR_STATUS_LABEL[trilha.status] || trilha.status)}</span>
+    <span>\${nodes.length} \${nodes.length === 1 ? 'bloco' : 'blocos'}</span>
+    <span>\${doneCount} prontos</span>
+    \${blockedCount ? \`<span class="tr-meta-alert">\${blockedCount} bloqueados</span>\` : ''}
+    \${staleCount ? \`<span class="tr-meta-alert">\${staleCount} sem sinal</span>\` : ''}
+    <span>\${edges.length} \${edges.length === 1 ? 'seta' : 'setas'}</span>
+    \${renderTrilhaTags(trilha.tags)}\`;
+  $('trilha-activity-btn')?.classList.toggle('on', trilhaActivityOpen);
+  renderTrilhaMap();
+  renderTrilhaInspector();
+  hydrateIcons($('mode-trilhas'));
+};
+
+// ── Mapa ──
+
+// Geometria da seta: escolhe o par saída→entrada com menor distância,
+// preferindo o lado para onde o destino realmente está (direita, esquerda,
+// embaixo, em cima). Evita os "S" esquisitos com blocos distantes.
+const trilhaEdgeD = (from, to) => {
+  const ha = trilhaNodeHeights.get(from.id) || 120;
+  const hb = trilhaNodeHeights.get(to.id) || 120;
+  const ax = from.position.x;
+  const ay = from.position.y;
+  const bx = to.position.x;
+  const by = to.position.y;
+  const exits = [
+    { x: ax + TR_NODE_W, y: ay + ha / 2, dx: 1, dy: 0 },
+    { x: ax, y: ay + ha / 2, dx: -1, dy: 0 },
+    { x: ax + TR_NODE_W / 2, y: ay + ha, dx: 0, dy: 1 },
+    { x: ax + TR_NODE_W / 2, y: ay, dx: 0, dy: -1 },
+  ];
+  const entries = [
+    { x: bx, y: by + hb / 2, dx: -1, dy: 0 },
+    { x: bx + TR_NODE_W, y: by + hb / 2, dx: 1, dy: 0 },
+    { x: bx + TR_NODE_W / 2, y: by, dx: 0, dy: -1 },
+    { x: bx + TR_NODE_W / 2, y: by + hb, dx: 0, dy: 1 },
+  ];
+  let best = [exits[0], entries[0]];
+  let bestScore = Infinity;
+  for (let i = 0; i < 4; i++) {
+    const p = exits[i];
+    const q = entries[i];
+    const dist = Math.hypot(q.x - p.x, q.y - p.y);
+    const ahead = (q.x - p.x) * p.dx + (q.y - p.y) * p.dy;
+    const score = dist + (ahead > 0 ? 0 : 600);
+    if (score < bestScore) {
+      bestScore = score;
+      best = [p, q];
+    }
+  }
+  const [p, q] = best;
+  const k = Math.min(160, Math.max(40, Math.hypot(q.x - p.x, q.y - p.y) / 2));
+  return \`M \${p.x} \${p.y} C \${p.x + p.dx * k} \${p.y + p.dy * k}, \` +
+    \`\${q.x + q.dx * k} \${q.y + q.dy * k}, \${q.x} \${q.y}\`;
+};
+
+const trilhaAssigneeBadge = (node) => {
+  const a = node.assignee || { kind: 'ai', label: 'IA' };
+  const icon = a.kind === 'ai' ? ICON('bot') : ICON('user');
+  return \`<span class="tr-node-assignee \${a.kind}">\${icon} \${escHtml(a.label)}</span>\`;
+};
+
+const renderTrilhaMap = () => {
+  const nodesEl = $('trilha-nodes');
+  const svg = $('trilha-edges');
+  const canvas = $('trilha-canvas');
+  const { nodes } = currentTrilhaDetail;
+  trilhaNodeHeights = new Map();
+
+  nodesEl.innerHTML = nodes.map((node) => {
+    const selected = node.id === selectedTrilhaNodeId;
+    const stale = node.claimedBy ? trilhaStaleText(node) : '';
+    const deps = trilhaIncoming(node.id).length;
+    const outs = trilhaOutgoing(node.id).length;
+    return \`<div class="tr-node st-\${node.status}\${selected ? ' selected' : ''}\${stale ? ' has-stale' : ''}"
+      data-node-id="\${node.id}" style="left:\${node.position.x}px;top:\${node.position.y}px">
+      <div class="tr-node-head">
+        <span class="tr-node-status">\${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
+        \${node.claimedBy ? \`<span class="tr-node-claim\${stale ? ' stale' : ''}" title="Reservado por \${escHtml(node.claimedBy)}\${stale ? \` — sem sinal \${stale}\` : ''}">\${ICON('lock')} \${escHtml(node.claimedBy)}\${stale ? \` · \${stale}\` : ''}</span>\` : ''}
+        <button class="tr-node-icon" data-copy-id="\${node.id}" title="Copiar ID do bloco">\${ICON('copy')}</button>
+      </div>
+      <div class="tr-node-title">\${escHtml(node.title)}</div>
+      \${node.details ? \`<div class="tr-node-details">\${renderMarkdown(node.details)}</div>\` : ''}
+      <div class="tr-node-foot">
+        \${trilhaAssigneeBadge(node)}
+        <span class="tr-node-deps">\${deps ? \`←\${deps}\` : ''}\${outs ? \` \${outs}→\` : ''}</span>
+      </div>
+    </div>\`;
+  }).join('');
+
+  // Mede alturas reais antes de traçar as setas.
+  nodesEl.querySelectorAll('.tr-node').forEach((el) => {
+    trilhaNodeHeights.set(el.dataset.nodeId, el.offsetHeight);
+  });
+
+  // Dimensiona o canvas pelo conteúdo.
+  let maxX = 900;
+  let maxY = 620;
+  nodes.forEach((node) => {
+    const h = trilhaNodeHeights.get(node.id) || 120;
+    maxX = Math.max(maxX, node.position.x + TR_NODE_W + 240);
+    maxY = Math.max(maxY, node.position.y + h + 200);
+  });
+  canvas.style.width = \`\${maxX}px\`;
+  canvas.style.height = \`\${maxY}px\`;
+  svg.setAttribute('width', String(maxX));
+  svg.setAttribute('height', String(maxY));
+
+  svg.innerHTML = \`<defs>
+      <marker id="tr-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 1 L 9 5 L 0 9" fill="none" stroke="var(--text-3)" stroke-width="1.6"/>
+      </marker>
+    </defs>\` + currentTrilhaDetail.edges.map((edge) => {
+    const from = trilhaNodeById(edge.fromNodeId);
+    const to = trilhaNodeById(edge.toNodeId);
+    if (!from || !to) return '';
+    return \`<path class="tr-edge" data-edge-id="\${edge.id}"
+      d="\${trilhaEdgeD(from, to)}"
+      marker-end="url(#tr-arrow)"><title>\${escHtml(from.title)} → \${escHtml(to.title)}</title></path>\`;
+  }).join('');
+
+  bindTrilhaMap();
+  hydrateIcons(nodesEl);
+};
+
+const bindTrilhaMap = () => {
+  const nodesEl = $('trilha-nodes');
+  nodesEl.querySelectorAll('[data-copy-id]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      copyTrilhaNodeId(btn.dataset.copyId);
+    });
+  });
+  nodesEl.querySelectorAll('.tr-node').forEach((el) => {
+    let startX = 0;
+    let startY = 0;
+    let baseX = 0;
+    let baseY = 0;
+    let dragging = false;
+    const id = el.dataset.nodeId;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      dragging = true;
+      trDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      const node = trilhaNodeById(id);
+      baseX = node.position.x;
+      baseY = node.position.y;
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('dragging');
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) + Math.abs(dy) < 4) return;
+      const node = trilhaNodeById(id);
+      node.position = {
+        x: Math.max(8, Math.round(baseX + dx)),
+        y: Math.max(8, Math.round(baseY + dy)),
+      };
+      el.style.left = \`\${node.position.x}px\`;
+      el.style.top = \`\${node.position.y}px\`;
+      redrawTrilhaEdges();
+      el.dataset.moved = '1';
+    });
+    el.addEventListener('pointerup', async (e) => {
+      el.classList.remove('dragging');
+      if (!dragging) return;
+      dragging = false;
+      trDragging = false;
+      if (el.dataset.moved) {
+        delete el.dataset.moved;
+        const node = trilhaNodeById(id);
+        await saveTrilhaNodePosition(id, node.position);
+      } else {
+        onTrilhaNodeClick(id);
+      }
+    });
+    el.addEventListener('dblclick', (e) => {
+      if (e.target.closest('button')) return;
+      openTrilhaNode(id);
+    });
+  });
+};
+
+const openTrilhaNode = (id) => {
+  if (selectedTrilhaNodeId !== id) {
+    selectedTrilhaNodeId = id;
+    renderTrilhaMap();
+    renderTrilhaInspector();
+  }
+  openNodeModal(id);
+};
+
+const redrawTrilhaEdges = () => {
+  // Atualiza só os paths (durante o arrasto, sem remontar os nós).
+  $('trilha-edges').querySelectorAll('.tr-edge').forEach((path) => {
+    const edge = (currentTrilhaDetail?.edges || [])
+      .find((e) => e.id === path.dataset.edgeId);
+    if (!edge) return;
+    const from = trilhaNodeById(edge.fromNodeId);
+    const to = trilhaNodeById(edge.toNodeId);
+    if (!from || !to) return;
+    path.setAttribute('d', trilhaEdgeD(from, to));
+  });
+};
+
+const saveTrilhaNodePosition = async (nodeId, position) => {
+  const { trilha } = currentTrilhaDetail;
+  try {
+    await fetch(\`/trilhas/\${trilha.id}/nodes/\${nodeId}\`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(trilhaBody({ position })),
+    });
+  } catch (err) {
+    console.error('Erro ao salvar posição:', err);
+  }
+};
+
+const onTrilhaNodeClick = async (id) => {
+  trilhaActivityOpen = false;
+  selectedTrilhaNodeId = selectedTrilhaNodeId === id ? null : id;
+  renderTrilhaMap();
+  renderTrilhaInspector();
+};
+
+// ── Inspetor ──
+
+const TR_EVENT_TEXT = {
+  'trilha.created': () => 'Trilha criada',
+  'trilha.updated': (e) => \`Trilha atualizada\${e.detail ? \` (\${e.detail})\` : ''}\`,
+  'node.created': (e) => \`Bloco criado: \${e.nodeTitle || ''}\`,
+  'node.updated': (e) => \`Bloco editado: \${e.nodeTitle || ''}\`,
+  'node.status': (e) => \`\${e.nodeTitle || 'Bloco'}: \${e.detail || ''}\`,
+  'node.result': (e) => \`Relatório em: \${e.nodeTitle || ''}\`,
+  'node.claim': (e) => \`\${e.nodeTitle || 'Bloco'} assumido por \${e.by || '?'}\`,
+  'node.takeover': (e) =>
+    \`\${e.nodeTitle || 'Bloco'} tomado por \${e.by || '?'}\${e.detail ? \` (\${e.detail})\` : ''}\`,
+  'node.release': (e) => \`Trava liberada: \${e.nodeTitle || ''}\`,
+  'edge.created': (e) => \`Seta: \${e.detail || ''}\`,
+  'edge.removed': (e) => \`Seta removida: \${e.detail || ''}\`,
+};
+
+const renderTrilhaInspector = () => {
+  const panel = $('trilha-inspector');
+  const content = $('trilha-inspector-content');
+  if (trilhaActivityOpen) {
+    panel.hidden = false;
+    content.innerHTML = \`
+      <div class="tr-inspector-head">
+        <span>Atividade</span>
+        <button class="tr-inspector-close" onclick="toggleTrilhaActivity()" title="Fechar">\${ICON('x')}</button>
+      </div>
+      <div id="trilha-activity-list"><div class="tr-inspector-empty">Carregando…</div></div>\`;
+    hydrateIcons(content);
+    loadTrilhaActivity();
+    return;
+  }
+  if (!selectedTrilhaNodeId) {
+    panel.hidden = true;
+    content.innerHTML = '';
+    return;
+  }
+  const node = trilhaNodeById(selectedTrilhaNodeId);
+  if (!node) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+  const incoming = trilhaIncoming(node.id);
+  const outgoing = trilhaOutgoing(node.id);
+  const a = node.assignee || { kind: 'ai', label: 'IA' };
+  const stale = node.claimedBy ? trilhaStaleText(node) : '';
+  content.innerHTML = \`
+    <div class="tr-inspector-head">
+      <span class="tr-status-dot \${node.status}"></span>
+      <span>\${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
+      <button class="tr-inspector-close" onclick="closeTrilhaInspector()" title="Fechar">\${ICON('x')}</button>
+    </div>
+    <div class="tr-inspector-title">\${escHtml(node.title)}</div>
+    <div class="tr-inspector-row">
+      \${['todo', 'doing', 'done', 'blocked'].map((s) =>
+        \`<button class="tr-status-btn\${node.status === s ? ' on' : ''}" onclick="setTrilhaNodeStatus('\${node.id}','\${s}')">\${escHtml(TR_NODE_STATUS_LABEL[s])}</button>\`
+      ).join('')}
+    </div>
+    \${node.status === 'blocked' && node.blockedReason
+      ? \`<div class="tr-inspector-blocked"><b>Bloqueio:</b> \${escHtml(node.blockedReason)}</div>\`
+      : ''}
+    <div class="tr-inspector-label">Responsável</div>
+    <div class="tr-inspector-assignee \${a.kind}">\${a.kind === 'ai' ? ICON('bot') : ICON('user')} \${escHtml(a.label)}</div>
+    <div class="tr-inspector-label">Trava</div>
+    \${node.claimedBy
+      ? \`<div class="tr-inspector-claim locked">\${ICON('lock')} Reservado por <b>\${escHtml(node.claimedBy)}</b>\${stale ? \` — <span class="tr-stale">sem sinal \${stale}</span>\` : ''}</div>\`
+      : '<div class="tr-inspector-empty">Livre — assuma antes de executar.</div>'}
+    \${node.details ? \`<div class="tr-inspector-label">Detalhes (briefing)</div><div class="tr-inspector-details">\${renderMarkdown(node.details)}</div>\` : '<div class="tr-inspector-empty">Sem detalhes ainda — edite para documentar.</div>'}
+    \${(node.doneCriteria?.length) ? \`<div class="tr-inspector-label">Critérios de pronto (\${node.doneCriteria.length})</div><ul class="tr-inspector-criteria">\${node.doneCriteria.map((c) => \`<li>\${escHtml(c)}</li>\`).join('')}</ul>\` : ''}
+    \${node.result ? \`<div class="tr-inspector-label">Resultado da entrega</div><div class="tr-inspector-details result">\${renderMarkdown(node.result)}</div>\` : ''}
+    <div class="tr-inspector-label">Depende de (\${incoming.length})</div>
+    \${incoming.length ? incoming.map((e) => {
+      const from = trilhaNodeById(e.fromNodeId);
+      return \`<div class="tr-inspector-dep"><span>← \${escHtml(from?.title || '?')}</span><button onclick="removeTrilhaEdge('\${e.id}')" title="Remover seta">\${ICON('x')}</button></div>\`;
+    }).join('') : '<div class="tr-inspector-empty">Nenhuma — pode começar em paralelo.</div>'}
+    <div class="tr-inspector-label">Libera (\${outgoing.length})</div>
+    \${outgoing.length ? outgoing.map((e) => {
+      const to = trilhaNodeById(e.toNodeId);
+      return \`<div class="tr-inspector-dep"><span>→ \${escHtml(to?.title || '?')}</span><button onclick="removeTrilhaEdge('\${e.id}')" title="Remover seta">\${ICON('x')}</button></div>\`;
+    }).join('') : '<div class="tr-inspector-empty">Nenhum bloco depende deste.</div>'}
+    <div class="tr-inspector-actions">
+      \${node.claimedBy
+        ? \`<button class="app-secondary-btn danger" onclick="releaseTrilhaNode()">Liberar</button>\`
+        : \`<button class="app-secondary-btn" onclick="claimTrilhaNode()">Assumir</button>\`}
+      <button class="app-secondary-btn" onclick="copyTrilhaNodeId('\${node.id}')">\${ICON('copy')} ID</button>
+      <button class="app-secondary-btn" onclick="copyTrilhaNodePackage('\${node.id}')">Pacote p/ IA</button>
+      <button class="app-secondary-btn" onclick="openNodeModal('\${node.id}')">Editar</button>
+      <button class="app-secondary-btn danger" onclick="deleteSelectedTrilhaNode()">Excluir</button>
+    </div>\`;
+  hydrateIcons(content);
+};
+
+const closeTrilhaInspector = () => {
+  selectedTrilhaNodeId = null;
+  renderTrilhaMap();
+  renderTrilhaInspector();
+};
+
+const toggleTrilhaActivity = () => {
+  if (!currentTrilhaDetail) return;
+  trilhaActivityOpen = !trilhaActivityOpen;
+  if (trilhaActivityOpen) selectedTrilhaNodeId = null;
+  renderCurrentTrilha();
+};
+
+const loadTrilhaActivity = async () => {
+  if (!currentTrilhaDetail || !trilhaActivityOpen) return;
+  const list = $('trilha-activity-list');
+  try {
+    const res = await fetch(
+      \`/trilhas/\${currentTrilhaDetail.trilha.id}/events?limit=50\`,
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const events = await res.json();
+    if (!trilhaActivityOpen) return;
+    list.innerHTML = events.length
+      ? events.map((e) => {
+        const text = (TR_EVENT_TEXT[e.type] || (() => e.type))(e);
+        return \`<div class="tr-activity-item">
+          <span class="tr-activity-time">\${escHtml(trilhaTime(e.createdAt))}</span>
+          <span>\${escHtml(text)}\${e.by ? \` <span class="tr-activity-by">\${escHtml(e.by)}</span>\` : ''}</span>
+        </div>\`;
+      }).join('')
+      : '<div class="tr-inspector-empty">Nenhum evento ainda.</div>';
+  } catch {
+    if (trilhaActivityOpen && list) {
+      list.innerHTML = '<div class="tr-inspector-empty">Falha ao carregar.</div>';
+    }
+  }
+};
+
+const setTrilhaNodeStatus = async (nodeId, status) => {
+  const { trilha } = currentTrilhaDetail;
+  const node = trilhaNodeById(nodeId);
+  trBusy = true;
+  try {
+    const res = await fetch(\`/trilhas/\${trilha.id}/nodes/\${nodeId}\`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(trilhaBody({
+        status,
+        ...(node ? { expectedUpdatedAt: node.updatedAt } : {}),
+      })),
+    });
+    if (res.status === 409) {
+      toast(await res.text());
+      await refreshCurrentTrilha();
+      return;
+    }
+    if (!res.ok) throw new Error(await res.text());
+    await refreshCurrentTrilha();
+  } catch (err) {
+    toast(err.message || 'Falha ao mudar status');
+  } finally {
+    trBusy = false;
+  }
+};
+
+const claimTrilhaNode = async () => {
+  if (!selectedTrilhaNodeId || !currentTrilhaDetail) return;
+  const node = trilhaNodeById(selectedTrilhaNodeId);
+  trilhaMe = node.assignee?.label?.trim() || 'Você';
+  const stale = trilhaStaleText(node);
+  let force = false;
+  if (stale) {
+    const ok = await confirmDialog(
+      \`Sem sinal \${stale} — o dono pode ter morrido. Assumir mesmo assim?\`,
+      { okLabel: 'Assumir' },
+    );
+    if (!ok) return;
+    force = true;
+  }
+  try {
+    const res = await fetch(
+      \`/trilhas/\${currentTrilhaDetail.trilha.id}/nodes/\${node.id}/claim\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ by: trilhaMe, ...(force ? { force: true } : {}) }),
+      },
+    );
+    if (res.status === 409) {
+      toast(await res.text());
+      await refreshCurrentTrilha();
+      return;
+    }
+    if (!res.ok) throw new Error(await res.text());
+    toast(\`Bloco assumido como \${trilhaMe}\`);
+    await refreshCurrentTrilha();
+  } catch (err) {
+    toast(err.message || 'Falha ao assumir');
+  }
+};
+
+const releaseTrilhaNode = async () => {
+  if (!selectedTrilhaNodeId || !currentTrilhaDetail) return;
+  const ok = await confirmDialog(
+    'Liberar a trava? Use quando o dono travou ou morreu.',
+    { okLabel: 'Liberar' },
+  );
+  if (!ok) return;
+  const res = await fetch(
+    \`/trilhas/\${currentTrilhaDetail.trilha.id}/nodes/\${selectedTrilhaNodeId}/release\`,
+    { method: 'POST' },
+  );
+  if (!res.ok) {
+    toast('Falha ao liberar');
+    return;
+  }
+  toast('Trava liberada');
+  await refreshCurrentTrilha();
+};
+
+const copyTrilhaId = () => {
+  if (!currentTrilhaDetail) return;
+  copyToClipboard(currentTrilhaDetail.trilha.id, 'ID da trilha copiado');
+};
+
+const copyTrilhaNodeId = (nodeId) => {
+  copyToClipboard(nodeId || selectedTrilhaNodeId || '', 'ID do bloco copiado');
+};
+
+const copyTrilhaPrompt = () => {
+  if (!currentTrilhaDetail) return;
+  const { trilha } = currentTrilhaDetail;
+  const prompt =
+    \`Você vai executar a TRILHA "\${trilha.title}" (id: \${trilha.id}) do docmap. \` +
+    \`O app está rodando e a API local está em http://127.0.0.1:3334.\\n\` +
+    \`\\nAprenda a operar trilhas: GET /headless/manual?feature=trilhas \` +
+    \`(endpoints, claim, loop de execução). Descubra o resto por lá.\\n\` +
+    \`\\nOBJETIVO: \${trilha.objective}\\n\` +
+    \`\\nComece lendo a trilha: GET /trilhas/\${trilha.id}\\n\` +
+    \`\\nConvenção: 'details' de cada bloco é o briefing (nunca sobrescreva); \` +
+    \`o relatório da entrega vai em 'result'; faça claim com seu nome antes de executar.\\n\` +
+    \`Rotina: claim → heartbeat a cada ~2min (POST /trilhas/\${trilha.id}/nodes/<id>/heartbeat) → doing → result → done → próximo via GET /trilhas/\${trilha.id}/next?by=<seu-nome>.\`;
+  copyToClipboard(prompt, 'Prompt da trilha copiado');
+};
+
+const copyTrilhaNodePackage = async (nodeId) => {
+  const { trilha } = currentTrilhaDetail;
+  try {
+    const res = await fetch(\`/trilhas/\${trilha.id}/nodes/\${nodeId}\`);
+    if (!res.ok) throw new Error(await res.text());
+    const node = await res.json();
+    const nodeRef = \`/trilhas/\${trilha.id}/nodes/\${node.id}\`;
+    const pkg = [
+      \`Você vai executar UM BLOCO da TRILHA "\${trilha.title}" (trilha id: \${trilha.id}) do docmap.\`,
+      \`O app está rodando e a API local está em http://127.0.0.1:3334.\`,
+      \`\`,
+      \`Aprenda a operar trilhas: GET /headless/manual?feature=trilhas. Descubra o resto por lá.\`,
+      \`\`,
+      \`BLOCO: \${node.title} (id: \${node.id})\`,
+      \`Leia o bloco: GET \${nodeRef} — o briefing está em 'details'.\`,
+      \`\`,
+      \`Convenção: faça claim {"by": "<seu-nome>"} antes de executar; o relatório vai em 'result' (nunca sobrescreva 'details'); concluir (done) libera a trava.\`,
+      \`Rotina: heartbeat a cada ~2min (POST \${nodeRef}/heartbeat); terminou? GET /trilhas/\${trilha.id}/next?by=<seu-nome>.\`,
+    ].join('\\n');
+    copyToClipboard(pkg, 'Pacote do bloco copiado');
+  } catch {
+    toast('Falha ao copiar pacote');
+  }
+};
+
+// ── Setas ──
+
+const removeTrilhaEdge = async (edgeId) => {
+  const { trilha } = currentTrilhaDetail;
+  const res = await fetch(\`/trilhas/\${trilha.id}/edges/\${edgeId}\`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    toast('Falha ao remover seta');
+    return;
+  }
+  await refreshCurrentTrilha();
+};
+
+// ── Modal trilha ──
+
+const openTrilhaModal = (id) => {
+  const trilha = id
+    ? allTrilhas.find((t) => t.id === id) || currentTrilhaDetail?.trilha
+    : null;
+  $('trilha-modal-edit-id').value = trilha?.id || '';
+  $('trilha-modal-title').value = trilha?.title || '';
+  $('trilha-modal-objective').value = trilha?.objective || '';
+  $('trilha-modal-description').value = trilha?.description || '';
+  $('trilha-modal-status').value = trilha?.status || 'draft';
+  $('trilha-modal-tags').value = (trilha?.tags || []).join(', ');
+  $('trilha-modal-title-label').textContent = trilha ? 'Editar trilha' : 'Nova trilha';
+  $('trilha-modal-submit-label').textContent = trilha ? 'Salvar' : 'Criar trilha';
+  $('trilha-modal-overlay').classList.add('visible');
+  setTimeout(() => $('trilha-modal-title')?.focus(), 60);
+};
+
+const closeTrilhaModal = (e) => {
+  if (e && e.target !== $('trilha-modal-overlay')) return;
+  $('trilha-modal-overlay').classList.remove('visible');
+};
+
+const saveTrilhaFromModal = async (e) => {
+  e.preventDefault();
+  const id = $('trilha-modal-edit-id').value;
+  const body = {
+    title: $('trilha-modal-title').value.trim(),
+    objective: $('trilha-modal-objective').value.trim(),
+    description: $('trilha-modal-description').value,
+    status: $('trilha-modal-status').value,
+    tags: trilhaCsv($('trilha-modal-tags').value),
+  };
+  try {
+    const res = await fetch(id ? \`/trilhas/\${id}\` : '/trilhas', {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const saved = await res.json();
+    $('trilha-modal-overlay').classList.remove('visible');
+    await loadTrilhas();
+    await openTrilha(saved.id);
+  } catch (err) {
+    toast(err.message || 'Falha ao salvar trilha');
+  }
+};
+
+const deleteCurrentTrilha = async () => {
+  if (!currentTrilhaDetail) return;
+  const { trilha } = currentTrilhaDetail;
+  const ok = await confirmDialog(
+    \`Excluir a trilha "\${trilha.title}" e todos os blocos?\`,
+    { danger: true, okLabel: 'Excluir' },
+  );
+  if (!ok) return;
+  const res = await fetch(\`/trilhas/\${trilha.id}\`, { method: 'DELETE' });
+  if (!res.ok) {
+    toast('Falha ao excluir');
+    return;
+  }
+  currentTrilhaDetail = null;
+  selectedTrilhaNodeId = null;
+  renderCurrentTrilha();
+  await loadTrilhas();
+  toast('Trilha excluída');
+};
+
+// ── Modal bloco ──
+// Os detalhes são markdown (é assim que a IA devolve o relatório). O preview
+// é o modo padrão: quem abre o bloco lê formatado, quem edita troca pra texto.
+
+let trDetailsMode = 'preview';
+
+const renderTrilhaDetailsPreview = () => {
+  const ta = $('trilha-node-details');
+  const pv = $('trilha-node-details-preview');
+  if (!ta || !pv) return;
+  pv.innerHTML = renderMarkdown(ta.value);
+};
+
+const setTrilhaDetailsMode = (mode) => {
+  trDetailsMode = mode === 'edit' ? 'edit' : 'preview';
+  const ta = $('trilha-node-details');
+  const pv = $('trilha-node-details-preview');
+  if (!ta || !pv) return;
+  const edit = trDetailsMode === 'edit';
+  ta.style.display = edit ? '' : 'none';
+  pv.classList.toggle('visible', !edit);
+  $('trilha-node-tab-preview')?.classList.toggle('on', !edit);
+  $('trilha-node-tab-edit')?.classList.toggle('on', edit);
+  if (!edit) renderTrilhaDetailsPreview();
+};
+
+const onTrilhaDetailsInput = () => {
+  if (trDetailsMode === 'edit') renderTrilhaDetailsPreview();
+};
+
+const openNodeModal = (id) => {
+  if (!currentTrilhaDetail) return;
+  const node = id ? trilhaNodeById(id) : null;
+  $('trilha-node-edit-id').value = node?.id || '';
+  $('trilha-node-title').value = node?.title || '';
+  $('trilha-node-details').value = node?.details || '';
+  $('trilha-node-result').value = node?.result || '';
+  $('trilha-node-criteria').value = (node?.doneCriteria || []).join('\\n');
+  $('trilha-node-blocked-reason').value = node?.blockedReason || '';
+  $('trilha-node-status').value = node?.status || 'todo';
+  $('trilha-node-assignee-kind').value = node?.assignee?.kind || 'ai';
+  $('trilha-node-assignee-label').value = node?.assignee?.label || '';
+  $('trilha-node-modal-title-label').textContent = node ? 'Editar bloco' : 'Novo bloco';
+  $('trilha-node-modal-submit-label').textContent = node ? 'Salvar' : 'Criar bloco';
+  const currentDeps = new Set(trilhaIncoming(node?.id || '').map((e) => e.fromNodeId));
+  $('trilha-node-deps').innerHTML = currentTrilhaDetail.nodes
+    .filter((n) => n.id !== node?.id)
+    .map((n) =>
+      \`<label class="tr-dep-check"><input type="checkbox" data-dep-id="\${n.id}"\${currentDeps.has(n.id) ? ' checked' : ''}><span>\${escHtml(n.title)}</span></label>\`
+    ).join('') || '<div class="tr-inspector-empty">Nenhum outro bloco ainda.</div>';
+  $('trilha-node-modal-overlay').classList.add('visible');
+  setTrilhaDetailsMode(node?.details ? 'preview' : 'edit');
+  setTimeout(() => $('trilha-node-title')?.focus(), 60);
+};
+
+const closeNodeModal = (e) => {
+  if (e && e.target !== $('trilha-node-modal-overlay')) return;
+  $('trilha-node-modal-overlay').classList.remove('visible');
+};
+
+const saveNodeFromModal = async (e) => {
+  e.preventDefault();
+  const { trilha } = currentTrilhaDetail;
+  const id = $('trilha-node-edit-id').value;
+  const label = $('trilha-node-assignee-label').value.trim();
+  const criteria = $('trilha-node-criteria').value.split('\\n')
+    .map((c) => c.trim()).filter(Boolean);
+  const editing = id ? trilhaNodeById(id) : null;
+  const body = {
+    title: $('trilha-node-title').value.trim(),
+    details: $('trilha-node-details').value,
+    result: $('trilha-node-result').value,
+    doneCriteria: criteria,
+    blockedReason: $('trilha-node-blocked-reason').value.trim(),
+    status: $('trilha-node-status').value,
+    assignee: {
+      kind: $('trilha-node-assignee-kind').value,
+      label: label || ($('trilha-node-assignee-kind').value === 'ai' ? 'IA' : 'Você'),
+    },
+  };
+  try {
+    let nodeId = id;
+    if (!id) {
+      const wantedDeps = [...$('trilha-node-deps').querySelectorAll('input[data-dep-id]:checked')]
+        .map((input) => input.dataset.depId);
+      const res = await fetch(\`/trilhas/\${trilha.id}/nodes\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...body, dependsOn: wantedDeps }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const created = await res.json();
+      nodeId = created.id;
+    } else {
+      const res = await fetch(\`/trilhas/\${trilha.id}/nodes/\${id}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trilhaBody({
+          ...body,
+          ...(editing ? { expectedUpdatedAt: editing.updatedAt } : {}),
+        })),
+      });
+      if (res.status === 409) {
+        toast(\`\${await res.text()} — recarregando\`);
+        $('trilha-node-modal-overlay').classList.remove('visible');
+        await refreshCurrentTrilha();
+        return;
+      }
+      if (!res.ok) throw new Error(await res.text());
+      await reconcileTrilhaDeps(id);
+    }
+    $('trilha-node-modal-overlay').classList.remove('visible');
+    selectedTrilhaNodeId = nodeId;
+    await refreshCurrentTrilha();
+  } catch (err) {
+    toast(err.message || 'Falha ao salvar bloco');
+  }
+};
+
+const reconcileTrilhaDeps = async (nodeId) => {
+  const { trilha } = currentTrilhaDetail;
+  const wanted = new Set(
+    [...$('trilha-node-deps').querySelectorAll('input[data-dep-id]:checked')]
+      .map((input) => input.dataset.depId),
+  );
+  const current = trilhaIncoming(nodeId);
+  for (const edge of current) {
+    if (!wanted.has(edge.fromNodeId)) {
+      await fetch(\`/trilhas/\${trilha.id}/edges/\${edge.id}\`, { method: 'DELETE' });
+    }
+  }
+  for (const depId of wanted) {
+    if (!current.some((edge) => edge.fromNodeId === depId)) {
+      const res = await fetch(\`/trilhas/\${trilha.id}/edges\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromNodeId: depId, toNodeId: nodeId }),
+      });
+      if (res.status === 409) toast(\`Seta de "\${trilhaNodeById(depId)?.title}" recusada (ciclo)\`);
+    }
+  }
+};
+
+const deleteSelectedTrilhaNode = async () => {
+  if (!selectedTrilhaNodeId || !currentTrilhaDetail) return;
+  const node = trilhaNodeById(selectedTrilhaNodeId);
+  const ok = await confirmDialog(\`Excluir o bloco "\${node?.title || ''}"?\`, {
+    danger: true,
+    okLabel: 'Excluir',
+  });
+  if (!ok) return;
+  const res = await fetch(
+    \`/trilhas/\${currentTrilhaDetail.trilha.id}/nodes/\${selectedTrilhaNodeId}\`,
+    { method: 'DELETE' },
+  );
+  if (!res.ok) {
+    toast('Falha ao excluir bloco');
+    return;
+  }
+  selectedTrilhaNodeId = null;
+  await refreshCurrentTrilha();
+  toast('Bloco excluído');
+};
+
+</script>
+    <script>
 // ==== Agent chats — UI realtime via SSE (agentes usam inbox bloqueante) ====
 
 let allAgentChats = [];
@@ -15616,1674 +15603,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && document.activeElement?.id === 'ac-input') {
     sendAgentChatMessage();
   }
-});
-
-</script>
-    <script>
-// ════ Workflows de agentes externos ════
-
-const WF_STATUS_LABEL = {
-  draft: 'Rascunho',
-  planning: 'Planejamento',
-  running: 'Em execução',
-  reviewing: 'Em revisão',
-  blocked: 'Bloqueado',
-  done: 'Concluído',
-  cancelled: 'Cancelado',
-};
-
-const WF_NODE_STATUS_LABEL = {
-  pending: 'Aguardando dependências',
-  ready: 'Disponível',
-  claimed: 'Reservado',
-  in_progress: 'Em execução',
-  waiting_input: 'Aguardando resposta',
-  returned: 'Aguardando revisão',
-  needs_rework: 'Retrabalho',
-  done: 'Concluído',
-  human_intervention: 'Intervenção humana',
-  cancelled: 'Cancelado',
-};
-
-const WF_BOARD_COLUMNS = [
-  'pending',
-  'ready',
-  'claimed',
-  'in_progress',
-  'waiting_input',
-  'returned',
-  'needs_rework',
-  'done',
-  'human_intervention',
-  'cancelled',
-];
-
-let allWorkflows = [];
-let currentWorkflowDetail = null;
-let selectedWorkflowNodeId = null;
-let selectedWorkflowNodeDetail = null;
-let workflowEvents = null;
-let workflowRefreshTimer = null;
-let workflowBoardSuppressClick = false;
-const WORKFLOW_PAGE_SIZE = 25;
-let workflowPage = {
-  total: 0,
-  offset: 0,
-  nextCursor: null,
-  previousCursor: null,
-};
-let workflowLoadRevision = 0;
-
-const workflowCsv = (value) =>
-  value.split(',').map((item) => item.trim()).filter(Boolean);
-
-const workflowLines = (value) =>
-  value.split('\\n').map((item) => item.trim()).filter(Boolean);
-
-const renderWorkflowTags = (tags) =>
-  (tags || []).map((t) => \`<span class="note-tag">\${escHtml(t)}</span>\`).join('');
-
-const workflowStatusLabel = (status) =>
-  WF_STATUS_LABEL[status] || status;
-
-const workflowNodeStatusLabel = (status) =>
-  WF_NODE_STATUS_LABEL[status] || status;
-
-const updateWorkflowPagination = () => {
-  const controls = $('wf-pagination');
-  const previous = $('wf-page-prev');
-  const next = $('wf-page-next');
-  const label = $('wf-page-label');
-  if (!controls || !previous || !next || !label) return;
-  controls.hidden = workflowPage.total <= WORKFLOW_PAGE_SIZE;
-  previous.disabled = !workflowPage.previousCursor;
-  next.disabled = !workflowPage.nextCursor;
-  const start = workflowPage.total ? workflowPage.offset + 1 : 0;
-  const end = Math.min(
-    workflowPage.offset + allWorkflows.length,
-    workflowPage.total,
-  );
-  label.textContent = \`\${start}-\${end} de \${workflowPage.total}\`;
-};
-
-const loadWorkflows = async (cursor = '') => {
-  ensureWorkflowEvents();
-  const revision = ++workflowLoadRevision;
-  try {
-    const params = new URLSearchParams({ limit: String(WORKFLOW_PAGE_SIZE) });
-    const query = ($('wf-search')?.value || '').trim();
-    const status = $('wf-status-filter')?.value || '';
-    if (query) params.set('q', query);
-    if (status) params.set('status', status);
-    if (cursor) params.set('cursor', cursor);
-    const res = await fetch(\`/workflows?\${params}\`);
-    if (!res.ok) throw new Error(await res.text());
-    const payload = await res.json();
-    if (revision !== workflowLoadRevision) return;
-    if (Array.isArray(payload)) {
-      allWorkflows = payload;
-      workflowPage = {
-        total: payload.length,
-        offset: 0,
-        nextCursor: null,
-        previousCursor: null,
-      };
-    } else {
-      allWorkflows = payload.items || [];
-      workflowPage = {
-        total: payload.total || 0,
-        offset: payload.offset || 0,
-        nextCursor: payload.nextCursor || null,
-        previousCursor: payload.previousCursor || null,
-      };
-    }
-    renderWorkflowList();
-  } catch (err) {
-    console.error('Erro ao carregar workflows:', err);
-    toast('Falha ao carregar workflows');
-  }
-};
-
-const renderWorkflowList = () => {
-  const list = $('wf-list');
-  if (!list) return;
-  updateWorkflowPagination();
-  $('wf-sidebar-count').textContent =
-    \`\${workflowPage.total} \${workflowPage.total === 1 ? 'demanda' : 'demandas'}\`;
-  if (allWorkflows.length === 0) {
-    list.innerHTML = '<div class="wf-sidebar-empty">Nenhum workflow encontrado</div>';
-    return;
-  }
-  list.innerHTML = allWorkflows.map((workflow) => {
-    const done = workflow.nodeCounts?.done || 0;
-    const total = workflow.nodeCount || 0;
-    const progress = total ? Math.round((done / total) * 100) : 0;
-    const active = currentWorkflowDetail?.workflow.id === workflow.id;
-    const tagsHtml = renderWorkflowTags(workflow.tags);
-    const doneElapsed = workflow.status === 'done' && workflow.completedAt
-      ? workflowElapsedMarkup(workflow.createdAt, workflow.completedAt)
-      : (['draft', 'planning', 'running', 'reviewing', 'blocked'].includes(workflow.status)
-          ? workflowElapsedMarkup(workflow.createdAt)
-          : '');
-    return \`<button class="wf-list-item\${active ? ' active' : ''}" data-workflow-id="\${workflow.id}">
-      <span class="wf-list-title">\${escHtml(workflow.title)}</span>
-      <span class="wf-list-objective">\${escHtml(workflow.objective)}</span>
-      \${tagsHtml ? \`<div class="wf-list-tags">\${tagsHtml}</div>\` : ''}
-      <span class="wf-list-meta">
-        <span class="wf-status-dot \${workflow.status}"></span>
-        <span>\${escHtml(workflowStatusLabel(workflow.status))}</span>
-        <span class="wf-list-progress"><span style="width:\${progress}%"></span></span>
-        <span>\${done}/\${total}</span>
-        \${doneElapsed ? \`<span class="wf-list-elapsed">\${doneElapsed}</span>\` : ''}
-      </span>
-    </button>\`;
-  }).join('');
-  list.querySelectorAll('.wf-list-item').forEach((item) => {
-    item.addEventListener('click', () => openWorkflow(item.dataset.workflowId));
-  });
-};
-
-const openWorkflow = async (id) => {
-  if (currentMode !== 'workflows') setMode('workflows');
-  try {
-    const res = await fetch(\`/workflows/\${id}\`);
-    if (!res.ok) throw new Error(await res.text());
-    currentWorkflowDetail = await res.json();
-    selectedWorkflowNodeId = null;
-    selectedWorkflowNodeDetail = null;
-    renderWorkflowList();
-    renderCurrentWorkflow();
-  } catch (err) {
-    console.error('Erro ao abrir workflow:', err);
-    toast('Falha ao abrir workflow');
-  }
-};
-
-const refreshCurrentWorkflow = async () => {
-  if (!currentWorkflowDetail) return;
-  const workflowId = currentWorkflowDetail.workflow.id;
-  try {
-    const res = await fetch(\`/workflows/\${workflowId}\`);
-    if (!res.ok) throw new Error(await res.text());
-    currentWorkflowDetail = await res.json();
-    const currentNodeStillExists = currentWorkflowDetail.nodes.some(
-      (node) => node.id === selectedWorkflowNodeId,
-    );
-    if (!currentNodeStillExists) {
-      selectedWorkflowNodeId = null;
-      selectedWorkflowNodeDetail = null;
-    }
-    renderCurrentWorkflow();
-    await loadWorkflows();
-    if (selectedWorkflowNodeId) {
-      await loadSelectedWorkflowNodeDetail(selectedWorkflowNodeId);
-    }
-  } catch (err) {
-    console.error('Erro ao atualizar workflow:', err);
-  }
-};
-
-const clearCurrentWorkflow = () => {
-  currentWorkflowDetail = null;
-  selectedWorkflowNodeId = null;
-  selectedWorkflowNodeDetail = null;
-  $('wf-empty')?.style.removeProperty('display');
-  $('wf-active')?.classList.remove('visible');
-  renderWorkflowList();
-};
-
-const renderCurrentWorkflow = () => {
-  if (!currentWorkflowDetail) {
-    clearCurrentWorkflow();
-    return;
-  }
-  const { workflow, nodes, canComplete } = currentWorkflowDetail;
-  $('wf-empty').style.display = 'none';
-  $('wf-active').classList.add('visible');
-  $('wf-toolbar-title').textContent = workflow.title;
-  const tagsHtml = renderWorkflowTags(workflow.tags);
-  const totalElapsed = workflow.status === 'done' && workflow.completedAt
-    ? \`<span>Levou \${workflowElapsedMarkup(workflow.createdAt, workflow.completedAt)}</span>\`
-    : (['draft', 'planning', 'running', 'reviewing', 'blocked'].includes(workflow.status)
-        ? \`<span>Há \${workflowElapsedMarkup(workflow.createdAt)}</span>\`
-        : '');
-  $('wf-toolbar-meta').innerHTML = \`
-    <span class="wf-status-dot \${workflow.status}"></span>
-    <span>\${escHtml(workflowStatusLabel(workflow.status))}</span>
-    \${totalElapsed}
-    <span>\${nodes.length} \${nodes.length === 1 ? 'nó' : 'nós'}</span>
-    <span>\${workflow.conflictPolicy === 'block' ? 'conflitos bloqueiam' : 'conflitos avisam'}</span>
-    \${tagsHtml ? \`<span class="wf-toolbar-tags">\${tagsHtml}</span>\` : ''}\`;
-  $('wf-start-btn').disabled =
-    workflow.status === 'running' || workflow.status === 'reviewing' ||
-    workflow.status === 'done' || workflow.status === 'cancelled';
-  $('wf-complete-btn').disabled =
-    !canComplete || workflow.status === 'done' || workflow.status === 'cancelled';
-  $('wf-complete-btn').title = canComplete
-    ? 'Concluir workflow'
-    : \`Aguardando: \${(currentWorkflowDetail.completionReadiness?.missing || []).join(', ')}\`;
-  $('wf-cancel-btn').disabled =
-    workflow.status === 'done' || workflow.status === 'cancelled';
-  const hasOrchestrator = Boolean(workflow.orchestrationSessionId);
-  $('wf-copy-orchestrator-btn').hidden = hasOrchestrator;
-  const orchestrator = currentWorkflowDetail.agents.find(
-    (agent) => agent.id === workflow.orchestrationSessionId,
-  );
-  const orchestratorInactive = hasOrchestrator &&
-    (!orchestrator || ['stale', 'offline'].includes(orchestrator.presence));
-  const orchestratorState = $('wf-orchestrator-state');
-  orchestratorState.hidden = !hasOrchestrator;
-  orchestratorState.classList.toggle('inactive', orchestratorInactive);
-  $('wf-orchestrator-state-label').textContent = orchestratorInactive
-    ? 'Orquestrador inativo'
-    : 'Orquestrador conectado';
-  $('wf-release-orchestrator-btn').hidden = !orchestratorInactive;
-  renderWorkflowAgents();
-  renderWorkflowTimeline();
-  renderWorkflowInspector();
-  hydrateIcons($('wf-active'));
-};
-
-const renderWorkflowAgents = () => {
-  const strip = $('wf-agent-strip');
-  const detail = currentWorkflowDetail;
-  if (!detail) return;
-  const workflowId = detail.workflow.id;
-  const workflowAgentIds = new Set();
-  if (detail.workflow.orchestrationSessionId) {
-    workflowAgentIds.add(detail.workflow.orchestrationSessionId);
-  }
-  detail.nodes.forEach((node) => {
-    if (node.claimedBySessionId) workflowAgentIds.add(node.claimedBySessionId);
-  });
-  detail.runs.forEach((run) => workflowAgentIds.add(run.agentSessionId));
-  const agents = (currentWorkflowDetail?.agents || [])
-    .filter((agent) => agent.presence !== 'offline')
-    .filter((agent) =>
-      agent.currentWorkflowId === workflowId || workflowAgentIds.has(agent.id)
-    )
-    .sort((a, b) => {
-      const aOwn = a.currentWorkflowId === workflowId ? 0 : 1;
-      const bOwn = b.currentWorkflowId === workflowId ? 0 : 1;
-      return aOwn - bOwn;
-    });
-  strip.innerHTML = agents.map((agent) => \`
-    <div class="wf-agent" title="\${escHtml(agent.tool)} · \${escHtml(agent.provider)} · \${escHtml(agent.model)}">
-      <span class="wf-agent-avatar">\${ICON(agent.role === 'orchestrator' ? 'workflow' : 'bot')}</span>
-      <span class="wf-agent-info">
-        <span class="wf-agent-name">\${escHtml(agent.name)}</span>
-        <span class="wf-agent-model">\${escHtml(agent.provider)} · \${escHtml(agent.model)}</span>
-      </span>
-      <span class="wf-agent-presence \${agent.presence}" title="\${escHtml(agent.presence)}"></span>
-    </div>
-  \`).join('');
-};
-
-const workflowNodeRelations = (nodes, edges) => {
-  const nodeById = new Map(nodes.map((node) => [node.id, node]));
-  const dependencyMap = new Map(nodes.map((node) => [node.id, []]));
-  const blockingMap = new Map(nodes.map((node) => [node.id, []]));
-  edges.filter((edge) => edge.kind === 'blocks').forEach((edge) => {
-    const from = nodeById.get(edge.fromNodeId);
-    const to = nodeById.get(edge.toNodeId);
-    if (!from || !to) return;
-    dependencyMap.get(to.id)?.push(from);
-    blockingMap.get(from.id)?.push(to);
-  });
-  return { dependencyMap, blockingMap };
-};
-
-const sortWorkflowNodes = (nodes) =>
-  [...nodes].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-
-const renderWorkflowTimeline = () => {
-  const { nodes, edges, agents } = currentWorkflowDetail;
-  const empty = $('wf-timeline-empty');
-  const list = $('wf-timeline-list');
-  empty.classList.toggle('visible', nodes.length === 0);
-  if (!nodes.length) {
-    list.innerHTML = '';
-    return;
-  }
-  const agentById = new Map(agents.map((agent) => [agent.id, agent]));
-  const { dependencyMap, blockingMap } = workflowNodeRelations(nodes, edges);
-  list.innerHTML = \`<div class="wf-board">
-    \${WF_BOARD_COLUMNS.map((status) => {
-      const columnNodes = sortWorkflowNodes(
-        nodes.filter((node) => node.status === status),
-      );
-      return \`<section class="wf-board-column" data-status="\${status}">
-        <div class="wf-board-column-head">
-          <span>\${escHtml(workflowNodeStatusLabel(status))}</span>
-          <span>\${columnNodes.length}</span>
-        </div>
-        <div class="wf-board-column-body">
-          \${columnNodes.length
-            ? columnNodes.map((node) =>
-              renderWorkflowTimelineNode(
-                node,
-                agentById,
-                dependencyMap.get(node.id) || [],
-                blockingMap.get(node.id) || [],
-              )
-            ).join('')
-            : '<div class="wf-board-empty">Sem cards</div>'}
-        </div>
-      </section>\`;
-    }).join('')}
-  </div>\`;
-  bindWorkflowNodes();
-};
-
-const workflowNodeElapsed = (node) => {
-  const runs = currentWorkflowDetail?.runs || [];
-  if (node.status === 'done') {
-    const approved = [...runs]
-      .filter((run) => run.nodeId === node.id && run.status === 'approved')
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-    if (approved?.startedAt && approved?.returnedAt) {
-      return { from: approved.startedAt, to: approved.returnedAt };
-    }
-    return null;
-  }
-  if (['claimed', 'in_progress', 'waiting_input'].includes(node.status)) {
-    const activeRun = [...runs]
-      .filter((run) =>
-        run.nodeId === node.id &&
-        ['claimed', 'in_progress', 'waiting_input'].includes(run.status)
-      )
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-    if (activeRun?.startedAt) return { from: activeRun.startedAt };
-  }
-  return null;
-};
-
-const renderWorkflowTimelineNode = (node, agentById, dependencies, blocking) => {
-  const agent = node.claimedBySessionId
-    ? agentById.get(node.claimedBySessionId)
-    : null;
-  const recommended = node.recommendedAgent || {};
-  const agentName = agent?.name || recommended.tool || recommended.provider || '';
-  const agentModel = agent
-    ? \`\${agent.provider} · \${agent.model}\`
-    : [recommended.provider, recommended.model].filter(Boolean).join(' · ');
-  const agentInactive = agent &&
-    ['claimed', 'in_progress', 'waiting_input'].includes(node.status) &&
-    ['stale', 'offline'].includes(agent.presence);
-  const selected = node.id === selectedWorkflowNodeId;
-  const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
-  const dependencyText = dependencies.map((item) => item.title).join(', ');
-  const nodeElapsed = workflowNodeElapsed(node);
-  const nodeElapsedHtml = nodeElapsed
-    ? \`<span>\${workflowElapsedMarkup(nodeElapsed.from, nodeElapsed.to)}</span>\`
-    : '';
-  return \`<article class="wf-node\${selected ? ' selected' : ''}\${agentInactive ? ' inactive-agent' : ''}"
-    data-node-id="\${node.id}" data-status="\${node.status}">
-    <div class="wf-node-head">
-      <span class="wf-node-state">
-        <span class="wf-status-dot \${node.status}"></span>
-        <span>\${escHtml(workflowNodeStatusLabel(node.status))}</span>
-      </span>
-      <span class="wf-node-complexity">\${node.complexity.toUpperCase()}</span>
-      \${canHumanReturn
-        ? \`<button class="wf-node-copy wf-node-human" data-human-return-node="\${node.id}" title="Registrar feito por mim">\${ICON('check')}</button>\`
-        : ''}
-      <button class="wf-node-copy" data-copy-node="\${node.id}" title="Copiar prompt">\${ICON('copy')}</button>
-    </div>
-    <div class="wf-node-title">\${escHtml(node.title)}</div>
-    <div class="wf-node-description">\${escHtml(node.description || '')}</div>
-    <div class="wf-node-meta">
-      <span class="wf-node-kind">\${escHtml(node.kind)}</span>
-      <span>\${node.attemptCount}/\${node.maxAttempts} tent.</span>
-      \${nodeElapsedHtml}
-      <span>\${dependencies.length} dep.</span>
-      <span>libera \${blocking.length}</span>
-    </div>
-    \${dependencyText
-      ? \`<div class="wf-node-dependencies" title="\${escHtml(dependencyText)}">
-          Depende de \${escHtml(dependencyText)}
-        </div>\`
-      : ''}
-    <div class="wf-node-agent">
-      \${agentName
-        ? \`<span class="wf-node-agent-avatar">\${ICON(agent ? 'bot' : 'sparkles')}</span>
-           <span class="wf-node-agent-text">
-             <div class="wf-node-agent-name">\${escHtml(agentName)}</div>
-             <div class="wf-node-agent-model">\${escHtml(agentInactive ? 'executor inativo' : agentModel || 'modelo não definido')}</div>
-           </span>\`
-        : '<span class="wf-node-unassigned">Sem agente recomendado ou conectado</span>'}
-    </div>
-  </article>\`;
-};
-
-const bindWorkflowNodes = () => {
-  $('wf-timeline-list').querySelectorAll('.wf-node').forEach((element) => {
-    element.addEventListener('click', (event) => {
-      if (workflowBoardSuppressClick) return;
-      if (event.target.closest('button')) return;
-      event.stopPropagation();
-      selectWorkflowNode(element.dataset.nodeId);
-    });
-  });
-  $('wf-timeline-list').querySelectorAll('[data-copy-node]').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      event.stopPropagation();
-      copyWorkflowNodePrompt(button.dataset.copyNode);
-    });
-  });
-  $('wf-timeline-list').querySelectorAll('[data-human-return-node]').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      event.stopPropagation();
-      openWorkflowHumanReturn(button.dataset.humanReturnNode);
-    });
-  });
-};
-
-const selectWorkflowNode = async (nodeId) => {
-  selectedWorkflowNodeId = nodeId;
-  selectedWorkflowNodeDetail = null;
-  renderWorkflowTimeline();
-  renderWorkflowInspector();
-  await loadSelectedWorkflowNodeDetail(nodeId);
-};
-
-const loadSelectedWorkflowNodeDetail = async (nodeId) => {
-  try {
-    const res = await fetch(\`/workflows/nodes/\${nodeId}\`);
-    if (!res.ok) return;
-    const detail = await res.json();
-    if (selectedWorkflowNodeId !== nodeId) return;
-    selectedWorkflowNodeDetail = detail;
-    renderWorkflowInspector();
-  } catch (err) {
-    console.error('Erro ao carregar nó:', err);
-  }
-};
-
-const workflowChips = (items) => {
-  if (!items?.length) return '<span class="wf-inspector-text">Nenhum</span>';
-  return \`<div class="wf-chip-row">\${items.map((item) =>
-    \`<span class="wf-chip" title="\${escHtml(item)}">\${escHtml(item)}</span>\`
-  ).join('')}</div>\`;
-};
-
-const WF_NODE_STATUS_CONTEXT = {
-  pending: ['Na fila', 'Este nó ainda depende de outras etapas do workflow.'],
-  ready: ['Pronto para execução', 'Um agente pode assumir este nó agora.'],
-  claimed: ['Agente reservado', 'Um agente assumiu o nó e está preparando a execução.'],
-  in_progress: ['Em execução', 'O agente está trabalhando neste nó.'],
-  waiting_input: ['Aguardando resposta', 'A execução está pausada até alguém responder uma pergunta.'],
-  returned: ['Retorno recebido', 'O agente devolveu evidências e o resultado aguarda revisão.'],
-  needs_rework: ['Retrabalho solicitado', 'O agente precisa executar novamente com base no feedback da revisão.'],
-  done: ['Concluído', 'Este nó foi aprovado e não possui uma próxima ação pendente.'],
-  human_intervention: ['Intervenção humana', 'O workflow precisa de uma decisão ou ação manual para continuar.'],
-  cancelled: ['Cancelado', 'Este nó não será executado novamente.'],
-};
-
-const WF_RUN_STATUS_LABEL = {
-  claimed: 'Reservada',
-  in_progress: 'Em execução',
-  waiting_input: 'Aguardando resposta',
-  returned: 'Devolvida',
-  approved: 'Aprovada',
-  rework: 'Retrabalho',
-  failed: 'Falhou',
-  abandoned: 'Abandonada',
-  cancelled: 'Cancelada',
-};
-
-const WF_RUN_OUTCOME_LABEL = {
-  success: 'Sucesso',
-  partial: 'Parcial',
-  failed: 'Falhou',
-  blocked: 'Bloqueado',
-  needs_input: 'Precisa de resposta',
-};
-
-const workflowDate = (value) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).replace('.', '');
-};
-
-const formatWorkflowDuration = (ms) => {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  if (totalSeconds < 60) return \`\${totalSeconds}s\`;
-  const minutes = Math.floor(totalSeconds / 60);
-  if (minutes < 60) return \`\${minutes}min\`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    const rem = minutes % 60;
-    return rem ? \`\${hours}h \${rem}min\` : \`\${hours}h\`;
-  }
-  const days = Math.floor(hours / 24);
-  return \`\${days}d \${hours % 24}h\`;
-};
-
-const workflowElapsedMarkup = (from, to) => {
-  if (!from) return '';
-  const start = new Date(from).getTime();
-  if (Number.isNaN(start)) return '';
-  if (to) {
-    const end = new Date(to).getTime();
-    if (Number.isNaN(end)) return '';
-    return \`<span class="wf-elapsed">\${formatWorkflowDuration(end - start)}</span>\`;
-  }
-  return \`<span class="wf-elapsed" data-elapsed-from="\${from}">\${formatWorkflowDuration(Date.now() - start)}</span>\`;
-};
-
-let workflowClockTimer = null;
-const startWorkflowClock = () => {
-  if (workflowClockTimer) return;
-  workflowClockTimer = setInterval(() => {
-    document.querySelectorAll('[data-elapsed-from]').forEach((el) => {
-      el.textContent = formatWorkflowDuration(
-        Math.max(0, Date.now() - new Date(el.dataset.elapsedFrom).getTime()),
-      );
-    });
-  }, 1000);
-};
-
-const workflowRunAgent = (run, agents) =>
-  agents.find((agent) => agent.id === run.agentSessionId);
-
-const workflowExecutionStage = (status) => {
-  if (['pending', 'ready'].includes(status)) return 0;
-  if (['claimed', 'in_progress', 'waiting_input', 'needs_rework'].includes(status)) return 1;
-  if (status === 'returned' || status === 'human_intervention') return 2;
-  return 3;
-};
-
-const closeWorkflowInspector = () => {
-  selectedWorkflowNodeId = null;
-  selectedWorkflowNodeDetail = null;
-  if (currentWorkflowDetail) renderWorkflowTimeline();
-  renderWorkflowInspector();
-};
-
-const renderWorkflowInspector = () => {
-  const content = $('wf-inspector-content');
-  const empty = $('wf-inspector-empty');
-  const inspector = $('wf-inspector');
-  if (!currentWorkflowDetail) {
-    inspector.classList.remove('visible');
-    content.classList.remove('visible');
-    content.innerHTML = '';
-    return;
-  }
-  if (!selectedWorkflowNodeId) {
-    inspector.classList.remove('visible');
-    content.classList.remove('visible');
-    content.innerHTML = '';
-    return;
-  }
-  const node = currentWorkflowDetail.nodes.find(
-    (item) => item.id === selectedWorkflowNodeId,
-  );
-  if (!node) return;
-  inspector.classList.add('visible');
-  empty.style.display = 'none';
-  content.classList.add('visible');
-  const detail = selectedWorkflowNodeDetail;
-  const agent = detail?.agent || currentWorkflowDetail.agents.find(
-    (item) => item.id === node.claimedBySessionId,
-  );
-  const runs = detail?.runs ||
-    currentWorkflowDetail.runs.filter((run) => run.nodeId === node.id);
-  const questions = detail?.questions ||
-    currentWorkflowDetail.questions.filter((question) => question.nodeId === node.id);
-  const dependencies = detail?.dependencies || [];
-  const conflicts = detail?.conflicts || [];
-  const recommendation = node.recommendedAgent || {};
-  const isActive = ['claimed', 'in_progress', 'waiting_input'].includes(node.status);
-  const isReturned = node.status === 'returned';
-  const canHumanReturn = ['ready', 'needs_rework'].includes(node.status);
-  const canEdit = ['pending', 'ready', 'needs_rework', 'human_intervention'].includes(node.status);
-  const canCancel = !['done', 'cancelled'].includes(node.status);
-  const agentInactive = isActive && agent &&
-    ['stale', 'offline'].includes(agent.presence);
-  const [statusTitle, statusDescription] = WF_NODE_STATUS_CONTEXT[node.status] || [
-    workflowNodeStatusLabel(node.status),
-    'Consulte os detalhes desta etapa para decidir a próxima ação.',
-  ];
-  const executionStage = workflowExecutionStage(node.status);
-  const sortedRuns = [...runs].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const latestRun = sortedRuns[sortedRuns.length - 1];
-  const agentLabel = agent?.name || recommendation.tool || recommendation.provider;
-  const agentDescription = agent
-    ? \`\${agent.tool} · \${agent.provider} · \${agent.model}\`
-    : [recommendation.tool, recommendation.provider, recommendation.model]
-      .filter(Boolean).join(' · ') || 'Nenhum agente recomendado';
-
-  content.innerHTML = \`
-    <div class="wf-inspector-head">
-      <button class="wf-inspector-close" onclick="closeWorkflowInspector()" title="Fechar">
-        \${ICON('x')}
-      </button>
-      <div class="wf-inspector-kicker">
-        <span class="wf-status-dot \${node.status}"></span>
-        <span>\${escHtml(statusTitle)}</span>
-        <span class="wf-inspector-kicker-separator">·</span>
-        <span>\${escHtml(node.kind)}</span>
-      </div>
-      <div class="wf-inspector-title">\${escHtml(node.title)}</div>
-      <div class="wf-inspector-sub">Etapa \${node.complexity.toUpperCase()} · tentativa \${node.attemptCount}/\${node.maxAttempts}</div>
-      <div class="wf-inspector-state">
-        <strong>\${escHtml(statusTitle)}</strong>
-        <span>\${escHtml(statusDescription)}</span>
-      </div>
-    </div>
-    <div class="wf-inspector-flow" aria-label="Fluxo da execução">
-      \${['Pronto', 'Executando', 'Retorno', 'Revisão'].map((label, index) => \`
-        <div class="wf-flow-step\${index < executionStage ? ' complete' : ''}\${index === executionStage ? ' current' : ''}">
-          <span class="wf-flow-index">\${index < executionStage ? ICON('check') : index + 1}</span>
-          <span>\${label}</span>
-        </div>\`).join('')}
-    </div>
-    <div class="wf-inspector-actions">
-      <button class="wf-action-btn" onclick="copyWorkflowNodePrompt('\${node.id}')">
-        \${ICON('copy')} Prompt
-      </button>
-      \${canEdit
-        ? \`<button class="wf-action-btn" onclick="openEditNodeModal()">
-             \${ICON('pencil')} Editar
-           </button>\`
-        : ''}
-      \${canHumanReturn
-        ? \`<button class="wf-action-btn approve" onclick="focusWorkflowHumanReturn()">
-             \${ICON('check')} Fiz, revisar
-           </button>\`
-        : ''}
-      \${isActive && !agentInactive
-        ? \`<button class="wf-action-btn rework" onclick="releaseSelectedWorkflowNode()">
-             \${ICON('rotate-ccw')} Liberar
-           </button>\`
-        : ''}
-      \${isReturned
-        ? \`<button class="wf-action-btn approve" onclick="reviewSelectedWorkflowNode('approve')">
-             \${ICON('check')} Aprovar
-           </button>
-           <button class="wf-action-btn rework" onclick="reviewSelectedWorkflowNode('rework')">
-             \${ICON('rotate-ccw')} Retrabalho
-           </button>
-           <button class="wf-action-btn danger" onclick="reviewSelectedWorkflowNode('human_intervention')">
-             \${ICON('alert-triangle')} Humano
-           </button>
-           <button class="wf-action-btn danger" onclick="cancelSelectedWorkflowNode()">
-             \${ICON('x')} Cancelar
-           </button>\`
-        : ''}
-      \${canCancel && !isReturned && !agentInactive
-        ? \`<button class="wf-action-btn danger" onclick="cancelSelectedWorkflowNode()">
-             \${ICON('x')} Cancelar
-           </button>\`
-        : ''}
-      \${!isActive
-        ? \`<button class="wf-action-btn danger" onclick="deleteSelectedWorkflowNode()">
-             \${ICON('trash')} Excluir
-           </button>\`
-        : ''}
-    </div>
-    \${agentInactive
-      ? \`<div class="wf-inspector-section wf-inspector-section-danger">
-           <div class="wf-inspector-section-heading">
-             <div>
-               <div class="wf-inspector-label">Executor inativo</div>
-               <div class="wf-inspector-heading">Decida como continuar este nó</div>
-             </div>
-             <span class="wf-inspector-badge danger">\${escHtml(agent.presence)}</span>
-           </div>
-           <p class="wf-inspector-help">O agente não envia heartbeat desde \${escHtml(workflowDate(agent.lastHeartbeatAt))}. Libere para retrabalho ou cancele o nó.</p>
-           <div class="wf-inline-actions">
-             <button class="wf-action-btn rework" onclick="releaseSelectedWorkflowNode()">
-               \${ICON('rotate-ccw')} Liberar tentativa
-             </button>
-             <button class="wf-action-btn danger" onclick="cancelSelectedWorkflowNode()">
-               \${ICON('x')} Cancelar nó
-             </button>
-           </div>
-         </div>\`
-      : ''}
-    \${isReturned
-      ? \`<div class="wf-inspector-section wf-inspector-section-attention">
-           <div class="wf-inspector-section-heading">
-             <div>
-               <div class="wf-inspector-label">Próxima ação</div>
-               <div class="wf-inspector-heading">Revisar o retorno do agente</div>
-             </div>
-             <span class="wf-inspector-badge review">Aguardando revisão</span>
-           </div>
-           <p class="wf-inspector-help">Confirme cada critério com uma evidência observável antes de aprovar.</p>
-           <div class="wf-review-criteria">
-             \${node.acceptanceCriteria.map((item, index) =>
-               \`<div class="wf-review-criterion">
-                  <label>
-                    <input type="checkbox" id="wf-acceptance-pass-\${index}" />
-                    <span>\${escHtml(item)}</span>
-                  </label>
-                  <input id="wf-acceptance-evidence-\${index}"
-                    class="wf-inspector-input"
-                    placeholder="Evidência observável: comando, saída, arquivo ou comportamento" />
-                </div>\`
-             ).join('')}
-           </div>
-         </div>
-         <div class="wf-inspector-section wf-review-feedback-section">
-           <div class="wf-inspector-label">Feedback da revisão</div>
-           <textarea id="wf-review-feedback" class="wf-inspector-textarea"
-             placeholder="Motivo da decisão ou instruções de retrabalho"></textarea>
-         </div>\`
-      : ''}
-    \${canHumanReturn
-      ? \`<div class="wf-inspector-section wf-inspector-section-attention wf-human-return-panel">
-           <div class="wf-inspector-section-heading">
-             <div>
-               <div class="wf-inspector-label">Próxima ação</div>
-               <div class="wf-inspector-heading">Registrar execução manual</div>
-             </div>
-             <span class="wf-inspector-badge">Enviar para revisão</span>
-           </div>
-           <p class="wf-inspector-help">Registre o que foi feito para que o orquestrador possa revisar o resultado.</p>
-           <textarea id="wf-human-return-summary" class="wf-inspector-textarea"
-             placeholder="Resumo do que foi feito"></textarea>
-           <input id="wf-human-return-files" class="wf-inspector-input"
-             placeholder="Arquivos alterados, separados por vírgula" />
-           <button class="wf-action-btn approve" onclick="humanReturnSelectedWorkflowNode()">
-             \${ICON('check')} Enviar para revisão
-           </button>
-         </div>\`
-      : ''}
-    <div class="wf-inspector-section wf-inspector-section-primary">
-      <div class="wf-inspector-label">Objetivo desta etapa</div>
-      <div class="wf-inspector-text">\${escHtml(node.description)}</div>
-    </div>
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-section-heading">
-        <div>
-          <div class="wf-inspector-label">Critérios de aceite</div>
-          <div class="wf-inspector-heading">Como saber que está pronto</div>
-        </div>
-        <span class="wf-inspector-count">\${node.acceptanceCriteria.length}</span>
-      </div>
-      <ol class="wf-criteria">\${node.acceptanceCriteria.map((item) =>
-        \`<li>\${escHtml(item)}</li>\`
-      ).join('')}</ol>
-    </div>
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Operação</div>
-      <div class="wf-inspector-grid">
-        <div class="wf-inspector-card">
-          <span class="wf-inspector-card-label">Agente</span>
-          <strong>\${escHtml(agentLabel || 'Sem agente')}</strong>
-          <span>\${escHtml(agentDescription)}</span>
-          \${agent ? \`<span class="wf-agent-inline-status"><span class="wf-agent-presence \${agent.presence}"></span>\${escHtml(agent.presence)}</span>\` : ''}
-        </div>
-        <div class="wf-inspector-card">
-          <span class="wf-inspector-card-label">Contrato</span>
-          <strong>\${escHtml(node.kind)}</strong>
-          <span>\${escHtml(node.isolation)} · \${node.writeScopes.length} escopos de escrita</span>
-        </div>
-        <div class="wf-inspector-card">
-          <span class="wf-inspector-card-label">Tentativas</span>
-          <strong>\${node.attemptCount} de \${node.maxAttempts}</strong>
-          <span>\${latestRun ? \`Última em \${workflowDate(latestRun.createdAt)}\` : 'Ainda não executado'}</span>
-          \${latestRun?.startedAt
-            ? \`<span>\${latestRun.returnedAt
-                ? \`Levou \${formatWorkflowDuration(new Date(latestRun.returnedAt) - new Date(latestRun.startedAt))}\`
-                : workflowElapsedMarkup(latestRun.startedAt)}</span>\`
-            : ''}
-        </div>
-      </div>
-    </div>
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-label">Capacidades exigidas</div>
-      \${workflowChips(node.requiredCapabilities)}
-      <div class="wf-inspector-subgroup">
-        <div class="wf-inspector-label">Escopos de leitura</div>
-        \${workflowChips(node.readScopes)}
-      </div>
-      <div class="wf-inspector-subgroup">
-        <div class="wf-inspector-label">Escopos de escrita · \${escHtml(node.isolation)}</div>
-        \${workflowChips(node.writeScopes)}
-      </div>
-    </div>
-    \${conflicts.length
-      ? \`<div class="wf-inspector-section">
-           <div class="wf-inspector-section-heading">
-             <div class="wf-inspector-label">Conflitos ativos</div>
-             <span class="wf-inspector-badge danger">\${conflicts.length}</span>
-           </div>
-           \${conflicts.map((item) =>
-             \`<div class="wf-conflict"><strong>\${escHtml(item.title)}</strong><span>\${escHtml(item.writeScopes.join(', '))}</span></div>\`
-           ).join('')}
-         </div>\`
-      : ''}
-    <div class="wf-inspector-section wf-inspector-section-muted">
-      <div class="wf-inspector-section-heading">
-        <div>
-          <div class="wf-inspector-label">Contexto do fluxo</div>
-          <div class="wf-inspector-heading">O que veio antes</div>
-        </div>
-        <span class="wf-inspector-count">\${dependencies.length}</span>
-      </div>
-      \${dependencies.length
-        ? dependencies.map((item) =>
-          \`<div class="wf-run">
-             <div class="wf-run-head"><span>\${escHtml(item.title)}</span><span>\${item.changedFiles.length} arquivos</span></div>
-             <div class="wf-run-summary">\${escHtml(item.summary || 'Sem resumo')}</div>
-           </div>\`
-        ).join('')
-        : '<div class="wf-inspector-empty-text">Nenhuma dependência concluída.</div>'}
-    </div>
-    \${node.contextRefs?.length
-      ? \`<div class="wf-inspector-section">
-           <div class="wf-inspector-section-heading">
-             <div class="wf-inspector-label">Referências fornecidas</div>
-             <span class="wf-inspector-count">\${node.contextRefs.length}</span>
-           </div>
-           \${node.contextRefs.map((item) =>
-             \`<div class="wf-run">
-               <div class="wf-run-head"><span>\${escHtml(item.label || item.ref)}</span><span>\${escHtml(item.kind)}</span></div>
-               \${item.excerpt ? \`<div class="wf-run-summary">\${escHtml(item.excerpt)}</div>\` : ''}
-             </div>\`
-           ).join('')}
-         </div>\`
-      : ''}
-    \${questions.length
-      ? \`<div class="wf-inspector-section">
-           <div class="wf-inspector-section-heading">
-             <div>
-               <div class="wf-inspector-label">Comunicação</div>
-               <div class="wf-inspector-heading">Perguntas e respostas</div>
-             </div>
-             <span class="wf-inspector-count">\${questions.length}</span>
-           </div>
-           \${questions.map((question) => \`
-             <div class="wf-question">
-               <div class="wf-question-status \${question.status}">\${escHtml(question.status === 'open' ? 'Aguardando resposta' : 'Respondida')}</div>
-               <div class="wf-inspector-text">\${escHtml(question.question)}</div>
-               \${question.status === 'open'
-                 ? \`<textarea id="wf-question-answer-\${question.id}" placeholder="Resposta do orquestrador"></textarea>
-                     <button class="wf-action-btn approve wf-question-answer-btn"
-                      onclick="answerSelectedWorkflowQuestion('\${question.id}')">\${ICON('message-square')} Responder</button>\`
-                 : \`<div class="wf-run-summary">Resposta: \${escHtml(question.answer || '')}</div>\`}
-             </div>\`
-           ).join('')}
-         </div>\`
-      : ''}
-    <div class="wf-inspector-section">
-      <div class="wf-inspector-section-heading">
-        <div>
-          <div class="wf-inspector-label">Histórico</div>
-          <div class="wf-inspector-heading">Execuções e resultados</div>
-        </div>
-        <span class="wf-inspector-count">\${runs.length}</span>
-      </div>
-      \${runs.length
-        ? [...sortedRuns].reverse().map((run) => \`
-          <div class="wf-run wf-run-history">
-            <div class="wf-run-head">
-              <div class="wf-run-title">
-                <span class="wf-status-dot \${run.status}"></span>
-                <strong>Tentativa \${run.attempt}</strong>
-                <span class="wf-run-status">\${escHtml(WF_RUN_STATUS_LABEL[run.status] || run.status)}</span>
-              </div>
-              <time>\${escHtml(workflowDate(run.createdAt))}</time>
-            </div>
-            <div class="wf-run-summary">\${escHtml(run.output?.summary || 'Sem retorno registrado')}</div>
-            <div class="wf-run-meta">
-              \${run.output?.outcome ? \`<span class="wf-run-outcome \${run.output.outcome}">\${escHtml(WF_RUN_OUTCOME_LABEL[run.output.outcome] || run.output.outcome)}</span>\` : ''}
-              \${run.startedAt
-                ? \`<span>\${run.returnedAt
-                    ? \`Levou \${formatWorkflowDuration(new Date(run.returnedAt) - new Date(run.startedAt))}\`
-                    : workflowElapsedMarkup(run.startedAt)}</span>\`
-                : ''}
-              \${workflowRunAgent(run, currentWorkflowDetail.agents)?.name
-                ? \`<span>\${escHtml(workflowRunAgent(run, currentWorkflowDetail.agents).name)}</span>\`
-                : ''}
-              \${run.output?.changedFiles?.length ? \`<span>\${run.output.changedFiles.length} arquivos</span>\` : ''}
-              \${run.output?.tests?.length ? \`<span>\${run.output.tests.length} testes</span>\` : ''}
-            </div>
-            \${run.reviewFeedback
-              ? \`<div class="wf-run-feedback"><strong>Feedback:</strong> \${escHtml(run.reviewFeedback)}</div>\`
-              : ''}
-            \${run.output
-              ? \`<details>
-                   <summary>Ver evidências</summary>
-                   <pre>\${escHtml([
-                     run.output.result || '',
-                     run.output.changedFiles?.length
-                       ? \`Arquivos alterados:\\n\${run.output.changedFiles.join('\\n')}\`
-                       : '',
-                     run.output.diff ? \`Diff:\\n\${run.output.diff}\` : '',
-                     ...(run.output.logs || []),
-                     ...(run.output.tests || []).map((test) =>
-                       \`\${test.status}: \${test.command}\${test.output ? \`\\n\${test.output}\` : ''}\`
-                     ),
-                     ...(run.output.artifacts || []).map((artifact) =>
-                       \`artifact: \${artifact.kind} · \${artifact.label}\${artifact.ref ? \` · \${artifact.ref}\` : ''}\`
-                     ),
-                   ].filter(Boolean).join('\\n\\n'))}</pre>
-                 </details>\`
-              : ''}
-          </div>\`
-        ).join('')
-        : '<div class="wf-inspector-empty-text">Nenhuma execução registrada.</div>'}
-    </div>\`;
-  hydrateIcons(content);
-};
-
-const bindWorkflowInspectorModal = () => {
-  const inspector = $('wf-inspector');
-  if (!inspector || inspector.dataset.bound) return;
-  inspector.dataset.bound = '1';
-  inspector.addEventListener('click', (event) => {
-    if (event.target === inspector) closeWorkflowInspector();
-  });
-};
-
-const copyWorkflowPrompt = async (role) => {
-  if (!currentWorkflowDetail) return;
-  if (!['orchestrator', 'executor'].includes(role)) {
-    toast('Papel de agente inválido');
-    return;
-  }
-  if (
-    role === 'orchestrator' &&
-    currentWorkflowDetail.workflow.orchestrationSessionId
-  ) {
-    toast('Este workflow já possui orquestrador');
-    return;
-  }
-  try {
-    const res = await fetch(
-      \`/workflows/\${currentWorkflowDetail.workflow.id}/prompt?role=\${role}\`,
-    );
-    if (!res.ok) throw new Error(await res.text());
-    const text = await res.text();
-    const expectedRoleText = role === 'orchestrator'
-      ? 'Você é SOMENTE orquestrador.'
-      : 'Você executa nós, valida resultados e devolve evidências.';
-    if (!text.includes(expectedRoleText)) {
-      throw new Error(\`A API retornou um prompt diferente de \${role}\`);
-    }
-    copyToClipboard(
-      text,
-      role === 'orchestrator'
-        ? 'Prompt do orquestrador copiado'
-        : 'Prompt de executor copiado',
-    );
-  } catch (err) {
-    console.error('Erro ao copiar prompt de workflow:', err);
-    toast(err.message || 'Falha ao copiar prompt');
-  }
-};
-
-const releaseStaleWorkflowOrchestrator = async () => {
-  if (!currentWorkflowDetail) return;
-  const workflow = currentWorkflowDetail.workflow;
-  if (!workflow.orchestrationSessionId) return;
-  const orchestrator = currentWorkflowDetail.agents.find(
-    (agent) => agent.id === workflow.orchestrationSessionId,
-  );
-  if (orchestrator && !['stale', 'offline'].includes(orchestrator.presence)) {
-    toast('O orquestrador ainda está ativo');
-    return;
-  }
-  const ok = await confirmDialog(
-    'Liberar a sessão inativa? Depois você poderá copiar um novo prompt de orquestrador.',
-    { okLabel: 'Liberar' },
-  );
-  if (!ok) return;
-  try {
-    const res = await fetch(
-      \`/workflows/\${workflow.id}/release-orchestration\`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          agentSessionId: workflow.orchestrationSessionId,
-        }),
-      },
-    );
-    if (!res.ok) throw new Error(await res.text());
-    await refreshCurrentWorkflow();
-    toast('Orquestrador liberado; o prompt está disponível novamente');
-  } catch (err) {
-    toast(err.message || 'Falha ao liberar orquestrador');
-  }
-};
-
-const copyWorkflowNodePrompt = async (nodeId = selectedWorkflowNodeId) => {
-  if (!nodeId) return;
-  try {
-    const res = await fetch(\`/workflows/nodes/\${nodeId}/prompt\`);
-    const text = await res.text();
-    copyToClipboard(text, 'Prompt do nó copiado');
-  } catch {
-    toast('Falha ao copiar prompt');
-  }
-};
-
-const focusWorkflowHumanReturn = () => {
-  const field = $('wf-human-return-summary');
-  if (!field) return;
-  field.focus();
-  field.scrollIntoView({ block: 'nearest' });
-};
-
-const openWorkflowHumanReturn = async (nodeId) => {
-  if (!nodeId) return;
-  if (selectedWorkflowNodeId !== nodeId) {
-    await selectWorkflowNode(nodeId);
-  }
-  setTimeout(focusWorkflowHumanReturn, 80);
-};
-
-const humanReturnSelectedWorkflowNode = async () => {
-  if (!selectedWorkflowNodeId) return;
-  const summary = $('wf-human-return-summary')?.value.trim() || '';
-  if (!summary) {
-    toast('Descreva o que foi feito');
-    focusWorkflowHumanReturn();
-    return;
-  }
-  const changedFiles = workflowCsv($('wf-human-return-files')?.value || '');
-  try {
-    const res = await fetch(
-      \`/workflows/nodes/\${selectedWorkflowNodeId}/human-return\`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          outcome: 'success',
-          summary,
-          result: summary,
-          logs: ['Retorno manual registrado na UI do Docmap'],
-          changedFiles,
-          tests: [],
-          artifacts: [],
-        }),
-      },
-    );
-    if (!res.ok) throw new Error(await res.text());
-    toast('Enviado para revisão');
-    await refreshCurrentWorkflow();
-  } catch (err) {
-    toast(err.message || 'Falha ao enviar para revisão');
-  }
-};
-
-const startCurrentWorkflow = async () => {
-  if (!currentWorkflowDetail) return;
-  try {
-    const res = await fetch(
-      \`/workflows/\${currentWorkflowDetail.workflow.id}/start\`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      },
-    );
-    if (!res.ok) throw new Error(await res.text());
-    toast('Workflow iniciado');
-    await refreshCurrentWorkflow();
-  } catch (err) {
-    toast(err.message || 'Falha ao iniciar');
-  }
-};
-
-const completeCurrentWorkflow = async () => {
-  if (!currentWorkflowDetail?.canComplete) return;
-  const ok = await confirmDialog(
-    'Concluir este workflow? O orquestrador ainda poderá consultar todo o histórico.',
-    { okLabel: 'Concluir' },
-  );
-  if (!ok) return;
-  const workflow = currentWorkflowDetail.workflow;
-  try {
-    const res = await fetch(\`/workflows/\${workflow.id}/complete\`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        summary: \`Objetivo concluído: \${workflow.objective}\`,
-      }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    toast('Workflow concluído');
-    await refreshCurrentWorkflow();
-  } catch (err) {
-    toast(err.message || 'Falha ao concluir');
-  }
-};
-
-const cancelCurrentWorkflow = async () => {
-  if (!currentWorkflowDetail) return;
-  const workflow = currentWorkflowDetail.workflow;
-  if (['done', 'cancelled'].includes(workflow.status)) return;
-  const ok = await confirmDialog(
-    \`Cancelar o workflow "\${workflow.title}"? O histórico será preservado e nós pendentes/ativos serão marcados como cancelados.\`,
-    { danger: true, okLabel: 'Cancelar workflow' },
-  );
-  if (!ok) return;
-  try {
-    const res = await fetch(\`/workflows/\${workflow.id}/cancel\`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        reason: 'Cancelado manualmente pela UI do Docmap',
-      }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    toast('Workflow cancelado');
-    await refreshCurrentWorkflow();
-    await loadWorkflows();
-  } catch (err) {
-    toast(err.message || 'Falha ao cancelar workflow');
-  }
-};
-
-const deleteCurrentWorkflow = async () => {
-  if (!currentWorkflowDetail) return;
-  const workflow = currentWorkflowDetail.workflow;
-  const ok = await confirmDialog(
-    \`Excluir o workflow "\${workflow.title}" e todo o histórico?\`,
-    { danger: true, okLabel: 'Excluir' },
-  );
-  if (!ok) return;
-  const res = await fetch(\`/workflows/\${workflow.id}\`, { method: 'DELETE' });
-  if (!res.ok) {
-    toast('Falha ao excluir workflow');
-    return;
-  }
-  clearCurrentWorkflow();
-  await loadWorkflows();
-  toast('Workflow excluído');
-};
-
-const cancelSelectedWorkflowNode = async () => {
-  if (!selectedWorkflowNodeId) return;
-  const node = currentWorkflowDetail.nodes.find(
-    (item) => item.id === selectedWorkflowNodeId,
-  );
-  if (!node || ['done', 'cancelled'].includes(node.status)) return;
-  const ok = await confirmDialog(
-    \`Cancelar o nó "\${node.title}"? O histórico será preservado e este nó deixará de ser exigido para concluir o workflow.\`,
-    { danger: true, okLabel: 'Cancelar nó' },
-  );
-  if (!ok) return;
-  try {
-    const res = await fetch(\`/workflows/nodes/\${selectedWorkflowNodeId}/cancel\`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        reason: 'Cancelado manualmente pela UI do Docmap',
-      }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    toast('Nó cancelado');
-    await refreshCurrentWorkflow();
-    await loadWorkflows();
-  } catch (err) {
-    toast(err.message || 'Falha ao cancelar nó');
-  }
-};
-
-const reviewSelectedWorkflowNode = async (decision) => {
-  if (!selectedWorkflowNodeId) return;
-  const node = currentWorkflowDetail?.nodes.find(
-    (item) => item.id === selectedWorkflowNodeId,
-  );
-  if (!node) return;
-  const feedback = $('wf-review-feedback')?.value.trim() || '';
-  if (decision === 'rework' && !feedback) {
-    toast('Descreva o retrabalho no campo de feedback');
-    return;
-  }
-  const acceptanceChecks = decision === 'approve'
-    ? node.acceptanceCriteria.map((criterion, index) => ({
-      criterion,
-      status: $(\`wf-acceptance-pass-\${index}\`)?.checked
-        ? 'pass'
-        : 'insufficient',
-      evidence: $(\`wf-acceptance-evidence-\${index}\`)?.value.trim() || '',
-    }))
-    : [];
-  if (
-    decision === 'approve' &&
-    acceptanceChecks.some((check) =>
-      check.status !== 'pass' || !check.evidence
-    )
-  ) {
-    toast('Marque todos os critérios e informe uma evidência para cada um');
-    return;
-  }
-  try {
-    const res = await fetch(
-      \`/workflows/nodes/\${selectedWorkflowNodeId}/decision\`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          decision,
-          feedback,
-          ...(acceptanceChecks.length ? { acceptanceChecks } : {}),
-        }),
-      },
-    );
-    if (!res.ok) throw new Error(await res.text());
-    toast(decision === 'approve' ? 'Nó aprovado' : 'Decisão registrada');
-    await refreshCurrentWorkflow();
-  } catch (err) {
-    toast(err.message || 'Falha ao revisar');
-  }
-};
-
-const releaseSelectedWorkflowNode = async () => {
-  if (!selectedWorkflowNodeId) return;
-  const ok = await confirmDialog(
-    'Liberar esta execução? A tentativa atual será marcada como abandonada.',
-    { okLabel: 'Liberar' },
-  );
-  if (!ok) return;
-  const res = await fetch(
-    \`/workflows/nodes/\${selectedWorkflowNodeId}/release\`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
-    },
-  );
-  if (!res.ok) {
-    toast(await res.text());
-    return;
-  }
-  await refreshCurrentWorkflow();
-  toast('Execução liberada');
-};
-
-const deleteSelectedWorkflowNode = async () => {
-  if (!selectedWorkflowNodeId) return;
-  const node = currentWorkflowDetail.nodes.find(
-    (item) => item.id === selectedWorkflowNodeId,
-  );
-  const ok = await confirmDialog(
-    \`Excluir o nó "\${node?.title || ''}"?\`,
-    { danger: true, okLabel: 'Excluir' },
-  );
-  if (!ok) return;
-  const res = await fetch(\`/workflows/nodes/\${selectedWorkflowNodeId}\`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    toast(await res.text());
-    return;
-  }
-  selectedWorkflowNodeId = null;
-  selectedWorkflowNodeDetail = null;
-  await refreshCurrentWorkflow();
-  toast('Nó excluído');
-};
-
-const answerSelectedWorkflowQuestion = async (questionId) => {
-  const answer = $(\`wf-question-answer-\${questionId}\`)?.value.trim();
-  if (!answer) {
-    toast('Escreva uma resposta');
-    return;
-  }
-  const res = await fetch(\`/workflows/questions/\${questionId}/answer\`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ answer }),
-  });
-  if (!res.ok) {
-    toast(await res.text());
-    return;
-  }
-  toast('Resposta registrada');
-  await refreshCurrentWorkflow();
-};
-
-const openWorkflowModal = () => {
-  $('wf-modal-form').reset();
-  $('wf-modal-edit-id').value = '';
-  $('wf-modal-attempts').value = '3';
-  $('wf-modal-title-label').textContent = 'Nova demanda';
-  $('wf-modal-submit-label').textContent = 'Criar workflow';
-  $('wf-modal-overlay').classList.add('visible');
-  $('wf-modal-title').focus();
-};
-
-const openEditWorkflowModal = () => {
-  if (!currentWorkflowDetail) return;
-  openWorkflowModal();
-  const wf = currentWorkflowDetail.workflow;
-  $('wf-modal-edit-id').value = wf.id;
-  $('wf-modal-title').value = wf.title;
-  $('wf-modal-objective').value = wf.objective;
-  $('wf-modal-description').value = wf.description;
-  $('wf-modal-conflict').value = wf.conflictPolicy;
-  $('wf-modal-attempts').value = String(wf.defaultMaxAttempts);
-  $('wf-modal-tags').value = (wf.tags || []).join(', ');
-  $('wf-modal-title-label').textContent = 'Editar demanda';
-  $('wf-modal-submit-label').textContent = 'Salvar';
-};
-
-const closeWorkflowModal = (event) => {
-  if (event && event.target !== $('wf-modal-overlay')) return;
-  $('wf-modal-overlay').classList.remove('visible');
-};
-
-const createWorkflowFromModal = async (event) => {
-  event.preventDefault();
-  const editId = $('wf-modal-edit-id').value.trim();
-  const body = {
-    title: $('wf-modal-title').value.trim(),
-    objective: $('wf-modal-objective').value.trim(),
-    description: $('wf-modal-description').value.trim(),
-    conflictPolicy: $('wf-modal-conflict').value,
-    defaultMaxAttempts: Number($('wf-modal-attempts').value || 3),
-    tags: workflowCsv($('wf-modal-tags').value),
-  };
-  let workflowId;
-  let toastMessage;
-  try {
-    if (editId) {
-      const res = await fetch(\`/workflows/\${editId}\`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      workflowId = editId;
-      toastMessage = 'Workflow atualizado';
-    } else {
-      const res = await fetch('/workflows', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const workflow = await res.json();
-      workflowId = workflow.id;
-      toastMessage = 'Workflow criado';
-    }
-    closeWorkflowModal();
-    await loadWorkflows();
-    await openWorkflow(workflowId);
-    toast(toastMessage);
-  } catch (err) {
-    toast(err.message || 'Falha ao salvar workflow');
-  }
-};
-
-const workflowNodeDependencyIds = (nodeId) =>
-  (currentWorkflowDetail?.edges || [])
-    .filter((edge) => edge.kind === 'blocks' && edge.toNodeId === nodeId)
-    .map((edge) => edge.fromNodeId);
-
-const fillWorkflowNodeDependencyOptions = (editingNodeId = '', selectedIds = []) => {
-  const selected = new Set(selectedIds);
-  $('wf-node-dependencies').innerHTML =
-    currentWorkflowDetail.nodes
-      .filter((node) => node.id !== editingNodeId)
-      .map((node) =>
-        \`<option value="\${node.id}"\${selected.has(node.id) ? ' selected' : ''}>\${escHtml(node.title)} · \${escHtml(workflowNodeStatusLabel(node.status))}</option>\`
-      ).join('');
-};
-
-const openNodeModal = () => {
-  if (!currentWorkflowDetail) return;
-  $('wf-node-modal-form').reset();
-  $('wf-node-edit-id').value = '';
-  $('wf-node-kind').value = 'code';
-  $('wf-node-complexity').value = 'm';
-  $('wf-node-isolation').value = 'shared';
-  fillWorkflowNodeDependencyOptions();
-  $('wf-node-modal-title-label').textContent = 'Novo nó';
-  $('wf-node-modal-submit-label').textContent = 'Criar nó';
-  $('wf-node-modal-submit-icon').innerHTML = ICON('plus');
-  $('wf-node-modal-overlay').classList.add('visible');
-  $('wf-node-title').focus();
-};
-
-const openEditNodeModal = () => {
-  if (!currentWorkflowDetail || !selectedWorkflowNodeId) return;
-  const node = currentWorkflowDetail.nodes.find(
-    (item) => item.id === selectedWorkflowNodeId,
-  );
-  if (!node) return;
-  $('wf-node-modal-form').reset();
-  $('wf-node-edit-id').value = node.id;
-  $('wf-node-title').value = node.title;
-  $('wf-node-description').value = node.description || '';
-  $('wf-node-criteria').value = (node.acceptanceCriteria || []).join('\\n');
-  $('wf-node-complexity').value = node.complexity;
-  $('wf-node-kind').value = node.kind;
-  $('wf-node-isolation').value = node.isolation;
-  $('wf-node-tool').value = node.recommendedAgent?.tool || '';
-  $('wf-node-provider').value = node.recommendedAgent?.provider || '';
-  $('wf-node-model').value = node.recommendedAgent?.model || '';
-  $('wf-node-capabilities').value = (node.requiredCapabilities || []).join(', ');
-  $('wf-node-read-scopes').value = (node.readScopes || []).join(', ');
-  $('wf-node-write-scopes').value = (node.writeScopes || []).join(', ');
-  fillWorkflowNodeDependencyOptions(node.id, workflowNodeDependencyIds(node.id));
-  $('wf-node-modal-title-label').textContent = 'Editar nó';
-  $('wf-node-modal-submit-label').textContent = 'Salvar nó';
-  $('wf-node-modal-submit-icon').innerHTML = ICON('save');
-  $('wf-node-modal-overlay').classList.add('visible');
-  $('wf-node-title').focus();
-};
-
-const closeNodeModal = (event) => {
-  if (event && event.target !== $('wf-node-modal-overlay')) return;
-  $('wf-node-modal-overlay').classList.remove('visible');
-};
-
-const createNodeFromModal = async (event) => {
-  event.preventDefault();
-  if (!currentWorkflowDetail) return;
-  const editId = $('wf-node-edit-id').value.trim();
-  const dependencySelect = $('wf-node-dependencies');
-  const dependsOn = [...dependencySelect.selectedOptions].map((option) => option.value);
-  const recommendation = {
-    tool: $('wf-node-tool').value.trim(),
-    provider: $('wf-node-provider').value.trim(),
-    model: $('wf-node-model').value.trim(),
-  };
-  Object.keys(recommendation).forEach((key) => {
-    if (!recommendation[key]) delete recommendation[key];
-  });
-  const body = {
-    title: $('wf-node-title').value.trim(),
-    description: $('wf-node-description').value.trim(),
-    acceptanceCriteria: workflowLines($('wf-node-criteria').value),
-    complexity: $('wf-node-complexity').value,
-    kind: $('wf-node-kind').value.trim() || 'general',
-    isolation: $('wf-node-isolation').value,
-    requiredCapabilities: workflowCsv($('wf-node-capabilities').value),
-    readScopes: workflowCsv($('wf-node-read-scopes').value),
-    writeScopes: workflowCsv($('wf-node-write-scopes').value),
-    dependsOn,
-    ...(Object.keys(recommendation).length
-      ? { recommendedAgent: recommendation }
-      : {}),
-  };
-  try {
-    const res = await fetch(
-      editId
-        ? \`/workflows/nodes/\${editId}\`
-        : \`/workflows/\${currentWorkflowDetail.workflow.id}/nodes\`,
-      {
-        method: editId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      },
-    );
-    if (!res.ok) throw new Error(await res.text());
-    const node = await res.json();
-    closeNodeModal();
-    await refreshCurrentWorkflow();
-    await selectWorkflowNode(node.id);
-    toast(editId ? 'Nó atualizado' : 'Nó criado');
-  } catch (err) {
-    toast(err.message || 'Falha ao salvar nó');
-  }
-};
-
-const ensureWorkflowEvents = () => {
-  if (workflowEvents) return;
-  startWorkflowClock();
-  workflowEvents = new EventSource('/workflows/events');
-  const eventNames = [
-    'workflow.created',
-    'workflow.updated',
-    'workflow.started',
-    'workflow.completed',
-    'workflow.cancelled',
-    'workflow.deleted',
-    'workflow.orchestrator_claimed',
-    'workflow.orchestrator_released',
-    'node.created',
-    'node.updated',
-    'node.deleted',
-    'node.pending',
-    'node.ready',
-    'node.claimed',
-    'node.started',
-    'node.returned',
-    'node.done',
-    'node.needs_rework',
-    'node.human_intervention',
-    'node.cancelled',
-    'node.released',
-    'edge.created',
-    'edge.deleted',
-    'question.opened',
-    'question.answered',
-    'agent.connected',
-    'agent.heartbeat',
-    'agent.disconnected',
-  ];
-  eventNames.forEach((name) => {
-    workflowEvents.addEventListener(name, () => scheduleWorkflowRefresh());
-  });
-  workflowEvents.onerror = () => {
-    // EventSource reconecta sozinho.
-  };
-};
-
-const scheduleWorkflowRefresh = () => {
-  clearTimeout(workflowRefreshTimer);
-  workflowRefreshTimer = setTimeout(async () => {
-    if (currentMode !== 'workflows') return;
-    if (currentWorkflowDetail) await refreshCurrentWorkflow();
-    else await loadWorkflows();
-  }, 180);
-};
-
-const bindWorkflowTimeline = () => {
-  const timeline = $('wf-timeline');
-  if (!timeline || timeline.dataset.bound) return;
-  timeline.dataset.bound = '1';
-  let dragState = null;
-
-  const isInteractiveTarget = (target) =>
-    target.closest('button, input, textarea, select, a, details, summary');
-
-  timeline.addEventListener('pointerdown', (event) => {
-    if (event.button !== 0 || isInteractiveTarget(event.target)) return;
-    dragState = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      scrollLeft: timeline.scrollLeft,
-      dragging: false,
-    };
-  });
-
-  timeline.addEventListener('pointermove', (event) => {
-    if (!dragState || dragState.pointerId !== event.pointerId) return;
-    const dx = event.clientX - dragState.startX;
-    const dy = event.clientY - dragState.startY;
-    if (
-      !dragState.dragging &&
-      (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy))
-    ) return;
-    dragState.dragging = true;
-    workflowBoardSuppressClick = true;
-    timeline.classList.add('dragging');
-    if (!timeline.hasPointerCapture(event.pointerId)) {
-      timeline.setPointerCapture(event.pointerId);
-    }
-    timeline.scrollLeft = dragState.scrollLeft - dx;
-    event.preventDefault();
-  });
-
-  const finishDrag = (event) => {
-    if (!dragState || dragState.pointerId !== event.pointerId) return;
-    const dragged = dragState.dragging;
-    dragState = null;
-    timeline.classList.remove('dragging');
-    if (timeline.hasPointerCapture(event.pointerId)) {
-      timeline.releasePointerCapture(event.pointerId);
-    }
-    if (dragged) {
-      setTimeout(() => {
-        workflowBoardSuppressClick = false;
-      }, 120);
-    }
-  };
-
-  timeline.addEventListener('pointerup', finishDrag);
-  timeline.addEventListener('pointercancel', finishDrag);
-  timeline.addEventListener('pointerleave', (event) => {
-    if (dragState?.dragging) finishDrag(event);
-  });
-
-  timeline.addEventListener('click', (event) => {
-    if (workflowBoardSuppressClick) return;
-    const target = event.target instanceof Element ? event.target : null;
-    if (target?.closest('button')) return;
-    const node = target?.closest('.wf-node');
-    if (node) {
-      selectWorkflowNode(node.dataset.nodeId);
-      return;
-    }
-    if (!selectedWorkflowNodeId) return;
-    selectedWorkflowNodeId = null;
-    selectedWorkflowNodeDetail = null;
-    renderWorkflowTimeline();
-    renderWorkflowInspector();
-  });
-};
-
-document.addEventListener('DOMContentLoaded', () => {
-  $('wf-search')?.addEventListener(
-    'input',
-    debounce(() => loadWorkflows(''), 180),
-  );
-  $('wf-page-prev')?.addEventListener('click', () => {
-    loadWorkflows(workflowPage.previousCursor || '');
-  });
-  $('wf-page-next')?.addEventListener('click', () => {
-    loadWorkflows(workflowPage.nextCursor || '');
-  });
-  bindWorkflowTimeline();
-  bindWorkflowInspectorModal();
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key !== 'Escape') return;
-  closeWorkflowInspector();
-  closeWorkflowModal();
-  closeNodeModal();
 });
 
 </script>
@@ -19244,11 +17563,11 @@ let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
 let kgTagQuery = '';
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'workflow', 'agentchat', 'tag'];
+const KG_KINDS = ['note', 'task', 'trilha', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'agentchat', 'tag'];
 const KG_LABELS = {
-  note: 'Notas', task: 'Tasks', macro: 'Macros',
+  note: 'Notas', task: 'Tasks', trilha: 'Trilhas', macro: 'Macros',
   podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
-  workflow: 'Workflows', agentchat: 'Chats', tag: 'Tags',
+  agentchat: 'Chats', tag: 'Tags',
 };
 const KG_COLOR = {};
 
@@ -19285,8 +17604,8 @@ const OPEN_BY_KIND = {
   podcast: (id) => openPodcast(id),
   skill: (id) => openSkill(id),
   task: (id) => { setMode('tasks'); openTaskModal(id); },
+  trilha: (id) => { setMode('trilhas'); if (typeof openTrilha === 'function') openTrilha(id); },
   mock: (id) => { setMode('mocks'); if (typeof openMockEditor === 'function') openMockEditor(id); },
-  workflow: (id) => { setMode('workflows'); if (typeof openWorkflow === 'function') openWorkflow(id); },
   agentchat: (id) => { setMode('agentchats'); if (typeof openAgentChat === 'function') openAgentChat(id); },
   // Favorito é um link salvo → abre a URL no browser (registra acesso).
   favorite: async (id) => {

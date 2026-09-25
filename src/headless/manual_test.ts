@@ -25,8 +25,8 @@ Deno.test('headless capabilities expose feature discovery', () => {
     'manualUrl principal ausente',
   );
   assert(
-    caps.filters.feature.includes('workflows'),
-    'workflows deveria ser feature filtravel',
+    caps.filters.feature.includes('notes'),
+    'notes deveria ser feature filtravel',
   );
 });
 
@@ -37,8 +37,8 @@ Deno.test('headless manual can be filtered by feature', () => {
     'manual filtrado deveria conter podcasts',
   );
   assert(
-    !manual.includes('## Workflows'),
-    'manual filtrado nao deveria conter workflows',
+    !manual.includes('## Chats'),
+    'manual filtrado nao deveria conter chats',
   );
 });
 
@@ -79,11 +79,39 @@ Deno.test('skills manual documents headless POST and PUT', () => {
   );
 });
 
-Deno.test('headless role selection resolves workflow protocol', () => {
-  const selected = selectHeadlessFeatures({ role: 'executor' });
+Deno.test('headless role selection resolves features', () => {
+  const selected = selectHeadlessFeatures({ features: ['notes'] });
   assert(
-    selected.map((feature) => feature.id).includes('workflows'),
-    'executor deveria selecionar workflows',
+    selected.map((feature) => feature.id).includes('notes'),
+    'notes deveria ser selecionado por feature',
+  );
+});
+
+Deno.test('trilhas manual documents nodes and edges', () => {
+  const manual = renderHeadlessManual({ features: ['trilhas'] });
+  assert(
+    manual.includes('## Trilhas'),
+    'manual deveria conter trilhas',
+  );
+  assert(
+    manual.includes('/trilhas/:id/nodes'),
+    'manual deveria documentar nós',
+  );
+  assert(
+    manual.includes('/trilhas/:id/edges'),
+    'manual deveria documentar arestas',
+  );
+  assert(
+    manual.includes('/trilhas/:id/next'),
+    'manual deveria documentar next',
+  );
+  assert(
+    manual.includes('heartbeat'),
+    'manual deveria documentar heartbeat',
+  );
+  assert(
+    manual.includes('/trilhas/:id/events'),
+    'manual deveria documentar eventos',
   );
 });
 
@@ -108,21 +136,21 @@ Deno.test('headless handler returns short bootstrap', async () => {
     'bootstrap deveria apontar capabilities',
   );
   assert(
-    !body.includes('## Workflows'),
+    !body.includes('## Podcasts'),
     'bootstrap nao deveria incluir manual completo',
   );
 });
 
 Deno.test('headless handler returns json when requested', async () => {
-  const res = request('/headless/manual?feature=workflows&format=json');
+  const res = request('/headless/manual?feature=notes&format=json');
   const body = await res.json();
   assert(res.status === 200, 'status deveria ser 200');
   assert(
-    body.selectedFeatures.includes('workflows'),
+    body.selectedFeatures.includes('notes'),
     'json deveria listar feature selecionada',
   );
   assert(
-    body.markdown.includes('## Workflows'),
+    body.markdown.includes('## Notas'),
     'json deveria incluir markdown renderizado',
   );
 });

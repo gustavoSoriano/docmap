@@ -206,6 +206,32 @@ const migrations: Migration[] = [
       () => {},
     );
   },
+
+  // v16 — módulo de workflows removido (substituído do zero).
+  // Purga chaves órfãs: workflows, workflow_nodes, workflow_edges,
+  // workflow_runs, agent_sessions, workflow_events, workflow_questions,
+  // workflow_macro_archives. Idempotente.
+  async (kv) => {
+    const prefixes: Deno.KvKey[] = [
+      ['workflows'],
+      ['workflow_nodes'],
+      ['workflow_edges'],
+      ['workflow_runs'],
+      ['agent_sessions'],
+      ['workflow_events'],
+      ['workflow_questions'],
+      ['workflow_macro_archives'],
+    ];
+    for (const prefix of prefixes) {
+      for await (const entry of kv.list<unknown>({ prefix })) {
+        await kv.delete(entry.key);
+      }
+    }
+  },
+
+  // v17 — trilhas (objetivo visual editável humano+IA). Prefixos novos
+  // (trilhas, trilha_nodes, trilha_edges), sem dados para transformar.
+  async (_kv) => {},
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

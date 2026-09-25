@@ -10,7 +10,7 @@ import { tasksHandler } from '../tasks/handler.ts';
 import { projectsHandler } from '../projects/handler.ts';
 import { mocksHandler } from '../mocks/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
-import { workflowsHandler } from '../workflows/handler.ts';
+import { trilhasHandler } from '../trilhas/handler.ts';
 import { agentChatsHandler } from '../agentchats/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
 import { notFound } from '../server/response.ts';
@@ -44,7 +44,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const projects = projectsHandler(deps.kv);
   const mocks = mocksHandler(deps.kv);
   const podcasts = podcastsHandler(deps.kv);
-  const workflows = workflowsHandler(deps.kv);
+  const trilhas = trilhasHandler(deps.kv);
   const agentChats = agentChatsHandler(deps.kv);
   const debug = createDebugApiHandler();
 
@@ -77,12 +77,8 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/favorites')) res = await favorites(req, url);
     else if (pathname.startsWith('/mocks')) res = await mocks(req, url);
     else if (pathname.startsWith('/podcasts')) res = await podcasts(req, url);
+    else if (pathname.startsWith('/trilhas')) res = await trilhas(req, url);
     else if (pathname.startsWith('/agentchats')) res = await agentChats(req, url);
-    else if (
-      pathname.startsWith('/workflows') ||
-      pathname.startsWith('/agents') ||
-      pathname.startsWith('/orchestrator')
-    ) res = await workflows(req, url);
     else res = notFound();
 
     return withCors(res, origin);

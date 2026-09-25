@@ -234,13 +234,9 @@ const postMacro = async (kv: Deno.Kv, req: Request): Promise<Response> => {
   }
   if (
     input.lifecycle !== undefined &&
-    input.lifecycle !== 'persistent' &&
-    input.lifecycle !== 'workflow'
+    input.lifecycle !== 'persistent'
   ) {
-    return badRequest('lifecycle must be persistent or workflow');
-  }
-  if (input.lifecycle === 'workflow' && !input.workflowId?.trim()) {
-    return badRequest('workflowId required for workflow lifecycle');
+    return badRequest('lifecycle must be persistent');
   }
   const invalidCollection = await validateCollection(kv, input.collectionId);
   if (invalidCollection) return invalidCollection;

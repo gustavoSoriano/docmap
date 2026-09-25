@@ -36,7 +36,7 @@
     <link rel="stylesheet" href="/styles/macros.css">
     <link rel="stylesheet" href="/styles/skills.css">
     <link rel="stylesheet" href="/styles/tasks.css">
-    <link rel="stylesheet" href="/styles/workflows.css">
+    <link rel="stylesheet" href="/styles/trilhas.css">
     <link rel="stylesheet" href="/styles/mocks.css">
     <link rel="stylesheet" href="/styles/favorites.css">
     <link rel="stylesheet" href="/styles/podcasts.css">
@@ -83,9 +83,9 @@
           title="Kanban">
     <span class="rail-ico" data-icon="kanban"></span><span class="rail-lbl">Tasks</span>
   </button>
-        <button class="rail-btn" id="rail-workflows"
-          onclick="setMode('workflows')" title="Workflows de agentes">
-    <span class="rail-ico" data-icon="workflow"></span><span class="rail-lbl">Flows</span>
+        <button class="rail-btn" id="rail-trilhas" onclick="setMode('trilhas')"
+          title="Trilhas visuais">
+    <span class="rail-ico" data-icon="route"></span><span class="rail-lbl">Trilhas</span>
   </button>
         <button class="rail-btn" id="rail-agentchats"
           onclick="setMode('agentchats')" title="Chats entre agentes">
@@ -235,16 +235,16 @@
         </main>
 
         <!-- Categorias: cadastro com descrição ( ajuda a IA a entender o uso ) -->
-        <div class="wf-modal-overlay" id="cats-modal-overlay"
+        <div class="app-modal-overlay" id="cats-modal-overlay"
           onclick="closeCatsModal(event)">
-          <div class="wf-modal" id="cats-modal" role="dialog"
+          <div class="app-modal" id="cats-modal" role="dialog"
             aria-label="Gerenciar categorias">
-            <div class="wf-modal-head">
+            <div class="app-modal-head">
               <span>Categorias</span>
               <button type="button" onclick="closeCatsModal()"
                 title="Fechar" data-icon="x"></button>
             </div>
-            <div class="wf-modal-body">
+            <div class="app-modal-body">
               <div id="cats-search-box">
                 <input id="cats-search" type="text"
                   placeholder="Buscar categorias…" autocomplete="off"
@@ -261,10 +261,10 @@
                   placeholder="Ex: notas de estudo e resumos" />
               </label>
             </div>
-            <div class="wf-modal-actions">
-              <button type="button" class="wf-secondary-btn"
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
                 onclick="closeCatsModal()">Fechar</button>
-              <button type="button" class="wf-primary-btn"
+              <button type="button" class="app-primary-btn"
                 onclick="createCatFromModal()">
                 <span data-icon="plus"></span>
                 <span>Criar</span>
@@ -675,6 +675,218 @@
           </div>
         </main>
 
+        <!-- ═══ MODE: TRILHAS ═══ -->
+        <main id="mode-trilhas" class="mode">
+          <aside id="trilha-sidebar">
+            <div id="trilha-sidebar-head">
+              <div>
+                <div id="trilha-sidebar-title">Trilhas</div>
+                <div id="trilha-sidebar-count">0 trilhas</div>
+              </div>
+              <button id="trilha-new-btn" onclick="openTrilhaModal()"
+                title="Nova trilha" data-icon="plus"></button>
+            </div>
+            <div id="trilha-search-wrap">
+              <span data-icon="search"></span>
+              <input id="trilha-search" type="text" placeholder="Buscar trilhas"
+                autocomplete="off" spellcheck="false" oninput="renderTrilhasList()">
+            </div>
+            <div id="trilha-list"></div>
+          </aside>
+
+          <section id="trilha-workspace">
+            <div id="trilha-empty">
+              <span id="trilha-empty-icon" data-icon="route"></span>
+              <div id="trilha-empty-title">Nenhuma trilha selecionada</div>
+              <div id="trilha-empty-desc">Crie uma trilha, adicione blocos com detalhes
+                e ligue as dependências. Você e a IA enxergam o mesmo mapa.</div>
+              <button class="app-primary-btn" onclick="openTrilhaModal()">
+                <span data-icon="plus"></span> Nova trilha
+              </button>
+            </div>
+
+            <div id="trilha-active" style="display:none">
+              <header id="trilha-toolbar">
+                <div id="trilha-toolbar-title-wrap">
+                  <div id="trilha-toolbar-title-row">
+                    <div id="trilha-toolbar-title"></div>
+                    <button id="trilha-copy-id-btn" class="tr-title-copy"
+                      onclick="copyTrilhaId()" title="Copiar ID da trilha">
+                      <span data-icon="copy"></span>
+                    </button>
+                  </div>
+                  <div id="trilha-toolbar-meta"></div>
+                </div>
+                <div id="trilha-toolbar-actions">
+                  <button class="tr-tool-btn wide" onclick="copyTrilhaPrompt()"
+                    title="Copiar prompt completo para a IA executar">
+                    <span data-icon="copy"></span><span>Prompt IA</span>
+                  </button>
+                  <button class="tr-tool-btn" onclick="openNodeModal()"
+                    title="Novo bloco" data-icon="plus"></button>
+                  <button class="tr-tool-btn" id="trilha-activity-btn"
+                    onclick="toggleTrilhaActivity()"
+                    title="Atividade recente da trilha" data-icon="clock"></button>
+                  <button class="tr-tool-btn" onclick="openTrilhaModal(currentTrilhaDetail?.trilha.id)"
+                    title="Editar trilha" data-icon="pencil"></button>
+                  <button class="tr-tool-btn" onclick="refreshCurrentTrilha()"
+                    title="Recarregar" data-icon="refresh-cw"></button>
+                  <button class="tr-tool-btn danger" onclick="deleteCurrentTrilha()"
+                    title="Excluir trilha" data-icon="trash"></button>
+                </div>
+              </header>
+
+              <div id="trilha-main-row">
+                <div id="trilha-map-wrap">
+                  <div id="trilha-canvas">
+                    <svg id="trilha-edges"></svg>
+                    <div id="trilha-nodes"></div>
+                  </div>
+                </div>
+                <aside id="trilha-inspector" hidden>
+                  <div id="trilha-inspector-content"></div>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- Trilha modal: criar/editar objetivo -->
+        <div class="app-modal-overlay" id="trilha-modal-overlay"
+          onclick="closeTrilhaModal(event)">
+          <form class="app-modal" id="trilha-modal-form"
+            onsubmit="saveTrilhaFromModal(event)">
+            <div class="app-modal-head">
+              <span id="trilha-modal-title-label">Nova trilha</span>
+              <button type="button" onclick="closeTrilhaModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="trilha-modal-edit-id" type="hidden" value="">
+              <label>
+                <span>Título</span>
+                <input id="trilha-modal-title" required maxlength="140"
+                  placeholder="Ex: Mapear app admin">
+              </label>
+              <label>
+                <span>Objetivo</span>
+                <textarea id="trilha-modal-objective" required rows="3"
+                  placeholder="O que precisa sair pronto no fim"></textarea>
+              </label>
+              <label>
+                <span>Contexto</span>
+                <textarea id="trilha-modal-description" rows="3"
+                  placeholder="Restrições e informações relevantes"></textarea>
+              </label>
+              <label>
+                <span>Status</span>
+                <select id="trilha-modal-status">
+                  <option value="draft">Rascunho</option>
+                  <option value="running">Em execução</option>
+                  <option value="done">Concluída</option>
+                  <option value="cancelled">Cancelada</option>
+                </select>
+              </label>
+              <label>
+                <span>Tags</span>
+                <input id="trilha-modal-tags" placeholder="api, backend, produto">
+              </label>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeTrilhaModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="plus"></span>
+                <span id="trilha-modal-submit-label">Criar trilha</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Bloco modal: criar/editar nó -->
+        <div class="app-modal-overlay" id="trilha-node-modal-overlay"
+          onclick="closeNodeModal(event)">
+          <form class="app-modal wide" id="trilha-node-modal-form"
+            onsubmit="saveNodeFromModal(event)">
+            <div class="app-modal-head">
+              <span id="trilha-node-modal-title-label">Novo bloco</span>
+              <button type="button" onclick="closeNodeModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="trilha-node-edit-id" type="hidden" value="">
+              <label>
+                <span>Título</span>
+                <input id="trilha-node-title" required maxlength="140"
+                  placeholder="Ex: Investigar front-end-admin">
+              </label>
+              <label>
+                <span>Detalhes (você e a IA editam aqui)</span>
+              </label>
+              <div class="tr-seg" role="tablist" aria-label="Modo dos detalhes">
+                <button type="button" id="trilha-node-tab-preview"
+                  class="tr-seg-btn" onclick="setTrilhaDetailsMode('preview')">Preview</button>
+                <button type="button" id="trilha-node-tab-edit"
+                  class="tr-seg-btn" onclick="setTrilhaDetailsMode('edit')">Editar</button>
+              </div>
+              <textarea id="trilha-node-details" rows="8"
+                placeholder="Passos, arquivos, critérios, links… (markdown)"
+                oninput="onTrilhaDetailsInput()"></textarea>
+              <div id="trilha-node-details-preview"></div>
+              <label>
+                <span>Resultado da entrega (relatório — a IA preenche aqui)</span>
+                <textarea id="trilha-node-result" rows="4"
+                  placeholder="O que foi feito, evidências, arquivos alterados…"></textarea>
+              </label>
+              <label>
+                <span>Critérios de pronto (um por linha — done exige relatório)</span>
+                <textarea id="trilha-node-criteria" rows="3"
+                  placeholder="Ex: teste XPTO passa&#10;Ex: sem regressão no login"></textarea>
+              </label>
+              <label>
+                <span>Motivo do bloqueio (quando status = Bloqueado)</span>
+                <input id="trilha-node-blocked-reason" maxlength="280"
+                  placeholder="Ex: aguardando acesso ao staging">
+              </label>
+              <div class="app-form-grid">
+                <label>
+                  <span>Status</span>
+                  <select id="trilha-node-status">
+                    <option value="todo">A fazer</option>
+                    <option value="doing">Fazendo</option>
+                    <option value="done">Pronto</option>
+                    <option value="blocked">Bloqueado</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Responsável</span>
+                  <select id="trilha-node-assignee-kind">
+                    <option value="ai">IA</option>
+                    <option value="human">Humano</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                <span>Nome do responsável</span>
+                <input id="trilha-node-assignee-label" maxlength="60"
+                  placeholder="Ex: Você, codex, claude">
+              </label>
+              <div id="trilha-node-deps-wrap">
+                <span class="app-field-label">Depende de (setas de entrada)</span>
+                <div id="trilha-node-deps"></div>
+              </div>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeNodeModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="plus"></span>
+                <span id="trilha-node-modal-submit-label">Criar bloco</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
         <!-- ═══ MODE: AGENT CHATS ═══ -->
         <main id="mode-agentchats" class="mode">
           <aside id="ac-sidebar">
@@ -759,16 +971,16 @@
         </main>
 
         <!-- Agent chat modal: criar/editar em formulário único -->
-        <div class="wf-modal-overlay" id="ac-modal-overlay"
+        <div class="app-modal-overlay" id="ac-modal-overlay"
           onclick="closeAgentChatModal(event)">
-          <form class="wf-modal" id="ac-modal-form"
+          <form class="app-modal" id="ac-modal-form"
             onsubmit="saveAgentChatFromModal(event)">
-            <div class="wf-modal-head">
+            <div class="app-modal-head">
               <span id="ac-modal-title-label">Novo chat</span>
               <button type="button" onclick="closeAgentChatModal()"
                 title="Fechar" data-icon="x"></button>
             </div>
-            <div class="wf-modal-body">
+            <div class="app-modal-body">
               <input id="ac-modal-edit-id" type="hidden" value="">
               <label>
                 <span>Título</span>
@@ -785,154 +997,16 @@
                 <input id="ac-modal-tags" placeholder="api, backend, produto">
               </label>
             </div>
-            <div class="wf-modal-actions">
-              <button type="button" class="wf-secondary-btn"
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
                 onclick="closeAgentChatModal()">Cancelar</button>
-              <button type="submit" class="wf-primary-btn">
+              <button type="submit" class="app-primary-btn">
                 <span data-icon="plus"></span>
                 <span id="ac-modal-submit-label">Criar chat</span>
               </button>
             </div>
           </form>
         </div>
-
-        <!-- ═══ MODE: AGENT WORKFLOWS ═══ -->
-        <main id="mode-workflows" class="mode">
-          <aside id="wf-sidebar">
-            <div id="wf-sidebar-head">
-              <div>
-                <div id="wf-sidebar-title">Workflows</div>
-                <div id="wf-sidebar-count">0 demandas</div>
-              </div>
-              <button id="wf-new-btn" onclick="openWorkflowModal()"
-                title="Novo workflow" data-icon="plus"></button>
-            </div>
-            <div id="wf-search-wrap">
-              <span data-icon="search"></span>
-              <input id="wf-search" type="text" placeholder="Buscar workflows"
-                autocomplete="off" spellcheck="false">
-            </div>
-            <div id="wf-filter-row">
-              <select id="wf-status-filter" onchange="loadWorkflows('')">
-                <option value="">Todos os estados</option>
-                <option value="draft">Rascunho</option>
-                <option value="planning">Planejamento</option>
-                <option value="running">Em execução</option>
-                <option value="reviewing">Em revisão</option>
-                <option value="blocked">Bloqueado</option>
-                <option value="done">Concluído</option>
-                <option value="cancelled">Cancelado</option>
-              </select>
-            </div>
-            <div id="wf-list"></div>
-            <div id="wf-pagination" hidden>
-              <button id="wf-page-prev" class="wf-page-btn" type="button"
-                title="Workflows mais recentes" disabled
-                data-icon="chevron-left"></button>
-              <span id="wf-page-label"></span>
-              <button id="wf-page-next" class="wf-page-btn" type="button"
-                title="Workflows anteriores" disabled
-                data-icon="chevron-right"></button>
-            </div>
-          </aside>
-
-          <section id="wf-workspace">
-            <div id="wf-empty">
-              <span id="wf-empty-icon" data-icon="workflow"></span>
-              <div id="wf-empty-title">Nenhum workflow selecionado</div>
-              <button class="wf-primary-btn" onclick="openWorkflowModal()">
-              <span data-icon="plus"></span> Nova demanda
-            </button>
-            </div>
-
-            <div id="wf-active">
-              <header id="wf-toolbar">
-                <div id="wf-toolbar-title-wrap">
-                  <div id="wf-toolbar-title"></div>
-                  <div id="wf-toolbar-meta"></div>
-                </div>
-                <div id="wf-toolbar-actions">
-                  <div class="wf-prompt-actions"
-                    aria-label="Copiar prompts dos agentes">
-                    <span class="wf-prompt-actions-label">Copiar prompt</span>
-                    <button
-                      class="wf-role-btn orchestrator"
-                      id="wf-copy-orchestrator-btn"
-                      onclick="copyWorkflowPrompt('orchestrator')"
-                      title="Copiar instruções exclusivas do orquestrador">
-                      <span data-icon="workflow"></span>
-                      <span>Orquestrador</span>
-                    </button>
-                    <span class="wf-role-state"
-                      id="wf-orchestrator-state" hidden>
-                      <span data-icon="workflow"></span>
-                      <span id="wf-orchestrator-state-label">
-                        Orquestrador conectado
-                      </span>
-                    </span>
-                    <button
-                      class="wf-role-btn release"
-                      id="wf-release-orchestrator-btn"
-                      onclick="releaseStaleWorkflowOrchestrator()"
-                      title="Liberar orquestrador inativo" hidden>
-                      <span data-icon="unlink"></span>
-                      <span>Liberar</span>
-                    </button>
-                    <button
-                      class="wf-role-btn executor"
-                      id="wf-copy-executor-btn"
-                      onclick="copyWorkflowPrompt('executor')"
-                      title="Copiar instruções exclusivas do executor">
-                      <span data-icon="terminal"></span>
-                      <span>Executor</span>
-                    </button>
-                  </div>
-                  <span class="wf-toolbar-sep"></span>
-                  <button class="wf-icon-btn" onclick="openEditWorkflowModal()"
-                    title="Editar workflow" data-icon="pencil"></button>
-                  <button class="wf-icon-btn" onclick="openNodeModal()"
-                    title="Adicionar nó" data-icon="plus"></button>
-                  <button class="wf-icon-btn" id="wf-start-btn"
-                    onclick="startCurrentWorkflow()" title="Iniciar workflow"
-                    data-icon="play"></button>
-                  <button class="wf-icon-btn" id="wf-complete-btn"
-                    onclick="completeCurrentWorkflow()"
-                    title="Concluir workflow"
-                    data-icon="check"></button>
-                  <button class="wf-icon-btn danger" id="wf-cancel-btn"
-                    onclick="cancelCurrentWorkflow()"
-                    title="Cancelar workflow"
-                    data-icon="x"></button>
-                  <button class="wf-icon-btn" onclick="refreshCurrentWorkflow()"
-                    title="Recarregar" data-icon="refresh-cw"></button>
-                  <button class="wf-icon-btn danger"
-                    onclick="deleteCurrentWorkflow()"
-                    title="Excluir workflow" data-icon="trash"></button>
-                </div>
-              </header>
-
-              <div id="wf-agent-strip"></div>
-
-              <div id="wf-main-row">
-                <div id="wf-timeline">
-                  <div id="wf-timeline-list"></div>
-                  <div id="wf-timeline-empty">
-                    <span data-icon="workflow"></span>
-                    <div>Workflow aguardando decomposição</div>
-                  </div>
-                </div>
-
-                <aside id="wf-inspector">
-                  <div id="wf-inspector-empty">
-                    <span data-icon="scan-line"></span>
-                    <div>Selecione um nó</div>
-                  </div>
-                  <div id="wf-inspector-content"></div>
-                </aside>
-              </div>
-            </div>
-          </section>
-        </main>
 
         <!-- ═══ MODE: FAVORITES ═══ -->
         <main id="mode-favorites" class="mode">
@@ -1144,160 +1218,6 @@
             </div>
           </div>
         </main>
-      </div>
-
-      <!-- Workflow modal -->
-      <div class="wf-modal-overlay" id="wf-modal-overlay"
-        onclick="closeWorkflowModal(event)">
-        <form class="wf-modal" id="wf-modal-form"
-          onsubmit="createWorkflowFromModal(event)">
-          <div class="wf-modal-head">
-            <span id="wf-modal-title-label">Nova demanda</span>
-            <button type="button" onclick="closeWorkflowModal()"
-              title="Fechar" data-icon="x"></button>
-          </div>
-          <div class="wf-modal-body">
-            <input id="wf-modal-edit-id" type="hidden" value="">
-            <label>
-              <span>Título</span>
-              <input id="wf-modal-title" required maxlength="140"
-                placeholder="Ex: Implementar autenticação">
-            </label>
-            <label>
-              <span>Objetivo</span>
-              <textarea id="wf-modal-objective" required rows="4"
-                placeholder="Resultado final esperado"></textarea>
-            </label>
-            <label>
-              <span>Contexto</span>
-              <textarea id="wf-modal-description" rows="3"
-                placeholder="Restrições e informações relevantes"></textarea>
-            </label>
-            <div class="wf-form-grid">
-              <label>
-                <span>Conflitos de escrita</span>
-                <select id="wf-modal-conflict">
-                  <option value="warn">Avisar</option>
-                  <option value="block">Bloquear claim</option>
-                </select>
-              </label>
-              <label>
-                <span>Máximo de tentativas</span>
-                <input id="wf-modal-attempts" type="number" min="1" max="20"
-                  value="3">
-              </label>
-            </div>
-            <label>
-              <span>Tags</span>
-              <input id="wf-modal-tags" placeholder="api, backend, produto">
-            </label>
-          </div>
-          <div class="wf-modal-actions">
-            <button type="button" class="wf-secondary-btn"
-              onclick="closeWorkflowModal()">Cancelar</button>
-            <button type="submit" class="wf-primary-btn">
-              <span id="wf-modal-submit-icon" data-icon="plus"></span>
-              <span id="wf-modal-submit-label">Criar workflow</span>
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Workflow node modal -->
-      <div class="wf-modal-overlay" id="wf-node-modal-overlay"
-        onclick="closeNodeModal(event)">
-        <form class="wf-modal wf-node-modal" id="wf-node-modal-form"
-          onsubmit="createNodeFromModal(event)">
-          <input id="wf-node-edit-id" type="hidden">
-          <div class="wf-modal-head">
-            <span id="wf-node-modal-title-label">Novo nó</span>
-            <button type="button" onclick="closeNodeModal()"
-              title="Fechar" data-icon="x"></button>
-          </div>
-          <div class="wf-modal-body">
-            <label>
-              <span>Título</span>
-              <input id="wf-node-title" required maxlength="140"
-                placeholder="Unidade de trabalho">
-            </label>
-            <label>
-              <span>Descrição</span>
-              <textarea id="wf-node-description" required rows="4"
-                placeholder="O que o agente deve fazer"></textarea>
-            </label>
-            <label>
-              <span>Critérios de aceite</span>
-              <textarea id="wf-node-criteria" required rows="4"
-                placeholder="Um critério por linha"></textarea>
-            </label>
-            <div class="wf-form-grid wf-form-grid-3">
-              <label>
-                <span>Complexidade</span>
-                <select id="wf-node-complexity">
-                  <option value="xs">XS</option>
-                  <option value="s">S</option>
-                  <option value="m" selected>M</option>
-                  <option value="l">L</option>
-                  <option value="xl">XL</option>
-                </select>
-              </label>
-              <label>
-                <span>Tipo</span>
-                <input id="wf-node-kind" value="code"
-                  placeholder="code, research, review">
-              </label>
-              <label>
-                <span>Isolamento</span>
-                <select id="wf-node-isolation">
-                  <option value="shared">Compartilhado</option>
-                  <option value="branch">Branch</option>
-                  <option value="worktree">Worktree</option>
-                </select>
-              </label>
-            </div>
-            <div class="wf-form-grid wf-form-grid-3">
-              <label>
-                <span>Ferramenta sugerida</span>
-                <input id="wf-node-tool" placeholder="codex-cli">
-              </label>
-              <label>
-                <span>Provider sugerido</span>
-                <input id="wf-node-provider" placeholder="openai">
-              </label>
-              <label>
-                <span>Modelo sugerido</span>
-                <input id="wf-node-model" placeholder="gpt-5-codex">
-              </label>
-            </div>
-            <label>
-              <span>Capacidades exigidas</span>
-              <input id="wf-node-capabilities"
-                placeholder="code, deno, tests">
-            </label>
-            <div class="wf-form-grid">
-              <label>
-                <span>Escopos de leitura</span>
-                <input id="wf-node-read-scopes" placeholder="src/, deno.json">
-              </label>
-              <label>
-                <span>Escopos de escrita</span>
-                <input id="wf-node-write-scopes" placeholder="src/auth/">
-              </label>
-            </div>
-            <label>
-              <span>Depende de</span>
-              <select id="wf-node-dependencies" multiple></select>
-            </label>
-          </div>
-          <div class="wf-modal-actions">
-            <button type="button" class="wf-secondary-btn"
-              onclick="closeNodeModal()">Cancelar</button>
-            <button type="submit" class="wf-primary-btn">
-              <span id="wf-node-modal-submit-icon" data-icon="plus"></span>
-              <span id="wf-node-modal-submit-label">Criar nó</span>
-            </button>
-          </div>
-        </form>
       </div>
 
       <!-- Quick-Add / Edit Modal -->
@@ -1604,8 +1524,8 @@
     <script src="/scripts/macros.js"></script>
     <script src="/scripts/skills.js"></script>
     <script src="/scripts/tasks.js"></script>
+    <script src="/scripts/trilhas.js"></script>
     <script src="/scripts/agentchats.js"></script>
-    <script src="/scripts/workflows.js"></script>
     <script src="/scripts/mocks.js"></script>
     <script src="/scripts/favorites.js"></script>
     <script src="/scripts/podcasts.js"></script>
