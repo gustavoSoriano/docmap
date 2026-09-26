@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>docmap — atlas de documentação</title>
+    <link rel="icon" href="data:," />
     <script>
     (function () {
       var t = localStorage.getItem('docmap-theme');
@@ -11,6 +12,8 @@
     })();
     </script>
     <script src="/vendor/d3-7.9.0.min.js"></script>
+    <script src="/vendor/markmap-view-0.18.12.min.js"></script>
+    <script src="/vendor/markmap-lib-0.18.12.min.js"></script>
     <script src="/vendor/marked-18.0.12.umd.min.js"></script>
     <script src="/vendor/dompurify-3.4.15.min.js"></script>
     <link rel="stylesheet" href="/vendor/codemirror-5.65.16.min.css">
@@ -18,6 +21,7 @@
     <script src="/vendor/codemirror-javascript-5.65.16.min.js"></script>
     <script src="/vendor/codemirror-shell-5.65.16.min.js"></script>
     <script src="/vendor/js-beautify-1.15.1.min.js"></script>
+    <script src="/vendor/mermaid-10.9.4.min.js"></script>
     <link rel="stylesheet" href="/vendor/xterm-4.19.0.css" />
     <script src="/vendor/xterm-4.19.0.js"></script>
     <script src="/vendor/xterm-addon-fit-0.5.0.js"></script>
@@ -38,6 +42,7 @@
     <link rel="stylesheet" href="/styles/podcasts.css">
     <link rel="stylesheet" href="/styles/graph.css">
     <link rel="stylesheet" href="/styles/agentchats.css">
+    <link rel="stylesheet" href="/styles/codetour.css">
     <link rel="stylesheet" href="/styles/terminal.css">
   </head>
   <body>
@@ -86,6 +91,10 @@
         <button class="rail-btn" id="rail-agentchats"
           onclick="setMode('agentchats')" title="Chats entre agentes">
     <span class="rail-ico" data-icon="message-square"></span><span class="rail-lbl">Chats</span>
+  </button>
+        <button class="rail-btn" id="rail-codetour"
+          onclick="setMode('codetour')" title="Code tour">
+    <span class="rail-ico" data-icon="compass"></span><span class="rail-lbl">Tour</span>
   </button>
         <button class="rail-btn" id="rail-favorites"
           onclick="setMode('favorites')" title="Favoritos">
@@ -1230,6 +1239,88 @@
           </section>
         </main>
 
+        <!-- ═══ MODE: CODETOUR ═══ -->
+        <main id="mode-codetour" class="mode">
+          <div id="ct-top">
+            <button class="ct-btn primary" onclick="pickCodetourFolder()">Selecionar pasta</button>
+            <span id="ct-path">nenhuma pasta</span>
+            <input id="ct-query" type="text" placeholder="O que quer ver? ex: camada de serviço" autocomplete="off" spellcheck="false" />
+            <div id="ct-depth" role="tablist" aria-label="Profundidade">
+              <button type="button" data-depth="resumo" onclick="setCtDepth('resumo')">Resumo</button>
+              <button type="button" data-depth="repasse" class="on" onclick="setCtDepth('repasse')">Repasse</button>
+              <button type="button" data-depth="deep" onclick="setCtDepth('deep')">Deep</button>
+            </div>
+            <button class="ct-btn primary" onclick="askCodetour()">Gerar tour</button>
+            <span id="ct-status"></span>
+            <button class="ct-btn" onclick="clearCodetour()" title="Encerrar">×</button>
+          </div>
+          <div id="ct-body">
+            <div id="ct-empty">
+              <div id="ct-empty-eyebrow">CODE TOUR</div>
+              <div id="ct-empty-title">Selecione a pasta e diga o que quer ver</div>
+              <div id="ct-empty-steps">
+                <span><b>1.</b> Selecionar pasta</span>
+                <span><b>2.</b> Descrever o foco</span>
+                <span><b>3.</b> Colar o prompt na IA</span>
+              </div>
+              <div id="ct-empty-hint">A apresentação aparece aqui sozinha, sem colar JSON.</div>
+            </div>
+            <div id="ct-active" style="display:none">
+              <header id="ct-hero">
+                <div id="ct-eyebrow">CODE TOUR</div>
+                <h1 id="ct-topic"></h1>
+                <p id="ct-goal"></p>
+                <div id="ct-meta-row">
+                  <span id="ct-meta-path"></span>
+                  <span id="ct-meta-dot">·</span>
+                  <span id="ct-meta-count"></span>
+                </div>
+              </header>
+              <div class="ct-wrap">
+                <div id="ct-slide-card">
+                  <div id="ct-slide-progress"><span id="ct-slide-bar"></span></div>
+                  <div id="ct-slide-kicker"></div>
+                  <div id="ct-slide-title"></div>
+                  <div id="ct-slide-bullets"></div>
+                  <div id="ct-slide-explain"></div>
+                  <div id="ct-snippet-wrap">
+                    <div id="ct-snippet-file"></div>
+                    <pre id="ct-snippet-code"></pre>
+                  </div>
+                  <div id="ct-slide-files"></div>
+                  <div id="ct-slide-visuals"></div>
+                  <div id="ct-slide-check"></div>
+                  <div id="ct-slide-nav">
+                    <button class="ct-btn" onclick="ctPrev()">← Anterior</button>
+                    <div id="ct-dots"></div>
+                    <span id="ct-slide-counter"></span>
+                    <button class="ct-btn primary" onclick="ctNext()">Próximo →</button>
+                  </div>
+                </div>
+              </div>
+              <div class="ct-wrap">
+                <div class="ct-grid">
+                  <div class="ct-section ct-span">
+                    <h3>Fluxo</h3>
+                    <div id="ct-legend" aria-label="Legenda de camadas">
+                      <span class="ct-legend-label">Camadas</span>
+                      <span class="ct-legend-chip" data-layer="api">API</span>
+                      <span class="ct-legend-chip" data-layer="service">Service</span>
+                      <span class="ct-legend-chip" data-layer="data">Data</span>
+                      <span class="ct-legend-chip" data-layer="ui">UI</span>
+                    </div>
+                    <div id="ct-flows"></div>
+                  </div>
+                  <div class="ct-section"><h3>Contratos</h3><div id="ct-contracts"></div></div>
+                  <div class="ct-section"><h3>Arquivos-chave</h3><div class="ct-list" id="ct-files"></div></div>
+                  <div class="ct-section"><h3>Armadilhas</h3><div class="ct-list" id="ct-pitfalls"></div></div>
+                  <div class="ct-section"><h3>Por onde começar</h3><div class="ct-list" id="ct-next"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
         <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
         <main id="mode-canvas" class="mode">
           <div id="canvas-container">
@@ -1552,6 +1643,7 @@
     <script src="/scripts/favorites.js"></script>
     <script src="/scripts/podcasts.js"></script>
     <script src="/scripts/graph.js"></script>
+    <script src="/scripts/codetour.js"></script>
     <script src="/scripts/system.js"></script>
     <script src="/scripts/terminal.js"></script>
   </body>

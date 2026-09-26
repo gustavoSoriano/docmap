@@ -12,6 +12,9 @@ remoto em runtime. As licenças completas ficam em `docs/licenses/`.
 | js-beautify     | 1.15.1  | MIT                   |
 | xterm.js        | 4.19.0  | MIT                   |
 | xterm-addon-fit | 0.5.0   | MIT                   |
+| mermaid         | 10.9.4  | MIT                   |
+| markmap-view    | 0.18.12 | MIT                   |
+| markmap-lib     | 0.18.12 | MIT                   |
 
 Também há código vendorizado do `quickdrawjs/core@0.2.0` em
 `src/canvas/vendor.gen.ts`; a licença é MIT.
