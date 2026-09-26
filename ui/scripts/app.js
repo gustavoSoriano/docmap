@@ -71,14 +71,10 @@ const closeSettings = (e) => {
 // ── Global keyboard shortcuts ──
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    $('annot-popover')?.classList.remove('visible');
     // Só fecha settings se o confirm dialog não estiver visível
     if (!$('modal-overlay')?.classList.contains('visible')) {
       $('settings-overlay')?.classList.remove('open');
     }
-  }
-  if (e.ctrlKey && e.key === 'Enter' && $('annot-popover')?.classList.contains('visible')) {
-    saveAnnotation();
   }
   if ((e.metaKey || e.ctrlKey) && e.key === '1') { e.preventDefault(); setMode('notes'); }
   if ((e.metaKey || e.ctrlKey) && e.key === '2') { e.preventDefault(); setMode('macros'); }

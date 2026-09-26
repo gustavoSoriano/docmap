@@ -11,8 +11,6 @@
     })();
     </script>
     <script src="/vendor/d3-7.9.0.min.js"></script>
-    <script src="/vendor/markmap-lib-0.18.12.iife.min.js"></script>
-    <script src="/vendor/markmap-view-0.18.12.min.js"></script>
     <script src="/vendor/marked-18.0.12.umd.min.js"></script>
     <script src="/vendor/dompurify-3.4.15.min.js"></script>
     <link rel="stylesheet" href="/vendor/codemirror-5.65.16.min.css">
@@ -30,8 +28,6 @@
     </script>
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/markmap.css">
-    <link rel="stylesheet" href="/styles/annotations.css">
     <link rel="stylesheet" href="/styles/notes.css">
     <link rel="stylesheet" href="/styles/macros.css">
     <link rel="stylesheet" href="/styles/skills.css">
@@ -179,13 +175,6 @@
                 <span id="note-id-badge" style="display:none"
                   onclick="copyNoteId()"
                   title="Clique para copiar o ID (use numa IA)"></span>
-                <button class="note-head-btn" id="btn-note-markmap"
-                  style="display:none" onclick="toggleNoteMarkmap()"
-                  title="Ver como mapa mental"><span data-icon="tree"></span></button>
-                <button class="note-head-btn" id="btn-annot"
-                  style="display:none;width:auto;padding:0 9px;gap:5px;"
-                  onclick="toggleAnnotations()"
-                  title="Anotações do mapa mental"><span data-icon="highlighter"></span><span id="annot-count" style="font-size:10px">0</span></button>
               </div>
               <div id="note-toolbar">
                 <div id="note-cat-field">
@@ -212,24 +201,7 @@
                 <textarea id="note-content-textarea"
                   placeholder="Escreva em markdown…"></textarea>
                 <div id="note-preview"></div>
-                <div id="note-markmap"></div>
               </div>
-
-              <!-- Annotation panel (contextual ao markmap da nota) -->
-              <aside id="annot-panel">
-                <div id="annot-head">
-                  <span id="annot-head-title">Anotações da nota</span>
-                  <button class="ghost-btn" id="annot-copy-all"
-                    onclick="copyAnnotationsForAI()"
-                    title="Copiar todas para colar numa IA">
-              <span data-icon="sparkles"></span> Copiar p/ IA
-            </button>
-                </div>
-                <div id="annot-list">
-                  <div
-                    id="annot-empty">Selecione um trecho do mapa e clique em <strong>Comentar</strong> para anotar.</div>
-                </div>
-              </aside>
             </div>
           </section>
         </main>
@@ -1497,41 +1469,6 @@
         </div>
       </div>
 
-      <!-- Floating comment button (shown on text selection in note markmap) -->
-      <button id="markmap-comment-btn" type="button">Comentar</button>
-
-      <!-- Annotation popover -->
-      <div id="annot-popover">
-        <div id="pop-head">
-          <span id="pop-label">TRECHO</span>
-          <span id="pop-quote"></span>
-        </div>
-        <div id="pop-types">
-          <button class="type-btn active" data-type="note"
-            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-note)"></i> Nota</button>
-          <button class="type-btn" data-type="decision"
-            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-decision)"></i> Decisão</button>
-          <button class="type-btn" data-type="question"
-            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-question)"></i> Dúvida</button>
-          <button class="type-btn" data-type="todo"
-            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-todo)"></i> TODO</button>
-          <button class="type-btn" data-type="warning"
-            onclick="selectAnnotType(this)"><i class="type-swatch" style="background:var(--type-warning)"></i> Atenção</button>
-        </div>
-        <div id="pop-body">
-          <textarea id="pop-textarea"
-            placeholder="Escreva a anotação…"></textarea>
-        </div>
-        <div id="pop-foot">
-          <button class="pop-btn" id="pop-delete"
-            onclick="deleteAnnotation()">Excluir</button>
-          <button class="pop-btn" id="pop-cancel"
-            onclick="closeAnnotPopover()">Cancelar</button>
-          <button class="pop-btn primary" id="pop-save"
-            onclick="saveAnnotation()">Salvar</button>
-        </div>
-      </div>
-
       <!-- Confirm modal (webview não suporta window.confirm) -->
       <div id="modal-overlay">
         <div id="modal">
@@ -1605,7 +1542,6 @@
     <script src="/scripts/theme.js"></script>
     <script src="/scripts/app.js"></script>
     <script src="/scripts/workspace.js"></script>
-    <script src="/scripts/annotations.js"></script>
     <script src="/scripts/notes.js"></script>
     <script src="/scripts/macros.js"></script>
     <script src="/scripts/skills.js"></script>

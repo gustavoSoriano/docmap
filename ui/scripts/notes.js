@@ -4,14 +4,6 @@ let allNotes           = [];
 let allCategories      = [];
 let currentNote        = null;
 let previewMode        = false;
-let noteMarkmapVisible = false;
-
-// ── Seleção para comentário no markmap da nota ──
-let noteSelectionBound        = false;
-let noteSelectionBtnTimer     = null;
-let noteMarkmapTimer          = null;
-let currentNoteSelectionQuote = null;
-let lastAnnotationCtx         = null;     // evita recarregar ao salvar a mesma nota
 
 // ── Lista ──
 const loadNotesList = async () => {
@@ -129,15 +121,10 @@ const newNote = () => {
   $('note-cat-input').value = '';
   updateCatDot();
   $('note-id-badge').style.display = 'none';
-  $('btn-note-markmap').style.display = 'none';
-  $('btn-annot').style.display = 'none';
   $('btn-copy-note').style.display = 'none';
   $('btn-delete-note').style.display = 'none';
   showEditor();
   setPreviewMode(false);
-  setNoteMarkmapVisible(false);
-  setAnnotationContext(null, '');
-  lastAnnotationCtx = null;
   $('note-title-input').focus();
 };
 
@@ -150,12 +137,10 @@ const fillEditor = (note) => {
   const badge = $('note-id-badge');
   badge.textContent = note.id.slice(0, 8);
   badge.style.display = 'inline-block';
-  $('btn-note-markmap').style.display = 'inline-flex';
   $('btn-copy-note').style.display = 'inline-flex';
   $('btn-delete-note').style.display = 'inline-flex';
   showEditor();
   setPreviewMode(true); // abre em preview; usuário clica "Editar" se quiser modificar
-  if (noteMarkmapVisible) renderNoteMarkmap();
 };
 
 // ── Salvar / excluir ──
@@ -176,7 +161,6 @@ const saveCurrentNote = async () => {
     });
     currentNote = await res.json();
     fillEditor(currentNote);
-    if (noteMarkmapVisible) renderNoteMarkmap();
     const [listRes, catsRes] = await Promise.all([fetch('/notes'), fetch('/categories')]);
     allNotes = await listRes.json();
     try { allCategories = await catsRes.json(); } catch { /* mantém anterior */ }
@@ -549,7 +533,6 @@ const setPreviewMode = (on) => {
   const pv = $('note-preview');
   const btn = $('btn-preview');
   if (on) {
-    setNoteMarkmapVisible(false);
     pv.innerHTML = renderMarkdown(ta.value);
     ta.style.display = 'none';
     pv.classList.add('visible');
@@ -561,118 +544,6 @@ const setPreviewMode = (on) => {
   }
 };
 const toggleNotePreview = () => setPreviewMode(!previewMode);
-
-// ── Mapa mental da nota (renderiza o markdown da nota ali mesmo) ──
-const setNoteMarkmapVisible = (on) => {
-  noteMarkmapVisible = on;
-  const mm  = $('note-markmap');
-  const ta  = $('note-content-textarea');
-  const pv  = $('note-preview');
-  const btn = $('btn-note-markmap');
-  if (on) {
-    pv.classList.remove('visible');
-    ta.style.display = 'none';
-    mm.classList.add('visible');
-    btn?.classList.add('active');
-    $('btn-annot').style.display = 'inline-flex';
-    renderNoteMarkmap();
-  } else {
-    ta.style.display = '';
-    mm.classList.remove('visible');
-    btn?.classList.remove('active');
-    $('btn-annot').style.display = 'none';
-    $('annot-panel').classList.remove('visible');
-    hideCommentButton();
-    if (previewMode) pv.classList.add('visible');
-  }
-};
-
-const renderNoteMarkmap = () => {
-  const mk = window.markmap;
-  if (!mk?.Markmap || !mk?.Transformer) return toast('markmap não carregou (sem internet?)');
-  if (!currentNote) return;
-  const container = $('note-markmap');
-  container.querySelectorAll('svg.markmap-svg').forEach((el) => el.remove());
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.classList.add('markmap-svg');
-  svg.style.cssText = 'width:100%;height:100%;display:block;';
-  container.appendChild(svg);
-  const { root } = new mk.Transformer().transform(currentNote.content || '# ' + (currentNote.title || 'Nota'));
-  if (window._noteMarkmap) { try { window._noteMarkmap.destroy(); } catch { /* noop */ } }
-  window._noteMarkmap = mk.Markmap.create(svg, { autoFit: false }, root);
-  clearTimeout(noteMarkmapTimer);
-  noteMarkmapTimer = setTimeout(() => {
-    window._noteMarkmap?.fit?.();
-    const ctx = 'note:' + currentNote.id;
-    setAnnotationContext(ctx, currentNote.title);
-    if (ctx !== lastAnnotationCtx) {
-      lastAnnotationCtx = ctx;
-      loadAnnotations(ctx);
-    }
-    bindNoteSelectionButton();
-  }, 100);
-};
-
-const toggleNoteMarkmap = () => setNoteMarkmapVisible(!noteMarkmapVisible);
-
-// ── Detecção de seleção de texto no markmap da nota ──
-let _commentBtn;  // cached once; element is static HTML present at script load time
-
-const bindNoteSelectionButton = () => {
-  if (noteSelectionBound) return;
-  noteSelectionBound = true;
-  _commentBtn = $('markmap-comment-btn');
-  if (!_commentBtn) return;
-
-  document.addEventListener('selectionchange', () => {
-    clearTimeout(noteSelectionBtnTimer);
-    noteSelectionBtnTimer = setTimeout(updateNoteCommentButton, 80);
-  });
-
-  document.addEventListener('mousedown', (e) => {
-    if (!_commentBtn.classList.contains('visible')) return;
-    if (e.target === _commentBtn || _commentBtn.contains(e.target)) return;
-    hideCommentButton();
-  });
-
-  _commentBtn.addEventListener('click', onNoteCommentButtonClick);
-};
-
-const updateNoteCommentButton = () => {
-  if (!noteMarkmapVisible) return;
-  const btn = _commentBtn;
-  if (!btn) return;
-  const sel = window.getSelection();
-  const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
-  if (!range || range.collapsed) { hideCommentButton(); return; }
-
-  const container = $('note-markmap');
-  const text = sel.toString().trim();
-  if (!text || !container.contains(range.commonAncestorContainer)) { hideCommentButton(); return; }
-
-  currentNoteSelectionQuote = text;
-  const rect = range.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
-  if (rect.bottom < containerRect.top || rect.top > containerRect.bottom) { hideCommentButton(); return; }
-
-  btn.style.left = `${rect.left + rect.width / 2}px`;
-  btn.style.top  = `${rect.bottom + 8}px`;
-  btn.classList.add('visible');
-};
-
-const hideCommentButton = () => {
-  currentNoteSelectionQuote = null;
-  _commentBtn?.classList.remove('visible');
-};
-
-const onNoteCommentButtonClick = () => {
-  const quote = currentNoteSelectionQuote;
-  if (!quote) return;
-  if (!_commentBtn) return;
-  const rect = _commentBtn.getBoundingClientRect();
-  hideCommentButton();
-  openAnnotPopover(quote, rect.left + rect.width / 2, rect.bottom + 6);
-};
 
 // ── Atualiza o pontinho de cor ao digitar a categoria ──
 $('note-cat-input').addEventListener('input', updateCatDot);

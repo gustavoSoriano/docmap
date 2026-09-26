@@ -43,7 +43,6 @@ Ideal para:
 | Módulo                       | O que resolve                                                        |
 | ---------------------------- | -------------------------------------------------------------------- |
 | **🕸️ Grafo de conhecimento** | Conecta entidades do DocMap por tags e referências                   |
-| **🧠 Markmap**               | Transforma headings em mapa mental navegável                         |
 | **📝 Notas globais**         | Knowledge base com busca full-text, categorias e tags                |
 | **🎨 Lousa Canvas**          | Desenhe no tablet e veja em tempo real, com biblioteca de desenhos   |
 | **🎙️ Podcasts em áudio**     | Sintetiza roteiros prontos com 2+ vozes                              |
@@ -64,9 +63,7 @@ Ideal para:
   <br><br>
   <img src="docs/assets/screenshot-mermaid.png" alt="Diagramas Mermaid" width="49%">
   &nbsp;
-  <img src="docs/assets/screenshot-markmap.png" alt="Mapa mental navegável" width="49%">
-  <br><br>
-  <img src="docs/assets/screenshot-podcast.png" alt="Podcast com slides sincronizados" width="100%">
+  <img src="docs/assets/screenshot-podcast.png" alt="Podcast com slides sincronizados" width="49%">
   <br><br>
   <img src="docs/assets/screenshot-kanban.png" alt="Kanban de tarefas" width="49%">
   &nbsp;
@@ -123,7 +120,7 @@ atualiza sozinho — sem loja, sem gatekeeper.
 - **Desktop:** [webview_deno](https://deno.land/x/webview) — janela nativa via
   WebKit/WebView2
 - **Persistência:** [Deno KV](https://deno.land/kv) — SQLite embutido
-- **Frontend:** Vanilla JS, D3.js + markmap, CSS puro
+- **Frontend:** Vanilla JS, D3.js, CSS puro
 - **TTS:** edge-tts (offline-friendly)
 - **Áudio:** ffmpeg / ffprobe
 - **Build:** compilação nativa com `deno compile`

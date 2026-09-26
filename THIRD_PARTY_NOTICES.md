@@ -6,8 +6,6 @@ remoto em runtime. As licenças completas ficam em `docs/licenses/`.
 | Biblioteca      | Versão  | Licença               |
 | --------------- | ------- | --------------------- |
 | d3              | 7.9.0   | BSD-3-Clause          |
-| markmap-lib     | 0.18.12 | MIT                   |
-| markmap-view    | 0.18.12 | MIT                   |
 | marked          | 18.0.12 | MIT                   |
 | DOMPurify       | 3.4.15  | Apache-2.0 OR MPL-2.0 |
 | CodeMirror      | 5.65.16 | MIT                   |

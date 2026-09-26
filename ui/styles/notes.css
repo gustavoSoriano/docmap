@@ -238,17 +238,6 @@
   height: 14px;
 }
 
-#note-markmap {
-  flex: 1;
-  display: none;
-  min-height: 0;
-  overflow: hidden;
-  background: var(--surface);
-}
-#note-markmap.visible {
-  display: block;
-}
-
 #note-toolbar {
   display: flex;
   align-items: center;

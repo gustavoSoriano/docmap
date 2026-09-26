@@ -6,7 +6,7 @@
 - **Desktop**: webview_deno — janela nativa via WebKit (macOS) / WebView2
   (Windows)
 - **Persistência**: Deno KV built-in — zero dependências externas
-- **Frontend**: D3.js + markmap-autoloader via CDN, CSS puro, JS vanilla
+- **Frontend**: D3.js, CSS puro, JS vanilla
 
 ## Servidores
 
@@ -22,7 +22,6 @@ src/
   main.ts              ← entry: inicializa KV, sobe servidores, abre janela
   kv.ts                ← singleton Deno KV (única exceção ao estado global)
   notes/               ← tipos, store KV, busca, exportação
-  comments/            ← tipos, store KV (comentários nos nós do markmap)
   fs/                  ← walker e extração de links (funções puras)
   graph/               ← construção do grafo (função pura)
   podcasts/            ← tipos, store KV, pipeline de geração (edge-tts + ffmpeg), TTS
@@ -40,7 +39,7 @@ ui/
 
 - **Funções puras** para toda transformação de dados: `fs/`, `graph/`,
   `search/`, `notes/search.ts`, `notes/export.ts`
-- **Side effects isolados** em: `notes/store.ts`, `comments/store.ts`,
+- **Side effects isolados** em: `notes/store.ts`,
   `server/handlers/`, `api/handlers/`, `window/`
 - **Sem classes** — objetos simples + funções
 - **Sem mutação** fora dos módulos de store e do estado local de runtime
@@ -72,13 +71,12 @@ linhas, é sinal de que precisa ser dividido.
 ["macro_collections", id]                      → MacroCollection
 ["skills",         "_global_", skillId]          → Skill
 ["skill_collections", id]                      → SkillCollection
-["comments",       "_global_", fileId]          → Comment[]
 ["podcasts",       "_global_", podcastId]        → Podcast (metadados; áudio MP3 vai no filesystem)
 ["mock_collections", id]                         → MockCollection
 ["mocks_data",     collectionId, mockId]         → Mock
 ```
 
-> Notes e comments são escopo global (`_global_`).
+> Notes são escopo global (`_global_`).
 
 ## Persistência e atualização
 

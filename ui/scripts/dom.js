@@ -34,15 +34,6 @@ const debounce = (fn, ms) => {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 };
 
-// Cores fixas dos TIPOS de anotação do markmap (conjunto fechado).
-const CAT_COLOR = {
-  note:     'var(--type-note)',
-  decision: 'var(--type-decision)',
-  question: 'var(--type-question)',
-  todo:     'var(--type-todo)',
-  warning:  'var(--type-warning)',
-};
-
 // Cor determinística para CATEGORIAS de nota (texto livre): mesma string → mesma cor.
 const catColor = (name) => {
   const s = (name || 'general').toLowerCase();
