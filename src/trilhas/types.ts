@@ -60,10 +60,23 @@ export type TrilhaEdge = {
   readonly createdAt: string;
 };
 
+export type StickyColor = 'yellow' | 'pink' | 'green' | 'blue';
+
+export type TrilhaSticky = {
+  readonly id: string;
+  readonly trilhaId: string;
+  readonly text: string;
+  readonly color: StickyColor;
+  readonly position: { readonly x: number; readonly y: number };
+  readonly createdAt: string;
+  readonly updatedAt: string;
+};
+
 export type TrilhaDetail = {
   readonly trilha: Trilha;
   readonly nodes: readonly TrilhaNode[];
   readonly edges: readonly TrilhaEdge[];
+  readonly stickies: readonly TrilhaSticky[];
 };
 
 export type CreateTrilhaInput = {
@@ -118,4 +131,16 @@ export type HeartbeatInput = {
 export type CreateEdgeInput = {
   readonly fromNodeId: string;
   readonly toNodeId: string;
+};
+
+export type CreateStickyInput = {
+  readonly text: string;
+  readonly color?: StickyColor;
+  readonly position?: { readonly x: number; readonly y: number };
+};
+
+export type UpdateStickyInput = {
+  readonly text?: string;
+  readonly color?: StickyColor;
+  readonly position?: { readonly x: number; readonly y: number };
 };

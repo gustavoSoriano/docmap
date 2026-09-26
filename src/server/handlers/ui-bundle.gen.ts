@@ -5987,11 +5987,34 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
   font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
+  cursor: pointer;
+  text-align: left;
+}
+button.tr-insp-card-h:hover {
+  color: var(--text);
+}
+.tr-insp-card-h .ico {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  transition: transform 0.12s;
+}
+.tr-insp-card:not(.closed) .tr-insp-card-h .ico {
+  transform: rotate(90deg);
+}
+/* Sanfona fechada: esconde tudo menos o cabeçalho */
+.tr-insp-card.closed > :not(.tr-insp-card-h) {
+  display: none;
 }
 .tr-insp-card .tr-inspector-details {
   background: var(--surface);
@@ -6331,6 +6354,101 @@ body::before {
   font-size: 12px;
   line-height: 1.5;
 }
+
+/* ── Stickers: post-it solto, fora do fluxo ── */
+/* O container cobre o canvas inteiro mas não intercepta cliques: só o
+   sticker em si é clicável. Sem isso a camada (que vem depois dos nós
+   no DOM) engole os eventos e os blocos param de responder. */
+#trilha-stickies {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tr-sticky {
+  pointer-events: auto;
+  position: absolute;
+  width: 200px;
+  min-height: 130px;
+  padding: 22px 12px 10px;
+  border-radius: 2px 2px 10px 2px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transform: rotate(-1.2deg);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.18);
+  transition: box-shadow 0.12s, transform 0.12s;
+  color: #3f3a22;
+}
+.tr-sticky:nth-child(even) {
+  transform: rotate(1deg);
+}
+.tr-sticky:hover {
+  box-shadow: 0 10px 22px rgb(0 0 0 / 0.24);
+}
+.tr-sticky.dragging {
+  cursor: grabbing;
+  transform: rotate(0deg) scale(1.03);
+  box-shadow: 0 14px 28px rgb(0 0 0 / 0.3);
+  z-index: 5;
+  opacity: 0.96;
+}
+.tr-sticky.selected {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 2px;
+}
+/* Fitinha no topo */
+.tr-sticky::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 72px;
+  height: 18px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.45);
+  border: 1px solid rgb(0 0 0 / 0.06);
+}
+.tr-sticky.c-yellow { background: #fef08a; }
+.tr-sticky.c-pink { background: #fecdd3; color: #4c2731; }
+.tr-sticky.c-green { background: #bbf7d0; color: #23402e; }
+.tr-sticky.c-blue { background: #bfdbfe; color: #24344d; }
+.tr-sticky-text {
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.tr-sticky-text > :first-child { margin-top: 0; }
+.tr-sticky-text > :last-child { margin-bottom: 0; }
+.tr-sticky-text p { margin: 4px 0; }
+.tr-sticky-text ul, .tr-sticky-text ol { margin: 4px 0; padding-left: 16px; }
+.tr-sticky-text code {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: rgb(0 0 0 / 0.08);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+.tr-sticky-text pre, .tr-sticky-text table { display: none; }
+.tr-sticky-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border: none;
+  background: rgb(0 0 0 / 0.08);
+  color: inherit;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: none;
+  place-items: center;
+  opacity: 0.7;
+}
+.tr-sticky:hover .tr-sticky-del { display: grid; }
+.tr-sticky-del:hover { opacity: 1; }
+.tr-sticky-del .ico { width: 12px; height: 12px; }
 
 @media (max-width: 1100px) {
   #trilha-sidebar {
@@ -10943,6 +11061,8 @@ svg#kg-svg:active {
                   </button>
                   <button class="tr-tool-btn" onclick="openNodeModal()"
                     title="Novo bloco" data-icon="plus"></button>
+                  <button class="tr-tool-btn" onclick="openStickyModal()"
+                    title="Novo sticker (nota solta)" data-icon="notebook"></button>
                   <button class="tr-tool-btn" id="trilha-activity-btn"
                     onclick="toggleTrilhaActivity()"
                     title="Atividade recente da trilha" data-icon="clock"></button>
@@ -10960,6 +11080,7 @@ svg#kg-svg:active {
                   <div id="trilha-canvas">
                     <svg id="trilha-edges"></svg>
                     <div id="trilha-nodes"></div>
+                    <div id="trilha-stickies"></div>
                   </div>
                 </div>
                 <div id="trilha-zoom-controls">
@@ -11132,6 +11253,48 @@ svg#kg-svg:active {
               <button type="submit" class="app-primary-btn">
                 <span data-icon="plus"></span>
                 <span id="trilha-node-modal-submit-label">Criar bloco</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Sticker modal: nota solta no mapa -->
+        <div class="app-modal-overlay" id="trilha-sticky-modal-overlay"
+          onclick="closeStickyModal(event)">
+          <form class="app-modal" id="trilha-sticky-modal-form"
+            onsubmit="saveStickyFromModal(event)">
+            <div class="app-modal-head">
+              <span id="trilha-sticky-modal-title-label">Novo sticker</span>
+              <button type="button" onclick="closeStickyModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="trilha-sticky-edit-id" type="hidden" value="">
+              <label>
+                <span>Texto</span>
+                <textarea id="trilha-sticky-text" required rows="5" maxlength="2000"
+                  placeholder="Lembrete rápido… (markdown)"></textarea>
+              </label>
+              <label>
+                <span>Cor</span>
+                <select id="trilha-sticky-color">
+                  <option value="yellow">Amarelo</option>
+                  <option value="pink">Rosa</option>
+                  <option value="green">Verde</option>
+                  <option value="blue">Azul</option>
+                </select>
+              </label>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn danger"
+                id="trilha-sticky-delete-btn" onclick="deleteStickyFromModal()"
+                style="display:none">Excluir</button>
+              <span style="flex:1"></span>
+              <button type="button" class="app-secondary-btn"
+                onclick="closeStickyModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="plus"></span>
+                <span id="trilha-sticky-modal-submit-label">Criar sticker</span>
               </button>
             </div>
           </form>
@@ -14859,6 +15022,7 @@ const TR_POLL_MS = 4000;
 let allTrilhas = [];
 let currentTrilhaDetail = null;
 let selectedTrilhaNodeId = null;
+let selectedTrilhaStickyId = null;
 let trilhaNodeHeights = new Map();
 let trilhaMe = null;
 let trilhaActivityOpen = false;
@@ -14904,6 +15068,9 @@ const renderTrilhaTags = (tags) =>
 
 const trilhaNodeById = (id) =>
   currentTrilhaDetail?.nodes.find((n) => n.id === id);
+
+const trilhaStickyById = (id) =>
+  currentTrilhaDetail?.stickies?.find((s) => s.id === id);
 
 const trilhaIncoming = (nodeId) =>
   (currentTrilhaDetail?.edges || []).filter((e) => e.toNodeId === nodeId);
@@ -14984,7 +15151,11 @@ const openTrilha = async (id) => {
     const res = await fetch(\`/trilhas/\${id}\`);
     if (!res.ok) throw new Error(await res.text());
     currentTrilhaDetail = await res.json();
+    if (!Array.isArray(currentTrilhaDetail.stickies)) {
+      currentTrilhaDetail.stickies = [];
+    }
     selectedTrilhaNodeId = null;
+    selectedTrilhaStickyId = null;
     trilhaMe = null;
     trilhaActivityOpen = false;
     renderTrilhasList();
@@ -15007,10 +15178,11 @@ const trilhaSignature = (detail) => JSON.stringify({
   u: detail.trilha.updatedAt,
   n: detail.nodes.map((n) => [n.id, n.status, n.title, n.details || '', n.position.x, n.position.y]),
   e: detail.edges.map((e) => e.id),
+  s: (detail.stickies || []).map((s) => [s.id, s.text, s.color, s.position.x, s.position.y, s.updatedAt]),
 });
 
 const trilhaModalOpen = () => !!document.querySelector(
-  '#trilha-modal-overlay.visible, #trilha-node-modal-overlay.visible, #modal-overlay.visible, #fav-modal-overlay.visible',
+  '#trilha-modal-overlay.visible, #trilha-node-modal-overlay.visible, #trilha-sticky-modal-overlay.visible, #modal-overlay.visible, #fav-modal-overlay.visible',
 );
 
 const pollTrilhas = async () => {
@@ -15024,10 +15196,14 @@ const pollTrilhas = async () => {
       const res = await fetch(\`/trilhas/\${id}\`);
       if (!res.ok) throw new Error(await res.text());
       const fresh = await res.json();
+      if (!Array.isArray(fresh.stickies)) fresh.stickies = [];
       if (currentTrilhaDetail?.trilha.id === id &&
         trilhaSignature(fresh) !== trilhaSignature(currentTrilhaDetail)) {
         currentTrilhaDetail = fresh;
         if (!trilhaNodeById(selectedTrilhaNodeId)) selectedTrilhaNodeId = null;
+        if (!trilhaStickyById(selectedTrilhaStickyId)) {
+          selectedTrilhaStickyId = null;
+        }
         renderTrilhasList();
         renderCurrentTrilha();
       }
@@ -15052,7 +15228,13 @@ const refreshCurrentTrilha = async () => {
     const res = await fetch(\`/trilhas/\${currentTrilhaDetail.trilha.id}\`);
     if (!res.ok) throw new Error(await res.text());
     currentTrilhaDetail = await res.json();
+    if (!Array.isArray(currentTrilhaDetail.stickies)) {
+      currentTrilhaDetail.stickies = [];
+    }
     if (!trilhaNodeById(selectedTrilhaNodeId)) selectedTrilhaNodeId = null;
+    if (!trilhaStickyById(selectedTrilhaStickyId)) {
+      selectedTrilhaStickyId = null;
+    }
     renderCurrentTrilha();
     await loadTrilhas();
   } catch (err) {
@@ -15069,6 +15251,7 @@ const renderCurrentTrilha = () => {
     return;
   }
   const { trilha, nodes, edges } = currentTrilhaDetail;
+  const stickies = currentTrilhaDetail.stickies || [];
   $('trilha-empty').style.display = 'none';
   $('trilha-active').style.display = '';
   $('trilha-toolbar-title').textContent = trilha.title;
@@ -15083,6 +15266,7 @@ const renderCurrentTrilha = () => {
     \${blockedCount ? \`<span class="tr-meta-alert">\${blockedCount} bloqueados</span>\` : ''}
     \${staleCount ? \`<span class="tr-meta-alert">\${staleCount} sem sinal</span>\` : ''}
     <span>\${edges.length} \${edges.length === 1 ? 'seta' : 'setas'}</span>
+    \${stickies.length ? \`<span>📝 \${stickies.length} \${stickies.length === 1 ? 'sticker' : 'stickers'}</span>\` : ''}
     \${renderTrilhaTags(trilha.tags)}\`;
   $('trilha-activity-btn')?.classList.toggle('on', trilhaActivityOpen);
   renderTrilhaMap();
@@ -15141,9 +15325,11 @@ const trilhaAssigneeBadge = (node) => {
 
 const renderTrilhaMap = () => {
   const nodesEl = $('trilha-nodes');
+  const stickiesEl = $('trilha-stickies');
   const svg = $('trilha-edges');
   const canvas = $('trilha-canvas');
   const { nodes } = currentTrilhaDetail;
+  const stickies = currentTrilhaDetail.stickies || [];
   trilhaNodeHeights = new Map();
 
   // Mede alturas sem escala: o offsetHeight inclui o zoom, então reseta
@@ -15177,6 +15363,19 @@ const renderTrilhaMap = () => {
     trilhaNodeHeights.set(el.dataset.nodeId, el.offsetHeight);
   });
 
+  // Stickers: post-it solto, sem status nem setas.
+  if (stickiesEl) {
+    stickiesEl.innerHTML = stickies.map((s) => {
+      const selected = s.id === selectedTrilhaStickyId;
+      return \`<div class="tr-sticky c-\${escHtml(s.color || 'yellow')}\${selected ? ' selected' : ''}"
+        data-sticky-id="\${s.id}" title="Duplo clique para editar"
+        style="left:\${s.position.x}px;top:\${s.position.y}px">
+        <button class="tr-sticky-del" data-sticky-del="\${s.id}" title="Excluir sticker">\${ICON('x')}</button>
+        <div class="tr-sticky-text">\${renderMarkdown(s.text || '')}</div>
+      </div>\`;
+    }).join('');
+  }
+
   // Dimensiona o canvas pelo conteúdo.
   let maxX = 900;
   let maxY = 620;
@@ -15184,6 +15383,10 @@ const renderTrilhaMap = () => {
     const h = trilhaNodeHeights.get(node.id) || 120;
     maxX = Math.max(maxX, node.position.x + TR_NODE_W + 240);
     maxY = Math.max(maxY, node.position.y + h + 200);
+  });
+  stickies.forEach((s) => {
+    maxX = Math.max(maxX, s.position.x + 200 + 240);
+    maxY = Math.max(maxY, s.position.y + 160 + 200);
   });
   canvas.style.width = \`\${maxX}px\`;
   canvas.style.height = \`\${maxY}px\`;
@@ -15205,9 +15408,11 @@ const renderTrilhaMap = () => {
   }).join('');
 
   bindTrilhaMap();
+  bindTrilhaStickies();
   bindTrilhaPan();
   trilhaApplyZoom();
   hydrateIcons(nodesEl);
+  if (stickiesEl) hydrateIcons(stickiesEl);
 };
 
 // ── Zoom ──
@@ -15262,7 +15467,8 @@ const trilhaZoomReset = () => trilhaZoomTo(1);
 
 const trilhaZoomFit = () => {
   const wrap = $('trilha-map-wrap');
-  if (!wrap || !currentTrilhaDetail?.nodes.length) {
+  const stickies = currentTrilhaDetail?.stickies || [];
+  if (!wrap || (!currentTrilhaDetail?.nodes.length && !stickies.length)) {
     trilhaZoomTo(1);
     return;
   }
@@ -15271,6 +15477,12 @@ const trilhaZoomFit = () => {
   let minY = Infinity;
   let maxX = 0;
   let maxY = 0;
+  stickies.forEach((s) => {
+    minX = Math.min(minX, s.position.x);
+    minY = Math.min(minY, s.position.y);
+    maxX = Math.max(maxX, s.position.x + 200);
+    maxY = Math.max(maxY, s.position.y + 160);
+  });
   nodes.forEach((node) => {
     const h = trilhaNodeHeights.get(node.id) || 120;
     minX = Math.min(minX, node.position.x);
@@ -15303,7 +15515,10 @@ const bindTrilhaPan = () => {
   let startTop = 0;
   wrap.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 && e.button !== 1) return;
-    if (e.target.closest('.tr-node') || e.target.closest('button')) return;
+    if (
+      e.target.closest('.tr-node') || e.target.closest('.tr-sticky') ||
+      e.target.closest('button')
+    ) return;
     panning = true;
     trDragging = true;
     startX = e.clientX;
@@ -15446,11 +15661,188 @@ const saveTrilhaNodePosition = async (nodeId, position) => {
 // precisava reselecionar. Desselecionar é pelo X do inspetor.
 const onTrilhaNodeClick = async (id) => {
   trilhaActivityOpen = false;
+  selectedTrilhaStickyId = null;
   if (selectedTrilhaNodeId !== id) {
     selectedTrilhaNodeId = id;
     renderTrilhaMap();
   }
   renderTrilhaInspector();
+};
+
+// ── Stickers: post-it solto (sem status, sem setas, fora do next) ──
+
+const onTrilhaStickyClick = (id) => {
+  trilhaActivityOpen = false;
+  selectedTrilhaNodeId = null;
+  if (selectedTrilhaStickyId !== id) {
+    selectedTrilhaStickyId = id;
+    renderTrilhaMap();
+  }
+  renderTrilhaInspector();
+};
+
+const saveTrilhaStickyPosition = async (stickyId, position) => {
+  const { trilha } = currentTrilhaDetail;
+  try {
+    await fetch(\`/trilhas/\${trilha.id}/stickies/\${stickyId}\`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ position }),
+    });
+  } catch (err) {
+    console.error('Erro ao salvar posição do sticker:', err);
+  }
+};
+
+const bindTrilhaStickies = () => {
+  const box = $('trilha-stickies');
+  if (!box) return;
+  box.querySelectorAll('[data-sticky-del]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteTrilhaSticky(btn.dataset.stickyDel);
+    });
+  });
+  box.querySelectorAll('.tr-sticky').forEach((el) => {
+    let startX = 0;
+    let startY = 0;
+    let baseX = 0;
+    let baseY = 0;
+    let dragging = false;
+    const id = el.dataset.stickyId;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      dragging = true;
+      trDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      const s = trilhaStickyById(id);
+      baseX = s.position.x;
+      baseY = s.position.y;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        // sem capture: o arrasto continua no move
+      }
+      el.classList.add('dragging');
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = (e.clientX - startX) / trilhaZoom;
+      const dy = (e.clientY - startY) / trilhaZoom;
+      if (Math.abs(dx) + Math.abs(dy) < 4 / trilhaZoom) return;
+      const s = trilhaStickyById(id);
+      s.position = {
+        x: Math.max(8, Math.round(baseX + dx)),
+        y: Math.max(8, Math.round(baseY + dy)),
+      };
+      el.style.left = \`\${s.position.x}px\`;
+      el.style.top = \`\${s.position.y}px\`;
+      el.dataset.moved = '1';
+    });
+    el.addEventListener('pointerup', async () => {
+      el.classList.remove('dragging');
+      if (!dragging) return;
+      dragging = false;
+      trDragging = false;
+      if (el.dataset.moved) {
+        delete el.dataset.moved;
+        const s = trilhaStickyById(id);
+        await saveTrilhaStickyPosition(id, s.position);
+      } else {
+        onTrilhaStickyClick(id);
+      }
+    });
+    el.addEventListener('dblclick', (e) => {
+      if (e.target.closest('button')) return;
+      selectedTrilhaNodeId = null;
+      selectedTrilhaStickyId = id;
+      renderTrilhaMap();
+      renderTrilhaInspector();
+      openStickyModal(id);
+    });
+  });
+};
+
+const openStickyModal = (id) => {
+  if (!currentTrilhaDetail) return;
+  const s = id ? trilhaStickyById(id) : null;
+  $('trilha-sticky-edit-id').value = s?.id || '';
+  $('trilha-sticky-text').value = s?.text || '';
+  $('trilha-sticky-color').value = s?.color || 'yellow';
+  $('trilha-sticky-modal-title-label').textContent = s
+    ? 'Editar sticker'
+    : 'Novo sticker';
+  $('trilha-sticky-modal-submit-label').textContent = s ? 'Salvar' : 'Criar sticker';
+  $('trilha-sticky-delete-btn').style.display = s ? '' : 'none';
+  $('trilha-sticky-modal-overlay').classList.add('visible');
+  setTimeout(() => $('trilha-sticky-text')?.focus(), 60);
+};
+
+const closeStickyModal = (e) => {
+  if (e && e.target !== $('trilha-sticky-modal-overlay')) return;
+  $('trilha-sticky-modal-overlay').classList.remove('visible');
+};
+
+const saveStickyFromModal = async (e) => {
+  e.preventDefault();
+  if (!currentTrilhaDetail) return;
+  const { trilha } = currentTrilhaDetail;
+  const id = $('trilha-sticky-edit-id').value;
+  const body = {
+    text: $('trilha-sticky-text').value.trim(),
+    color: $('trilha-sticky-color').value,
+  };
+  if (!body.text) {
+    toast('Escreva o texto do sticker');
+    return;
+  }
+  try {
+    const res = await fetch(
+      id ? \`/trilhas/\${trilha.id}/stickies/\${id}\` : \`/trilhas/\${trilha.id}/stickies\`,
+      {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      },
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const saved = await res.json();
+    $('trilha-sticky-modal-overlay').classList.remove('visible');
+    selectedTrilhaNodeId = null;
+    selectedTrilhaStickyId = saved.id || id;
+    await refreshCurrentTrilha();
+  } catch (err) {
+    toast(err.message || 'Falha ao salvar sticker');
+  }
+};
+
+const deleteStickyFromModal = async () => {
+  const id = $('trilha-sticky-edit-id').value;
+  if (!id) return;
+  $('trilha-sticky-modal-overlay').classList.remove('visible');
+  await deleteTrilhaSticky(id);
+};
+
+const deleteTrilhaSticky = async (id) => {
+  if (!currentTrilhaDetail || !id) return;
+  const s = trilhaStickyById(id);
+  const ok = await confirmDialog(
+    \`Excluir o sticker "\${(s?.text || '').slice(0, 60)}"?\`,
+    { danger: true, okLabel: 'Excluir' },
+  );
+  if (!ok) return;
+  const res = await fetch(
+    \`/trilhas/\${currentTrilhaDetail.trilha.id}/stickies/\${id}\`,
+    { method: 'DELETE' },
+  );
+  if (!res.ok) {
+    toast('Falha ao excluir sticker');
+    return;
+  }
+  if (selectedTrilhaStickyId === id) selectedTrilhaStickyId = null;
+  await refreshCurrentTrilha();
+  toast('Sticker excluído');
 };
 
 // ── Critérios de pronto: checklist real ──
@@ -15561,7 +15953,29 @@ const TR_EVENT_TEXT = {
   'node.release': (e) => \`Trava liberada: \${e.nodeTitle || ''}\`,
   'edge.created': (e) => \`Seta: \${e.detail || ''}\`,
   'edge.removed': (e) => \`Seta removida: \${e.detail || ''}\`,
+  'sticky.created': (e) => \`Sticker criado: \${(e.nodeTitle || '').slice(0, 60)}\`,
+  'sticky.updated': (e) => \`Sticker editado: \${(e.nodeTitle || '').slice(0, 60)}\`,
+  'sticky.removed': (e) => \`Sticker removido: \${(e.nodeTitle || '').slice(0, 60)}\`,
 };
+
+// ── Cartões do inspetor: sanfona, todos fechados por padrão ──
+// O estado é global à sessão (não por bloco): expandiu uma vez, segue
+// expandido ao trocar de bloco. Clique no cabeçalho alterna.
+const TR_INSP_CARDS = ['briefing', 'criterios', 'resultado', 'conexoes'];
+let trInspCollapsed = new Set(TR_INSP_CARDS);
+
+const toggleTrilhaInspCard = (key) => {
+  if (!TR_INSP_CARDS.includes(key)) return;
+  if (trInspCollapsed.has(key)) trInspCollapsed.delete(key);
+  else trInspCollapsed.add(key);
+  renderTrilhaInspector();
+};
+
+const trInspCardClass = (key) =>
+  \`tr-insp-card\${trInspCollapsed.has(key) ? ' closed' : ''}\`;
+
+const trInspCardHead = (key, label) =>
+  \`<button type="button" class="tr-insp-card-h" onclick="toggleTrilhaInspCard('\${key}')" aria-expanded="\${!trInspCollapsed.has(key)}"><span>\${label}</span>\${ICON('chevron-right')}</button>\`;
 
 const renderTrilhaInspector = () => {
   const panel = $('trilha-inspector');
@@ -15615,25 +16029,25 @@ const renderTrilhaInspector = () => {
     \${node.status === 'blocked' && node.blockedReason
       ? \`<div class="tr-inspector-blocked"><b>Bloqueio:</b> \${escHtml(node.blockedReason)}</div>\`
       : ''}
-    <section class="tr-insp-card">
-      <div class="tr-insp-card-h"><span>Briefing</span></div>
+    <section class="\${trInspCardClass('briefing')}">
+      \${trInspCardHead('briefing', 'Briefing')}
       \${node.details ? \`<div class="tr-inspector-details">\${renderMarkdown(node.details)}</div>\` : '<div class="tr-inspector-empty">Sem detalhes ainda — edite para documentar.</div>'}
     </section>
     \${(node.doneCriteria?.length)
-      ? \`<section class="tr-insp-card">
-          <div class="tr-insp-card-h"><span>Critérios de pronto · \${critDone}/\${node.doneCriteria.length}</span></div>
+      ? \`<section class="\${trInspCardClass('criterios')}">
+          \${trInspCardHead('criterios', \`Critérios de pronto · \${critDone}/\${node.doneCriteria.length}\`)}
           <ul class="tr-inspector-criteria checklist">\${node.doneCriteria.map((c) =>
             trilhaChecklistItem(c, \` onclick="toggleTrilhaCriterion('\${node.id}','\${c.id}')" title="Marcar/desmarcar"\`)).join('')}</ul>
         </section>\`
       : ''}
     \${node.result
-      ? \`<section class="tr-insp-card">
-          <div class="tr-insp-card-h"><span>Resultado da entrega</span></div>
+      ? \`<section class="\${trInspCardClass('resultado')}">
+          \${trInspCardHead('resultado', 'Resultado da entrega')}
           <div class="tr-inspector-details result">\${renderMarkdown(node.result)}</div>
         </section>\`
       : ''}
-    <section class="tr-insp-card">
-      <div class="tr-insp-card-h"><span>Conexões</span></div>
+    <section class="\${trInspCardClass('conexoes')}">
+      \${trInspCardHead('conexoes', 'Conexões')}
       <div class="tr-insp-conn-h">Depende de · \${incoming.length}</div>
       \${incoming.length ? incoming.map((e) => {
         const from = trilhaNodeById(e.fromNodeId);
@@ -15661,6 +16075,7 @@ const renderTrilhaInspector = () => {
 
 const closeTrilhaInspector = () => {
   selectedTrilhaNodeId = null;
+  selectedTrilhaStickyId = null;
   renderTrilhaMap();
   renderTrilhaInspector();
 };
@@ -15668,7 +16083,10 @@ const closeTrilhaInspector = () => {
 const toggleTrilhaActivity = () => {
   if (!currentTrilhaDetail) return;
   trilhaActivityOpen = !trilhaActivityOpen;
-  if (trilhaActivityOpen) selectedTrilhaNodeId = null;
+  if (trilhaActivityOpen) {
+    selectedTrilhaNodeId = null;
+    selectedTrilhaStickyId = null;
+  }
   renderCurrentTrilha();
 };
 
@@ -15908,6 +16326,7 @@ const deleteCurrentTrilha = async () => {
   }
   currentTrilhaDetail = null;
   selectedTrilhaNodeId = null;
+  selectedTrilhaStickyId = null;
   renderCurrentTrilha();
   await loadTrilhas();
   toast('Trilha excluída');

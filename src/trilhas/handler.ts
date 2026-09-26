@@ -26,6 +26,15 @@ import {
   listEdges,
 } from './edges.ts';
 import {
+  createSticky,
+  deleteStickiesOfTrilha,
+  deleteSticky,
+  getSticky,
+  isStickyColor,
+  listStickies,
+  updateSticky,
+} from './stickies.ts';
+import {
   deleteEventsOfTrilha,
   listEvents,
   logEvent,
@@ -36,9 +45,11 @@ import type {
   ClaimInput,
   CreateEdgeInput,
   CreateNodeInput,
+  CreateStickyInput,
   CreateTrilhaInput,
   HeartbeatInput,
   UpdateNodeInput,
+  UpdateStickyInput,
   UpdateTrilhaInput,
 } from './types.ts';
 
@@ -97,14 +108,16 @@ export const trilhasHandler =
       if (req.method === 'GET') {
         const trilha = await getTrilha(kv, id);
         if (!trilha) return notFound();
-        const [nodes, edges] = await Promise.all([
+        const [nodes, edges, stickies] = await Promise.all([
           listNodes(kv, id),
           listEdges(kv, id),
+          listStickies(kv, id),
         ]);
         return json({
           trilha: { ...trilha, deepLink: deepLink(id) },
           nodes,
           edges,
+          stickies,
         });
       }
       if (req.method === 'PUT') {
@@ -125,6 +138,7 @@ export const trilhasHandler =
         await Promise.all([
           deleteNodesOfTrilha(kv, id),
           deleteEdgesOfTrilha(kv, id),
+          deleteStickiesOfTrilha(kv, id),
           deleteEventsOfTrilha(kv, id),
         ]);
         return json({ ok: true });
@@ -292,6 +306,68 @@ export const trilhasHandler =
         if (!current || current.trilhaId !== id) return notFound();
         await deleteEdgesOfNode(kv, id, subId);
         await deleteNode(kv, subId);
+        return json({ ok: true });
+      }
+      return json({ error: 'method_not_allowed' }, 405);
+    }
+
+    if (sub === 'stickies' && !subId) {
+      const trilha = await getTrilha(kv, id);
+      if (!trilha) return notFound();
+      if (req.method === 'GET') return json(await listStickies(kv, id));
+      if (req.method === 'POST') {
+        const input = await readBody(req) as CreateStickyInput | undefined;
+        if (!input || !input.text?.trim()) {
+          return badRequest('text required');
+        }
+        if (input.color !== undefined && !isStickyColor(input.color)) {
+          return badRequest('invalid color');
+        }
+        const existing = await listStickies(kv, id);
+        const sticky = await createSticky(kv, id, input, existing.length);
+        await logEvent(kv, id, 'sticky.created', {
+          nodeId: sticky.id,
+          nodeTitle: sticky.text.slice(0, 80),
+        });
+        return json(sticky, 201);
+      }
+      return json({ error: 'method_not_allowed' }, 405);
+    }
+
+    if (sub === 'stickies' && subId) {
+      if (req.method === 'GET') {
+        const sticky = await getSticky(kv, subId);
+        if (!sticky || sticky.trilhaId !== id) return notFound();
+        return json(sticky);
+      }
+      if (req.method === 'PUT') {
+        const input = await readBody(req) as UpdateStickyInput | undefined;
+        if (!input) return badRequest('Invalid JSON');
+        if (
+          input.color !== undefined && !isStickyColor(input.color)
+        ) {
+          return badRequest('invalid color');
+        }
+        const current = await getSticky(kv, subId);
+        if (!current || current.trilhaId !== id) return notFound();
+        if (input.text !== undefined && !input.text.trim()) {
+          return badRequest('text required');
+        }
+        const sticky = await updateSticky(kv, subId, input);
+        await logEvent(kv, id, 'sticky.updated', {
+          nodeId: subId,
+          nodeTitle: (sticky?.text ?? current.text).slice(0, 80),
+        });
+        return json(sticky);
+      }
+      if (req.method === 'DELETE') {
+        const current = await getSticky(kv, subId);
+        if (!current || current.trilhaId !== id) return notFound();
+        await deleteSticky(kv, subId);
+        await logEvent(kv, id, 'sticky.removed', {
+          nodeId: subId,
+          nodeTitle: current.text.slice(0, 80),
+        });
         return json({ ok: true });
       }
       return json({ error: 'method_not_allowed' }, 405);

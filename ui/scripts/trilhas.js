@@ -21,6 +21,7 @@ const TR_POLL_MS = 4000;
 let allTrilhas = [];
 let currentTrilhaDetail = null;
 let selectedTrilhaNodeId = null;
+let selectedTrilhaStickyId = null;
 let trilhaNodeHeights = new Map();
 let trilhaMe = null;
 let trilhaActivityOpen = false;
@@ -66,6 +67,9 @@ const renderTrilhaTags = (tags) =>
 
 const trilhaNodeById = (id) =>
   currentTrilhaDetail?.nodes.find((n) => n.id === id);
+
+const trilhaStickyById = (id) =>
+  currentTrilhaDetail?.stickies?.find((s) => s.id === id);
 
 const trilhaIncoming = (nodeId) =>
   (currentTrilhaDetail?.edges || []).filter((e) => e.toNodeId === nodeId);
@@ -146,7 +150,11 @@ const openTrilha = async (id) => {
     const res = await fetch(`/trilhas/${id}`);
     if (!res.ok) throw new Error(await res.text());
     currentTrilhaDetail = await res.json();
+    if (!Array.isArray(currentTrilhaDetail.stickies)) {
+      currentTrilhaDetail.stickies = [];
+    }
     selectedTrilhaNodeId = null;
+    selectedTrilhaStickyId = null;
     trilhaMe = null;
     trilhaActivityOpen = false;
     renderTrilhasList();
@@ -169,10 +177,11 @@ const trilhaSignature = (detail) => JSON.stringify({
   u: detail.trilha.updatedAt,
   n: detail.nodes.map((n) => [n.id, n.status, n.title, n.details || '', n.position.x, n.position.y]),
   e: detail.edges.map((e) => e.id),
+  s: (detail.stickies || []).map((s) => [s.id, s.text, s.color, s.position.x, s.position.y, s.updatedAt]),
 });
 
 const trilhaModalOpen = () => !!document.querySelector(
-  '#trilha-modal-overlay.visible, #trilha-node-modal-overlay.visible, #modal-overlay.visible, #fav-modal-overlay.visible',
+  '#trilha-modal-overlay.visible, #trilha-node-modal-overlay.visible, #trilha-sticky-modal-overlay.visible, #modal-overlay.visible, #fav-modal-overlay.visible',
 );
 
 const pollTrilhas = async () => {
@@ -186,10 +195,14 @@ const pollTrilhas = async () => {
       const res = await fetch(`/trilhas/${id}`);
       if (!res.ok) throw new Error(await res.text());
       const fresh = await res.json();
+      if (!Array.isArray(fresh.stickies)) fresh.stickies = [];
       if (currentTrilhaDetail?.trilha.id === id &&
         trilhaSignature(fresh) !== trilhaSignature(currentTrilhaDetail)) {
         currentTrilhaDetail = fresh;
         if (!trilhaNodeById(selectedTrilhaNodeId)) selectedTrilhaNodeId = null;
+        if (!trilhaStickyById(selectedTrilhaStickyId)) {
+          selectedTrilhaStickyId = null;
+        }
         renderTrilhasList();
         renderCurrentTrilha();
       }
@@ -214,7 +227,13 @@ const refreshCurrentTrilha = async () => {
     const res = await fetch(`/trilhas/${currentTrilhaDetail.trilha.id}`);
     if (!res.ok) throw new Error(await res.text());
     currentTrilhaDetail = await res.json();
+    if (!Array.isArray(currentTrilhaDetail.stickies)) {
+      currentTrilhaDetail.stickies = [];
+    }
     if (!trilhaNodeById(selectedTrilhaNodeId)) selectedTrilhaNodeId = null;
+    if (!trilhaStickyById(selectedTrilhaStickyId)) {
+      selectedTrilhaStickyId = null;
+    }
     renderCurrentTrilha();
     await loadTrilhas();
   } catch (err) {
@@ -231,6 +250,7 @@ const renderCurrentTrilha = () => {
     return;
   }
   const { trilha, nodes, edges } = currentTrilhaDetail;
+  const stickies = currentTrilhaDetail.stickies || [];
   $('trilha-empty').style.display = 'none';
   $('trilha-active').style.display = '';
   $('trilha-toolbar-title').textContent = trilha.title;
@@ -245,6 +265,7 @@ const renderCurrentTrilha = () => {
     ${blockedCount ? `<span class="tr-meta-alert">${blockedCount} bloqueados</span>` : ''}
     ${staleCount ? `<span class="tr-meta-alert">${staleCount} sem sinal</span>` : ''}
     <span>${edges.length} ${edges.length === 1 ? 'seta' : 'setas'}</span>
+    ${stickies.length ? `<span>📝 ${stickies.length} ${stickies.length === 1 ? 'sticker' : 'stickers'}</span>` : ''}
     ${renderTrilhaTags(trilha.tags)}`;
   $('trilha-activity-btn')?.classList.toggle('on', trilhaActivityOpen);
   renderTrilhaMap();
@@ -303,9 +324,11 @@ const trilhaAssigneeBadge = (node) => {
 
 const renderTrilhaMap = () => {
   const nodesEl = $('trilha-nodes');
+  const stickiesEl = $('trilha-stickies');
   const svg = $('trilha-edges');
   const canvas = $('trilha-canvas');
   const { nodes } = currentTrilhaDetail;
+  const stickies = currentTrilhaDetail.stickies || [];
   trilhaNodeHeights = new Map();
 
   // Mede alturas sem escala: o offsetHeight inclui o zoom, então reseta
@@ -339,6 +362,19 @@ const renderTrilhaMap = () => {
     trilhaNodeHeights.set(el.dataset.nodeId, el.offsetHeight);
   });
 
+  // Stickers: post-it solto, sem status nem setas.
+  if (stickiesEl) {
+    stickiesEl.innerHTML = stickies.map((s) => {
+      const selected = s.id === selectedTrilhaStickyId;
+      return `<div class="tr-sticky c-${escHtml(s.color || 'yellow')}${selected ? ' selected' : ''}"
+        data-sticky-id="${s.id}" title="Duplo clique para editar"
+        style="left:${s.position.x}px;top:${s.position.y}px">
+        <button class="tr-sticky-del" data-sticky-del="${s.id}" title="Excluir sticker">${ICON('x')}</button>
+        <div class="tr-sticky-text">${renderMarkdown(s.text || '')}</div>
+      </div>`;
+    }).join('');
+  }
+
   // Dimensiona o canvas pelo conteúdo.
   let maxX = 900;
   let maxY = 620;
@@ -346,6 +382,10 @@ const renderTrilhaMap = () => {
     const h = trilhaNodeHeights.get(node.id) || 120;
     maxX = Math.max(maxX, node.position.x + TR_NODE_W + 240);
     maxY = Math.max(maxY, node.position.y + h + 200);
+  });
+  stickies.forEach((s) => {
+    maxX = Math.max(maxX, s.position.x + 200 + 240);
+    maxY = Math.max(maxY, s.position.y + 160 + 200);
   });
   canvas.style.width = `${maxX}px`;
   canvas.style.height = `${maxY}px`;
@@ -367,9 +407,11 @@ const renderTrilhaMap = () => {
   }).join('');
 
   bindTrilhaMap();
+  bindTrilhaStickies();
   bindTrilhaPan();
   trilhaApplyZoom();
   hydrateIcons(nodesEl);
+  if (stickiesEl) hydrateIcons(stickiesEl);
 };
 
 // ── Zoom ──
@@ -424,7 +466,8 @@ const trilhaZoomReset = () => trilhaZoomTo(1);
 
 const trilhaZoomFit = () => {
   const wrap = $('trilha-map-wrap');
-  if (!wrap || !currentTrilhaDetail?.nodes.length) {
+  const stickies = currentTrilhaDetail?.stickies || [];
+  if (!wrap || (!currentTrilhaDetail?.nodes.length && !stickies.length)) {
     trilhaZoomTo(1);
     return;
   }
@@ -433,6 +476,12 @@ const trilhaZoomFit = () => {
   let minY = Infinity;
   let maxX = 0;
   let maxY = 0;
+  stickies.forEach((s) => {
+    minX = Math.min(minX, s.position.x);
+    minY = Math.min(minY, s.position.y);
+    maxX = Math.max(maxX, s.position.x + 200);
+    maxY = Math.max(maxY, s.position.y + 160);
+  });
   nodes.forEach((node) => {
     const h = trilhaNodeHeights.get(node.id) || 120;
     minX = Math.min(minX, node.position.x);
@@ -465,7 +514,10 @@ const bindTrilhaPan = () => {
   let startTop = 0;
   wrap.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 && e.button !== 1) return;
-    if (e.target.closest('.tr-node') || e.target.closest('button')) return;
+    if (
+      e.target.closest('.tr-node') || e.target.closest('.tr-sticky') ||
+      e.target.closest('button')
+    ) return;
     panning = true;
     trDragging = true;
     startX = e.clientX;
@@ -608,11 +660,188 @@ const saveTrilhaNodePosition = async (nodeId, position) => {
 // precisava reselecionar. Desselecionar é pelo X do inspetor.
 const onTrilhaNodeClick = async (id) => {
   trilhaActivityOpen = false;
+  selectedTrilhaStickyId = null;
   if (selectedTrilhaNodeId !== id) {
     selectedTrilhaNodeId = id;
     renderTrilhaMap();
   }
   renderTrilhaInspector();
+};
+
+// ── Stickers: post-it solto (sem status, sem setas, fora do next) ──
+
+const onTrilhaStickyClick = (id) => {
+  trilhaActivityOpen = false;
+  selectedTrilhaNodeId = null;
+  if (selectedTrilhaStickyId !== id) {
+    selectedTrilhaStickyId = id;
+    renderTrilhaMap();
+  }
+  renderTrilhaInspector();
+};
+
+const saveTrilhaStickyPosition = async (stickyId, position) => {
+  const { trilha } = currentTrilhaDetail;
+  try {
+    await fetch(`/trilhas/${trilha.id}/stickies/${stickyId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ position }),
+    });
+  } catch (err) {
+    console.error('Erro ao salvar posição do sticker:', err);
+  }
+};
+
+const bindTrilhaStickies = () => {
+  const box = $('trilha-stickies');
+  if (!box) return;
+  box.querySelectorAll('[data-sticky-del]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteTrilhaSticky(btn.dataset.stickyDel);
+    });
+  });
+  box.querySelectorAll('.tr-sticky').forEach((el) => {
+    let startX = 0;
+    let startY = 0;
+    let baseX = 0;
+    let baseY = 0;
+    let dragging = false;
+    const id = el.dataset.stickyId;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      dragging = true;
+      trDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      const s = trilhaStickyById(id);
+      baseX = s.position.x;
+      baseY = s.position.y;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        // sem capture: o arrasto continua no move
+      }
+      el.classList.add('dragging');
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = (e.clientX - startX) / trilhaZoom;
+      const dy = (e.clientY - startY) / trilhaZoom;
+      if (Math.abs(dx) + Math.abs(dy) < 4 / trilhaZoom) return;
+      const s = trilhaStickyById(id);
+      s.position = {
+        x: Math.max(8, Math.round(baseX + dx)),
+        y: Math.max(8, Math.round(baseY + dy)),
+      };
+      el.style.left = `${s.position.x}px`;
+      el.style.top = `${s.position.y}px`;
+      el.dataset.moved = '1';
+    });
+    el.addEventListener('pointerup', async () => {
+      el.classList.remove('dragging');
+      if (!dragging) return;
+      dragging = false;
+      trDragging = false;
+      if (el.dataset.moved) {
+        delete el.dataset.moved;
+        const s = trilhaStickyById(id);
+        await saveTrilhaStickyPosition(id, s.position);
+      } else {
+        onTrilhaStickyClick(id);
+      }
+    });
+    el.addEventListener('dblclick', (e) => {
+      if (e.target.closest('button')) return;
+      selectedTrilhaNodeId = null;
+      selectedTrilhaStickyId = id;
+      renderTrilhaMap();
+      renderTrilhaInspector();
+      openStickyModal(id);
+    });
+  });
+};
+
+const openStickyModal = (id) => {
+  if (!currentTrilhaDetail) return;
+  const s = id ? trilhaStickyById(id) : null;
+  $('trilha-sticky-edit-id').value = s?.id || '';
+  $('trilha-sticky-text').value = s?.text || '';
+  $('trilha-sticky-color').value = s?.color || 'yellow';
+  $('trilha-sticky-modal-title-label').textContent = s
+    ? 'Editar sticker'
+    : 'Novo sticker';
+  $('trilha-sticky-modal-submit-label').textContent = s ? 'Salvar' : 'Criar sticker';
+  $('trilha-sticky-delete-btn').style.display = s ? '' : 'none';
+  $('trilha-sticky-modal-overlay').classList.add('visible');
+  setTimeout(() => $('trilha-sticky-text')?.focus(), 60);
+};
+
+const closeStickyModal = (e) => {
+  if (e && e.target !== $('trilha-sticky-modal-overlay')) return;
+  $('trilha-sticky-modal-overlay').classList.remove('visible');
+};
+
+const saveStickyFromModal = async (e) => {
+  e.preventDefault();
+  if (!currentTrilhaDetail) return;
+  const { trilha } = currentTrilhaDetail;
+  const id = $('trilha-sticky-edit-id').value;
+  const body = {
+    text: $('trilha-sticky-text').value.trim(),
+    color: $('trilha-sticky-color').value,
+  };
+  if (!body.text) {
+    toast('Escreva o texto do sticker');
+    return;
+  }
+  try {
+    const res = await fetch(
+      id ? `/trilhas/${trilha.id}/stickies/${id}` : `/trilhas/${trilha.id}/stickies`,
+      {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      },
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const saved = await res.json();
+    $('trilha-sticky-modal-overlay').classList.remove('visible');
+    selectedTrilhaNodeId = null;
+    selectedTrilhaStickyId = saved.id || id;
+    await refreshCurrentTrilha();
+  } catch (err) {
+    toast(err.message || 'Falha ao salvar sticker');
+  }
+};
+
+const deleteStickyFromModal = async () => {
+  const id = $('trilha-sticky-edit-id').value;
+  if (!id) return;
+  $('trilha-sticky-modal-overlay').classList.remove('visible');
+  await deleteTrilhaSticky(id);
+};
+
+const deleteTrilhaSticky = async (id) => {
+  if (!currentTrilhaDetail || !id) return;
+  const s = trilhaStickyById(id);
+  const ok = await confirmDialog(
+    `Excluir o sticker "${(s?.text || '').slice(0, 60)}"?`,
+    { danger: true, okLabel: 'Excluir' },
+  );
+  if (!ok) return;
+  const res = await fetch(
+    `/trilhas/${currentTrilhaDetail.trilha.id}/stickies/${id}`,
+    { method: 'DELETE' },
+  );
+  if (!res.ok) {
+    toast('Falha ao excluir sticker');
+    return;
+  }
+  if (selectedTrilhaStickyId === id) selectedTrilhaStickyId = null;
+  await refreshCurrentTrilha();
+  toast('Sticker excluído');
 };
 
 // ── Critérios de pronto: checklist real ──
@@ -723,7 +952,29 @@ const TR_EVENT_TEXT = {
   'node.release': (e) => `Trava liberada: ${e.nodeTitle || ''}`,
   'edge.created': (e) => `Seta: ${e.detail || ''}`,
   'edge.removed': (e) => `Seta removida: ${e.detail || ''}`,
+  'sticky.created': (e) => `Sticker criado: ${(e.nodeTitle || '').slice(0, 60)}`,
+  'sticky.updated': (e) => `Sticker editado: ${(e.nodeTitle || '').slice(0, 60)}`,
+  'sticky.removed': (e) => `Sticker removido: ${(e.nodeTitle || '').slice(0, 60)}`,
 };
+
+// ── Cartões do inspetor: sanfona, todos fechados por padrão ──
+// O estado é global à sessão (não por bloco): expandiu uma vez, segue
+// expandido ao trocar de bloco. Clique no cabeçalho alterna.
+const TR_INSP_CARDS = ['briefing', 'criterios', 'resultado', 'conexoes'];
+let trInspCollapsed = new Set(TR_INSP_CARDS);
+
+const toggleTrilhaInspCard = (key) => {
+  if (!TR_INSP_CARDS.includes(key)) return;
+  if (trInspCollapsed.has(key)) trInspCollapsed.delete(key);
+  else trInspCollapsed.add(key);
+  renderTrilhaInspector();
+};
+
+const trInspCardClass = (key) =>
+  `tr-insp-card${trInspCollapsed.has(key) ? ' closed' : ''}`;
+
+const trInspCardHead = (key, label) =>
+  `<button type="button" class="tr-insp-card-h" onclick="toggleTrilhaInspCard('${key}')" aria-expanded="${!trInspCollapsed.has(key)}"><span>${label}</span>${ICON('chevron-right')}</button>`;
 
 const renderTrilhaInspector = () => {
   const panel = $('trilha-inspector');
@@ -777,25 +1028,25 @@ const renderTrilhaInspector = () => {
     ${node.status === 'blocked' && node.blockedReason
       ? `<div class="tr-inspector-blocked"><b>Bloqueio:</b> ${escHtml(node.blockedReason)}</div>`
       : ''}
-    <section class="tr-insp-card">
-      <div class="tr-insp-card-h"><span>Briefing</span></div>
+    <section class="${trInspCardClass('briefing')}">
+      ${trInspCardHead('briefing', 'Briefing')}
       ${node.details ? `<div class="tr-inspector-details">${renderMarkdown(node.details)}</div>` : '<div class="tr-inspector-empty">Sem detalhes ainda — edite para documentar.</div>'}
     </section>
     ${(node.doneCriteria?.length)
-      ? `<section class="tr-insp-card">
-          <div class="tr-insp-card-h"><span>Critérios de pronto · ${critDone}/${node.doneCriteria.length}</span></div>
+      ? `<section class="${trInspCardClass('criterios')}">
+          ${trInspCardHead('criterios', `Critérios de pronto · ${critDone}/${node.doneCriteria.length}`)}
           <ul class="tr-inspector-criteria checklist">${node.doneCriteria.map((c) =>
             trilhaChecklistItem(c, ` onclick="toggleTrilhaCriterion('${node.id}','${c.id}')" title="Marcar/desmarcar"`)).join('')}</ul>
         </section>`
       : ''}
     ${node.result
-      ? `<section class="tr-insp-card">
-          <div class="tr-insp-card-h"><span>Resultado da entrega</span></div>
+      ? `<section class="${trInspCardClass('resultado')}">
+          ${trInspCardHead('resultado', 'Resultado da entrega')}
           <div class="tr-inspector-details result">${renderMarkdown(node.result)}</div>
         </section>`
       : ''}
-    <section class="tr-insp-card">
-      <div class="tr-insp-card-h"><span>Conexões</span></div>
+    <section class="${trInspCardClass('conexoes')}">
+      ${trInspCardHead('conexoes', 'Conexões')}
       <div class="tr-insp-conn-h">Depende de · ${incoming.length}</div>
       ${incoming.length ? incoming.map((e) => {
         const from = trilhaNodeById(e.fromNodeId);
@@ -823,6 +1074,7 @@ const renderTrilhaInspector = () => {
 
 const closeTrilhaInspector = () => {
   selectedTrilhaNodeId = null;
+  selectedTrilhaStickyId = null;
   renderTrilhaMap();
   renderTrilhaInspector();
 };
@@ -830,7 +1082,10 @@ const closeTrilhaInspector = () => {
 const toggleTrilhaActivity = () => {
   if (!currentTrilhaDetail) return;
   trilhaActivityOpen = !trilhaActivityOpen;
-  if (trilhaActivityOpen) selectedTrilhaNodeId = null;
+  if (trilhaActivityOpen) {
+    selectedTrilhaNodeId = null;
+    selectedTrilhaStickyId = null;
+  }
   renderCurrentTrilha();
 };
 
@@ -1070,6 +1325,7 @@ const deleteCurrentTrilha = async () => {
   }
   currentTrilhaDetail = null;
   selectedTrilhaNodeId = null;
+  selectedTrilhaStickyId = null;
   renderCurrentTrilha();
   await loadTrilhas();
   toast('Trilha excluída');

@@ -366,9 +366,9 @@ Bloqueio: \`blockedReason\` diz o que falta (fila "aguardando humano").
 |--------|----------|-----------|
 | GET | \`/trilhas\` | Lista com \`nodeCount\` + \`deepLink\` |
 | POST | \`/trilhas\` | Cria \`{ title, objective, description?, tags? }\` |
-| GET | \`/trilhas/:id\` | Trilha + \`nodes\` + \`edges\` |
+| GET | \`/trilhas/:id\` | Trilha + \`nodes\` + \`edges\` + \`stickies\` |
 | PUT | \`/trilhas/:id\` | Edita (parcial, inclui \`status\`) |
-| DELETE | \`/trilhas/:id\` | Remove trilha + nós + arestas + eventos |
+| DELETE | \`/trilhas/:id\` | Remove trilha + nós + arestas + stickers + eventos |
 | GET | \`/trilhas/:id/next?by=<nome>\` | Próximo bloco acionável (todo + deps done); com \`by\`, já reserva; 404 \`no_work\` se vazio |
 | GET | \`/trilhas/:id/events?limit=100\` | Log append-only (criações, status, claims, setas) |
 | GET | \`/trilhas/:id/nodes\` | Lista nós da trilha |
@@ -382,6 +382,11 @@ Bloqueio: \`blockedReason\` diz o que falta (fila "aguardando humano").
 | POST | \`/trilhas/:id/nodes/:nodeId/claim\` | Reserva \`{ by, force? }\` (409 se outro dono; \`force\` toma trava obsoleta) |
 | POST | \`/trilhas/:id/nodes/:nodeId/heartbeat\` | Sinal de vida \`{ by }\` (não toca \`updatedAt\`) |
 | POST | \`/trilhas/:id/nodes/:nodeId/release\` | Libera a trava (válvula de escape manual) |
+| GET | \`/trilhas/:id/stickies\` | Lista stickers da trilha |
+| POST | \`/trilhas/:id/stickies\` | Cria sticker \`{ text, color?: yellow\\|pink\\|green\\|blue, position? }\` |
+| GET | \`/trilhas/:id/stickies/:stickyId\` | Sticker avulso |
+| PUT | \`/trilhas/:id/stickies/:stickyId\` | Edita sticker (texto, cor, posição) |
+| DELETE | \`/trilhas/:id/stickies/:stickyId\` | Remove sticker |
 
 Para delegar um nó a uma IA, copie o **ID do nó** e envie
 \`GET /trilhas/:id/nodes/:nodeId\` — o pacote contém título, briefing,
@@ -407,6 +412,9 @@ malicioso. Se um dono travar ou morrer, qualquer humano libera pela UI
 (botão Liberar) ou via \`POST .../release\`.
 
 **Deep link**: \`GET /trilhas\` retorna \`{ deepLink: "http://127.0.0.1:3333/#trilha/<id>" }\`.
+
+Stickers são notas soltas no mapa (post-it visual): têm texto, cor e posição,
+mas **não** têm status, setas nem dono — nunca aparecem no \`next\` nem no DAG.
 
 ---
 

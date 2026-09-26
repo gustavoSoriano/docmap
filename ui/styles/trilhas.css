@@ -1023,11 +1023,34 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
   font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
+  cursor: pointer;
+  text-align: left;
+}
+button.tr-insp-card-h:hover {
+  color: var(--text);
+}
+.tr-insp-card-h .ico {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  transition: transform 0.12s;
+}
+.tr-insp-card:not(.closed) .tr-insp-card-h .ico {
+  transform: rotate(90deg);
+}
+/* Sanfona fechada: esconde tudo menos o cabeçalho */
+.tr-insp-card.closed > :not(.tr-insp-card-h) {
+  display: none;
 }
 .tr-insp-card .tr-inspector-details {
   background: var(--surface);
@@ -1367,6 +1390,101 @@
   font-size: 12px;
   line-height: 1.5;
 }
+
+/* ── Stickers: post-it solto, fora do fluxo ── */
+/* O container cobre o canvas inteiro mas não intercepta cliques: só o
+   sticker em si é clicável. Sem isso a camada (que vem depois dos nós
+   no DOM) engole os eventos e os blocos param de responder. */
+#trilha-stickies {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tr-sticky {
+  pointer-events: auto;
+  position: absolute;
+  width: 200px;
+  min-height: 130px;
+  padding: 22px 12px 10px;
+  border-radius: 2px 2px 10px 2px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transform: rotate(-1.2deg);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.18);
+  transition: box-shadow 0.12s, transform 0.12s;
+  color: #3f3a22;
+}
+.tr-sticky:nth-child(even) {
+  transform: rotate(1deg);
+}
+.tr-sticky:hover {
+  box-shadow: 0 10px 22px rgb(0 0 0 / 0.24);
+}
+.tr-sticky.dragging {
+  cursor: grabbing;
+  transform: rotate(0deg) scale(1.03);
+  box-shadow: 0 14px 28px rgb(0 0 0 / 0.3);
+  z-index: 5;
+  opacity: 0.96;
+}
+.tr-sticky.selected {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 2px;
+}
+/* Fitinha no topo */
+.tr-sticky::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 72px;
+  height: 18px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.45);
+  border: 1px solid rgb(0 0 0 / 0.06);
+}
+.tr-sticky.c-yellow { background: #fef08a; }
+.tr-sticky.c-pink { background: #fecdd3; color: #4c2731; }
+.tr-sticky.c-green { background: #bbf7d0; color: #23402e; }
+.tr-sticky.c-blue { background: #bfdbfe; color: #24344d; }
+.tr-sticky-text {
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.tr-sticky-text > :first-child { margin-top: 0; }
+.tr-sticky-text > :last-child { margin-bottom: 0; }
+.tr-sticky-text p { margin: 4px 0; }
+.tr-sticky-text ul, .tr-sticky-text ol { margin: 4px 0; padding-left: 16px; }
+.tr-sticky-text code {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: rgb(0 0 0 / 0.08);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+.tr-sticky-text pre, .tr-sticky-text table { display: none; }
+.tr-sticky-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border: none;
+  background: rgb(0 0 0 / 0.08);
+  color: inherit;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: none;
+  place-items: center;
+  opacity: 0.7;
+}
+.tr-sticky:hover .tr-sticky-del { display: grid; }
+.tr-sticky-del:hover { opacity: 1; }
+.tr-sticky-del .ico { width: 12px; height: 12px; }
 
 @media (max-width: 1100px) {
   #trilha-sidebar {

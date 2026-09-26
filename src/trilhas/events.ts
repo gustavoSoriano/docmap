@@ -11,7 +11,10 @@ export type TrilhaEventType =
   | 'node.release'
   | 'node.takeover'
   | 'edge.created'
-  | 'edge.removed';
+  | 'edge.removed'
+  | 'sticky.created'
+  | 'sticky.updated'
+  | 'sticky.removed';
 
 export type TrilhaEvent = {
   readonly id: string;

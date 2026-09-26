@@ -734,6 +734,8 @@
                   </button>
                   <button class="tr-tool-btn" onclick="openNodeModal()"
                     title="Novo bloco" data-icon="plus"></button>
+                  <button class="tr-tool-btn" onclick="openStickyModal()"
+                    title="Novo sticker (nota solta)" data-icon="notebook"></button>
                   <button class="tr-tool-btn" id="trilha-activity-btn"
                     onclick="toggleTrilhaActivity()"
                     title="Atividade recente da trilha" data-icon="clock"></button>
@@ -751,6 +753,7 @@
                   <div id="trilha-canvas">
                     <svg id="trilha-edges"></svg>
                     <div id="trilha-nodes"></div>
+                    <div id="trilha-stickies"></div>
                   </div>
                 </div>
                 <div id="trilha-zoom-controls">
@@ -923,6 +926,48 @@
               <button type="submit" class="app-primary-btn">
                 <span data-icon="plus"></span>
                 <span id="trilha-node-modal-submit-label">Criar bloco</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Sticker modal: nota solta no mapa -->
+        <div class="app-modal-overlay" id="trilha-sticky-modal-overlay"
+          onclick="closeStickyModal(event)">
+          <form class="app-modal" id="trilha-sticky-modal-form"
+            onsubmit="saveStickyFromModal(event)">
+            <div class="app-modal-head">
+              <span id="trilha-sticky-modal-title-label">Novo sticker</span>
+              <button type="button" onclick="closeStickyModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="trilha-sticky-edit-id" type="hidden" value="">
+              <label>
+                <span>Texto</span>
+                <textarea id="trilha-sticky-text" required rows="5" maxlength="2000"
+                  placeholder="Lembrete rápido… (markdown)"></textarea>
+              </label>
+              <label>
+                <span>Cor</span>
+                <select id="trilha-sticky-color">
+                  <option value="yellow">Amarelo</option>
+                  <option value="pink">Rosa</option>
+                  <option value="green">Verde</option>
+                  <option value="blue">Azul</option>
+                </select>
+              </label>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn danger"
+                id="trilha-sticky-delete-btn" onclick="deleteStickyFromModal()"
+                style="display:none">Excluir</button>
+              <span style="flex:1"></span>
+              <button type="button" class="app-secondary-btn"
+                onclick="closeStickyModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="plus"></span>
+                <span id="trilha-sticky-modal-submit-label">Criar sticker</span>
               </button>
             </div>
           </form>
