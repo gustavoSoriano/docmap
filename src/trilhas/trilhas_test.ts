@@ -5,6 +5,7 @@ import {
   createNode,
   heartbeatNode,
   listNodes,
+  normalizeCriteria,
   releaseNode,
   updateNode,
 } from './nodes.ts';
@@ -165,6 +166,44 @@ Deno.test('done exige result quando há critérios', async () => {
       result: 'teste XPTO passou',
     });
     assert(withResult.node?.status === 'done', 'done com result passa');
+  });
+});
+
+Deno.test('critérios normalizam string e objeto para { id, text, done }', async () => {
+  const normalized = normalizeCriteria([
+    'teste passa',
+    '  ',
+    { text: 'sem regressão', done: true },
+  ]);
+  assert(normalized.length === 2, 'vazios caem fora');
+  assert(
+    normalized[0].text === 'teste passa' && normalized[0].done === false &&
+      typeof normalized[0].id === 'string',
+    'string vira objeto pendente com id',
+  );
+  assert(
+    normalized[1].text === 'sem regressão' && normalized[1].done === true,
+    'objeto preserva texto e done',
+  );
+  await withKv(async (kv) => {
+    const trilha = await createTrilha(kv, { title: 'T', objective: 'O' });
+    const node = await createNode(
+      kv,
+      trilha.id,
+      { title: 'N', doneCriteria: ['a', { text: 'b', done: true }] },
+      0,
+    );
+    assert(node.doneCriteria.length === 2, 'create normaliza');
+    assert(node.doneCriteria[1].done === true, 'done persiste no create');
+    const toggled = await updateNode(kv, node.id, {
+      doneCriteria: node.doneCriteria.map((c) =>
+        c.text === 'a' ? { ...c, done: true } : c
+      ),
+    });
+    assert(
+      toggled.node?.doneCriteria.every((c) => c.done) === true,
+      'update alterna done preservando id e texto',
+    );
   });
 });
 

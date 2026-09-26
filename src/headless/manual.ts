@@ -356,8 +356,10 @@ liberado: só o que tem seta precisa esperar.
 Status da trilha: \`draft | running | done | cancelled\`.
 Status do nó: \`todo | doing | done | blocked\`.
 Responsável: \`assignee: { kind: "human" | "ai", label }\`.
-Critérios de pronto: \`doneCriteria: string[]\` por bloco — \`done\` exige
-\`result\` não vazio quando há critérios (400 senão).
+Critérios de pronto: \`doneCriteria: [{ id, text, done }]\` por bloco —
+\`done\` exige \`result\` não vazio quando há critérios (400 senão). Na escrita
+aceita string curta (vira \`{ text, done: false }\`); marque feito com
+\`{ id, text, done: true }\` (preserve o \`id\`).
 Bloqueio: \`blockedReason\` diz o que falta (fila "aguardando humano").
 
 | Método | Endpoint | Descrição |

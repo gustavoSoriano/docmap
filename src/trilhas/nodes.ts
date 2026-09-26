@@ -1,6 +1,8 @@
 import type {
   Assignee,
   CreateNodeInput,
+  TrilhaCriterion,
+  TrilhaCriterionInput,
   TrilhaNode,
   TrilhaNodeStatus,
   UpdateNodeInput,
@@ -34,6 +36,29 @@ export const isNodeStatus = (value: unknown): value is TrilhaNodeStatus =>
 
 const defaultAssignee = (): Assignee => ({ kind: 'ai', label: 'IA' });
 
+// Sanitiza critérios vindos de fora (API/UI/agentes): aceita string curta
+// ou { id?, text, done? }; remove vazios, limita tamanho e garante shape
+// { id, text, done }. Também cura registros antigos (string[]) na leitura.
+// Função pura.
+export const normalizeCriteria = (
+  input: readonly TrilhaCriterionInput[] | undefined,
+): readonly TrilhaCriterion[] => {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((item) => typeof item === 'string' ? { text: item } : item)
+    .filter((item) =>
+      item && typeof item.text === 'string' && item.text.trim()
+    )
+    .slice(0, 100)
+    .map((item) => ({
+      id: typeof item.id === 'string' && item.id
+        ? item.id
+        : crypto.randomUUID(),
+      text: item.text.trim().slice(0, 500),
+      done: item.done === true,
+    }));
+};
+
 export const listNodes = async (
   kv: Deno.Kv,
   trilhaId: string,
@@ -66,7 +91,7 @@ export const createNode = async (
     title: input.title.trim(),
     details: input.details ?? '',
     result: input.result ?? '',
-    doneCriteria: input.doneCriteria ?? [],
+    doneCriteria: normalizeCriteria(input.doneCriteria),
     ...(input.blockedReason?.trim()
       ? { blockedReason: input.blockedReason.trim() }
       : {}),
@@ -105,7 +130,9 @@ export const updateNode = async (
   }
   const status = input.status ?? existing.status;
   const result = input.result ?? existing.result;
-  const doneCriteria = input.doneCriteria ?? existing.doneCriteria ?? [];
+  const doneCriteria = normalizeCriteria(
+    input.doneCriteria ?? existing.doneCriteria,
+  );
   if (
     status === 'done' && doneCriteria.length > 0 && !result.trim()
   ) {
@@ -120,7 +147,7 @@ export const updateNode = async (
     ...(input.details !== undefined ? { details: input.details } : {}),
     ...(input.result !== undefined ? { result: input.result } : {}),
     ...(input.doneCriteria !== undefined
-      ? { doneCriteria: input.doneCriteria }
+      ? { doneCriteria }
       : {}),
     ...(input.status !== undefined ? { status: input.status } : {}),
     ...(input.assignee !== undefined ? { assignee: input.assignee } : {}),

@@ -460,6 +460,99 @@ const onTrilhaNodeClick = async (id) => {
   renderTrilhaInspector();
 };
 
+// ── Critérios de pronto: checklist real ──
+// O modelo é [{ id, text, done }] (migração v18 converte strings antigas).
+// Sem parsing de texto: done é campo próprio.
+
+const trilhaChecklistItem = (criterion, extraAttrs) => {
+  const done = criterion?.done === true;
+  const text = criterion?.text ?? '';
+  return `<li class="${done ? 'done' : ''}"${extraAttrs || ''}>` +
+    `<span class="tr-check">${ICON('check')}</span>` +
+    `<span class="tr-check-label">${escHtml(text)}</span></li>`;
+};
+
+const toggleTrilhaCriterion = async (nodeId, criterionId) => {
+  const node = trilhaNodeById(nodeId);
+  if (!node || !currentTrilhaDetail) return;
+  const list = (node.doneCriteria || []).map((c) =>
+    c.id === criterionId ? { ...c, done: !c.done } : c
+  );
+  trBusy = true;
+  try {
+    const res = await fetch(
+      `/trilhas/${currentTrilhaDetail.trilha.id}/nodes/${nodeId}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trilhaBody({
+          doneCriteria: list,
+          expectedUpdatedAt: node.updatedAt,
+        })),
+      },
+    );
+    if (res.status === 409) {
+      toast(`${await res.text()} — recarregando`);
+      await refreshCurrentTrilha();
+      return;
+    }
+    if (!res.ok) throw new Error(await res.text());
+    await refreshCurrentTrilha();
+  } catch (err) {
+    toast(err.message || 'Falha ao marcar critério');
+  } finally {
+    trBusy = false;
+  }
+};
+
+// ── Modal bloco: editor de critérios ──
+// Rascunho local [{ id, text, done }]; texto edita inline, check alterna,
+// lixeira remove, botão adiciona. Só persiste no submit da modal.
+
+let trCriteriaDraft = [];
+
+const renderTrilhaCriteriaDraft = (focusLast) => {
+  const box = $('trilha-node-criteria-list');
+  if (!box) return;
+  box.innerHTML = trCriteriaDraft.map((c, i) =>
+    `<div class="tr-crit-row${c.done ? ' done' : ''}" data-criterion="${i}">
+      <button type="button" class="tr-crit-check" data-act="toggle"
+        title="Marcar/desmarcar" aria-pressed="${c.done}">${ICON('check')}</button>
+      <input type="text" data-act="text" maxlength="300" placeholder="Novo critério…"
+        value="${escHtml(c.text)}">
+      <button type="button" class="tr-crit-del" data-act="del"
+        title="Remover critério">${ICON('x')}</button>
+    </div>`
+  ).join('') ||
+    '<div class="tr-inspector-empty">Nenhum critério — adicione abaixo.</div>';
+  hydrateIcons(box);
+  box.querySelectorAll('.tr-crit-row').forEach((row) => {
+    const i = Number(row.dataset.criterion);
+    row.querySelector('[data-act="toggle"]')?.addEventListener(
+      'click',
+      () => {
+        trCriteriaDraft[i] = { ...trCriteriaDraft[i], done: !trCriteriaDraft[i].done };
+        renderTrilhaCriteriaDraft(false);
+      },
+    );
+    row.querySelector('[data-act="text"]')?.addEventListener('input', (e) => {
+      trCriteriaDraft[i] = { ...trCriteriaDraft[i], text: e.target.value };
+    });
+    row.querySelector('[data-act="del"]')?.addEventListener('click', () => {
+      trCriteriaDraft = trCriteriaDraft.filter((_, k) => k !== i);
+      renderTrilhaCriteriaDraft(false);
+    });
+  });
+  if (focusLast) {
+    box.querySelector('.tr-crit-row:last-child input')?.focus();
+  }
+};
+
+const addTrilhaCriterionDraft = () => {
+  trCriteriaDraft = [...trCriteriaDraft, { text: '', done: false }];
+  renderTrilhaCriteriaDraft(true);
+};
+
 // ── Inspetor ──
 
 const TR_EVENT_TEXT = {
@@ -507,6 +600,7 @@ const renderTrilhaInspector = () => {
   const outgoing = trilhaOutgoing(node.id);
   const a = node.assignee || { kind: 'ai', label: 'IA' };
   const stale = node.claimedBy ? trilhaStaleText(node) : '';
+  const critDone = (node.doneCriteria || []).filter((c) => c.done).length;
   content.innerHTML = `
     <div class="tr-insp-top">
       <span class="tr-insp-pill st-${node.status}"><span class="tr-status-dot ${node.status}"></span>${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
@@ -534,8 +628,9 @@ const renderTrilhaInspector = () => {
     </section>
     ${(node.doneCriteria?.length)
       ? `<section class="tr-insp-card">
-          <div class="tr-insp-card-h"><span>Critérios de pronto · ${node.doneCriteria.length}</span></div>
-          <ul class="tr-inspector-criteria">${node.doneCriteria.map((c) => `<li>${escHtml(c)}</li>`).join('')}</ul>
+          <div class="tr-insp-card-h"><span>Critérios de pronto · ${critDone}/${node.doneCriteria.length}</span></div>
+          <ul class="tr-inspector-criteria checklist">${node.doneCriteria.map((c) =>
+            trilhaChecklistItem(c, ` onclick="toggleTrilhaCriterion('${node.id}','${c.id}')" title="Marcar/desmarcar"`)).join('')}</ul>
         </section>`
       : ''}
     ${node.result
@@ -881,7 +976,7 @@ const openNodeModal = (id) => {
   $('trilha-node-title').value = node?.title || '';
   $('trilha-node-details').value = node?.details || '';
   $('trilha-node-result').value = node?.result || '';
-  $('trilha-node-criteria').value = (node?.doneCriteria || []).join('\n');
+  trCriteriaDraft = (node?.doneCriteria || []).map((c) => ({ ...c }));
   $('trilha-node-blocked-reason').value = node?.blockedReason || '';
   $('trilha-node-status').value = node?.status || 'todo';
   $('trilha-node-assignee-kind').value = node?.assignee?.kind || 'ai';
@@ -897,6 +992,7 @@ const openNodeModal = (id) => {
   $('trilha-node-modal-overlay').classList.add('visible');
   setTrilhaNodeTab('conteudo');
   setTrilhaDetailsMode(node?.details ? 'preview' : 'edit');
+  renderTrilhaCriteriaDraft(false);
   setTimeout(() => $('trilha-node-title')?.focus(), 60);
 };
 
@@ -910,8 +1006,9 @@ const saveNodeFromModal = async (e) => {
   const { trilha } = currentTrilhaDetail;
   const id = $('trilha-node-edit-id').value;
   const label = $('trilha-node-assignee-label').value.trim();
-  const criteria = $('trilha-node-criteria').value.split('\n')
-    .map((c) => c.trim()).filter(Boolean);
+  const criteria = trCriteriaDraft
+    .filter((c) => c.text.trim())
+    .map((c) => ({ ...c, text: c.text.trim() }));
   const editing = id ? trilhaNodeById(id) : null;
   const body = {
     title: $('trilha-node-title').value.trim(),

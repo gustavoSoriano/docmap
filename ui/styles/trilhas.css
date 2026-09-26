@@ -619,6 +619,140 @@
   flex-direction: column;
   gap: 4px;
 }
+/* Checklist: caixinha clicável, item feito risca e esmaece */
+.tr-inspector-criteria.checklist {
+  list-style: none;
+  padding-left: 0;
+  gap: 6px;
+}
+.tr-inspector-criteria.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.tr-inspector-criteria.checklist li:hover {
+  border-color: var(--border-hi);
+}
+.tr-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1.5px solid var(--text-3);
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: grid;
+  place-items: center;
+  color: transparent;
+}
+.tr-check .ico {
+  width: 11px;
+  height: 11px;
+}
+.tr-inspector-criteria.checklist li.done .tr-check {
+  background: var(--tr-done);
+  border-color: var(--tr-done);
+  color: #06281a;
+}
+.tr-inspector-criteria.checklist li.done .tr-check-label {
+  text-decoration: line-through;
+  color: var(--text-3);
+}
+/* Editor de critérios na modal: linha = check + texto + lixeira */
+#trilha-node-criteria-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.tr-crit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 5px 5px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.tr-crit-row input {
+  flex: 1;
+  min-width: 0;
+}
+.tr-crit-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1.5px solid var(--text-3);
+  background: transparent;
+  color: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.tr-crit-check .ico {
+  width: 14px;
+  height: 14px;
+}
+.tr-crit-check:hover {
+  border-color: var(--tr-done);
+}
+.tr-crit-row.done .tr-crit-check {
+  background: var(--tr-done);
+  border-color: var(--tr-done);
+  color: #06281a;
+}
+.tr-crit-row.done input {
+  text-decoration: line-through;
+  color: var(--text-3);
+}
+.tr-crit-del {
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  flex-shrink: 0;
+}
+.tr-crit-del:hover {
+  color: var(--tr-blocked);
+}
+.tr-crit-del .ico {
+  width: 13px;
+  height: 13px;
+}
+.tr-crit-add {
+  margin-top: 8px;
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--border-hi);
+  border-radius: 8px;
+  color: var(--text-3);
+  font: 600 11px var(--font-ui);
+  padding: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tr-crit-add:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.tr-crit-add .ico {
+  width: 13px;
+  height: 13px;
+}
 .tr-inspector-blocked {
   font-size: 12px;
   padding: 8px 10px;

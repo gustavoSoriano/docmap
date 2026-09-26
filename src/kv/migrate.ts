@@ -232,6 +232,37 @@ const migrations: Migration[] = [
   // v17 — trilhas (objetivo visual editável humano+IA). Prefixos novos
   // (trilhas, trilha_nodes, trilha_edges), sem dados para transformar.
   async (_kv) => {},
+
+  // v18 — critérios de pronto do bloco viram objetos { id, text, done }.
+  // Converte strings antigas (done nasce false) e completa objetos
+  // parciais. Idempotente: só reescreve quem de fato muda.
+  async (kv) => {
+    for await (
+      const entry of kv.list<{ doneCriteria?: unknown }>({
+        prefix: ['trilha_nodes', '_global_'],
+      })
+    ) {
+      const v = entry.value;
+      if (!v || !Array.isArray(v.doneCriteria)) continue;
+      const converted = v.doneCriteria.map((item: unknown) => {
+        if (typeof item === 'string') {
+          return { id: crypto.randomUUID(), text: item, done: false };
+        }
+        if (item && typeof item === 'object') {
+          const o = item as Record<string, unknown>;
+          return {
+            id: typeof o.id === 'string' && o.id ? o.id : crypto.randomUUID(),
+            text: typeof o.text === 'string' ? o.text : '',
+            done: o.done === true,
+          };
+        }
+        return { id: crypto.randomUUID(), text: '', done: false };
+      });
+      if (JSON.stringify(converted) !== JSON.stringify(v.doneCriteria)) {
+        await kv.set(entry.key, { ...v, doneCriteria: converted });
+      }
+    }
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

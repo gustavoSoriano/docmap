@@ -862,11 +862,14 @@
                   <textarea id="trilha-node-result" rows="8"
                     placeholder="O que foi feito, evidências, arquivos alterados…"></textarea>
                 </label>
-                <label>
-                  <span>Critérios de pronto (um por linha — done exige relatório)</span>
-                  <textarea id="trilha-node-criteria" rows="5"
-                    placeholder="Ex: teste XPTO passa&#10;Ex: sem regressão no login"></textarea>
-                </label>
+                <div>
+                  <span class="app-field-label">Critérios de pronto (done exige relatório)</span>
+                  <div id="trilha-node-criteria-list"></div>
+                  <button type="button" class="tr-crit-add"
+                    onclick="addTrilhaCriterionDraft()">
+                    <span data-icon="plus"></span> Adicionar critério
+                  </button>
+                </div>
               </div>
               <div id="trilha-node-tab-config" class="tr-tab-panel" role="tabpanel">
                 <label>

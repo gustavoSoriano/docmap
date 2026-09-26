@@ -2,6 +2,19 @@ export type TrilhaStatus = 'draft' | 'running' | 'done' | 'cancelled';
 
 export type TrilhaNodeStatus = 'todo' | 'doing' | 'done' | 'blocked';
 
+export type TrilhaCriterion = {
+  readonly id: string;
+  readonly text: string;
+  readonly done: boolean;
+};
+
+// Entrada aceita objeto completo ou string curta (vira { text, done: false }).
+export type TrilhaCriterionInput = string | {
+  readonly id?: string;
+  readonly text: string;
+  readonly done?: boolean;
+};
+
 export type AssigneeKind = 'human' | 'ai';
 
 export type Assignee = {
@@ -27,7 +40,7 @@ export type TrilhaNode = {
   readonly title: string;
   readonly details: string;
   readonly result: string;
-  readonly doneCriteria: readonly string[];
+  readonly doneCriteria: readonly TrilhaCriterion[];
   readonly blockedReason?: string;
   readonly status: TrilhaNodeStatus;
   readonly assignee: Assignee;
@@ -72,7 +85,7 @@ export type CreateNodeInput = {
   readonly title: string;
   readonly details?: string;
   readonly result?: string;
-  readonly doneCriteria?: readonly string[];
+  readonly doneCriteria?: readonly TrilhaCriterionInput[];
   readonly blockedReason?: string;
   readonly status?: TrilhaNodeStatus;
   readonly assignee?: Assignee;
@@ -84,7 +97,7 @@ export type UpdateNodeInput = {
   readonly title?: string;
   readonly details?: string;
   readonly result?: string;
-  readonly doneCriteria?: readonly string[];
+  readonly doneCriteria?: readonly TrilhaCriterionInput[];
   readonly blockedReason?: string;
   readonly status?: TrilhaNodeStatus;
   readonly assignee?: Assignee;
