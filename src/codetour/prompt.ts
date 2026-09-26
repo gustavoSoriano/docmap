@@ -48,13 +48,15 @@ const TOOLS = [
 ].join('\n');
 
 const LANGUAGE = [
-  `LINGUAGEM — explique como para alguém sem contexto, não como para um par:`,
-  `- Gancho de 1 frase primeiro (modelo mental: "pense nisto como...").`,
+  `LINGUAGEM — explicação técnica direta, sem analogias nem metáforas:`,
+  `- Comece pelo que é e onde mora (arquivo:linha), sem rodeios.`,
   `- Exemplo concreto com valores reais em seguida (chega X, sai Y, nesta linha).`,
   `- Feche com o que quebra se remover (o porquê da existência).`,
-  `- 1 ideia por slide: 1 afirmação + 1 prova (snippet ou linha).`,
-  `- Nenhum termo sem explicação de 1 linha antes. Sem substantivo abstrato solto.`,
-  `- check: pergunta que o leitor deve conseguir responder se entendeu (20 a 280 chars).`,
+  `- 1 ideia por slide: 1 afirmação + 1 prova (snippet ou linha).
+- Título didático: já entrega a conclusão (o que + onde), sem suspense nem mistério.
+- Bom: "service barra título vazio na linha 12". Ruim: "A porta de entrada", "O áudio atrás da URL".`,
+  `- Nenhum termo sem explicação de 1 linha antes.`,
+  `- check: pergunta que o leitor deve conseguir responder se entendeu (20 a 280 chars, só a pergunta).`,
 ].join('\n');
 
 export const buildCodetourPrompt = (
@@ -92,10 +94,10 @@ export const buildCodetourPrompt = (
     `{`,
     `  "topic": "${topic}",`,
     `  "goal": "o que isso faz e por que importa",`,
-    `  "slides": [{ "id": "s1", "title": "Visão geral",`,
+    `  "slides": [{ "id": "s1", "title": "Service valida antes do store",`,
     `    "bullets": ["ponto 1"],`,
-    `    "explain": "gancho + exemplo + o que quebra…",`,
-    `    "check": "se entendeu, você responde: ...?",`,
+    `    "explain": "o que é + exemplo + o que quebra…",`,
+    `    "check": "onde um título vazio é barrado?",`,
     `    "snippet": {"file": "src/x.ts:10", "code": "trecho real…"},`,
     `    "visuals": [`,
     `      {"kind": "mermaid", "title": "Fluxo", "content": "flowchart LR; ..."},`,
@@ -129,7 +131,7 @@ export const buildAgentPrompt = (
     `2. Busque a estrutura escaneada: GET http://127.0.0.1:3333/codetour/structure`,
     `3. Use SÓ arquivos/símbolos do scan. Snippets REAIS, ordem por dependência.`,
     `4. Use TODAS as tools ao menos 1x: mermaid, mindmap e html por slide.`,
-    `5. Explique simples: gancho + exemplo com valores + o que quebra.`,
+    `5. Explique técnico e direto: o que é + exemplo com valores + o que quebra. Sem analogias.`,
     `6. Devolva SOZINHO via POST http://127.0.0.1:3333/codetour/import com {"tour": {...}}.`,
     `7. Não peça pro usuário colar nada — a tela atualiza sozinha.`,
     ``,

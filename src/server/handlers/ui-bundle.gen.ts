@@ -31960,7 +31960,6 @@ svg#kg-svg:active {
   font-size: clamp(15px, 1.6vw, 18px);
   line-height: 1.65;
   color: var(--text-2);
-  max-width: 72ch;
   margin: 0 0 14px;
 }
 #ct-meta-row {
@@ -32074,7 +32073,6 @@ svg#kg-svg:active {
   font-size: 15px;
   line-height: 1.75;
   color: var(--text);
-  max-width: 72ch;
   margin-bottom: 20px;
 }
 #ct-snippet-wrap {
@@ -41571,8 +41569,10 @@ const renderCodetourSlide = () => {
   $('ct-slide-files').innerHTML = (s.files || []).map((f) => \`<code>\${escHtml(f)}</code>\`).join('');
   const check = $('ct-slide-check');
   if (check) {
-    check.style.display = s.check ? '' : 'none';
-    check.innerHTML = s.check ? \`<span>Se entendeu, você responde:</span> \${escHtml(s.check)}\` : '';
+    // A IA às vezes repete o rótulo do protocolo — remove para não duplicar.
+    const question = String(s.check || '').replace(/^\\s*se entendeu,?\\s*você responde:\\s*/i, '');
+    check.style.display = question ? '' : 'none';
+    check.innerHTML = question ? \`<span>Se entendeu, você responde:</span> \${escHtml(question)}\` : '';
   }
   renderSlideVisuals(s);
   $('ct-slide-counter').textContent = \`\${ctSlideIdx + 1} / \${tour.slides.length}\`;

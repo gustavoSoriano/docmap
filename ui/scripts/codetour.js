@@ -220,8 +220,10 @@ const renderCodetourSlide = () => {
   $('ct-slide-files').innerHTML = (s.files || []).map((f) => `<code>${escHtml(f)}</code>`).join('');
   const check = $('ct-slide-check');
   if (check) {
-    check.style.display = s.check ? '' : 'none';
-    check.innerHTML = s.check ? `<span>Se entendeu, você responde:</span> ${escHtml(s.check)}` : '';
+    // A IA às vezes repete o rótulo do protocolo — remove para não duplicar.
+    const question = String(s.check || '').replace(/^\s*se entendeu,?\s*você responde:\s*/i, '');
+    check.style.display = question ? '' : 'none';
+    check.innerHTML = question ? `<span>Se entendeu, você responde:</span> ${escHtml(question)}` : '';
   }
   renderSlideVisuals(s);
   $('ct-slide-counter').textContent = `${ctSlideIdx + 1} / ${tour.slides.length}`;

@@ -209,6 +209,9 @@ const checkSlides = (
     if (typeof s.title !== 'string' || !s.title.trim()) {
       return `tour.slides[${i}].title obrigatório`;
     }
+    if ((s.title as string).trim().length > 100) {
+      return `tour.slides[${i}].title excede 100 chars — direto à conclusão`;
+    }
     if (!Array.isArray(s.bullets) || s.bullets.length > 3) {
       return `tour.slides[${i}].bullets: máx 3`;
     }

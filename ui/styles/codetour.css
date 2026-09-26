@@ -204,7 +204,6 @@
   font-size: clamp(15px, 1.6vw, 18px);
   line-height: 1.65;
   color: var(--text-2);
-  max-width: 72ch;
   margin: 0 0 14px;
 }
 #ct-meta-row {
@@ -318,7 +317,6 @@
   font-size: 15px;
   line-height: 1.75;
   color: var(--text);
-  max-width: 72ch;
   margin-bottom: 20px;
 }
 #ct-snippet-wrap {
