@@ -59,6 +59,14 @@ const LANGUAGE = [
   `- check: pergunta que o leitor deve conseguir responder se entendeu (20 a 280 chars, só a pergunta).`,
 ].join('\n');
 
+const NARRATION = [
+  `NARRAÇÃO (obrigatória, um áudio por slide) — texto de FALA, não de leitura:`,
+  `- 40 a 800 chars, frases curtas, português falado.`,
+  `- Conta o essencial do slide como se estivesse ao lado: o que é, onde mora, exemplo com valor real.`,
+  `- Sem markdown, sem código, sem "arquivo:linha", sem tags. Só texto puro que o TTS vai falar.`,
+  `- Tour sem narration em algum slide é rejeitado.`,
+].join('\n');
+
 export const buildCodetourPrompt = (
   projectRoot: string,
   query: string,
@@ -90,6 +98,8 @@ export const buildCodetourPrompt = (
     ``,
     LANGUAGE,
     ``,
+    NARRATION,
+    ``,
     `Responda SOMENTE com JSON válido, sem markdown extra:`,
     `{`,
     `  "topic": "${topic}",`,
@@ -98,6 +108,7 @@ export const buildCodetourPrompt = (
     `    "bullets": ["ponto 1"],`,
     `    "explain": "o que é + exemplo + o que quebra…",`,
     `    "check": "onde um título vazio é barrado?",`,
+    `    "narration": "Olha esse service. Ele recebe o título, barra vazio na linha doze e só aí salva. Sem ele, dado sujo pararia no banco.",`,
     `    "snippet": {"file": "src/x.ts:10", "code": "trecho real…"},`,
     `    "visuals": [`,
     `      {"kind": "mermaid", "title": "Fluxo", "content": "flowchart LR; ..."},`,
@@ -132,8 +143,9 @@ export const buildAgentPrompt = (
     `3. Use SÓ arquivos/símbolos do scan. Snippets REAIS, ordem por dependência.`,
     `4. Use TODAS as tools ao menos 1x: mermaid, mindmap e html por slide.`,
     `5. Explique técnico e direto: o que é + exemplo com valores + o que quebra. Sem analogias.`,
-    `6. Devolva SOZINHO via POST http://127.0.0.1:3333/codetour/import com {"tour": {...}}.`,
-    `7. Não peça pro usuário colar nada — a tela atualiza sozinha.`,
+    `6. narration obrigatória por slide (40 a 800 chars, texto falável, sem código).`,
+    `7. Devolva SOZINHO via POST http://127.0.0.1:3333/codetour/import com {"tour": {...}}.`,
+    `8. Não peça pro usuário colar nada — a tela atualiza sozinha.`,
     ``,
     `Superficial, com paths inventados ou sem alguma tool será rejeitado.`,
   ].join('\n');

@@ -33,6 +33,9 @@ const slide = (over: Partial<TourSlide> = {}): TourSlide => ({
     'Sem ele, cada handler duplicaria a validação e dado sujo pararia no KV. ' +
     'Se apagar este arquivo, o porteiro some e o store aceita qualquer coisa.',
   check: 'Se entendeu, você responde: onde um título vazio é barrado?',
+  narration:
+    'Olha esse service. Ele recebe o título, barra vazio na linha doze e só aí salva. ' +
+    'Sem ele, dado sujo pararia no banco e cada handler duplicaria a validação.',
   snippet: {
     file: 'src/notes/service.ts:12',
     code:
@@ -155,6 +158,7 @@ Deno.test('protocolo lista tools e linguagem simples', () => {
   const p = buildCodetourPrompt('/tmp/p', 'auth', 'repasse', pack);
   assert(p.includes('mermaid') && p.includes('mindmap') && p.includes('html'));
   assert(p.includes('check'));
+  assert(p.includes('narration'));
   assert(buildAgentPrompt('/tmp/p', 'x', 'deep').includes('TODAS as tools'));
 });
 
@@ -209,6 +213,19 @@ Deno.test('parse exige check por slide', () => {
   const t = deepTour();
   const noCheck = { ...t, slides: [slide({ check: '' })] };
   assert('error' in parseCodeTour(noCheck, ctxOf()));
+});
+
+Deno.test('parse exige narration por slide', () => {
+  const t = deepTour();
+  const noNarr = { ...t, slides: [slide({ narration: '' })] };
+  const r = parseCodeTour(noNarr, ctxOf());
+  assert('error' in r && r.error.includes('narration'));
+});
+
+Deno.test('parse rejeita narration com código', () => {
+  const t = deepTour();
+  const evil = { ...t, slides: [slide({ narration: '```code``` fala isso' })] };
+  assert('error' in parseCodeTour(evil, ctxOf()));
 });
 
 Deno.test('parse aceita tour v5 completo', () => {

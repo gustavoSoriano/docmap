@@ -301,6 +301,20 @@
   margin: 0 0 14px;
   text-wrap: balance;
 }
+#ct-narration {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+#ct-narr-status {
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+#ct-audio {
+  display: none;
+}
 #ct-slide-bullets {
   display: flex;
   flex-direction: column;
@@ -571,6 +585,12 @@
 #ct-dots button.on {
   background: var(--accent);
   width: 34px;
+}
+#ct-dots button.heard {
+  background: var(--accent-2);
+}
+#ct-dots button.on.heard {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
 #ct-slide-counter {
   font-family: var(--font-mono);

@@ -35,6 +35,10 @@ export const kvPath = (): string => `${dataDir()}/data.sqlite3`;
 // Áudio MP3 fica fora do KV (limite de tamanho por valor), junto do data dir.
 export const podcastsDir = (): string => `${dataDir()}/podcasts`;
 
+// ════ Codetour: narração por slide ════
+// Um MP3 por hash da narração — cache em filesystem, sessão segue em memória.
+export const codetourDir = (): string => `${dataDir()}/codetour`;
+
 // ════ Notas: anexos de imagem ════
 // Imagens coladas nas notas ficam fora do KV (limite de ~64 KiB por valor),
 // junto do data dir. O KV guarda só o markdown com a referência.

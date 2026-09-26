@@ -1,4 +1,4 @@
-// Handler do codetour v4 — só orquestra (scan local + validação).
+// Handler do codetour v6 — só orquestra (scan + validação + narração).
 import {
   attachPack,
   attachTour,
@@ -10,6 +10,13 @@ import {
 import { buildAgentPrompt, buildCodetourPrompt } from './prompt.ts';
 import { isDepth, parseCodeTour, validateOpenInput } from './validate.ts';
 import { scanProject } from './scan.ts';
+import { serveNarrationFile } from './audio.ts';
+import {
+  ensureNarrationAudio,
+  findSlide,
+  resolveVoice,
+} from './narration.ts';
+import { checkVoiceDeps } from '../voice/health.ts';
 import { openFolderDialog } from '../window/dialog.ts';
 import { badRequest, json, notFound } from '../server/response.ts';
 import type { TourDepth } from './types.ts';
@@ -100,6 +107,41 @@ export const codetourHandler =
     if (req.method === 'POST' && pathname === '/codetour/clear') {
       clearSession();
       return json({ ok: true });
+    }
+
+    if (req.method === 'GET' && pathname === '/codetour/voice-health') {
+      return json(await checkVoiceDeps());
+    }
+
+    if (req.method === 'GET' && pathname === '/codetour/audio') {
+      const s = getSession();
+      if (!s?.tour) return badRequest('selecione a pasta primeiro');
+      const slideId = url.searchParams.get('slide') ?? '';
+      const slide = findSlide(s, slideId);
+      if (!slide) return badRequest('slide inválido');
+      const narration = slide.narration?.trim() ?? '';
+      if (!narration) {
+        return badRequest('tour antigo sem narration — gere de novo');
+      }
+      const voice = resolveVoice(url.searchParams.get('voice'));
+      try {
+        const hash = await ensureNarrationAudio(narration, voice);
+        return await serveNarrationFile(hash, req);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('edge-tts')) {
+          const health = await checkVoiceDeps();
+          return json(
+            {
+              error: msg,
+              fallback: 'webspeech',
+              instructions: health.instructions,
+            },
+            503,
+          );
+        }
+        return badRequest(msg);
+      }
     }
 
     return notFound();

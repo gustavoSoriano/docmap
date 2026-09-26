@@ -31,6 +31,7 @@ export type TourSlide = {
   readonly bullets: readonly string[];
   readonly explain: string;
   readonly check: string;
+  readonly narration: string;
   readonly snippet: TourSnippet | null;
   readonly visuals: readonly TourVisual[];
   readonly files: readonly string[];

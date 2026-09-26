@@ -11,6 +11,12 @@ let ctPollTimer = null;
 let ctDepth = 'repasse';
 let ctVisualSeq = 0;
 let ctSlideMms = [];
+let ctNarrPlaying = false;
+let ctListened = new Set();
+try {
+  const saved = JSON.parse(localStorage.getItem('ct-listened') || '[]');
+  if (Array.isArray(saved)) ctListened = new Set(saved);
+} catch { /* sem cache */ }
 
 const ctTour = () => ctSession?.tour || null;
 const ctLayers = () => ctSession?.layers || {};
@@ -109,6 +115,7 @@ const stopCtPoll = () => {
 
 const clearCodetour = async () => {
   await fetch('/codetour/clear', { method: 'POST' });
+  ctStopNarration();
   destroySlideMms();
   ctSession = null;
   ctRoot = '';
@@ -152,6 +159,7 @@ const ctHighlight = (code) => {
 const ctGo = (i) => {
   const tour = ctTour();
   if (!tour) return;
+  ctStopNarration();
   destroySlideMms();
   ctSlideIdx = Math.max(0, Math.min(i, tour.slides.length - 1));
   renderCodetourSlide();
@@ -226,18 +234,31 @@ const renderCodetourSlide = () => {
     check.innerHTML = question ? `<span>Se entendeu, você responde:</span> ${escHtml(question)}` : '';
   }
   renderSlideVisuals(s);
-  $('ct-slide-counter').textContent = `${ctSlideIdx + 1} / ${tour.slides.length}`;
+  ctNarrPlaying = false;
+  ctSetNarrStatus(s.narration ? '' : 'tour antigo — vai ler o texto');
+  const heard = tour.slides.filter((x) => ctListened.has(x.id)).length;
+  const pct = Math.round((heard / tour.slides.length) * 100);
+  $('ct-slide-counter').textContent = `${ctSlideIdx + 1} / ${tour.slides.length} · ${pct}% ouvido`;
   const bar = $('ct-slide-bar');
   if (bar) bar.style.width = `${((ctSlideIdx + 1) / tour.slides.length) * 100}%`;
+  renderCodetourDots();
+};
+
+const renderCodetourDots = () => {
+  const tour = ctTour();
+  if (!tour) return;
   const dots = $('ct-dots');
-  if (dots) {
-    dots.innerHTML = tour.slides.map((_, i) =>
-      `<button data-i="${i}" class="${i === ctSlideIdx ? 'on' : ''}" title="Slide ${i + 1}" aria-label="Ir para o slide ${i + 1}"></button>`
-    ).join('');
-    dots.querySelectorAll('button').forEach((b) =>
-      b.addEventListener('click', () => ctGo(Number(b.dataset.i)))
-    );
-  }
+  if (!dots) return;
+  dots.innerHTML = tour.slides.map((sl, i) => {
+    const cls = [
+      i === ctSlideIdx ? 'on' : '',
+      ctListened.has(sl.id) ? 'heard' : '',
+    ].join(' ').trim();
+    return `<button data-i="${i}" class="${cls}" title="Slide ${i + 1}" aria-label="Ir para o slide ${i + 1}"></button>`;
+  }).join('');
+  dots.querySelectorAll('button').forEach((b) =>
+    b.addEventListener('click', () => ctGo(Number(b.dataset.i)))
+  );
 };
 
 // ── Visuais por slide: a IA escolhe mermaid, mindmap ou html ──
@@ -248,6 +269,102 @@ const destroySlideMms = () => {
     } catch { /* já descartado */ }
   }
   ctSlideMms = [];
+};
+
+// ── Narração por slide: MP3 do servidor, fallback Web Speech ──
+const ctSlideId = () => ctTour()?.slides[ctSlideIdx]?.id || '';
+
+const ctSetNarrStatus = (msg) => {
+  if ($('ct-narr-status')) $('ct-narr-status').textContent = msg || '';
+  const btn = $('ct-narr-btn');
+  if (btn) btn.textContent = ctNarrPlaying ? '⏸ Parar' : '▶ Ouvir explicação';
+};
+
+const ctMarkListened = (id) => {
+  if (!id || ctListened.has(id)) return;
+  ctListened.add(id);
+  try {
+    localStorage.setItem('ct-listened', JSON.stringify([...ctListened].slice(-200)));
+  } catch { /* sem cache */ }
+};
+
+const ctStopNarration = () => {
+  ctNarrPlaying = false;
+  try {
+    const a = $('ct-audio');
+    if (a) { a.pause(); a.removeAttribute('src'); a.load(); }
+  } catch { /* noop */ }
+  try {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  } catch { /* noop */ }
+  ctSetNarrStatus('');
+};
+
+const ctSpeakFallback = (text) => {
+  if (!window.speechSynthesis) {
+    ctSetNarrStatus('sem áudio — instale edge-tts');
+    return;
+  }
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'pt-BR';
+    u.rate = 1.05;
+    u.onend = () => {
+      ctNarrPlaying = false;
+      ctMarkListened(ctSlideId());
+      ctSetNarrStatus('ouvido ✓ (voz do navegador)');
+      renderCodetourDots();
+    };
+    ctNarrPlaying = true;
+    ctSetNarrStatus('falando… (voz do navegador)');
+    window.speechSynthesis.speak(u);
+  } catch {
+    ctNarrPlaying = false;
+    ctSetNarrStatus('falha na voz do navegador');
+  }
+};
+
+const ctToggleNarration = () => {
+  if (ctNarrPlaying) { ctStopNarration(); return; }
+  ctPlayNarration();
+};
+
+const ctPlayNarration = async () => {
+  const tour = ctTour();
+  const slide = tour?.slides[ctSlideIdx];
+  if (!slide) return;
+  const text = String(slide.narration || '').trim();
+  // Tour antigo sem narration — fala o explain pra não quebrar.
+  const speakText = text || String(slide.explain || '').trim();
+  if (!speakText) return toast('Slide sem narração');
+  ctStopNarration();
+  ctSetNarrStatus('gerando áudio…');
+  try {
+    const res = await fetch(`/codetour/audio?slide=${encodeURIComponent(slide.id)}`);
+    if (res.ok) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = $('ct-audio');
+      a.src = url;
+      ctNarrPlaying = true;
+      ctSetNarrStatus('tocando…');
+      a.onended = () => {
+        ctNarrPlaying = false;
+        ctMarkListened(slide.id);
+        ctSetNarrStatus('ouvido ✓');
+        renderCodetourDots();
+        URL.revokeObjectURL(url);
+      };
+      a.onerror = () => ctSpeakFallback(speakText);
+      await a.play();
+      return;
+    }
+    // 503 = edge-tts faltando → fallback; 400 tour antigo → fala explain.
+    ctSpeakFallback(speakText);
+  } catch {
+    ctSpeakFallback(speakText);
+  }
 };
 
 // HTML da IA passa pelo mesmo perfil restritivo do markdown.
@@ -402,5 +519,6 @@ document.addEventListener('keydown', (e) => {
   if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
   if (e.key === 'ArrowRight') { ctNext(); e.preventDefault(); }
   if (e.key === 'ArrowLeft') { ctPrev(); e.preventDefault(); }
+  if (e.key === 'p' || e.key === 'P') { ctToggleNarration(); e.preventDefault(); }
   if (e.key === 'Enter' && document.activeElement?.id === 'ct-query') askCodetour();
 });

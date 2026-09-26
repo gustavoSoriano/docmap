@@ -196,6 +196,19 @@ const checkVisual = (vis: unknown, slideIdx: number): string | null => {
   return null;
 };
 
+// Narração p/ TTS — texto de fala, não de leitura. Limites fixos em todas
+// as depths p/ caber em ~1min de áudio e não travar o edge-tts.
+const checkNarration = (narration: string, i: number): string | null => {
+  const text = narration.trim();
+  if (text.length < 40 || narration.length > 800) {
+    return `tour.slides[${i}].narration: 40 a 800 chars de texto falável`;
+  }
+  if (/```/.test(narration) || /<\s*script/i.test(narration)) {
+    return `tour.slides[${i}].narration: texto puro, sem código nem script`;
+  }
+  return null;
+};
+
 const checkSlides = (
   v: unknown,
   b: Bounds,
@@ -235,6 +248,9 @@ const checkSlides = (
     if (check.trim().length < 20 || check.length > 280) {
       return `tour.slides[${i}].check: pergunta de 20 a 280 chars`;
     }
+    const narration = typeof s.narration === 'string' ? s.narration : '';
+    const narrErr = checkNarration(narration, i);
+    if (narrErr) return narrErr;
     const visuals = Array.isArray(s.visuals) ? s.visuals : [];
     if (visuals.length > 3) {
       return `tour.slides[${i}].visuals: máx 3 por slide`;
