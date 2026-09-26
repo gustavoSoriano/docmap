@@ -25,6 +25,15 @@ let trilhaNodeHeights = new Map();
 let trilhaMe = null;
 let trilhaActivityOpen = false;
 
+// ── Zoom + pan do canvas ──
+// O canvas usa CSS `zoom` (layout escala junto, scroll continua certo).
+// O arrasto dos nós divide o delta pelo zoom para manter 1:1 com o cursor.
+let trilhaZoom = 1;
+const TRILHA_ZOOM_MIN = 0.4;
+const TRILHA_ZOOM_MAX = 1.75;
+const TRILHA_ZOOM_STEP = 0.15;
+let trilhaPanBound = false;
+
 const trilhaBody = (body) => trilhaMe ? { ...body, by: trilhaMe } : body;
 
 const trilhaStaleText = (node) => {
@@ -299,13 +308,18 @@ const renderTrilhaMap = () => {
   const { nodes } = currentTrilhaDetail;
   trilhaNodeHeights = new Map();
 
+  // Mede alturas sem escala: o offsetHeight inclui o zoom, então reseta
+  // temporariamente para as setas usarem coordenadas reais (dados).
+  canvas.style.zoom = '1';
+
   nodesEl.innerHTML = nodes.map((node) => {
     const selected = node.id === selectedTrilhaNodeId;
     const stale = node.claimedBy ? trilhaStaleText(node) : '';
     const deps = trilhaIncoming(node.id).length;
     const outs = trilhaOutgoing(node.id).length;
     return `<div class="tr-node st-${node.status}${selected ? ' selected' : ''}${stale ? ' has-stale' : ''}"
-      data-node-id="${node.id}" style="left:${node.position.x}px;top:${node.position.y}px">
+      data-node-id="${node.id}" title="Duplo clique para editar"
+      style="left:${node.position.x}px;top:${node.position.y}px">
       <div class="tr-node-head">
         <span class="tr-node-status">${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
         ${node.claimedBy ? `<span class="tr-node-claim${stale ? ' stale' : ''}" title="Reservado por ${escHtml(node.claimedBy)}${stale ? ` — sem sinal ${stale}` : ''}">${ICON('lock')} ${escHtml(node.claimedBy)}${stale ? ` · ${stale}` : ''}</span>` : ''}
@@ -353,7 +367,142 @@ const renderTrilhaMap = () => {
   }).join('');
 
   bindTrilhaMap();
+  bindTrilhaPan();
+  trilhaApplyZoom();
   hydrateIcons(nodesEl);
+};
+
+// ── Zoom ──
+
+const trilhaApplyZoom = () => {
+  const canvas = $('trilha-canvas');
+  if (canvas) canvas.style.zoom = String(trilhaZoom);
+  const label = $('trilha-zoom-label');
+  if (label) label.textContent = `${Math.round(trilhaZoom * 100)}%`;
+};
+
+// Ancora o zoom num ponto da tela (cursor ou centro): o ponto de dados sob
+// o cursor continua sob o cursor depois do zoom.
+const trilhaZoomTo = (next, anchorX, anchorY) => {
+  const clamped = Math.min(
+    TRILHA_ZOOM_MAX,
+    Math.max(TRILHA_ZOOM_MIN, Math.round(next * 100) / 100),
+  );
+  if (clamped === trilhaZoom) return;
+  const wrap = $('trilha-map-wrap');
+  const prev = trilhaZoom;
+  trilhaZoom = clamped;
+  if (wrap && anchorX !== undefined && anchorY !== undefined) {
+    const dataX = (wrap.scrollLeft + anchorX) / prev;
+    const dataY = (wrap.scrollTop + anchorY) / prev;
+    trilhaApplyZoom();
+    wrap.scrollLeft = dataX * clamped - anchorX;
+    wrap.scrollTop = dataY * clamped - anchorY;
+  } else {
+    trilhaApplyZoom();
+  }
+};
+
+const trilhaZoomAnchorCenter = () => {
+  const wrap = $('trilha-map-wrap');
+  if (!wrap) return [];
+  const rect = wrap.getBoundingClientRect();
+  return [rect.width / 2, rect.height / 2];
+};
+
+const trilhaZoomIn = () => {
+  const [ax, ay] = trilhaZoomAnchorCenter();
+  trilhaZoomTo(trilhaZoom + TRILHA_ZOOM_STEP, ax, ay);
+};
+
+const trilhaZoomOut = () => {
+  const [ax, ay] = trilhaZoomAnchorCenter();
+  trilhaZoomTo(trilhaZoom - TRILHA_ZOOM_STEP, ax, ay);
+};
+
+const trilhaZoomReset = () => trilhaZoomTo(1);
+
+const trilhaZoomFit = () => {
+  const wrap = $('trilha-map-wrap');
+  if (!wrap || !currentTrilhaDetail?.nodes.length) {
+    trilhaZoomTo(1);
+    return;
+  }
+  const { nodes } = currentTrilhaDetail;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = 0;
+  let maxY = 0;
+  nodes.forEach((node) => {
+    const h = trilhaNodeHeights.get(node.id) || 120;
+    minX = Math.min(minX, node.position.x);
+    minY = Math.min(minY, node.position.y);
+    maxX = Math.max(maxX, node.position.x + TR_NODE_W);
+    maxY = Math.max(maxY, node.position.y + h);
+  });
+  const pad = 80;
+  const contentW = (maxX - minX) + pad * 2;
+  const contentH = (maxY - minY) + pad * 2;
+  const availW = Math.max(200, wrap.clientWidth - 40);
+  const availH = Math.max(200, wrap.clientHeight - 40);
+  trilhaZoomTo(Math.min(1.25, availW / contentW, availH / contentH));
+  const cx = (minX + maxX) / 2 * trilhaZoom;
+  const cy = (minY + maxY) / 2 * trilhaZoom;
+  wrap.scrollLeft = Math.max(0, cx - wrap.clientWidth / 2);
+  wrap.scrollTop = Math.max(0, cy - wrap.clientHeight / 2);
+};
+
+// ── Pan: arrastar o fundo move o scroll ──
+
+const bindTrilhaPan = () => {
+  const wrap = $('trilha-map-wrap');
+  if (!wrap || trilhaPanBound) return;
+  trilhaPanBound = true;
+  let panning = false;
+  let startX = 0;
+  let startY = 0;
+  let startLeft = 0;
+  let startTop = 0;
+  wrap.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 && e.button !== 1) return;
+    if (e.target.closest('.tr-node') || e.target.closest('button')) return;
+    panning = true;
+    trDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = wrap.scrollLeft;
+    startTop = wrap.scrollTop;
+    wrap.classList.add('panning');
+    try {
+      wrap.setPointerCapture(e.pointerId);
+    } catch {
+      // sem capture: o pan continua funcionando no move
+    }
+  });
+  wrap.addEventListener('pointermove', (e) => {
+    if (!panning) return;
+    wrap.scrollLeft = startLeft - (e.clientX - startX);
+    wrap.scrollTop = startTop - (e.clientY - startY);
+  });
+  const endPan = () => {
+    if (!panning) return;
+    panning = false;
+    trDragging = false;
+    wrap.classList.remove('panning');
+  };
+  wrap.addEventListener('pointerup', endPan);
+  wrap.addEventListener('pointercancel', endPan);
+  // Ctrl/cmd + scroll = zoom ancorado no cursor (pinch do trackpad incluso).
+  wrap.addEventListener('wheel', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    const rect = wrap.getBoundingClientRect();
+    trilhaZoomTo(
+      trilhaZoom + (e.deltaY > 0 ? -TRILHA_ZOOM_STEP : TRILHA_ZOOM_STEP),
+      e.clientX - rect.left,
+      e.clientY - rect.top,
+    );
+  }, { passive: false });
 };
 
 const bindTrilhaMap = () => {
@@ -385,9 +534,10 @@ const bindTrilhaMap = () => {
     });
     el.addEventListener('pointermove', (e) => {
       if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      if (Math.abs(dx) + Math.abs(dy) < 4) return;
+      // Delta de tela ÷ zoom = delta em coordenadas de dados.
+      const dx = (e.clientX - startX) / trilhaZoom;
+      const dy = (e.clientY - startY) / trilhaZoom;
+      if (Math.abs(dx) + Math.abs(dy) < 4 / trilhaZoom) return;
       const node = trilhaNodeById(id);
       node.position = {
         x: Math.max(8, Math.round(baseX + dx)),
@@ -453,10 +603,15 @@ const saveTrilhaNodePosition = async (nodeId, position) => {
   }
 };
 
+// Clique simples só seleciona (idempotente): sem isso o duplo clique
+// piscava — 1º clique selecionava, 2º desselecionava, e o dblclick
+// precisava reselecionar. Desselecionar é pelo X do inspetor.
 const onTrilhaNodeClick = async (id) => {
   trilhaActivityOpen = false;
-  selectedTrilhaNodeId = selectedTrilhaNodeId === id ? null : id;
-  renderTrilhaMap();
+  if (selectedTrilhaNodeId !== id) {
+    selectedTrilhaNodeId = id;
+    renderTrilhaMap();
+  }
   renderTrilhaInspector();
 };
 
@@ -606,7 +761,7 @@ const renderTrilhaInspector = () => {
       <span class="tr-insp-pill st-${node.status}"><span class="tr-status-dot ${node.status}"></span>${escHtml(TR_NODE_STATUS_LABEL[node.status] || node.status)}</span>
       <button class="tr-inspector-close" onclick="closeTrilhaInspector()" title="Fechar">${ICON('x')}</button>
     </div>
-    <div class="tr-inspector-title">${escHtml(node.title)}</div>
+    <div class="tr-inspector-title" ondblclick="openNodeModal('${node.id}')" title="Duplo clique para editar">${escHtml(node.title)}</div>
     <div class="tr-insp-sub">
       <span class="tr-insp-assignee ${a.kind}">${a.kind === 'ai' ? ICON('bot') : ICON('user')} ${escHtml(a.label)}</span>
       <span class="tr-insp-sep">·</span>
@@ -656,8 +811,8 @@ const renderTrilhaInspector = () => {
       ${node.claimedBy
         ? `<button class="app-secondary-btn danger" onclick="releaseTrilhaNode()">Liberar</button>`
         : `<button class="app-primary-btn" onclick="claimTrilhaNode()">Assumir</button>`}
-      <button class="app-secondary-btn" onclick="openNodeModal('${node.id}')">Editar</button>
     </div>
+    <div class="tr-inspector-hint">Duplo clique no bloco para editar</div>
     <div class="tr-inspector-actions sub">
       <button class="tr-insp-ghost" onclick="copyTrilhaNodePackage('${node.id}')">${ICON('copy')} Pacote p/ IA</button>
       <button class="tr-insp-ghost" onclick="copyTrilhaNodeId('${node.id}')">${ICON('copy')} ID</button>

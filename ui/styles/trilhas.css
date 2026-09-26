@@ -248,6 +248,7 @@
   flex: 1;
   min-height: 0;
   display: flex;
+  position: relative;
 }
 #trilha-map-wrap {
   flex: 1;
@@ -257,6 +258,83 @@
   background:
     radial-gradient(circle, var(--border) 1px, transparent 1px);
   background-size: 28px 28px;
+  cursor: grab;
+}
+#trilha-map-wrap.panning {
+  cursor: grabbing;
+}
+/* Controles flutuantes: fora do scroll (filhos do main-row), sempre visíveis */
+#trilha-zoom-controls {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border-hi);
+  border-radius: 10px;
+  box-shadow: var(--sh-lg);
+  padding: 3px;
+}
+.tr-zoom-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.tr-zoom-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.tr-zoom-btn .ico {
+  width: 15px;
+  height: 15px;
+}
+#trilha-zoom-label {
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font: 700 11px var(--font-ui);
+  min-width: 48px;
+  height: 30px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+#trilha-zoom-label:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+#trilha-canvas-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 9;
+  font-size: 10.5px;
+  color: var(--text-3);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.tr-inspector-hint {
+  font-size: 10.5px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: -2px;
+}
+/* Com o inspetor aberto, recentraliza a dica sobre a área do mapa */
+#trilha-main-row:has(#trilha-inspector:not([hidden])) #trilha-canvas-hint {
+  transform: translateX(calc(-50% - 183px));
 }
 #trilha-canvas {
   position: relative;

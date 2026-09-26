@@ -753,6 +753,17 @@
                     <div id="trilha-nodes"></div>
                   </div>
                 </div>
+                <div id="trilha-zoom-controls">
+                  <button class="tr-zoom-btn" onclick="trilhaZoomOut()"
+                    title="Reduzir zoom" data-icon="minus"></button>
+                  <button id="trilha-zoom-label" onclick="trilhaZoomReset()"
+                    title="Restaurar zoom 100%">100%</button>
+                  <button class="tr-zoom-btn" onclick="trilhaZoomIn()"
+                    title="Aumentar zoom" data-icon="plus"></button>
+                  <button class="tr-zoom-btn" onclick="trilhaZoomFit()"
+                    title="Ajustar à tela" data-icon="fit"></button>
+                </div>
+                <div id="trilha-canvas-hint">Arraste o fundo para mover · Ctrl+scroll = zoom · Duplo clique edita</div>
                 <aside id="trilha-inspector" hidden>
                   <div id="trilha-inspector-content"></div>
                 </aside>
