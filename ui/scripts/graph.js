@@ -8,8 +8,10 @@ let kgG = null;
 let kgLinkSel = null;
 let kgNodeSel = null;
 let kgLinks = [];
-let kgRaw = null; // {nodes, links} cru do fetch (fonte pro filtro por tipo)
+let kgRaw = null; // {nodes, links, total, truncated} cru do fetch (fonte pro filtro por tipo)
 let kgTagQuery = '';
+let kgBackendQuery = '';
+let kgSearchTimer = null;
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
 const KG_KINDS = ['note', 'task', 'trilha', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'agentchat', 'tag'];
@@ -73,9 +75,14 @@ const openGraphNode = (nodeId) => {
   OPEN_BY_KIND[kind]?.(uuid);
 };
 
-const loadGraph = async () => {
+const KG_LIMIT = 2000;
+
+const loadGraph = async (backendQ = '') => {
   try {
-    const res = await fetch('/graph');
+    kgBackendQuery = backendQ;
+    const url = '/graph?limit=' + KG_LIMIT +
+      (backendQ ? '&q=' + encodeURIComponent(backendQ) : '');
+    const res = await fetch(url);
     kgRaw = await res.json();
     updateKgTagOptions();
     drawKgGraph();
@@ -126,7 +133,13 @@ const drawKgGraph = () => {
   const keep = new Set(nodes.map((n) => n.id));
   const links = kgRaw.links.filter((l) =>
     keep.has(l.source.id || l.source) && keep.has(l.target.id || l.target));
-  renderKnowledgeGraph({ nodes, links });
+  renderKnowledgeGraph({
+    nodes,
+    links,
+    total: kgRaw.total,
+    truncated: kgRaw.truncated,
+    limit: kgRaw.limit,
+  });
 };
 
 const toggleKgKind = (kind) => {
@@ -163,7 +176,10 @@ const renderKnowledgeGraph = (data) => {
 
   const countEl = $('kg-count');
   if (countEl) {
-    countEl.textContent = `${data.nodes.length} entidades · ${data.links.length} conexões`;
+    const base = `${data.nodes.length} entidades · ${data.links.length} conexões`;
+    countEl.textContent = data.truncated
+      ? `${base} · mostrando ${data.nodes.length} de ${data.total} — use a busca para achar o resto`
+      : base;
   }
 
   const svg = d3.select('#kg-svg');
@@ -283,6 +299,18 @@ const setKgTagQuery = (value) => {
   kgTagQuery = value || '';
   $('kg-tag-search-clear')?.classList.toggle('visible', !!kgTagQuery.trim());
   drawKgGraph();
+  // Se o payload veio truncado (teto 2k), a busca local é incompleta —
+  // completa no backend (?q=) com debounce. Limpar restaura a visão base.
+  if (kgSearchTimer) clearTimeout(kgSearchTimer);
+  const term = kgTagQuery.trim();
+  if (!term && kgBackendQuery) { loadGraph(''); return; }
+  if (!term || !kgRaw?.truncated) return;
+  if (kgBackendQuery === term) return;
+  kgSearchTimer = setTimeout(() => {
+    if ((kgTagQuery || '').trim() !== term) return;
+    if (kgBackendQuery === term) return;
+    loadGraph(term);
+  }, 350);
 };
 
 const fitKg = () => {

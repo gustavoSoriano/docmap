@@ -142,13 +142,17 @@ protocolos especificos.
 
 ## Grafo de conhecimento
 
-- \`GET /graph\` — grafo de TODAS as entidades do docmap (notas, tasks,
-  trilhas, macros, podcasts, favoritos, skills, mocks) conectadas por TEMA. Read-only; reflete o
-  estado atual do KV.
+- \`GET /graph\` — grafo das entidades do docmap (notas, tasks,
+  trilhas, macros, podcasts, favoritos, skills, mocks, chats) conectadas por TEMA.
+  Read-only; reflete o estado atual do KV. Teto padrão \`?limit=2000\` (máx 5000);
+  o que ficar de fora ache via \`?q=\`.
+  - Query: \`?q=texto\` (filtra label/tag antes do teto), \`?kind=note,task\`
+    (só esses tipos), \`?limit=N\`.
   - \`nodes\`: \`{ id, label, kind, tags? }\` — \`id\` = \`"<tipo>:<uuid>"\` (entidade) ou
-    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|trilha|macro|podcast|favorite|skill|mock|tag\`.
+    \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|trilha|macro|podcast|favorite|skill|mock|agentchat|tag\`.
   - \`links\`: \`{ source, target, kind }\` — \`kind\` = \`tagged\` (entidade→tag) ou
     \`reference\` (task→nota via \`noteId\`).
+  - Meta: \`{ total, limit, truncated }\` — \`truncated=true\` = use \`?q=\` para achar o resto.
   - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por
     isso vale usar tags consistentes — são o que conecta o grafo.
 

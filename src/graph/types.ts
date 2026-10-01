@@ -38,6 +38,9 @@ export type GraphLink = {
 export type KnowledgeGraph = {
   readonly nodes: readonly GraphNode[];
   readonly links: readonly GraphLink[];
+  readonly total?: number;
+  readonly limit?: number;
+  readonly truncated?: boolean;
 };
 
 // Entidade normalizada que alimenta o build (montada a partir dos stores).
