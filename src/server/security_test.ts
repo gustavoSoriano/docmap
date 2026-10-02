@@ -32,5 +32,5 @@ Deno.test('security: allows only canvas viewer endpoints on LAN', () => {
   assertEquals(isPublicLanCanvasRequest('GET', '/canvas/snapshot'), false);
   assertEquals(isPublicLanCanvasRequest('POST', '/canvas/clear'), false);
   assertEquals(isPublicLanCanvasRequest('GET', '/notes'), false);
-  assertEquals(isPublicLanCanvasRequest('GET', '/terminal/ws'), false);
+  assertEquals(isPublicLanCanvasRequest('POST', '/macros/run'), false);
 });

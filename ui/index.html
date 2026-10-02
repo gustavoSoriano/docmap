@@ -22,14 +22,6 @@
     <script src="/vendor/codemirror-shell-5.65.16.min.js"></script>
     <script src="/vendor/js-beautify-1.15.1.min.js"></script>
     <script src="/vendor/mermaid-10.9.4.min.js"></script>
-    <link rel="stylesheet" href="/vendor/xterm-4.19.0.css" />
-    <script src="/vendor/xterm-4.19.0.js"></script>
-    <script src="/vendor/xterm-addon-fit-0.5.0.js"></script>
-    <script>
-    if (window.FitAddon && window.FitAddon.FitAddon) {
-      window.FitAddon = window.FitAddon.FitAddon;
-    }
-    </script>
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/notes.css">
@@ -43,7 +35,6 @@
     <link rel="stylesheet" href="/styles/graph.css">
     <link rel="stylesheet" href="/styles/agentchats.css">
     <link rel="stylesheet" href="/styles/codetour.css">
-    <link rel="stylesheet" href="/styles/terminal.css">
   </head>
   <body>
     <div id="body-main">
@@ -126,11 +117,6 @@
   </button>
 
         <div class="rail-spacer"></div>
-        <button class="rail-btn" id="rail-terminal"
-          onclick="toggleTerminal()" title="Terminal (Ctrl+`)">
-          <span class="rail-ico" data-icon="terminal"></span>
-          <span class="rail-lbl">Term</span>
-        </button>
         <button class="rail-btn" id="rail-settings" onclick="openSettings()"
           title="Configurações">
     <span class="rail-ico" data-icon="settings"></span><span class="rail-lbl">Ajustes</span>
@@ -1614,22 +1600,6 @@
     </div>
     <!-- /#body-main -->
 
-    <!-- ════ Terminal Panel ════ -->
-    <aside id="terminal-panel">
-      <div id="terminal-handle" title="Redimensionar terminal"></div>
-      <div id="terminal-header">
-        <button class="term-back" onclick="toggleTerminal()"
-          title="Voltar">← Terminal</button>
-        <span class="term-title">⌨ Terminal</span>
-        <span class="term-status" id="term-status" title="Desconectado"></span>
-        <button class="term-close" onclick="toggleTerminal()"
-          title="Fechar terminal">
-          <span data-icon="x"></span>
-        </button>
-      </div>
-      <div id="terminal-container"></div>
-    </aside>
-
     <div id="tooltip"></div>
     <div id="toast"></div>
 
@@ -1650,6 +1620,5 @@
     <script src="/scripts/graph.js"></script>
     <script src="/scripts/codetour.js"></script>
     <script src="/scripts/system.js"></script>
-    <script src="/scripts/terminal.js"></script>
   </body>
 </html>

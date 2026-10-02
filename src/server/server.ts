@@ -3,7 +3,7 @@ import type { HandlerDeps } from './types.ts';
 
 export const UI_PORT = 3333;
 
-// Bind padrão em loopback: a superfície principal inclui terminal, macros,
+// Bind padrão em loopback: a superfície principal inclui macros,
 // backups e update. Use DOCMAP_HOST=0.0.0.0 apenas para expor o canvas na LAN.
 export const uiHostname = (): string =>
   Deno.env.get('DOCMAP_HOST') || '127.0.0.1';

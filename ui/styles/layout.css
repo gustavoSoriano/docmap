@@ -16,7 +16,6 @@ body {
   font-family: var(--font-ui);
   color: var(--text);
   display: flex;
-  flex-direction: column; /* permite terminal dock inferior */
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;

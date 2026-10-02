@@ -48,7 +48,6 @@ const PAGE = `<!DOCTYPE html>
   --danger:var(--cat-security);
   --radius:7px;
   --rail-w:60px;
-  --term-default-h:35vh;
   --r-xs:5px;
   --r-sm:7px;
   --r-md:10px;

@@ -10,8 +10,6 @@ remoto em runtime. As licenças completas ficam em `docs/licenses/`.
 | DOMPurify       | 3.4.15  | Apache-2.0 OR MPL-2.0 |
 | CodeMirror      | 5.65.16 | MIT                   |
 | js-beautify     | 1.15.1  | MIT                   |
-| xterm.js        | 4.19.0  | MIT                   |
-| xterm-addon-fit | 0.5.0   | MIT                   |
 | mermaid         | 10.9.4  | MIT                   |
 | markmap-view    | 0.18.12 | MIT                   |
 | markmap-lib     | 0.18.12 | MIT                   |
