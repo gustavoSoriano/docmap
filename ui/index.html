@@ -67,6 +67,10 @@
           title="Grafo de conhecimento">
     <span class="rail-ico" data-icon="waypoints"></span><span class="rail-lbl">Grafo</span>
   </button>
+        <button class="rail-btn" id="rail-codetour"
+          onclick="setMode('codetour')" title="Caderno de estudos">
+    <span class="rail-ico" data-icon="compass"></span><span class="rail-lbl">Caderno</span>
+  </button>
         <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
           title="Notas">
     <span class="rail-ico" data-icon="notebook"></span><span class="rail-lbl">Notas</span>
@@ -82,10 +86,6 @@
         <button class="rail-btn" id="rail-agentchats"
           onclick="setMode('agentchats')" title="Chats entre agentes">
     <span class="rail-ico" data-icon="message-square"></span><span class="rail-lbl">Chats</span>
-  </button>
-        <button class="rail-btn" id="rail-codetour"
-          onclick="setMode('codetour')" title="Caderno de estudos">
-    <span class="rail-ico" data-icon="compass"></span><span class="rail-lbl">Caderno</span>
   </button>
         <button class="rail-btn" id="rail-favorites"
           onclick="setMode('favorites')" title="Favoritos">
@@ -1238,9 +1238,8 @@
             </section>
             <div id="ct-main">
           <div id="ct-top">
-            <button class="ct-btn primary" onclick="ctOpenForm()">＋ Novo caderno</button>
             <span id="ct-status"></span>
-            <button class="ct-btn" onclick="clearCodetour()" title="Encerrar">×</button>
+            <button class="ct-btn" id="ct-clear-btn" onclick="clearCodetour()" title="Encerrar" style="display:none">×</button>
           </div>
           <div id="ct-body">
             <div id="ct-empty">
@@ -1251,8 +1250,7 @@
                 <span><b>2.</b> Colar o prompt na IA</span>
                 <span><b>3.</b> Estudar aqui mesmo</span>
               </div>
-              <div id="ct-empty-hint">A apresentação aparece aqui sozinha, sem colar JSON.</div>
-              <button class="ct-btn primary" onclick="ctOpenForm()">＋ Criar caderno</button>
+              <div id="ct-empty-hint">A apresentação aparece aqui sozinha, sem colar JSON. Use o ＋ na lateral para criar.</div>
             </div>
             <div id="ct-active" style="display:none">
               <header id="ct-hero">

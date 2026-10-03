@@ -252,6 +252,8 @@ const renderCodetour = () => {
       : 'aguardando a IA…';
     $('ct-status').classList.toggle('ct-wait', !!ctSession && !tour);
   }
+  const clearBtn = $('ct-clear-btn');
+  if (clearBtn) clearBtn.style.display = ctSession ? '' : 'none';
   if (!has) return;
   if ($('ct-topic')) $('ct-topic').textContent = tour.topic || ctSession.query || '';
   if ($('ct-goal')) $('ct-goal').textContent = tour.goal;

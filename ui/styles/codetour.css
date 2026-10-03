@@ -895,9 +895,10 @@
 }
 
 /* ── Caderno: form de criação ── */
-.ct-form {
-  max-width: 680px;
-  padding: 28px 30px;
+.ct-dialog.ct-form {
+  max-width: 720px;
+  width: min(720px, calc(100vw - 40px));
+  padding: 30px 32px;
 }
 .ct-form h3 {
   font-size: 19px;
@@ -907,8 +908,44 @@
   margin-bottom: 18px;
 }
 .ct-form #ct-f-query {
+  width: 100%;
+  box-sizing: border-box;
   padding: 11px 14px;
   font-size: 14px;
+}
+.ct-form .ct-field-row {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 8px 8px 14px;
+}
+.ct-form .ct-field-row code {
+  min-width: 0;
+}
+.ct-form .ct-radio-row {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+}
+.ct-form .ct-radio-row label {
+  padding: 7px 18px;
+  border-radius: 999px;
+  color: var(--text-3);
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+}
+.ct-form .ct-radio-row label:has(input:checked) {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ct-form .ct-radio-row input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 .ct-form #ct-f-artifacts {
   grid-template-columns: 1fr 1fr 1fr;
@@ -916,10 +953,18 @@
 }
 .ct-form #ct-f-artifacts label {
   font-size: 13.5px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1px solid var(--border-soft);
   border-radius: var(--r-sm);
   background: var(--surface-2);
+  transition: border-color 0.15s, background 0.15s;
+}
+.ct-form #ct-f-artifacts label:hover {
+  border-color: var(--border-hi);
+}
+.ct-form #ct-f-artifacts label:has(input:checked) {
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
 }
 .ct-form .ct-dialog-actions {
   margin-top: 20px;

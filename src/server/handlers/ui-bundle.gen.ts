@@ -32449,9 +32449,10 @@ svg#kg-svg:active {
 }
 
 /* ── Caderno: form de criação ── */
-.ct-form {
-  max-width: 680px;
-  padding: 28px 30px;
+.ct-dialog.ct-form {
+  max-width: 720px;
+  width: min(720px, calc(100vw - 40px));
+  padding: 30px 32px;
 }
 .ct-form h3 {
   font-size: 19px;
@@ -32461,8 +32462,44 @@ svg#kg-svg:active {
   margin-bottom: 18px;
 }
 .ct-form #ct-f-query {
+  width: 100%;
+  box-sizing: border-box;
   padding: 11px 14px;
   font-size: 14px;
+}
+.ct-form .ct-field-row {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 8px 8px 14px;
+}
+.ct-form .ct-field-row code {
+  min-width: 0;
+}
+.ct-form .ct-radio-row {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+}
+.ct-form .ct-radio-row label {
+  padding: 7px 18px;
+  border-radius: 999px;
+  color: var(--text-3);
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+}
+.ct-form .ct-radio-row label:has(input:checked) {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ct-form .ct-radio-row input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 .ct-form #ct-f-artifacts {
   grid-template-columns: 1fr 1fr 1fr;
@@ -32470,10 +32507,18 @@ svg#kg-svg:active {
 }
 .ct-form #ct-f-artifacts label {
   font-size: 13.5px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1px solid var(--border-soft);
   border-radius: var(--r-sm);
   background: var(--surface-2);
+  transition: border-color 0.15s, background 0.15s;
+}
+.ct-form #ct-f-artifacts label:hover {
+  border-color: var(--border-hi);
+}
+.ct-form #ct-f-artifacts label:has(input:checked) {
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
 }
 .ct-form .ct-dialog-actions {
   margin-top: 20px;
@@ -32788,6 +32833,10 @@ svg#kg-svg:active {
           title="Grafo de conhecimento">
     <span class="rail-ico" data-icon="waypoints"></span><span class="rail-lbl">Grafo</span>
   </button>
+        <button class="rail-btn" id="rail-codetour"
+          onclick="setMode('codetour')" title="Caderno de estudos">
+    <span class="rail-ico" data-icon="compass"></span><span class="rail-lbl">Caderno</span>
+  </button>
         <button class="rail-btn" id="rail-notes" onclick="setMode('notes')"
           title="Notas">
     <span class="rail-ico" data-icon="notebook"></span><span class="rail-lbl">Notas</span>
@@ -32803,10 +32852,6 @@ svg#kg-svg:active {
         <button class="rail-btn" id="rail-agentchats"
           onclick="setMode('agentchats')" title="Chats entre agentes">
     <span class="rail-ico" data-icon="message-square"></span><span class="rail-lbl">Chats</span>
-  </button>
-        <button class="rail-btn" id="rail-codetour"
-          onclick="setMode('codetour')" title="Caderno de estudos">
-    <span class="rail-ico" data-icon="compass"></span><span class="rail-lbl">Caderno</span>
   </button>
         <button class="rail-btn" id="rail-favorites"
           onclick="setMode('favorites')" title="Favoritos">
@@ -33959,9 +34004,8 @@ svg#kg-svg:active {
             </section>
             <div id="ct-main">
           <div id="ct-top">
-            <button class="ct-btn primary" onclick="ctOpenForm()">＋ Novo caderno</button>
             <span id="ct-status"></span>
-            <button class="ct-btn" onclick="clearCodetour()" title="Encerrar">×</button>
+            <button class="ct-btn" id="ct-clear-btn" onclick="clearCodetour()" title="Encerrar" style="display:none">×</button>
           </div>
           <div id="ct-body">
             <div id="ct-empty">
@@ -33972,8 +34016,7 @@ svg#kg-svg:active {
                 <span><b>2.</b> Colar o prompt na IA</span>
                 <span><b>3.</b> Estudar aqui mesmo</span>
               </div>
-              <div id="ct-empty-hint">A apresentação aparece aqui sozinha, sem colar JSON.</div>
-              <button class="ct-btn primary" onclick="ctOpenForm()">＋ Criar caderno</button>
+              <div id="ct-empty-hint">A apresentação aparece aqui sozinha, sem colar JSON. Use o ＋ na lateral para criar.</div>
             </div>
             <div id="ct-active" style="display:none">
               <header id="ct-hero">
@@ -41625,6 +41668,8 @@ const renderCodetour = () => {
       : 'aguardando a IA…';
     $('ct-status').classList.toggle('ct-wait', !!ctSession && !tour);
   }
+  const clearBtn = $('ct-clear-btn');
+  if (clearBtn) clearBtn.style.display = ctSession ? '' : 'none';
   if (!has) return;
   if ($('ct-topic')) $('ct-topic').textContent = tour.topic || ctSession.query || '';
   if ($('ct-goal')) $('ct-goal').textContent = tour.goal;
