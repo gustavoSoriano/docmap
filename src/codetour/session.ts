@@ -7,6 +7,8 @@ import type {
   TourDepth,
   TourLayer,
 } from './types.ts';
+import type { ArtifactKind } from './artifacts.ts';
+import { ARTIFACTS } from './artifacts.ts';
 
 let active: CodeTourSession | null = null;
 
@@ -16,18 +18,27 @@ export const openSession = (
   projectRoot: string,
   query: string,
   depth: TourDepth,
+  artifacts?: readonly ArtifactKind[],
 ): CodeTourSession => {
   const now = new Date().toISOString();
   active = {
     projectRoot: projectRoot.trim(),
     query: query.trim(),
     depth,
+    artifacts: artifacts ?? [...ARTIFACTS],
+    notebookId: null,
     createdAt: now,
     updatedAt: now,
     tour: null,
     pack: null,
   };
   return active;
+};
+
+// Id do caderno auto-salvo quando a IA entrega o tour. Nulo até lá.
+export const setSessionNotebookId = (id: string | null): void => {
+  if (!active) return;
+  active = { ...active, notebookId: id, updatedAt: new Date().toISOString() };
 };
 
 export const attachPack = (pack: StructurePack): CodeTourSession | null => {
@@ -59,6 +70,8 @@ export const publicSession = (
     projectRoot: s.projectRoot,
     query: s.query,
     depth: s.depth,
+    artifacts: s.artifacts,
+    notebookId: s.notebookId,
     createdAt: s.createdAt,
     updatedAt: s.updatedAt,
     tour: s.tour,

@@ -12,6 +12,7 @@
   --kg-mock: #a8a29e;
   --kg-trilha: #38bdf8;
   --kg-agentchat: #a3e635;
+  --kg-notebook: #f5b638;
   --kg-tag: var(--text-3);
 }
 
@@ -164,6 +165,9 @@
 }
 .kg-leg-agentchat i {
   background: var(--kg-agentchat);
+}
+.kg-leg-notebook i {
+  background: var(--kg-notebook);
 }
 .kg-leg-tag i {
   background: var(--kg-tag);

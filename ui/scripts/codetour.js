@@ -12,6 +12,26 @@ let ctDepth = 'repasse';
 let ctVisualSeq = 0;
 let ctSlideMms = [];
 let ctNarrPlaying = false;
+let ctNotebook = null;
+let ctLibrary = [];
+let ctQuiz = null;
+const CT_ARTIFACT_DEFS = [
+  ['audio', '🔊 Áudio'],
+  ['podcast', '🎙 Podcast'],
+  ['bubble', '🫧 Bolhas'],
+  ['mindmap', '🧠 Mapa mental'],
+  ['diagrams', '📊 Diagramas'],
+  ['tables', '📋 Tabelas'],
+  ['quiz', '🎓 Quiz'],
+];
+let ctArtifacts = CT_ARTIFACT_DEFS.map(([k]) => k);
+try {
+  const savedArts = JSON.parse(localStorage.getItem('ct-artifacts') || '[]');
+  if (Array.isArray(savedArts) && savedArts.length) {
+    const valid = savedArts.filter((a) => CT_ARTIFACT_DEFS.some(([k]) => k === a));
+    if (valid.length) ctArtifacts = valid;
+  }
+} catch { /* padrão: todos */ }
 let ctListened = new Set();
 try {
   const saved = JSON.parse(localStorage.getItem('ct-listened') || '[]');
@@ -28,9 +48,9 @@ const ctLayerOf = (fileRef) => {
 
 const setCtDepth = (depth) => {
   ctDepth = depth;
-  document.querySelectorAll('#ct-depth button').forEach((b) =>
-    b.classList.toggle('on', b.dataset.depth === depth)
-  );
+  document.querySelectorAll('input[name="ct-depth"]').forEach((r) => {
+    r.checked = r.value === depth;
+  });
 };
 
 const loadCodetour = async () => {
@@ -39,13 +59,12 @@ const loadCodetour = async () => {
     ctSession = (await res.json()).session || null;
     if (ctSession) {
       ctRoot = ctSession.projectRoot;
-      if ($('ct-query') && !$('ct-query').value) {
-        $('ct-query').value = ctSession.query || '';
-      }
       if (ctSession.depth) setCtDepth(ctSession.depth);
     }
   } catch { ctSession = null; }
   renderCodetour();
+  ctSyncSessionNotebook();
+  loadCtLibrary();
   startCtPoll();
 };
 
@@ -55,28 +74,77 @@ const pickCodetourFolder = async () => {
     const data = await res.json();
     if (data.cancelled || !data.path) return;
     ctRoot = data.path;
+    if ($('ct-f-path')) $('ct-f-path').textContent = ctRoot;
     renderCodetour();
-    toast('Pasta selecionada — diga o que quer ver');
-    $('ct-query')?.focus();
+    toast('Pasta selecionada');
+    if ($('ct-form-overlay')?.style.display !== 'none') $('ct-f-query')?.focus();
   } catch { toast('Erro ao abrir pasta'); }
+};
+
+// ── Form de criação: pasta + foco + profundidade + artefatos ──
+const ctRenderFormArtifacts = () => {
+  const box = $('ct-f-artifacts');
+  if (!box || box.dataset.done) return;
+  box.dataset.done = '1';
+  for (const [key, label] of CT_ARTIFACT_DEFS) {
+    const lab = document.createElement('label');
+    lab.innerHTML = `<input type="checkbox" value="${key}" ${
+      ctArtifacts.includes(key) ? 'checked' : ''
+    } /> ${escHtml(label)}`;
+    box.appendChild(lab);
+  }
+};
+
+const ctOpenForm = () => {
+  const ov = $('ct-form-overlay');
+  if (!ov) return;
+  ctRenderFormArtifacts();
+  if ($('ct-f-path')) {
+    $('ct-f-path').textContent = ctRoot || ctSession?.projectRoot || 'nenhuma pasta';
+  }
+  const q = $('ct-f-query');
+  if (q && !q.value && ctSession && !ctTour()) q.value = ctSession.query || '';
+  setCtDepth(ctDepth);
+  ov.style.display = '';
+  $('ct-f-query')?.focus();
+};
+
+const ctCloseForm = () => {
+  const ov = $('ct-form-overlay');
+  if (ov) ov.style.display = 'none';
 };
 
 // Gera: abre sessão com pasta + query e auto-copia o prompt do agente.
 const askCodetour = async () => {
-  const query = $('ct-query')?.value?.trim() || '';
+  await ctSubmitForm();
+};
+
+const ctSubmitForm = async () => {
+  const query = $('ct-f-query')?.value?.trim() || '';
+  const depth = document.querySelector('input[name="ct-depth"]:checked')?.value || ctDepth;
+  const arts = [...document.querySelectorAll('#ct-f-artifacts input:checked')].map((c) => c.value);
   if (!ctRoot && !ctSession) return toast('Selecione a pasta primeiro');
-  if (!query) { $('ct-query')?.focus(); return toast('Diga o que quer ver'); }
+  if (!query) { $('ct-f-query')?.focus(); return toast('Diga o que quer estudar'); }
+  if (!arts.length) return toast('Marque ao menos 1 artefato');
+  ctDepth = depth;
+  ctArtifacts = arts;
+  try {
+    localStorage.setItem('ct-artifacts', JSON.stringify(ctArtifacts));
+  } catch { /* sem cache */ }
   try {
     const res = await fetch('/codetour/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectRoot: ctRoot || ctSession.projectRoot, query, depth: ctDepth }),
+      body: JSON.stringify({ projectRoot: ctRoot || ctSession.projectRoot, query, depth, artifacts: arts }),
     });
     if (!res.ok) return toast(await res.text() || 'Erro ao gerar');
     const data = await res.json();
     ctSession = data.session;
     ctRoot = ctSession.projectRoot;
     ctSlideIdx = 0;
+    ctNotebook = null;
+    ctQuiz = null;
+    ctCloseForm();
     copyToClipboard(data.agentPrompt, 'Prompt copiado — cole na IA');
     renderCodetour();
     startCtPoll();
@@ -97,7 +165,8 @@ const startCtPoll = () => {
         ctSession = data.session;
         ctSlideIdx = 0;
         renderCodetour();
-        toast('Tour pronto');
+        ctSyncSessionNotebook();
+        toast('Caderno pronto e salvo');
         stopCtPoll();
       } else if (data.session && !ctSession) {
         ctSession = data.session;
@@ -117,12 +186,15 @@ const clearCodetour = async () => {
   await fetch('/codetour/clear', { method: 'POST' });
   ctStopNarration();
   destroySlideMms();
+  ctStopBubbles();
   ctSession = null;
   ctRoot = '';
   ctSlideIdx = 0;
-  const q = $('ct-query');
-  if (q) q.value = '';
+  ctNotebook = null;
+  ctQuiz = null;
+  if ($('ct-quiz')) { $('ct-quiz').style.display = 'none'; $('ct-quiz').innerHTML = ''; }
   renderCodetour();
+  renderCtLibrary();
   startCtPoll();
 };
 
@@ -168,9 +240,6 @@ const ctPrev = () => ctGo(ctSlideIdx - 1);
 const ctNext = () => ctGo(ctSlideIdx + 1);
 
 const renderCodetour = () => {
-  if ($('ct-path')) {
-    $('ct-path').textContent = ctRoot || ctSession?.projectRoot || 'nenhuma pasta';
-  }
   const tour = ctTour();
   const has = !!tour;
   if ($('ct-empty')) $('ct-empty').style.display = has ? 'none' : 'block';
@@ -196,6 +265,8 @@ const renderCodetour = () => {
   }
   renderCodetourSlide();
   renderCodetourSections(tour);
+  renderCtHeroExtras();
+  renderCtQuizBtn();
 };
 
 const renderCodetourSlide = () => {
@@ -286,6 +357,7 @@ const ctMarkListened = (id) => {
   try {
     localStorage.setItem('ct-listened', JSON.stringify([...ctListened].slice(-200)));
   } catch { /* sem cache */ }
+  ctSyncProgress();
 };
 
 const ctStopNarration = () => {
@@ -382,6 +454,7 @@ const renderSlideVisuals = (slide) => {
   const box = $('ct-slide-visuals');
   if (!box) return;
   destroySlideMms();
+  ctStopBubbles();
   const visuals = slide.visuals || [];
   if (!visuals.length) {
     box.innerHTML = '';
@@ -391,6 +464,7 @@ const renderSlideVisuals = (slide) => {
   box.innerHTML = visuals.map((v, i) => {
     const kind = v.kind === 'mermaid' ? 'Mermaid'
       : v.kind === 'mindmap' ? 'Mindmap'
+      : v.kind === 'bubble' ? 'Bolhas'
       : 'Quadro';
     const tools = v.kind === 'mermaid'
       ? `<div class="ct-vzoom"><button class="ct-btn" data-vz="-1" title="Reduzir">−</button><button class="ct-btn" data-vz="0" title="Restaurar">1:1</button><button class="ct-btn" data-vz="1" title="Ampliar">+</button></div>`
@@ -402,6 +476,7 @@ const renderSlideVisuals = (slide) => {
     const vis = visuals[Number(body.dataset.vi)];
     if (vis.kind === 'mermaid') renderVisualMermaid(vis, body, mine);
     else if (vis.kind === 'mindmap') renderVisualMindmap(vis, body, mine);
+    else if (vis.kind === 'bubble') renderVisualBubble(vis, body);
     else body.innerHTML = `<div class="ct-vhtml">${ctSanitizeHtml(vis.content)}</div>`;
   });
   box.querySelectorAll('[data-vz]').forEach((btn) =>
@@ -431,18 +506,28 @@ const renderVisualMermaid = (vis, body, mine) => {
       flowchart: { curve: 'linear', htmlLabels: false },
     });
   } catch { /* já inicializado */ }
-  const code = String(vis.content || '').trim();
+  const code = String(vis.content || '')
+    .replace(/```+\w*\n?/g, '')
+    .replace(/```+/g, '')
+    .trim();
   const src = /classDef\s/m.test(code) ? code : code + CT_LAYER_DEFS;
   const id = `ctvm-${mine}-${body.dataset.vi}`;
   window.mermaid.render(id, src).then(({ svg }) => {
     if (mine !== ctVisualSeq) return;
+    if (/syntax error/i.test(svg)) {
+      console.error('mermaid: syntax error', code.slice(0, 200));
+      body.innerHTML = `<div class="ct-vm-error"><span>Diagrama com sintaxe inválida — o conteúdo foi preservado abaixo.</span>` +
+        `<details><summary>Ver código do diagrama</summary><pre>${escHtml(code)}</pre></details></div>`;
+      return;
+    }
     body.innerHTML = `<div class="ct-vm"><div class="ct-vm-canvas" data-zoom="1">${
       window.DOMPurify ? window.DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true } }) : svg
     }</div></div>`;
   }).catch((err) => {
     console.error('mermaid:', err);
     if (mine === ctVisualSeq) {
-      body.innerHTML = '<div class="ct-list">Diagrama inválido.</div>';
+      body.innerHTML = `<div class="ct-vm-error"><span>Diagrama inválido.</span>` +
+        `<details><summary>Ver código do diagrama</summary><pre>${escHtml(code)}</pre></details></div>`;
     }
   });
 };
@@ -461,7 +546,7 @@ const renderVisualMindmap = (vis, body, mine) => {
     return;
   }
   const wrap = document.createElement('div');
-  wrap.className = 'ct-vmap markmap-dark';
+  wrap.className = 'ct-vmap';
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '100%');
   wrap.appendChild(svg);
@@ -520,5 +605,532 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') { ctNext(); e.preventDefault(); }
   if (e.key === 'ArrowLeft') { ctPrev(); e.preventDefault(); }
   if (e.key === 'p' || e.key === 'P') { ctToggleNarration(); e.preventDefault(); }
-  if (e.key === 'Enter' && document.activeElement?.id === 'ct-query') askCodetour();
 });
+
+document.addEventListener('keydown', (e) => {
+  const formOpen = $('ct-form-overlay')?.style.display !== 'none';
+  if (!formOpen) return;
+  if (e.key === 'Escape') { ctCloseForm(); e.preventDefault(); }
+  if (e.key === 'Enter' && document.activeElement?.id === 'ct-f-query') {
+    ctSubmitForm();
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (e.target?.id === 'ct-form-overlay') ctCloseForm();
+});
+
+// ════ Caderno: artefatos, biblioteca, pontes ════
+
+const ctHasArtifact = (k) => {
+  const sel = ctSession?.artifacts || ctArtifacts;
+  return sel.includes(k);
+};
+
+const loadCtLibrary = async () => {
+  try {
+    const res = await fetch('/tours');
+    ctLibrary = (await res.json()).notebooks || [];
+  } catch { ctLibrary = []; }
+  renderCtLibrary();
+};
+
+const renderCtLibrary = () => {
+  const box = $('ct-library-list');
+  if (!box) return;
+  const count = $('ct-library-count');
+  if (count) {
+    count.textContent = ctLibrary.length ? `${ctLibrary.length} caderno(s)` : '';
+  }
+  if (!ctLibrary.length) {
+    box.innerHTML = '<div class="ct-list">Nenhum caderno ainda.</div>';
+    return;
+  }
+  box.innerHTML = '';
+  for (const nb of ctLibrary) {
+    const div = document.createElement('div');
+    div.className = 'ct-nb' + (ctNotebook && nb.id === ctNotebook.id ? ' on' : '');
+    const date = (nb.updatedAt || '').slice(0, 10);
+    const main = document.createElement('button');
+    main.type = 'button';
+    main.className = 'ct-nb-main';
+    main.title = 'Abrir caderno';
+    main.innerHTML = `<strong>${escHtml(nb.title)}</strong>` +
+      `<span>${escHtml(nb.query || '')} · ${nb.slides} slides · ${escHtml(date)}</span>`;
+    main.addEventListener('click', () => ctOpenNotebook(nb.id));
+    div.appendChild(main);
+    box.appendChild(div);
+  }
+};
+
+const ctLoadNotebookMeta = async (id) => {
+  if (!id || ctNotebook?.id === id) return;
+  try {
+    const res = await fetch(`/tours/${encodeURIComponent(id)}`);
+    if (!res.ok) return;
+    ctNotebook = (await res.json()).notebook;
+    renderCtHeroExtras();
+    renderCtLibrary();
+  } catch { /* segue sem meta */ }
+};
+
+const ctSyncSessionNotebook = () => {
+  const id = ctSession?.notebookId || null;
+  if (id && !ctNotebook) ctLoadNotebookMeta(id);
+  if (!id && ctNotebook && ctTour()) ctNotebook = null;
+};
+
+const ctOpenNotebook = async (id) => {
+  try {
+    const metaRes = await fetch(`/tours/${encodeURIComponent(id)}`);
+    if (!metaRes.ok) return toast('Caderno não encontrado');
+    const data = await metaRes.json();
+    ctNotebook = data.notebook;
+    const openRes = await fetch(`/tours/${encodeURIComponent(id)}/open`, { method: 'POST' });
+    if (!openRes.ok) return toast(await openRes.text() || 'Erro ao abrir');
+    ctSession = (await openRes.json()).session;
+    ctSlideIdx = 0;
+    stopCtPoll();
+    renderCodetour();
+    renderCtLibrary();
+    toast('Caderno aberto');
+  } catch { toast('Erro ao abrir'); }
+};
+
+const ctAskDeleteNotebook = () => {
+  if (!ctNotebook) return;
+  const nb = ctNotebook;
+  const old = $('ct-del-overlay');
+  if (old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = 'ct-del-overlay';
+  ov.className = 'ct-overlay';
+  const hasPod = !!nb.links?.podcastId;
+  const hasCanvas = (nb.links?.canvasShapeIds?.length || 0) > 0;
+  ov.innerHTML = `<div class="ct-dialog" role="dialog" aria-label="Apagar caderno">` +
+    `<h3>Apagar “${escHtml(nb.title)}”?</h3>` +
+    `<p>O caderno sai da biblioteca. Quer remover as referências junto?</p>` +
+    `<label><input type="checkbox" id="ct-del-pod" ${hasPod ? 'checked' : ''} ${hasPod ? '' : 'disabled'} /> Apagar podcast vinculado${hasPod ? '' : ' (nenhum)'}</label>` +
+    (hasCanvas
+      ? `<label><input type="checkbox" id="ct-del-canvas" checked /> Apagar desenho antigo da lousa</label>`
+      : '') +
+    `<label><input type="checkbox" id="ct-del-audio" /> Apagar áudios exclusivos <small>(só os que nenhum outro caderno usa)</small></label>` +
+    `<div class="ct-dialog-actions"><button class="ct-btn" id="ct-del-cancel">Cancelar</button>` +
+    `<button class="ct-btn primary" id="ct-del-ok">Apagar caderno</button></div></div>`;
+  document.body.appendChild(ov);
+  $('ct-del-cancel').addEventListener('click', () => ov.remove());
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+  $('ct-del-ok').addEventListener('click', async () => {
+    const refs = {
+      podcast: $('ct-del-pod')?.checked === true,
+      canvas: $('ct-del-canvas')?.checked === true,
+      audio: $('ct-del-audio')?.checked === true,
+    };
+    try {
+      const res = await fetch(`/tours/${encodeURIComponent(nb.id)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refs }),
+      });
+      if (!res.ok) return toast(await res.text() || 'Erro ao apagar');
+      const data = await res.json().catch(() => ({}));
+      const r = data.removed || {};
+      ov.remove();
+      toast(`Apagado${r.podcast ? ' + podcast' : ''}${r.canvas ? ` + ${r.canvas} shapes` : ''}${r.audio ? ` + ${r.audio} áudios` : ''}`);
+      await clearCodetour();
+    } catch { toast('Erro ao apagar'); }
+  });
+};
+
+const ctGenPodcast = async () => {
+  if (!ctNotebook) return toast('Salve o caderno primeiro');
+  toast('Gerando podcast do caderno…');
+  try {
+    const res = await fetch(`/tours/${encodeURIComponent(ctNotebook.id)}/podcast`, { method: 'POST' });
+    if (!res.ok) return toast(await res.text() || 'Erro ao gerar podcast');
+    const data = await res.json();
+    ctNotebook = data.notebook;
+    renderCtHeroExtras();
+    toast('Podcast gerando — acompanhe em Podcasts');
+  } catch { toast('Erro ao gerar podcast'); }
+};
+
+const renderCtHeroExtras = () => {
+  const saved = $('ct-saved-label');
+  if (saved) saved.textContent = ctNotebook ? '✓ Salvo automaticamente na biblioteca' : '';
+  const delBtn = $('ct-del-btn');
+  if (delBtn) delBtn.style.display = ctNotebook ? '' : 'none';
+  const links = $('ct-links');
+  if (!links) return;
+  if (!ctTour()) { links.style.display = 'none'; links.innerHTML = ''; return; }
+  links.style.display = '';
+  const nb = ctNotebook;
+  const pod = nb?.links?.podcastId;
+  links.innerHTML = ctHasArtifact('podcast')
+    ? `<div class="ct-link-card"><span>🎙 Podcast</span><span>${escHtml(pod ? 'pronto/vinculado' : 'não gerado')}</span>` +
+      (pod
+        ? `<button class="ct-btn" onclick="setMode('podcasts')">Ouvir em Podcasts</button>`
+        : `<button class="ct-btn" onclick="ctGenPodcast()">Gerar podcast</button>`) +
+      `</div>`
+    : '';
+};
+
+let ctQuizAnswers = {};
+try {
+  const qa = JSON.parse(localStorage.getItem('ct-quiz-answers') || '{}');
+  if (qa && typeof qa === 'object') ctQuizAnswers = qa;
+} catch { /* sem cache */ }
+
+const ctSyncProgress = () => {
+  if (!ctNotebook) return;
+  try {
+    fetch(`/tours/${encodeURIComponent(ctNotebook.id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ progress: { listened: [...ctListened].slice(-200), quiz: ctQuizAnswers } }),
+    }).catch(() => {});
+  } catch { /* offline */ }
+};
+
+const renderCtQuizBtn = () => {
+  const btn = $('ct-quiz-btn');
+  if (btn) btn.style.display = ctTour() && ctHasArtifact('quiz') ? '' : 'none';
+};
+
+const ctToggleQuiz = () => {
+  if (ctQuiz) {
+    ctQuiz = null;
+    if ($('ct-quiz')) { $('ct-quiz').style.display = 'none'; $('ct-quiz').innerHTML = ''; }
+    return;
+  }
+  const tour = ctTour();
+  if (!tour) return;
+  ctQuiz = { qi: 0, phase: 'ask', hits: 0, misses: 0 };
+  renderCtQuiz();
+};
+
+const renderCtQuiz = () => {
+  const box = $('ct-quiz');
+  const tour = ctTour();
+  if (!box || !tour || !ctQuiz) return;
+  box.style.display = '';
+  if (ctQuiz.qi >= tour.slides.length) {
+    const total = tour.slides.length;
+    box.innerHTML = `<div class="ct-quiz-done">🎓 Fim do quiz — ${ctQuiz.hits} acertos, ${ctQuiz.misses} erros de ${total}.` +
+      `<div class="ct-quiz-actions"><button class="ct-btn" onclick="ctQuizRestart()">Recomeçar</button>` +
+      `<button class="ct-btn" onclick="ctToggleQuiz()">Fechar</button></div></div>`;
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  const s = tour.slides[ctQuiz.qi];
+  if (ctQuiz.phase === 'ask') {
+    box.innerHTML = `<div class="ct-quiz-q"><span>Pergunta ${ctQuiz.qi + 1} de ${tour.slides.length} · ${escHtml(s.title)}</span>` +
+      `<p>${escHtml(s.check)}</p>` +
+      `<textarea id="ct-quiz-answer" rows="2" placeholder="Tente lembrar antes de ver a resposta…"></textarea>` +
+      `<div class="ct-quiz-actions"><button class="ct-btn primary" onclick="ctQuizReveal()">Responder</button>` +
+      `<button class="ct-btn" onclick="ctToggleQuiz()">Sair</button></div></div>`;
+    $('ct-quiz-answer')?.focus();
+  } else {
+    const expected = [...(s.bullets || []), (s.explain || '').slice(0, 280)].filter(Boolean).join(' ');
+    box.innerHTML = `<div class="ct-quiz-a"><span>Resposta esperada</span><p>${escHtml(expected)}</p>` +
+      `<div class="ct-quiz-actions"><button class="ct-btn primary" onclick="ctQuizScore('hit')">Acertei ✓</button>` +
+      `<button class="ct-btn" onclick="ctQuizScore('miss')">Errei ✗</button></div></div>`;
+  }
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+const ctQuizReveal = () => {
+  if (ctQuiz) { ctQuiz.phase = 'feedback'; renderCtQuiz(); }
+};
+
+const ctQuizScore = (mark) => {
+  const tour = ctTour();
+  if (!tour || !ctQuiz) return;
+  const s = tour.slides[ctQuiz.qi];
+  ctQuizAnswers[s.id] = mark;
+  try {
+    localStorage.setItem('ct-quiz-answers', JSON.stringify(ctQuizAnswers));
+  } catch { /* sem cache */ }
+  if (mark === 'hit') ctQuiz.hits += 1; else ctQuiz.misses += 1;
+  ctSyncProgress();
+  ctQuiz.qi += 1;
+  ctQuiz.phase = 'ask';
+  renderCtQuiz();
+};
+
+const ctQuizRestart = () => {
+  ctQuiz = { qi: 0, phase: 'ask', hits: 0, misses: 0 };
+  renderCtQuiz();
+};
+
+// ── Mapa de bolhas clicável (hub-satélite, estilo infográfico) ──
+const CT_BUBBLE_COLORS = ['#f5b638', '#f2813c', '#2dd4bf', '#38bdf8', '#f472a6', '#a78bfa', '#fbbf24', '#34d399'];
+
+const ctWrapLabel = (text, perLine) => {
+  const words = String(text || '').toUpperCase().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    if ((cur + ' ' + w).trim().length > perLine && cur) { lines.push(cur.trim()); cur = w; }
+    else cur += ' ' + w;
+    if (lines.length === 2) break;
+  }
+  if (cur.trim()) lines.push(cur.trim());
+  if (words.join(' ').length > lines.join(' ').length && lines.length) {
+    lines[lines.length - 1] += '…';
+  }
+  return lines.slice(0, 3);
+};
+
+let ctBubbleSims = [];
+
+const ctStopBubbles = () => {
+  for (const sim of ctBubbleSims) {
+    try {
+      sim.stop();
+    } catch { /* já parada */ }
+  }
+  ctBubbleSims = [];
+};
+
+// ── Mapa de bolhas com física (D3 force): arrasta, zoom, hover destaca ──
+const renderVisualBubble = (vis, body) => {
+  if (!window.d3) {
+    body.innerHTML = '<div class="ct-list">Bolhas indisponíveis.</div>';
+    return;
+  }
+  let data;
+  try {
+    data = JSON.parse(String(vis.content || ''));
+  } catch {
+    body.innerHTML = '<div class="ct-list">Bolhas inválidas.</div>';
+    return;
+  }
+  const rawNodes = Array.isArray(data?.nodes) ? data.nodes : [];
+  const center = data?.center || { label: vis.title || 'Mapa', detail: '' };
+  const hubs = rawNodes.filter((n) => !n.parent);
+  if (!rawNodes.length || hubs.length < 2) {
+    body.innerHTML = '<div class="ct-list">Bolhas inválidas.</div>';
+    return;
+  }
+  const W = 720;
+  const H = 520;
+  const hubIdx = new Map(hubs.map((h, i) => [h.id, i]));
+  const rootOf = (node) => {
+    let n = node;
+    const seen = new Set();
+    while (n?.parent && !hubIdx.has(n.parent) && !seen.has(n.parent)) {
+      seen.add(n.id);
+      n = rawNodes.find((x) => x.id === n.parent) || null;
+    }
+    return n?.parent || n?.id;
+  };
+  const colorOf = (node) =>
+    CT_BUBBLE_COLORS[(hubIdx.get(rootOf(node)) ?? 0) % CT_BUBBLE_COLORS.length];
+  const radiusOf = (kind) => (kind === 'center' ? 62 : kind === 'hub' ? 46 : 30);
+
+  const nodes = [
+    {
+      uid: '__center', kind: 'center', label: center.label, detail: center.detail || '',
+      file: null, slide: null, color: '#ffffff', r: radiusOf('center'),
+      x: W / 2, y: H / 2,
+    },
+    ...rawNodes.filter((n) => pos_final(n)).map((n) => ({
+      uid: n.id,
+      kind: !n.parent ? 'hub' : 'leaf',
+      label: n.label,
+      detail: n.detail || '',
+      file: n.file || null,
+      slide: n.slide || null,
+      color: colorOf(n),
+      r: radiusOf(!n.parent ? 'hub' : 'leaf'),
+      x: W / 2 + (Math.random() - 0.5) * 240,
+      y: H / 2 + (Math.random() - 0.5) * 200,
+    })),
+  ];
+  const byUid = new Map(nodes.map((n) => [n.uid, n]));
+  const links = [];
+  for (const n of rawNodes) {
+    if (!n.parent) links.push({ source: '__center', target: n.id, main: true });
+    else if (byUid.has(n.parent)) links.push({ source: n.parent, target: n.id, main: false });
+  }
+  function pos_final(n) {
+    return !n.parent || hubs.some((h) => h.id === n.parent);
+  }
+
+  body.innerHTML = '<div class="ct-vbubble"></div>';
+  const wrap = body.querySelector('.ct-vbubble');
+  const svg = window.d3.select(wrap).append('svg')
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img')
+    .attr('aria-label', center.label)
+    .style('width', '100%')
+    .style('height', 'auto')
+    .style('display', 'block');
+  const g = svg.append('g');
+  svg.call(
+    window.d3.zoom().scaleExtent([0.5, 2.5]).on('zoom', (e) => g.attr('transform', e.transform)),
+  );
+
+  const link = g.append('g').selectAll('line').data(links).join('line')
+    .attr('stroke', (d) => (d.main ? '#111' : (byUid.get(d.target)?.color || '#888')))
+    .attr('stroke-width', (d) => (d.main ? 3 : 2))
+    .attr('stroke-dasharray', '1 7')
+    .attr('stroke-linecap', 'round');
+
+  const showDetail = (node) => {
+    let d = body.querySelector('.ct-bubble-detail');
+    if (!d) {
+      d = document.createElement('div');
+      d.className = 'ct-bubble-detail';
+      body.appendChild(d);
+    }
+    d.innerHTML = `<strong>${escHtml(node.label)}</strong><p>${escHtml(node.detail || '')}</p><div class="ct-bubble-actions"></div>`;
+    const acts = d.querySelector('.ct-bubble-actions');
+    if (node.file) {
+      const fb = document.createElement('button');
+      fb.className = 'ct-btn';
+      fb.textContent = `📄 ${node.file}`;
+      fb.title = 'Copiar caminho do arquivo';
+      fb.addEventListener('click', () => copyToClipboard(node.file, 'Caminho copiado'));
+      acts.appendChild(fb);
+    }
+    if (node.slide) {
+      const sb = document.createElement('button');
+      sb.className = 'ct-btn primary';
+      sb.textContent = 'Ir para o slide →';
+      sb.addEventListener('click', () => ctGoSlideById(node.slide));
+      acts.appendChild(sb);
+    }
+  };
+
+  const neighbor = new Map();
+  for (const l of links) {
+    const a = typeof l.source === 'object' ? l.source.uid : l.source;
+    const b = typeof l.target === 'object' ? l.target.uid : l.target;
+    if (!neighbor.has(a)) neighbor.set(a, new Set());
+    if (!neighbor.has(b)) neighbor.set(b, new Set());
+    neighbor.get(a).add(b);
+    neighbor.get(b).add(a);
+  }
+
+  const node = g.append('g').selectAll('g').data(nodes, (d) => d.uid).join('g')
+    .attr('class', 'ct-bnode')
+    .attr('tabindex', '0')
+    .attr('role', 'button')
+    .attr('aria-label', (d) => d.label)
+    .style('cursor', 'pointer')
+    .on('click', (_e, d) => showDetail(d))
+    .on('keydown', (e, d) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showDetail(d); }
+    })
+    .on('mouseenter', (_e, d) => {
+      const keep = neighbor.get(d.uid) || new Set();
+      keep.add(d.uid);
+      node.style('opacity', (o) => (keep.has(o.uid) ? 1 : 0.22));
+      link.style('opacity', (l) => {
+        const s = typeof l.source === 'object' ? l.source.uid : l.source;
+        const t = typeof l.target === 'object' ? l.target.uid : l.target;
+        return s === d.uid || t === d.uid ? 1 : 0.15;
+      });
+    })
+    .on('mouseleave', () => {
+      node.style('opacity', 1);
+      link.style('opacity', 1);
+    });
+
+  node.each(function (d) {
+    const el = window.d3.select(this);
+    if (d.kind === 'hub') {
+      el.append('circle')
+        .attr('r', d.r + 9)
+        .attr('fill', 'none')
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 4)
+        .attr('class', 'ct-bring');
+    }
+    el.append('circle')
+      .attr('r', d.r)
+      .attr('fill', d.color)
+      .attr('stroke', d.kind === 'center' ? '#111' : 'none')
+      .attr('stroke-width', d.kind === 'center' ? 3 : 0);
+    const lines = ctWrapLabel(d.label, d.kind === 'center' ? 14 : d.kind === 'hub' ? 10 : 9);
+    const size = d.kind === 'center' ? 13 : d.kind === 'hub' ? 12 : 9;
+    const fill = d.kind === 'center' ? '#1a1a1a' : '#fff';
+    const t = el.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', size)
+      .attr('fill', fill)
+      .attr('font-weight', 700)
+      .style('pointer-events', 'none');
+    lines.forEach((ln, i) => {
+      t.append('tspan')
+        .attr('x', 0)
+        .attr('dy', i === 0 ? -(lines.length - 1) * size * 0.6 + 4 : size * 1.15)
+        .text(ln);
+    });
+  });
+
+  const sim = window.d3.forceSimulation(nodes)
+    .force('link', window.d3.forceLink(links).id((d) => d.uid)
+      .distance((l) => {
+        const t = typeof l.target === 'object' ? l.target : byUid.get(l.target);
+        return t?.kind === 'hub' ? 215 : 115;
+      })
+      .strength(0.55))
+    .force('charge', window.d3.forceManyBody().strength(-320))
+    .force('collide', window.d3.forceCollide().radius((d) => d.r + 12).strength(0.9))
+    .force('center', window.d3.forceCenter(W / 2, H / 2).strength(0.08))
+    .alphaDecay(0.06)
+    .on('tick', () => {
+      link
+        .attr('x1', (d) => d.source.x).attr('y1', (d) => d.source.y)
+        .attr('x2', (d) => d.target.x).attr('y2', (d) => d.target.y);
+      node.attr('transform', (d) => `translate(${d.x},${d.y})`);
+    });
+  ctBubbleSims.push(sim);
+
+  const centerNode = byUid.get('__center');
+  if (centerNode) {
+    centerNode.fx = W / 2;
+    centerNode.fy = H / 2;
+  }
+  node.call(
+    window.d3.drag()
+      .on('start', (e, d) => {
+        if (!e.active) sim.alphaTarget(0.3).restart();
+        if (d.kind !== 'center') {
+          d.fx = d.x;
+          d.fy = d.y;
+        }
+      })
+      .on('drag', (e, d) => {
+        if (d.kind !== 'center') {
+          d.fx = e.x;
+          d.fy = e.y;
+        }
+      })
+      .on('end', (e, d) => {
+        if (!e.active) sim.alphaTarget(0);
+        if (d.kind !== 'center') {
+          d.fx = null;
+          d.fy = null;
+        }
+      }),
+  );
+
+  showDetail({ label: center.label, detail: center.detail || 'Arraste as bolhas, passe o mouse para destacar, clique para explorar.', file: null, slide: null });
+};
+
+const ctGoSlideById = (slideId) => {
+  const tour = ctTour();
+  if (!tour) return;
+  const i = tour.slides.findIndex((s) => s.id === slideId);
+  if (i >= 0) {
+    ctGo(i);
+    document.querySelector('#ct-slide-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    toast('Slide não encontrado neste caderno');
+  }
+};

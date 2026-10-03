@@ -1,4 +1,7 @@
 // Handler do codetour v6 — só orquestra (scan + validação + narração).
+// Ao receber o tour da IA, auto-salva como caderno (gerou, salvou).
+import { createNotebookMeta } from '../notebooks/store.ts';
+import { writeNotebookBody } from '../notebooks/body-file.ts';
 import {
   attachPack,
   attachTour,
@@ -6,8 +9,10 @@ import {
   getSession,
   openSession,
   publicSession,
+  setSessionNotebookId,
 } from './session.ts';
 import { buildAgentPrompt, buildCodetourPrompt } from './prompt.ts';
+import { kindsOf, normalizeArtifacts } from './artifacts.ts';
 import { isDepth, parseCodeTour, validateOpenInput } from './validate.ts';
 import { scanProject } from './scan.ts';
 import { serveNarrationFile } from './audio.ts';
@@ -30,7 +35,7 @@ const readBody = async (req: Request): Promise<unknown> => {
 };
 
 export const codetourHandler =
-  () => async (req: Request, url: URL): Promise<Response> => {
+  (kv: Deno.Kv) => async (req: Request, url: URL): Promise<Response> => {
     const { pathname } = url;
 
     if (req.method === 'GET' && pathname === '/codetour/session') {
@@ -47,7 +52,10 @@ export const codetourHandler =
       };
       const rawDepth = (body as Record<string, unknown>).depth;
       const depth: TourDepth = isDepth(rawDepth) ? rawDepth : 'repasse';
-      openSession(projectRoot, query, depth);
+      const artifacts = normalizeArtifacts(
+        (body as Record<string, unknown>).artifacts,
+      );
+      openSession(projectRoot, query, depth, artifacts);
       const pack = await scanProject(projectRoot.trim(), query.trim());
       const s = attachPack(pack) ?? getSession();
       if (!s) return badRequest('falha ao abrir sessão');
@@ -99,9 +107,35 @@ export const codetourHandler =
         ? (body as Record<string, unknown>).tour
         : body;
       const paths = new Set((s.pack?.files ?? []).map((f) => f.path));
-      const parsed = parseCodeTour(payload, { depth: s.depth, paths });
+      const parsed = parseCodeTour(payload, {
+        depth: s.depth,
+        paths,
+        required: kindsOf(s.artifacts),
+      });
       if ('error' in parsed) return badRequest(parsed.error);
-      return json({ session: publicSession(attachTour(parsed.tour)) });
+      attachTour(parsed.tour);
+      // Auto-save: gerou, salvou. Falha de disco não derruba o tour.
+      let notebook = null;
+      try {
+        const created = await createNotebookMeta(kv, {
+          title: parsed.tour.topic,
+          query: s.query,
+          projectRoot: s.projectRoot,
+          depth: s.depth,
+          artifacts: s.artifacts,
+          slides: parsed.tour.slides.length,
+        });
+        await writeNotebookBody(created.id, {
+          tour: parsed.tour,
+          paths: [...paths],
+          filesTop: (s.pack?.files ?? []).slice(0, 80).map((f) => f.path),
+        });
+        setSessionNotebookId(created.id);
+        notebook = created;
+      } catch (err) {
+        console.error('codetour: falha no auto-save', err);
+      }
+      return json({ session: publicSession(getSession()), notebook });
     }
 
     if (req.method === 'POST' && pathname === '/codetour/clear') {

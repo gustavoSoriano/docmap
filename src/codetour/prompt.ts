@@ -41,10 +41,15 @@ const topPaths = (pack: StructurePack | null, max: number): string => {
 
 const TOOLS = [
   `FERRAMENTAS — use TODAS ao menos 1x no tour, no slide onde fizer sentido:`,
-  `1. mermaid: código flowchart do momento (comece com "flowchart LR", ligue com -->, use class api/service/data/ui). Para fluxos e decisões.`,
+  `1. mermaid: APENAS este subconjunto seguro (o render quebra com o resto), um elemento por linha:`,
+  `flowchart LR; A[Service valida]-->B[Store salva]; B-->C[KV persiste]; class A service; class B data; class C data;`,
+  `Regras duras: ids simples ASCII (A, B, svc1); labels curtos SEM parênteses, aspas, dois-pontos, pipe, hashtag, <, crase ou emoji (> SÓ em -->); sem "click", "style", "subgraph"; class SÓ p/ id já definido, com camada api/service/data/ui/test/util.`,
   `2. mindmap: markdown com # e - para hierarquias (módulos, camadas, conceitos). Para o mapa do território.`,
   `3. html: trecho HTML livre (sem script, sem iframe) para o que as outras não expressam: tabelas, antes/depois, timelines, callouts. É sanitizado.`,
-  `Cada slide pode ter até 3 visuals. Tour sem alguma tool é rejeitado.`,
+  `4. bubble: mapa radial de bolhas (centro + 2 a 8 hubs + satélites) em JSON. Para a visão geral navegável: cada nó é clicável e leva ao slide ou arquivo.`,
+  `JSON do bubble: {"center":{"label":"TEMA CENTRAL","detail":"frase de 1 a 280 chars"},"nodes":[{"id":"hub1","label":"NOME","detail":"o que é e por que importa","parent":null,"file":"src/x.ts:10","slide":"s2"},{"id":"sat1","label":"DETALHE","detail":"...","parent":"hub1"}]}.`,
+  `Regras do bubble: 3 a 24 nós, label até 40 chars, detail até 280, parent null = hub ligado ao centro, file/slide opcionais mas devem existir.`,
+  `Cada slide pode ter até 4 visuals. Tour sem alguma tool é rejeitado.`,
 ].join('\n');
 
 const LANGUAGE = [
@@ -115,7 +120,15 @@ export const buildCodetourPrompt = (
     `      {"kind": "mindmap", "title": "Mapa", "content": "# tópico\\n- item"},`,
     `      {"kind": "html", "title": "Quadro", "content": "<table>..."}`,
     `    ],`,
-    `    "files": ["src/x.ts:10"] }],`,
+    `    "files": ["src/x.ts:10"] },`,
+    `   { "id": "s2", "title": "Mapa geral navegável",`,
+    `    "bullets": ["comece por aqui"],`,
+    `    "explain": "visão de cima: cada bolha é um conceito, clique e navegue… (200 a 900 chars)",`,
+    `    "check": "qual bolha guarda a validação antes do store?",`,
+    `    "narration": "texto falável de 40 a 800 chars…",`,
+    `    "snippet": null,`,
+    `    "visuals": [{"kind": "bubble", "title": "Mapa geral", "content": "{\\"center\\":{\\"label\\":\\"TEMA\\",\\"detail\\":\\"frase\\"},\\"nodes\\":[{\\"id\\":\\"h1\\",\\"label\\":\\"HUB\\",\\"detail\\":\\"o que é\\",\\"parent\\":null,\\"slide\\":\\"s1\\"}]}"}],`,
+    `    "files": [] }],`,
     `  "flows": [{ "label": "a → b → c",`,
     `    "file": "src/x.ts:20", "detail": "o que acontece e por quê" }],`,
     `  "contracts": [{ "name": "createX(input)", "input": "{...}",`,
@@ -141,7 +154,7 @@ export const buildAgentPrompt = (
     `1. Busque o protocolo: GET http://127.0.0.1:3333/codetour/prompt`,
     `2. Busque a estrutura escaneada: GET http://127.0.0.1:3333/codetour/structure`,
     `3. Use SÓ arquivos/símbolos do scan. Snippets REAIS, ordem por dependência.`,
-    `4. Use TODAS as tools ao menos 1x: mermaid, mindmap e html por slide.`,
+    `4. Use TODAS as tools ao menos 1x: mermaid, mindmap, html e bubble (bubble 1x, na visão geral).`,
     `5. Explique técnico e direto: o que é + exemplo com valores + o que quebra. Sem analogias.`,
     `6. narration obrigatória por slide (40 a 800 chars, texto falável, sem código).`,
     `7. Devolva SOZINHO via POST http://127.0.0.1:3333/codetour/import com {"tour": {...}}.`,

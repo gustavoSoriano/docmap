@@ -84,8 +84,8 @@
     <span class="rail-ico" data-icon="message-square"></span><span class="rail-lbl">Chats</span>
   </button>
         <button class="rail-btn" id="rail-codetour"
-          onclick="setMode('codetour')" title="Code tour">
-    <span class="rail-ico" data-icon="compass"></span><span class="rail-lbl">Tour</span>
+          onclick="setMode('codetour')" title="Caderno de estudos">
+    <span class="rail-ico" data-icon="compass"></span><span class="rail-lbl">Caderno</span>
   </button>
         <button class="rail-btn" id="rail-favorites"
           onclick="setMode('favorites')" title="Favoritos">
@@ -1227,33 +1227,36 @@
 
         <!-- ═══ MODE: CODETOUR ═══ -->
         <main id="mode-codetour" class="mode">
+          <div id="ct-layout">
+            <section id="ct-sidebar" aria-label="Biblioteca de cadernos">
+              <div id="ct-sidebar-head">
+                <div id="ct-sidebar-title">Cadernos</div>
+                <button id="ct-new-btn" onclick="ctOpenForm()" title="Novo caderno">＋</button>
+              </div>
+              <div id="ct-library-list"></div>
+              <div id="ct-sidebar-foot"><span id="ct-library-count"></span></div>
+            </section>
+            <div id="ct-main">
           <div id="ct-top">
-            <button class="ct-btn primary" onclick="pickCodetourFolder()">Selecionar pasta</button>
-            <span id="ct-path">nenhuma pasta</span>
-            <input id="ct-query" type="text" placeholder="O que quer ver? ex: camada de serviço" autocomplete="off" spellcheck="false" />
-            <div id="ct-depth" role="tablist" aria-label="Profundidade">
-              <button type="button" data-depth="resumo" onclick="setCtDepth('resumo')">Resumo</button>
-              <button type="button" data-depth="repasse" class="on" onclick="setCtDepth('repasse')">Repasse</button>
-              <button type="button" data-depth="deep" onclick="setCtDepth('deep')">Deep</button>
-            </div>
-            <button class="ct-btn primary" onclick="askCodetour()">Gerar tour</button>
+            <button class="ct-btn primary" onclick="ctOpenForm()">＋ Novo caderno</button>
             <span id="ct-status"></span>
             <button class="ct-btn" onclick="clearCodetour()" title="Encerrar">×</button>
           </div>
           <div id="ct-body">
             <div id="ct-empty">
-              <div id="ct-empty-eyebrow">CODE TOUR</div>
-              <div id="ct-empty-title">Selecione a pasta e diga o que quer ver</div>
+              <div id="ct-empty-eyebrow">CADERNO</div>
+              <div id="ct-empty-title">O que você quer estudar hoje?</div>
               <div id="ct-empty-steps">
-                <span><b>1.</b> Selecionar pasta</span>
-                <span><b>2.</b> Descrever o foco</span>
-                <span><b>3.</b> Colar o prompt na IA</span>
+                <span><b>1.</b> Criar um caderno</span>
+                <span><b>2.</b> Colar o prompt na IA</span>
+                <span><b>3.</b> Estudar aqui mesmo</span>
               </div>
               <div id="ct-empty-hint">A apresentação aparece aqui sozinha, sem colar JSON.</div>
+              <button class="ct-btn primary" onclick="ctOpenForm()">＋ Criar caderno</button>
             </div>
             <div id="ct-active" style="display:none">
               <header id="ct-hero">
-                <div id="ct-eyebrow">CODE TOUR</div>
+                <div id="ct-eyebrow">CADERNO</div>
                 <h1 id="ct-topic"></h1>
                 <p id="ct-goal"></p>
                 <div id="ct-meta-row">
@@ -1261,6 +1264,11 @@
                   <span id="ct-meta-dot">·</span>
                   <span id="ct-meta-count"></span>
                 </div>
+                <div id="ct-hero-actions">
+                  <span id="ct-saved-label"></span>
+                  <button class="ct-btn" id="ct-del-btn" onclick="ctAskDeleteNotebook()" style="display:none">🗑 Apagar</button>
+                </div>
+                <div id="ct-links" style="display:none"></div>
               </header>
               <div class="ct-wrap">
                 <div id="ct-slide-card">
@@ -1281,10 +1289,12 @@
                   <div id="ct-slide-files"></div>
                   <div id="ct-slide-visuals"></div>
                   <div id="ct-slide-check"></div>
+                  <div id="ct-quiz" style="display:none"></div>
                   <div id="ct-slide-nav">
                     <button class="ct-btn" onclick="ctPrev()">← Anterior</button>
                     <div id="ct-dots"></div>
                     <span id="ct-slide-counter"></span>
+                    <button class="ct-btn" id="ct-quiz-btn" onclick="ctToggleQuiz()" title="Responder perguntas do caderno">🎓 Quiz</button>
                     <button class="ct-btn primary" onclick="ctNext()">Próximo →</button>
                   </div>
                 </div>
@@ -1307,6 +1317,34 @@
                   <div class="ct-section"><h3>Armadilhas</h3><div class="ct-list" id="ct-pitfalls"></div></div>
                   <div class="ct-section"><h3>Por onde começar</h3><div class="ct-list" id="ct-next"></div></div>
                 </div>
+              </div>
+            </div>
+          </div>
+            </div>
+          </div>
+          <div id="ct-form-overlay" class="ct-overlay" style="display:none">
+            <div class="ct-dialog ct-form" role="dialog" aria-label="Novo caderno">
+              <h3>Novo caderno</h3>
+              <label class="ct-field"><span>Pasta do projeto</span>
+                <span class="ct-field-row"><code id="ct-f-path">nenhuma pasta</code>
+                <button type="button" class="ct-btn" onclick="pickCodetourFolder()">Selecionar…</button></span>
+              </label>
+              <label class="ct-field"><span>O que estudar?</span>
+                <input id="ct-f-query" type="text" placeholder="ex: camada de serviço" autocomplete="off" spellcheck="false" />
+              </label>
+              <div class="ct-field"><span>Profundidade</span>
+                <span class="ct-radio-row" id="ct-f-depth">
+                  <label><input type="radio" name="ct-depth" value="resumo" /> Resumo</label>
+                  <label><input type="radio" name="ct-depth" value="repasse" checked /> Repasse</label>
+                  <label><input type="radio" name="ct-depth" value="deep" /> Deep</label>
+                </span>
+              </div>
+              <div class="ct-field"><span>Artefatos</span>
+                <div id="ct-f-artifacts"></div>
+              </div>
+              <div class="ct-dialog-actions">
+                <button class="ct-btn" onclick="ctCloseForm()">Cancelar</button>
+                <button class="ct-btn primary" onclick="ctSubmitForm()">Gerar caderno</button>
               </div>
             </div>
           </div>

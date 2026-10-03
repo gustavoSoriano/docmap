@@ -258,11 +258,16 @@ const migrations: Migration[] = [
         }
         return { id: crypto.randomUUID(), text: '', done: false };
       });
-      if (JSON.stringify(converted) !== JSON.stringify(v.doneCriteria)) {
-        await kv.set(entry.key, { ...v, doneCriteria: converted });
+        if (JSON.stringify(converted) !== JSON.stringify(v.doneCriteria)) {
+          await kv.set(entry.key, { ...v, doneCriteria: converted });
+        }
       }
-    }
-  },
+    },
+
+  // v19 — cadernos (tours salvos com artefatos). Prefixo novo
+  // (notebooks), corpo em <dataDir>/notebooks/<id>.json.
+  // Sem dados para transformar.
+  async (_kv) => {},
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

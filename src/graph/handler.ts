@@ -13,6 +13,7 @@ import { listSkills } from '../skills/store.ts';
 import { listMocks } from '../mocks/store.ts';
 import { listTrilhas } from '../trilhas/store.ts';
 import { listChats } from '../agentchats/store.ts';
+import { listNotebookMetas } from '../notebooks/store.ts';
 import { buildKnowledgeGraph } from './build.ts';
 import { toGraphEntities } from './entities.ts';
 import {
@@ -24,7 +25,7 @@ import { json } from '../server/response.ts';
 
 export const graphHandler =
   (kv: Deno.Kv) => async (_req: Request, url: URL): Promise<Response> => {
-    const [notes, tasks, macros, podcasts, favorites, skills, mocks, trilhas, agentchats] =
+    const [notes, tasks, macros, podcasts, favorites, skills, mocks, trilhas, agentchats, notebooks] =
       await Promise.all([
         listNotes(kv),
         listTasks(kv),
@@ -35,6 +36,7 @@ export const graphHandler =
         listMocks(kv),
         listTrilhas(kv),
         listChats(kv),
+        listNotebookMetas(kv),
       ]);
 
     const entities = toGraphEntities({
@@ -47,6 +49,7 @@ export const graphHandler =
       mocks,
       trilhas,
       agentchats,
+      notebooks,
     });
     const query = parseGraphQuery(url);
     const filtered = filterGraphEntities(entities, query);

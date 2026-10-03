@@ -85,9 +85,15 @@ const defaultName = (i: number): string => `Person${i + 1}`;
 
 // Sorteia `count` vozes distintas e alterna gêneros quando possível,
 // para o diálogo ficar fácil de distinguir no ouvido.
-export const pickRandomVoices = async (count = 2): Promise<PodcastVoice[]> => {
+// `locales` restringe o sorteio (ex.: ['pt-BR'] p/ cadernos).
+export const pickRandomVoices = async (
+  count = 2,
+  locales: readonly string[] = [],
+): Promise<PodcastVoice[]> => {
   const all = await getVoices();
-  const pool = [...all];
+  const pool = locales.length > 0
+    ? [...all].filter((v) => locales.some((l) => v.id.startsWith(l)))
+    : [...all];
   const picked: EdgeVoice[] = [];
   let wantGender: 'M' | 'F' = Math.random() < 0.5 ? 'M' : 'F';
 

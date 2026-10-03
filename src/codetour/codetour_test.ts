@@ -18,10 +18,42 @@ import {
   resolveImport,
   scoreFile,
 } from './symbols.ts';
-import type { CodeTour, StructurePack, TourSlide } from './types.ts';
+import type { CodeTour, StructurePack, TourSlide, TourVisual } from './types.ts';
 
 const MERMAID =
   'flowchart LR; A[handler]-->B[service]; B-->C[store]; class A api; class B service;';
+
+const BUBBLE_JSON = JSON.stringify({
+  center: { label: 'SERVIÇO', detail: 'Centraliza regras antes do store.' },
+  nodes: [
+    {
+      id: 'validacao',
+      label: 'VALIDAÇÃO',
+      detail: 'Barra título vazio na linha doze.',
+      parent: null,
+      file: 'src/notes/service.ts:12',
+      slide: 's1',
+    },
+    {
+      id: 'persistencia',
+      label: 'STORE',
+      detail: 'Persiste só dado normalizado.',
+      parent: null,
+    },
+    {
+      id: 'vazio',
+      label: 'VAZIO',
+      detail: 'Exemplo: chega título vazio e explode.',
+      parent: 'validacao',
+    },
+  ],
+});
+
+const bubbleVisual = (): TourVisual => ({
+  kind: 'bubble',
+  title: 'Mapa geral',
+  content: BUBBLE_JSON,
+});
 
 const slide = (over: Partial<TourSlide> = {}): TourSlide => ({
   id: 's1',
@@ -54,6 +86,7 @@ const slide = (over: Partial<TourSlide> = {}): TourSlide => ({
       content:
         '<table><tr><th>entra</th><th>sai</th></tr><tr><td>x</td><td>y</td></tr></table>',
     },
+    { kind: 'bubble', title: 'Mapa geral', content: BUBBLE_JSON },
   ],
   files: ['src/notes/service.ts:12'],
   ...over,
@@ -157,6 +190,7 @@ Deno.test('protocolo lista tools e linguagem simples', () => {
   };
   const p = buildCodetourPrompt('/tmp/p', 'auth', 'repasse', pack);
   assert(p.includes('mermaid') && p.includes('mindmap') && p.includes('html'));
+  assert(p.includes('bubble'));
   assert(p.includes('check'));
   assert(p.includes('narration'));
   assert(buildAgentPrompt('/tmp/p', 'x', 'deep').includes('TODAS as tools'));
@@ -173,7 +207,7 @@ Deno.test('open aceita depth e rejeita inválida', () => {
   );
 });
 
-Deno.test('parse exige as três tools no tour', () => {
+Deno.test('parse exige as quatro tools no tour', () => {
   const t = deepTour();
   const onlyMermaid = {
     ...t,
@@ -183,6 +217,42 @@ Deno.test('parse exige as três tools no tour', () => {
   };
   const r = parseCodeTour(onlyMermaid, ctxOf());
   assert('error' in r && r.error.includes('mindmap'));
+  assert('error' in r && r.error.includes('bubble'));
+});
+
+Deno.test('parse rejeita mermaid fora do subconjunto seguro', () => {
+  const bads = [
+    'flowchart LR; A[x]-->B[y]; ```',
+    'flowchart LR; A["com aspas"]-->B[y]; B-->C[z];',
+    'flowchart LR; A[x]-->B[y]; B-->C[z]; class Z api;',
+    'flowchart LR; A[x]-->B[y]; B-->C[z]; class A backend;',
+    'flowchart LR; A[x]-->B[y]; click A callback;',
+  ];
+  for (const content of bads) {
+    const t = deepTour();
+    const evil = {
+      ...t,
+      slides: [slide({
+        visuals: [
+          { kind: 'mermaid', title: 'F', content },
+          {
+            kind: 'mindmap',
+            title: 'M',
+            content: '# tópico\n- item um\n- item dois',
+          },
+          {
+            kind: 'html',
+            title: 'H',
+            content:
+              '<table><tr><th>entra</th><th>sai</th></tr><tr><td>x</td><td>y</td></tr></table>',
+          },
+          bubbleVisual(),
+        ],
+      })],
+    };
+    const r = parseCodeTour(evil, ctxOf());
+    assert('error' in r && r.error.includes('mermaid'), content);
+  }
 });
 
 Deno.test('parse rejeita html com script', () => {
@@ -202,6 +272,7 @@ Deno.test('parse rejeita html com script', () => {
           title: 'H',
           content: '<div onclick="x()">oi</div><script>alert(1)</script>',
         },
+        bubbleVisual(),
       ],
     })],
   };
@@ -228,12 +299,78 @@ Deno.test('parse rejeita narration com código', () => {
   assert('error' in parseCodeTour(evil, ctxOf()));
 });
 
-Deno.test('parse aceita tour v5 completo', () => {
+Deno.test('parse aceita tour v6 completo', () => {
   const r = parseCodeTour(deepTour(), ctxOf());
   assert(!('error' in r));
   clearSession();
   openSession('/tmp/a', 'camada de serviço', 'repasse');
   if (!('error' in r)) attachTour(r.tour);
-  assertEquals(getSession()?.tour?.slides[0].visuals.length, 3);
+  assertEquals(getSession()?.tour?.slides[0].visuals.length, 4);
   clearSession();
+});
+
+Deno.test('parse rejeita bubble com parent inexistente', () => {
+  const t = deepTour();
+  const bad = {
+    ...t,
+    slides: [slide({
+      visuals: [
+        { kind: 'mermaid', title: 'F', content: MERMAID },
+        {
+          kind: 'mindmap',
+          title: 'M',
+          content: '# tópico\n- item um\n- item dois',
+        },
+        {
+          kind: 'html',
+          title: 'H',
+          content:
+            '<table><tr><th>entra</th><th>sai</th></tr><tr><td>x</td><td>y</td></tr></table>',
+        },
+        {
+          kind: 'bubble',
+          title: 'B',
+          content: JSON.stringify({
+            center: { label: 'C', detail: 'Centro de teste para o mapa.' },
+            nodes: [
+              { id: 'h1', label: 'H1', detail: 'Hub um do mapa.', parent: null },
+              { id: 'h2', label: 'H2', detail: 'Hub dois do mapa.', parent: null },
+              { id: 's1', label: 'S1', detail: 'Satélite órfão.', parent: 'fantasma' },
+            ],
+          }),
+        },
+      ],
+    })],
+  };
+  const r = parseCodeTour(bad, ctxOf());
+  assert('error' in r && r.error.includes('fantasma'));
+});
+
+Deno.test('parse rejeita bubble que aponta p/ slide inexistente', () => {
+  const t = deepTour();
+  const bad = {
+    ...t,
+    slides: [slide({
+      visuals: [...(slide().visuals.slice(0, 3)), {
+        kind: 'bubble',
+        title: 'B',
+        content: JSON.stringify({
+          center: { label: 'C', detail: 'Centro de teste para o mapa.' },
+          nodes: [
+            { id: 'h1', label: 'H1', detail: 'Hub um do mapa.', parent: null },
+            { id: 'h2', label: 'H2', detail: 'Hub dois do mapa.', parent: null },
+            {
+              id: 's1',
+              label: 'S1',
+              detail: 'Satélite com slide errado.',
+              parent: 'h1',
+              slide: 's99',
+            },
+          ],
+        }),
+      }],
+    })],
+  };
+  const r = parseCodeTour(bad, ctxOf());
+  assert('error' in r && r.error.includes('s99'));
 });

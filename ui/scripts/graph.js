@@ -14,11 +14,11 @@ let kgBackendQuery = '';
 let kgSearchTimer = null;
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'trilha', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'agentchat', 'tag'];
+const KG_KINDS = ['note', 'task', 'trilha', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'agentchat', 'notebook', 'tag'];
 const KG_LABELS = {
   note: 'Notas', task: 'Tasks', trilha: 'Trilhas', macro: 'Macros',
   podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
-  agentchat: 'Chats', tag: 'Tags',
+  agentchat: 'Chats', notebook: 'Cadernos', tag: 'Tags',
 };
 const KG_COLOR = {};
 
@@ -58,6 +58,7 @@ const OPEN_BY_KIND = {
   trilha: (id) => { setMode('trilhas'); if (typeof openTrilha === 'function') openTrilha(id); },
   mock: (id) => { setMode('mocks'); if (typeof openMockEditor === 'function') openMockEditor(id); },
   agentchat: (id) => { setMode('agentchats'); if (typeof openAgentChat === 'function') openAgentChat(id); },
+  notebook: (id) => { setMode('codetour'); if (typeof ctOpenNotebook === 'function') ctOpenNotebook(id); },
   // Favorito é um link salvo → abre a URL no browser (registra acesso).
   favorite: async (id) => {
     try {

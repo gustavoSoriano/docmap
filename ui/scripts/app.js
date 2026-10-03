@@ -13,6 +13,7 @@ const PANEL_BY_MODE = {
   mocks:     'mocks-col',
   favorites: 'fav-sidebar',
   podcasts:  'pod-col',
+  codetour:  'ct-sidebar',
   trilhas: 'trilha-sidebar',
   agentchats: 'ac-sidebar',
 };

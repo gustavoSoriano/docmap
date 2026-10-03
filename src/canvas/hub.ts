@@ -250,10 +250,16 @@ class BoardHub {
   /**
    * Insere shapes da IA (POST /canvas/shapes): posiciona, gera ids/z,
    * aplica no op-log e difunde a TODOS (sem remetente). Retorna os ids.
+   * `extra` carimba metadados em cada record (ex.: { notebookId }).
    */
-  insertShapes(inputs: readonly ShapeInput[]): string[] {
+  insertShapes(
+    inputs: readonly ShapeInput[],
+    extra?: Readonly<Record<string, unknown>>,
+  ): string[] {
     const placed = placeShapes(inputs, this.#records);
-    const records = buildRecords(placed, this.#maxZ() + 1);
+    const records = buildRecords(placed, this.#maxZ() + 1).map((rec) => (
+      extra ? { ...extra, ...rec } : rec
+    ));
     return this.insertRecords(records);
   }
 
@@ -271,6 +277,27 @@ class BoardHub {
     this.#persist();
     this.#broadcast({ type: 'diff', diff: { added } });
     return records.map((rec) => rec.id);
+  }
+
+  /**
+   * Remove records pelos ids (ex.: apagar desenho de um caderno).
+   * Ids inexistentes são ignorados. Retorna quantos foram removidos.
+   */
+  removeRecords(ids: readonly string[]): number {
+    const removed: Record<string, BoardRecord> = {};
+    for (const id of ids) {
+      const rec = this.#records.get(id);
+      if (rec) {
+        this.#records.delete(id);
+        removed[id] = rec;
+      }
+    }
+    const count = Object.keys(removed).length;
+    if (count === 0) return 0;
+    this.#updatedAt = new Date().toISOString();
+    this.#persist();
+    this.#broadcast({ type: 'diff', diff: { removed } });
+    return count;
   }
 
   #maxZ(): number {

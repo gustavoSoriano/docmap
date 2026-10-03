@@ -1,5 +1,6 @@
 // Tipos do codetour v4 — híbrido: estrutura extraída localmente (scan),
 // semântica escrita pela IA. Sessão única temporária, sem KV.
+import type { ArtifactKind } from './artifacts.ts';
 
 export type TourDepth = 'resumo' | 'repasse' | 'deep';
 
@@ -16,7 +17,23 @@ export type TourSnippet = {
   readonly code: string;
 };
 
-export type TourVisualKind = 'mermaid' | 'mindmap' | 'html';
+export type TourVisualKind = 'mermaid' | 'mindmap' | 'html' | 'bubble';
+
+// Mapa de bolhas radial (estilo hub-satélite): 1 centro + hubs + folhas.
+// O content do visual é JSON stringificado (ver parseBubbleContent).
+export type TourBubbleNode = {
+  readonly id: string;
+  readonly label: string;
+  readonly detail: string;
+  readonly parent: string | null;
+  readonly file: string | null;
+  readonly slide: string | null;
+};
+
+export type TourBubbleContent = {
+  readonly center: { readonly label: string; readonly detail: string };
+  readonly nodes: readonly TourBubbleNode[];
+};
 
 // Bloco visual de um slide — a IA escolhe a tool certa para o momento.
 export type TourVisual = {
@@ -100,6 +117,8 @@ export type CodeTourSession = {
   readonly projectRoot: string;
   readonly query: string;
   readonly depth: TourDepth;
+  readonly artifacts: readonly ArtifactKind[];
+  readonly notebookId: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly tour: CodeTour | null;
@@ -111,6 +130,8 @@ export type PublicSession = {
   readonly projectRoot: string;
   readonly query: string;
   readonly depth: TourDepth;
+  readonly artifacts: readonly ArtifactKind[];
+  readonly notebookId: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly tour: CodeTour | null;

@@ -1,6 +1,7 @@
-// Validação v5 — visuais por slide, todas as tools obrigatórias no tour.
+// Validação v6 — visuais por slide, todas as tools obrigatórias no tour.
 // Erros em pt-BR.
 import type { CodeTour, TourDepth, TourVisualKind } from './types.ts';
+import { parseBubbleContent } from './bubble.ts';
 
 type Ok = { readonly tour: CodeTour };
 type Err = { readonly error: string };
@@ -8,6 +9,9 @@ type Err = { readonly error: string };
 export type TourContext = {
   readonly depth: TourDepth;
   readonly paths: ReadonlySet<string>;
+  // Tools visuais exigidas (derivadas dos artefatos inline do caderno).
+  // Omitido → todas (compat com tours v6).
+  readonly required?: readonly TourVisualKind[];
 };
 
 type Bounds = {
@@ -46,7 +50,12 @@ const BOUNDS: Record<TourDepth, Bounds> = {
   },
 };
 
-const ALL_KINDS: readonly TourVisualKind[] = ['mermaid', 'mindmap', 'html'];
+const ALL_KINDS: readonly TourVisualKind[] = [
+  'mermaid',
+  'mindmap',
+  'html',
+  'bubble',
+];
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
   v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -60,7 +69,7 @@ export const isDepth = (v: unknown): v is TourDepth =>
   v === 'resumo' || v === 'repasse' || v === 'deep';
 
 const isKind = (v: unknown): v is TourVisualKind =>
-  v === 'mermaid' || v === 'mindmap' || v === 'html';
+  v === 'mermaid' || v === 'mindmap' || v === 'html' || v === 'bubble';
 
 export const validateOpenInput = (v: unknown): string | null => {
   if (!isObj(v)) return 'corpo deve ser um objeto';
@@ -99,7 +108,7 @@ export const parseCodeTour = (v: unknown, ctx: TourContext): Ok | Err => {
   const slidesErr = checkSlides(r.slides, b, ctx);
   if (slidesErr) return { error: slidesErr };
   const slides = r.slides as Ok['tour']['slides'];
-  const kindsErr = checkAllTools(slides);
+  const kindsErr = checkAllTools(slides, ctx.required ?? ALL_KINDS);
   if (kindsErr) return { error: kindsErr };
   const flows = Array.isArray(r.flows) ? r.flows : [];
   const flowsErr = checkFlows(flows, b);
@@ -129,27 +138,57 @@ export const parseCodeTour = (v: unknown, ctx: TourContext): Ok | Err => {
   };
 };
 
-// Todas as tools precisam aparecer ao menos 1x no tour.
-const checkAllTools = (slides: Ok['tour']['slides']): string | null => {
+// Todas as tools exigidas precisam aparecer ao menos 1x no tour.
+const checkAllTools = (
+  slides: Ok['tour']['slides'],
+  required: readonly TourVisualKind[],
+): string | null => {
   const seen = new Set<string>();
   for (const s of slides) {
     for (const vis of s.visuals ?? []) {
       if (isObj(vis) && isKind(vis.kind)) seen.add(vis.kind);
     }
   }
-  const missing = ALL_KINDS.filter((k) => !seen.has(k));
+  const missing = required.filter((k) => !seen.has(k));
   if (missing.length > 0) {
     return `tour sem usar: ${
       missing.join(', ')
-    } — use todas as tools (mermaid, mindmap, html)`;
+    } — use todas as tools do caderno (${required.join(', ')})`;
   }
   return null;
 };
 
-const checkVisual = (vis: unknown, slideIdx: number): string | null => {
+const checkBubbleRefs = (
+  raw: string,
+  slideIdx: number,
+  ctx: TourContext,
+  slideIds: ReadonlySet<string>,
+): string | null => {
+  if (raw.trim().length > 12_000) {
+    return `tour.slides[${slideIdx}].bubble excede 12000 chars`;
+  }
+  const parsed = parseBubbleContent(raw);
+  if ('error' in parsed) return `tour.slides[${slideIdx}].${parsed.error}`;
+  for (const n of parsed.content.nodes) {
+    if (n.file !== null && ctx.paths.size > 0 && !ctx.paths.has(basePathOf(n.file))) {
+      return `tour.slides[${slideIdx}].bubble.node ${n.id} fora do scan (${n.file})`;
+    }
+    if (n.slide !== null && !slideIds.has(n.slide)) {
+      return `tour.slides[${slideIdx}].bubble.node ${n.id} aponta p/ slide inexistente (${n.slide})`;
+    }
+  }
+  return null;
+};
+
+const checkVisual = (
+  vis: unknown,
+  slideIdx: number,
+  ctx: TourContext,
+  slideIds: ReadonlySet<string>,
+): string | null => {
   if (!isObj(vis)) return `tour.slides[${slideIdx}].visuals deve ser objetos`;
   if (!isKind(vis.kind)) {
-    return `tour.slides[${slideIdx}].visual kind deve ser mermaid, mindmap ou html`;
+    return `tour.slides[${slideIdx}].visual kind deve ser mermaid, mindmap, html ou bubble`;
   }
   if (typeof vis.title !== 'string' || !vis.title.trim()) {
     return `tour.slides[${slideIdx}].visual.title obrigatório`;
@@ -174,6 +213,8 @@ const checkVisual = (vis: unknown, slideIdx: number): string | null => {
     if (!/-->|---|==>/.test(content)) {
       return `tour.slides[${slideIdx}].mermaid sem conexões`;
     }
+    const mermaidErr = checkMermaidSafe(content, slideIdx);
+    if (mermaidErr) return mermaidErr;
   }
   if (vis.kind === 'mindmap') {
     if (content.length < 20 || content.length > 3000) {
@@ -191,6 +232,42 @@ const checkVisual = (vis: unknown, slideIdx: number): string | null => {
     }
     if (/<\s*script/i.test(content) || /<\s*iframe/i.test(content)) {
       return `tour.slides[${slideIdx}].html não pode ter script nem iframe`;
+    }
+  }
+  if (vis.kind === 'bubble') {
+    return checkBubbleRefs(content, slideIdx, ctx, slideIds);
+  }
+  return null;
+};
+
+// Subconjunto seguro do mermaid: o render 10.x quebra (bomba "Syntax error")
+// com fences, HTML, aspas, pipes, hashtags e diretivas click/style/subgraph.
+// Ids devem ser ASCII simples e todo "class X camada" precisa de nó X.
+const MERMAID_FORBIDDEN: ReadonlyArray<[RegExp, string]> = [
+  [/```/, 'sem cercas de código (```)'],
+  [/[<]/, 'sem <'],
+  [/(?<![-=])>/, 'sem > fora de --> ou ==>'],
+  [/["'`]/, 'sem aspas nem crase'],
+  [/\|/, 'sem pipe (|)'],
+  [/#/, 'sem hashtag (#)'],
+  [/[()]/, 'sem parênteses nos labels'],
+  [/\b(click|style|subgraph|classDef)\b/i, 'sem click/style/subgraph/classDef'],
+];
+
+const MERMAID_LAYERS = ['api', 'service', 'data', 'ui', 'test', 'util'] as const;
+
+const checkMermaidSafe = (content: string, slideIdx: number): string | null => {
+  for (const [re, why] of MERMAID_FORBIDDEN) {
+    if (re.test(content)) return `tour.slides[${slideIdx}].mermaid inválido: ${why}`;
+  }
+  const ids = new Set<string>();
+  for (const m of content.matchAll(/\b([A-Za-z][\w-]*)\s*[\[{]/g)) ids.add(m[1]);
+  for (const m of content.matchAll(/\bclass\s+([\w-]+)\s+([A-Za-z]+)/g)) {
+    if (!ids.has(m[1])) {
+      return `tour.slides[${slideIdx}].mermaid: class ${m[1]} sem nó definido`;
+    }
+    if (!(MERMAID_LAYERS as readonly string[]).includes(m[2])) {
+      return `tour.slides[${slideIdx}].mermaid: camada ${m[2]} inválida (use api/service/data/ui/test/util)`;
     }
   }
   return null;
@@ -216,6 +293,13 @@ const checkSlides = (
 ): string | null => {
   if (!Array.isArray(v) || v.length < b.slides[0] || v.length > b.slides[1]) {
     return `tour.slides: de ${b.slides[0]} a ${b.slides[1]} slides`;
+  }
+  const slideIds = new Set<string>();
+  for (const [i, s] of v.entries()) {
+    const id = isObj(s) && typeof s.id === 'string' && s.id.trim()
+      ? (s.id as string).trim()
+      : `s${i + 1}`;
+    slideIds.add(id);
   }
   for (const [i, s] of v.entries()) {
     if (!isObj(s)) return `tour.slides[${i}] deve ser objeto`;
@@ -252,11 +336,11 @@ const checkSlides = (
     const narrErr = checkNarration(narration, i);
     if (narrErr) return narrErr;
     const visuals = Array.isArray(s.visuals) ? s.visuals : [];
-    if (visuals.length > 3) {
-      return `tour.slides[${i}].visuals: máx 3 por slide`;
+    if (visuals.length > 4) {
+      return `tour.slides[${i}].visuals: máx 4 por slide`;
     }
     for (const vis of visuals) {
-      const err = checkVisual(vis, i);
+      const err = checkVisual(vis, i, ctx, slideIds);
       if (err) return err;
     }
     const sn = s.snippet as unknown;

@@ -39,6 +39,11 @@ export const podcastsDir = (): string => `${dataDir()}/podcasts`;
 // Um MP3 por hash da narração — cache em filesystem, sessão segue em memória.
 export const codetourDir = (): string => `${dataDir()}/codetour`;
 
+// ════ Cadernos: tours salvos ════
+// Metadados no KV; corpo (tour + paths) em <dataDir>/notebooks/<id>.json
+// (tour estoura o limite de ~64 KiB/valor do KV). Fora do backup, como canvas.
+export const notebooksDir = (): string => `${dataDir()}/notebooks`;
+
 // ════ Notas: anexos de imagem ════
 // Imagens coladas nas notas ficam fora do KV (limite de ~64 KiB por valor),
 // junto do data dir. O KV guarda só o markdown com a referência.
