@@ -32428,6 +32428,7 @@ svg#kg-svg:active {
   flex-direction: column;
   gap: 2px;
   width: 100%;
+  min-width: 0;
   text-align: left;
   background: none;
   border: none;
@@ -32435,6 +32436,13 @@ svg#kg-svg:active {
   cursor: pointer;
   font-family: var(--font-ui);
   color: var(--text);
+}
+.ct-nb-main strong,
+.ct-nb-main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 .ct-nb-main strong {
   font-size: 13.5px;
