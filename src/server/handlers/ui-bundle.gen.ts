@@ -22376,6 +22376,7 @@ body {
 /* Wrapper: rail + stage na horizontal */
 #body-main {
   flex: 1;
+  min-width: 0;
   min-height: 0;
   display: flex;
 }
@@ -26506,6 +26507,7 @@ body::before {
 #trilha-active {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -26519,14 +26521,23 @@ body::before {
   background: var(--surface);
   flex-wrap: wrap;
 }
+#trilha-toolbar-title-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 #trilha-toolbar-title-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 #trilha-toolbar-title {
   font-size: 16px;
   font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .tr-title-copy {
   border: none;
@@ -26557,6 +26568,7 @@ body::before {
 #trilha-toolbar-actions {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
 }
 .tr-tool-btn {
   width: 32px;
