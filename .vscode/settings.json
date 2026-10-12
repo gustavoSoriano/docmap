@@ -1,0 +1,4 @@
+{
+    "local-comment.storage.commentsConfig": "comments.json",
+    "local-comment.storage.bookmarksConfig": "bookmarks.json"
+}
