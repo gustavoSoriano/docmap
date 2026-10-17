@@ -6,7 +6,10 @@ import { EDGE_TTS_BIN } from '../config.ts';
 export type VoiceHealth = {
   readonly edgeTts: boolean;
   readonly ready: boolean;
-  readonly instructions: readonly { readonly dep: string; readonly cmd: string }[];
+  readonly instructions: readonly {
+    readonly dep: string;
+    readonly cmd: string;
+  }[];
 };
 
 const binExists = async (): Promise<boolean> => {
@@ -28,13 +31,11 @@ export const checkVoiceDeps = async (): Promise<VoiceHealth> => {
   return {
     edgeTts,
     ready: edgeTts,
-    instructions: edgeTts
-      ? []
-      : [{
-        dep: 'edge-tts',
-        cmd: Deno.build.os === 'darwin'
-          ? 'pip3 install edge-tts'
-          : 'pip3 install edge-tts',
-      }],
+    instructions: edgeTts ? [] : [{
+      dep: 'edge-tts',
+      cmd: Deno.build.os === 'darwin'
+        ? 'pip3 install edge-tts'
+        : 'pip3 install edge-tts',
+    }],
   };
 };

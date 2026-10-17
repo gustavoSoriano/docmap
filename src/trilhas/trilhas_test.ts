@@ -37,10 +37,14 @@ Deno.test('dag rejeita ciclo direto e indireto', () => {
     'ciclo de 2 nós',
   );
   assert(
-    createsCycle([
-      { fromNodeId: 'a', toNodeId: 'b' },
-      { fromNodeId: 'b', toNodeId: 'c' },
-    ], 'c', 'a'),
+    createsCycle(
+      [
+        { fromNodeId: 'a', toNodeId: 'b' },
+        { fromNodeId: 'b', toNodeId: 'c' },
+      ],
+      'c',
+      'a',
+    ),
     'ciclo de 3 nós',
   );
   assert(

@@ -26,6 +26,15 @@ const corsHeaders = (origin: string | null): HeadersInit => ({
   'Vary': 'Origin',
 });
 
+const debugPath = (req: Request): boolean => {
+  try {
+    const p = new URL(req.url).pathname;
+    return p === '/debug' || p.startsWith('/debug/');
+  } catch {
+    return false;
+  }
+};
+
 const withCors = (res: Response, origin: string | null): Response => {
   const headers = new Headers(res.headers);
   for (const [k, v] of Object.entries(corsHeaders(origin))) headers.set(k, v);
@@ -50,7 +59,10 @@ export const createApiRouter = (deps: HandlerDeps) => {
 
   return async (req: Request): Promise<Response> => {
     const origin = req.headers.get('origin');
-    if (!isLoopbackOrigin(origin)) {
+    // Debug aceita logs de qualquer contexto — inclusive sem Origin
+    // (curl, subprocess, editor). O bind já garante loopback only.
+    const isDebugPath = debugPath(req);
+    if (!isDebugPath && !isLoopbackOrigin(origin)) {
       return new Response('Forbidden', { status: 403 });
     }
 
@@ -62,13 +74,14 @@ export const createApiRouter = (deps: HandlerDeps) => {
     const { pathname } = url;
 
     let res: Response;
-    if (pathname === '/debug' || pathname.startsWith('/debug/')) {
+    if (isDebugPath) {
       res = await debug(req, url);
     } else if (pathname.startsWith('/headless')) {
       res = headlessHandler(req, url);
-    }     else if (pathname.startsWith('/notes')) res = await notes(req, url);
-    else if (pathname.startsWith('/categories')) res = await categories(req, url);
-    else if (pathname.startsWith('/macros')) res = await macros(req, url);
+    } else if (pathname.startsWith('/notes')) res = await notes(req, url);
+    else if (pathname.startsWith('/categories')) {
+      res = await categories(req, url);
+    } else if (pathname.startsWith('/macros')) res = await macros(req, url);
     else if (pathname.startsWith('/skills')) res = await skills(req, url);
     else if (pathname.startsWith('/tasks')) res = await tasks(req, url);
     else if (pathname.startsWith('/projects')) res = await projects(req, url);
@@ -78,8 +91,9 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/mocks')) res = await mocks(req, url);
     else if (pathname.startsWith('/podcasts')) res = await podcasts(req, url);
     else if (pathname.startsWith('/trilhas')) res = await trilhas(req, url);
-    else if (pathname.startsWith('/agentchats')) res = await agentChats(req, url);
-    else res = notFound();
+    else if (pathname.startsWith('/agentchats')) {
+      res = await agentChats(req, url);
+    } else res = notFound();
 
     return withCors(res, origin);
   };

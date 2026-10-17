@@ -66,6 +66,8 @@ export const limitGraphEntities = (
   entities: readonly GraphEntity[],
   limit: number,
 ): { readonly page: GraphEntity[]; readonly truncated: boolean } => {
-  if (entities.length <= limit) return { page: [...entities], truncated: false };
+  if (entities.length <= limit) {
+    return { page: [...entities], truncated: false };
+  }
   return { page: entities.slice(0, limit), truncated: true };
 };

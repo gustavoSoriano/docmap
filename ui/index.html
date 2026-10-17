@@ -1285,6 +1285,25 @@
                 <div
                   id="ct-empty-hint">Uma ideia por tela, código real destacado. Use o ＋ na lateral para criar.</div>
               </div>
+              <div id="ct-pending" style="display:none">
+                <div class="ct-pending-card">
+                  <span id="ct-pending-kicker"
+                    class="ct-pending-kicker">⏳ aguardando a IA</span>
+                  <h3 id="ct-pending-title"></h3>
+                  <code id="ct-pending-path"></code>
+                  <p
+                    class="ct-pending-hint">O caderno já está salvo na lista à esquerda.
+                    Cole o prompt no agente — quando ele devolver o conteúdo
+                    via <code>POST /codetour/import</code>, esta tela abre sozinha.</p>
+                  <pre id="ct-pending-prompt"></pre>
+                  <div class="ct-dialog-actions">
+                    <button class="ct-btn"
+                      id="ct-pending-copy">Copiar prompt de novo</button>
+                    <button class="ct-btn"
+                      id="ct-pending-cancel">Cancelar caderno</button>
+                  </div>
+                </div>
+              </div>
               <div id="ct-active" style="display:none">
                 <div id="ct-segs" aria-hidden="true"></div>
                 <div id="ct-brand">docmap · caderno</div>
@@ -1307,7 +1326,7 @@
                       style="display:none">×</button>
                   </div>
                 </div>
-                <span id="ct-narr-status"></span>
+                <span id="ct-narr-status" aria-live="polite"></span>
                 <audio id="ct-audio" preload="none"></audio>
                 <div class="ct-hint">arrasta ou usa ↑ ↓</div>
                 <div class="ct-hud-nav">

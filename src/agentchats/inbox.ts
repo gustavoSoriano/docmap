@@ -1,8 +1,5 @@
 import { getChat, listMessages, listParticipants } from './store.ts';
-import {
-  getChatEventRevision,
-  waitForChatEvent,
-} from './events.ts';
+import { getChatEventRevision, waitForChatEvent } from './events.ts';
 
 export type InboxWaitMeta = {
   readonly mode: 'long_poll';
@@ -12,7 +9,8 @@ export type InboxWaitMeta = {
   readonly timeoutSeconds: number;
 };
 
-const relevantForChat = (chatId: string) =>
+const relevantForChat =
+  (chatId: string) =>
   (event: { readonly type: string; readonly chatId: string }): boolean => {
     if (event.chatId !== chatId) return false;
     return event.type !== 'chat.typing';
@@ -24,14 +22,16 @@ export const getChatInboxWithWait = async (
   afterSeq: number,
   waitMs: number,
   signal: AbortSignal,
-): Promise<{
-  readonly chat: unknown;
-  readonly messages: unknown;
-  readonly participants: unknown;
-  readonly lastSeq: number;
-  readonly revision: number;
-  readonly wait: InboxWaitMeta;
-} | null> => {
+): Promise<
+  {
+    readonly chat: unknown;
+    readonly messages: unknown;
+    readonly participants: unknown;
+    readonly lastSeq: number;
+    readonly revision: number;
+    readonly wait: InboxWaitMeta;
+  } | null
+> => {
   const startedAt = Date.now();
   const deadline = startedAt + waitMs;
   let revision = getChatEventRevision();

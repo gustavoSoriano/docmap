@@ -9,6 +9,7 @@ import {
   claimNode,
   createNode,
   deleteNode,
+  deleteNodesOfTrilha,
   getNode,
   heartbeatNode,
   isNodeStatus,
@@ -16,7 +17,6 @@ import {
   listNodes,
   releaseNode,
   updateNode,
-  deleteNodesOfTrilha,
 } from './nodes.ts';
 import {
   createEdge,
@@ -34,11 +34,7 @@ import {
   listStickies,
   updateSticky,
 } from './stickies.ts';
-import {
-  deleteEventsOfTrilha,
-  listEvents,
-  logEvent,
-} from './events.ts';
+import { deleteEventsOfTrilha, listEvents, logEvent } from './events.ts';
 import { badRequest, conflict, json, notFound } from '../server/response.ts';
 import type {
   Assignee,
@@ -53,8 +49,7 @@ import type {
   UpdateTrilhaInput,
 } from './types.ts';
 
-const deepLink = (id: string): string =>
-  `http://127.0.0.1:3333/#trilha/${id}`;
+const deepLink = (id: string): string => `http://127.0.0.1:3333/#trilha/${id}`;
 
 const readBody = async (req: Request): Promise<unknown> => {
   try {
@@ -71,8 +66,8 @@ const validAssignee = (value: unknown): value is Assignee => {
     typeof a.label === 'string' && !!a.label.trim();
 };
 
-const nodeTrilhaOf = (kv: Deno.Kv) =>
-  async (id: string): Promise<string | null> => {
+const nodeTrilhaOf =
+  (kv: Deno.Kv) => async (id: string): Promise<string | null> => {
     const node = await getNode(kv, id);
     return node ? node.trilhaId : null;
   };
@@ -415,7 +410,10 @@ export const trilhasHandler =
       const trilha = await getTrilha(kv, id);
       if (!trilha) return notFound();
       const raw = Number(url.searchParams.get('limit') ?? 100);
-      const limit = Math.max(1, Math.min(Number.isFinite(raw) ? raw : 100, 500));
+      const limit = Math.max(
+        1,
+        Math.min(Number.isFinite(raw) ? raw : 100, 500),
+      );
       return json(await listEvents(kv, id, limit));
     }
 

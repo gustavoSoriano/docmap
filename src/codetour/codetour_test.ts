@@ -292,13 +292,15 @@ Deno.test('parse rejeita narration com código', () => {
   assert('error' in parseCodeReel(c, ctxOf()));
 });
 
-Deno.test('parse aceita caderno completo e popula a sessão', () => {
+Deno.test('parse aceita caderno completo e popula a sessão por id', () => {
   const r = parseCodeReel(caderno(6), ctxOf());
   assert(!('error' in r));
   clearSession();
-  openSession('/tmp/a', 'camada de serviço', 'repasse');
-  if (!('error' in r)) attachReel(r.reel);
-  assertEquals(getSession()?.reel?.reels.length, 6);
+  const id = crypto.randomUUID();
+  openSession(id, '/tmp/a', 'camada de serviço', 'repasse');
+  if (!('error' in r)) attachReel(id, r.reel);
+  assertEquals(getSession(id)?.reel?.reels.length, 6);
+  assertEquals(getSession()?.id, id);
   clearSession();
 });
 

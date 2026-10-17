@@ -1,7 +1,12 @@
 // Store KV dos cadernos — só metadados (ver body-file.ts p/ o corpo).
 import type { ArtifactKind } from '../codetour/artifacts.ts';
 import type { TourDepth } from '../codetour/types.ts';
-import type { NotebookLinks, NotebookMeta, NotebookProgress } from './types.ts';
+import type {
+  NotebookLinks,
+  NotebookMeta,
+  NotebookProgress,
+  NotebookStatus,
+} from './types.ts';
 import { notebookTag } from './types.ts';
 import { normalizeTags } from '../tags/normalize.ts';
 
@@ -21,13 +26,18 @@ export const emptyProgress = (): NotebookProgress => ({
 });
 
 export type CreateNotebookData = {
-  readonly title: string;
+  readonly title?: string;
   readonly query: string;
   readonly projectRoot: string;
   readonly depth: TourDepth;
   readonly artifacts: readonly ArtifactKind[];
-  readonly reels: number;
+  readonly reels?: number;
+  readonly status?: NotebookStatus;
 };
+
+// Cadernos antigos no KV não têm status — assumimos pronto.
+const normalizeStatus = (v: unknown): NotebookStatus =>
+  v === 'pending' ? 'pending' : 'ready';
 
 export const createNotebookMeta = async (
   kv: Deno.Kv,
@@ -37,7 +47,7 @@ export const createNotebookMeta = async (
   const id = crypto.randomUUID();
   const meta: NotebookMeta = {
     id,
-    title: data.title.slice(0, 120) || 'Caderno sem título',
+    title: (data.title ?? '').slice(0, 120) || 'Caderno sem título',
     query: data.query,
     projectRoot: data.projectRoot,
     depth: data.depth,
@@ -45,7 +55,8 @@ export const createNotebookMeta = async (
     artifacts: data.artifacts,
     links: emptyLinks(),
     progress: emptyProgress(),
-    reels: data.reels,
+    status: data.status ?? 'ready',
+    reels: data.reels ?? 0,
     createdAt: now,
     updatedAt: now,
   };
@@ -58,7 +69,13 @@ export const getNotebookMeta = async (
   id: string,
 ): Promise<NotebookMeta | null> => {
   const entry = await kv.get<NotebookMeta>(key(id));
-  return entry.value;
+  const v = entry.value;
+  if (!v) return null;
+  return {
+    ...v,
+    tags: Array.isArray(v.tags) ? v.tags : [],
+    status: normalizeStatus(v.status),
+  };
 };
 
 export const listNotebookMetas = async (
@@ -67,9 +84,11 @@ export const listNotebookMetas = async (
   const out: NotebookMeta[] = [];
   for await (const e of kv.list<NotebookMeta>({ prefix: PREFIX })) {
     if (e.value) {
-      out.push(
-        Array.isArray(e.value.tags) ? e.value : { ...e.value, tags: [] },
-      );
+      out.push({
+        ...e.value,
+        tags: Array.isArray(e.value.tags) ? e.value.tags : [],
+        status: normalizeStatus(e.value.status),
+      });
     }
   }
   out.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -81,6 +100,8 @@ export type PatchNotebookData = {
   readonly artifacts?: readonly ArtifactKind[];
   readonly links?: NotebookLinks;
   readonly progress?: NotebookProgress;
+  readonly status?: NotebookStatus;
+  readonly reels?: number;
 };
 
 export const patchNotebookMeta = async (
@@ -96,6 +117,8 @@ export const patchNotebookMeta = async (
     ...(patch.artifacts !== undefined ? { artifacts: patch.artifacts } : {}),
     ...(patch.links !== undefined ? { links: patch.links } : {}),
     ...(patch.progress !== undefined ? { progress: patch.progress } : {}),
+    ...(patch.status !== undefined ? { status: patch.status } : {}),
+    ...(patch.reels !== undefined ? { reels: patch.reels } : {}),
     updatedAt: new Date().toISOString(),
   };
   await kv.set(key(id), updated);

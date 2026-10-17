@@ -70,5 +70,3 @@ export interface CanvasShapesResponse {
   readonly ids: readonly string[];
   readonly count: number;
 }
-
-

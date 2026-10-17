@@ -110,7 +110,8 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     id: 'debug',
     title: 'Debug Audit',
     heading: 'Debug Audit — log efemero para agentes',
-    summary: 'Buffer efemero de debug para agentes instrumentarem execucoes.',
+    summary:
+      'Buffer efemero de debug para agentes instrumentarem execucoes; aceita logs sem Origin/check de origem.',
     tags: ['debug', 'audit'],
   },
 ];
@@ -943,12 +944,16 @@ Buffer in-memory (sem persistencia) para IA/agentes instrumentarem codigo e
 inspecionarem dados arbitrarios. Tudo expira em 20 minutos (TTL) e o buffer
 global tem limite de 1000 entradas (ring buffer).
 
-### Endpoints (porta :3334)
+Importante: o DEBUG **nao exige Origin** e nao bloqueia curl/servicos sem
+header — rode de qualquer processo local. Endpoint disponivel em duas
+portas: :3334 (AI API) e :3333 (server da UI), mesma semantica.
+
+### Endpoints (portas :3334 e :3333)
 
 | Metodo | Endpoint | Descricao |
 |--------|----------|-----------|
-| POST | \`/debug\` | Envia um payload de debug |
-| GET | \`/debug/:sessionId\` | Lista entradas da sessao |
+| POST | \`/debug\` | Envia um payload de debug (tamem \`/debug/api\` na :3333) |
+| GET | \`/debug/:sessionId\` | Lista entradas da sessao (na UI: \`/debug/api/:sessionId\`) |
 
 ### POST /debug — body
 
@@ -956,6 +961,23 @@ global tem limite de 1000 entradas (ring buffer).
 {
   "sessionId": "agent-123",
   "payload": { "qualquer": "json" }
+}
+\`\`\`
+
+Sem header \`Origin\`? Tambem funciona — nenhuma checagem bloqueia logs.
+
+Dica: para renderizar com título/nível na timeline do Debug UI, marque o
+payload com \`type\` (\`log\`, \`error\`, \`warning\`, \`decision\`, \`todo\`) e
+\`title\`:
+
+\`\`\`json
+{
+  "sessionId": "agent-123",
+  "payload": {
+    "type": "error",
+    "title": "store rejeitou título vazio",
+    "input": { "title": "" }
+  }
 }
 \`\`\`
 

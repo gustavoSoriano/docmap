@@ -92,9 +92,10 @@ export const updateChat = async (
     title: input.title !== undefined
       ? cleanName(input.title, existing.title)
       : existing.title,
-    objective: input.objective !== undefined && typeof input.objective === 'string'
-      ? input.objective.trim().slice(0, 4000)
-      : existing.objective,
+    objective:
+      input.objective !== undefined && typeof input.objective === 'string'
+        ? input.objective.trim().slice(0, 4000)
+        : existing.objective,
     status: input.status ?? existing.status,
     tags: input.tags !== undefined
       ? normalizeTags(input.tags)
@@ -129,7 +130,9 @@ export const listMessages = async (
   const afterSeq = opts?.afterSeq ?? 0;
   const limit = Math.min(Math.max(opts?.limit ?? 200, 1), 1000);
   const out: ChatMessage[] = [];
-  for await (const entry of kv.list<ChatMessage>({ prefix: msgPrefix(chatId) })) {
+  for await (
+    const entry of kv.list<ChatMessage>({ prefix: msgPrefix(chatId) })
+  ) {
     const m = entry.value;
     if (!m || m.seq <= afterSeq) continue;
     out.push(m);
@@ -218,7 +221,11 @@ const postSystemMessage = (
   chatId: string,
   body: string,
 ): Promise<ChatMessage | null> =>
-  insertMessage(kv, chatId, { authorKind: 'system', authorName: 'Sistema', body });
+  insertMessage(kv, chatId, {
+    authorKind: 'system',
+    authorName: 'Sistema',
+    body,
+  });
 
 export const listParticipants = async (
   kv: Deno.Kv,
@@ -250,7 +257,9 @@ export const joinChat = async (
   kv: Deno.Kv,
   chatId: string,
   input: JoinChatInput,
-): Promise<{ readonly participant: Participant; readonly message: ChatMessage } | null> => {
+): Promise<
+  { readonly participant: Participant; readonly message: ChatMessage } | null
+> => {
   const chat = await getChat(kv, chatId);
   if (!chat || chat.status !== 'open') return null;
   const name = cleanName(input.name, '');
@@ -261,14 +270,20 @@ export const joinChat = async (
     chatId,
     name,
     ...(input.tool ? { tool: String(input.tool).slice(0, 40) } : {}),
-    ...(input.provider ? { provider: String(input.provider).slice(0, 40) } : {}),
+    ...(input.provider
+      ? { provider: String(input.provider).slice(0, 40) }
+      : {}),
     ...(input.model ? { model: String(input.model).slice(0, 80) } : {}),
     presence: 'online',
     lastHeartbeatAt: now,
     joinedAt: now,
   };
   await kv.set(partKey(chatId, participant.sessionId), participant);
-  const message = await postSystemMessage(kv, chatId, `${name} entrou na sala.`);
+  const message = await postSystemMessage(
+    kv,
+    chatId,
+    `${name} entrou na sala.`,
+  );
   if (!message) return null;
   return { participant, message };
 };

@@ -46,9 +46,7 @@ export const normalizeCriteria = (
   if (!Array.isArray(input)) return [];
   return input
     .map((item) => typeof item === 'string' ? { text: item } : item)
-    .filter((item) =>
-      item && typeof item.text === 'string' && item.text.trim()
-    )
+    .filter((item) => item && typeof item.text === 'string' && item.text.trim())
     .slice(0, 100)
     .map((item) => ({
       id: typeof item.id === 'string' && item.id
@@ -97,7 +95,8 @@ export const createNode = async (
       : {}),
     status: input.status ?? 'todo',
     assignee: input.assignee ?? defaultAssignee(),
-    position: input.position ?? { x: 80 + (index % 4) * 240, y: 80 + Math.floor(index / 4) * 160 },
+    position: input.position ??
+      { x: 80 + (index % 4) * 240, y: 80 + Math.floor(index / 4) * 160 },
     createdAt: now,
     updatedAt: now,
   };
@@ -146,14 +145,14 @@ export const updateNode = async (
     ...(input.title !== undefined ? { title: input.title.trim() } : {}),
     ...(input.details !== undefined ? { details: input.details } : {}),
     ...(input.result !== undefined ? { result: input.result } : {}),
-    ...(input.doneCriteria !== undefined
-      ? { doneCriteria }
-      : {}),
+    ...(input.doneCriteria !== undefined ? { doneCriteria } : {}),
     ...(input.status !== undefined ? { status: input.status } : {}),
     ...(input.assignee !== undefined ? { assignee: input.assignee } : {}),
     ...(input.position !== undefined ? { position: input.position } : {}),
     // Concluir libera a trava automaticamente — trabalho acabou.
-    ...(status === 'done' ? { claimedBy: undefined, claimedAt: undefined } : {}),
+    ...(status === 'done'
+      ? { claimedBy: undefined, claimedAt: undefined }
+      : {}),
     // Atividade do dono = sinal de vida (sem tocar updatedAt).
     ...(by ? { lastHeartbeatAt: new Date().toISOString() } : {}),
     updatedAt: new Date().toISOString(),

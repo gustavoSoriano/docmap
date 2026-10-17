@@ -104,11 +104,11 @@ export type StructurePack = {
 };
 
 export type CodeTourSession = {
+  readonly id: string; // = id do caderno (pendência 1:1)
   readonly projectRoot: string;
   readonly query: string;
   readonly depth: TourDepth;
   readonly artifacts: readonly ArtifactKind[];
-  readonly notebookId: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly reel: CodeReel | null;
@@ -117,11 +117,11 @@ export type CodeTourSession = {
 
 // Visão pública (sem o pack completo — ele vai em GET /codetour/structure).
 export type PublicSession = {
+  readonly id: string;
   readonly projectRoot: string;
   readonly query: string;
   readonly depth: TourDepth;
   readonly artifacts: readonly ArtifactKind[];
-  readonly notebookId: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly reel: CodeReel | null;

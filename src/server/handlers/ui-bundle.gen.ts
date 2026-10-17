@@ -25855,10 +25855,18 @@ body::before {
   margin: 14px 0 6px;
   line-height: 1.25;
 }
-#task-desc-preview h1 { font-size: 1.15rem; }
-#task-desc-preview h2 { font-size: 1rem; }
-#task-desc-preview h3 { font-size: 0.9rem; }
-#task-desc-preview p { margin: 8px 0; }
+#task-desc-preview h1 {
+  font-size: 1.15rem;
+}
+#task-desc-preview h2 {
+  font-size: 1rem;
+}
+#task-desc-preview h3 {
+  font-size: 0.9rem;
+}
+#task-desc-preview p {
+  margin: 8px 0;
+}
 #task-desc-preview code {
   font-family: var(--font-mono);
   background: var(--surface-3);
@@ -25891,8 +25899,12 @@ body::before {
   padding-left: 22px;
   margin: 8px 0;
 }
-#task-desc-preview li { margin: 3px 0; }
-#task-desc-preview a { color: var(--accent); }
+#task-desc-preview li {
+  margin: 3px 0;
+}
+#task-desc-preview a {
+  color: var(--accent);
+}
 #task-desc-preview hr {
   border: none;
   border-top: 1px solid var(--border);
@@ -25911,9 +25923,15 @@ body::before {
   color: var(--text-3);
   min-height: 1em;
 }
-#task-due-hint.overdue { color: var(--type-warning); }
-#task-due-hint.due-today { color: var(--cat-entry); }
-#task-due-hint.is-done { color: var(--accent); }
+#task-due-hint.overdue {
+  color: var(--type-warning);
+}
+#task-due-hint.due-today {
+  color: var(--cat-entry);
+}
+#task-due-hint.is-done {
+  color: var(--accent);
+}
 
 /* ── Checklist ── */
 
@@ -26014,7 +26032,9 @@ body::before {
 .task-checklist-del:focus-visible {
   opacity: 1;
 }
-.task-checklist-del:hover { color: var(--type-warning); }
+.task-checklist-del:hover {
+  color: var(--type-warning);
+}
 
 #task-checklist-add-row {
   display: flex;
@@ -26035,8 +26055,12 @@ body::before {
   outline: none;
   transition: border-color 0.12s;
 }
-#task-checklist-input:focus { border-color: var(--accent-line); }
-#task-checklist-input::placeholder { color: var(--text-4); }
+#task-checklist-input:focus {
+  border-color: var(--accent-line);
+}
+#task-checklist-input::placeholder {
+  color: var(--text-4);
+}
 
 .task-checklist-add-btn {
   width: 30px;
@@ -26461,13 +26485,27 @@ body::before {
   flex-shrink: 0;
   background: var(--tr-draft);
 }
-.tr-status-dot.draft { background: var(--tr-draft); }
-.tr-status-dot.running { background: var(--tr-running); }
-.tr-status-dot.done { background: var(--tr-done); }
-.tr-status-dot.cancelled { background: var(--tr-cancelled); }
-.tr-status-dot.todo { background: var(--tr-todo); }
-.tr-status-dot.doing { background: var(--tr-doing); }
-.tr-status-dot.blocked { background: var(--tr-blocked); }
+.tr-status-dot.draft {
+  background: var(--tr-draft);
+}
+.tr-status-dot.running {
+  background: var(--tr-running);
+}
+.tr-status-dot.done {
+  background: var(--tr-done);
+}
+.tr-status-dot.cancelled {
+  background: var(--tr-cancelled);
+}
+.tr-status-dot.todo {
+  background: var(--tr-todo);
+}
+.tr-status-dot.doing {
+  background: var(--tr-doing);
+}
+.tr-status-dot.blocked {
+  background: var(--tr-blocked);
+}
 .tr-meta-alert {
   color: var(--tr-blocked);
   font-weight: 700;
@@ -26738,10 +26776,19 @@ body::before {
   user-select: none;
   touch-action: none;
 }
-.tr-node.st-todo { border-left-color: var(--tr-todo); }
-.tr-node.st-doing { border-left-color: var(--tr-doing); }
-.tr-node.st-done { border-left-color: var(--tr-done); opacity: .88; }
-.tr-node.st-blocked { border-left-color: var(--tr-blocked); }
+.tr-node.st-todo {
+  border-left-color: var(--tr-todo);
+}
+.tr-node.st-doing {
+  border-left-color: var(--tr-doing);
+}
+.tr-node.st-done {
+  border-left-color: var(--tr-done);
+  opacity: .88;
+}
+.tr-node.st-blocked {
+  border-left-color: var(--tr-blocked);
+}
 .tr-node.selected {
   outline: 2px solid var(--accent-line);
   outline-offset: 1px;
@@ -27808,20 +27855,41 @@ button.tr-insp-card-h:hover {
   background: rgb(255 255 255 / 0.45);
   border: 1px solid rgb(0 0 0 / 0.06);
 }
-.tr-sticky.c-yellow { background: #fef08a; }
-.tr-sticky.c-pink { background: #fecdd3; color: #4c2731; }
-.tr-sticky.c-green { background: #bbf7d0; color: #23402e; }
-.tr-sticky.c-blue { background: #bfdbfe; color: #24344d; }
+.tr-sticky.c-yellow {
+  background: #fef08a;
+}
+.tr-sticky.c-pink {
+  background: #fecdd3;
+  color: #4c2731;
+}
+.tr-sticky.c-green {
+  background: #bbf7d0;
+  color: #23402e;
+}
+.tr-sticky.c-blue {
+  background: #bfdbfe;
+  color: #24344d;
+}
 .tr-sticky-text {
   font-size: 12px;
   line-height: 1.5;
   word-break: break-word;
   white-space: pre-wrap;
 }
-.tr-sticky-text > :first-child { margin-top: 0; }
-.tr-sticky-text > :last-child { margin-bottom: 0; }
-.tr-sticky-text p { margin: 4px 0; }
-.tr-sticky-text ul, .tr-sticky-text ol { margin: 4px 0; padding-left: 16px; }
+.tr-sticky-text > :first-child {
+  margin-top: 0;
+}
+.tr-sticky-text > :last-child {
+  margin-bottom: 0;
+}
+.tr-sticky-text p {
+  margin: 4px 0;
+}
+.tr-sticky-text ul,
+.tr-sticky-text ol {
+  margin: 4px 0;
+  padding-left: 16px;
+}
 .tr-sticky-text code {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -27829,7 +27897,10 @@ button.tr-insp-card-h:hover {
   border-radius: 3px;
   padding: 0 3px;
 }
-.tr-sticky-text pre, .tr-sticky-text table { display: none; }
+.tr-sticky-text pre,
+.tr-sticky-text table {
+  display: none;
+}
 .tr-sticky-del {
   position: absolute;
   top: 4px;
@@ -27845,9 +27916,16 @@ button.tr-insp-card-h:hover {
   place-items: center;
   opacity: 0.7;
 }
-.tr-sticky:hover .tr-sticky-del { display: grid; }
-.tr-sticky-del:hover { opacity: 1; }
-.tr-sticky-del .ico { width: 12px; height: 12px; }
+.tr-sticky:hover .tr-sticky-del {
+  display: grid;
+}
+.tr-sticky-del:hover {
+  opacity: 1;
+}
+.tr-sticky-del .ico {
+  width: 12px;
+  height: 12px;
+}
 
 @media (max-width: 1100px) {
   #trilha-sidebar {
@@ -31431,8 +31509,12 @@ svg#kg-svg:active {
   word-break: break-word;
   color: var(--text);
 }
-.ac-msg-body > :first-child { margin-top: 0; }
-.ac-msg-body > :last-child { margin-bottom: 0; }
+.ac-msg-body > :first-child {
+  margin-top: 0;
+}
+.ac-msg-body > :last-child {
+  margin-bottom: 0;
+}
 .ac-msg-body h1,
 .ac-msg-body h2,
 .ac-msg-body h3 {
@@ -31440,10 +31522,18 @@ svg#kg-svg:active {
   margin: 12px 0 6px;
   line-height: 1.25;
 }
-.ac-msg-body h1 { font-size: 1.1rem; }
-.ac-msg-body h2 { font-size: 0.95rem; }
-.ac-msg-body h3 { font-size: 0.88rem; }
-.ac-msg-body p { margin: 8px 0; }
+.ac-msg-body h1 {
+  font-size: 1.1rem;
+}
+.ac-msg-body h2 {
+  font-size: 0.95rem;
+}
+.ac-msg-body h3 {
+  font-size: 0.88rem;
+}
+.ac-msg-body p {
+  margin: 8px 0;
+}
 .ac-msg-body code {
   font-family: var(--font-mono);
   background: var(--surface-3);
@@ -31477,9 +31567,15 @@ svg#kg-svg:active {
   padding-left: 22px;
   margin: 8px 0;
 }
-.ac-msg-body li { margin: 3px 0; }
-.ac-msg-body li::marker { color: var(--ac-color, var(--accent)); }
-.ac-msg-body a { color: var(--accent); }
+.ac-msg-body li {
+  margin: 3px 0;
+}
+.ac-msg-body li::marker {
+  color: var(--ac-color, var(--accent));
+}
+.ac-msg-body a {
+  color: var(--accent);
+}
 .ac-msg-body hr {
   border: none;
   border-top: 1px solid var(--border);
@@ -31654,11 +31750,19 @@ svg#kg-svg:active {
   border-radius: 999px;
   padding: 7px 14px;
 }
-#ct-empty-steps b { color: var(--accent); }
-#ct-empty-hint { font-size: 12.5px; color: var(--text-3); }
+#ct-empty-steps b {
+  color: var(--accent);
+}
+#ct-empty-hint {
+  font-size: 12.5px;
+  color: var(--text-3);
+}
 
 /* ── Trilho de reels ── */
-#ct-active { position: absolute; inset: 0; }
+#ct-active {
+  position: absolute;
+  inset: 0;
+}
 .ct-reels {
   position: absolute;
   inset: 0;
@@ -31667,7 +31771,9 @@ svg#kg-svg:active {
   scroll-behavior: smooth;
   scrollbar-width: none;
 }
-.ct-reels::-webkit-scrollbar { display: none; }
+.ct-reels::-webkit-scrollbar {
+  display: none;
+}
 .ct-slide {
   height: 100%;
   scroll-snap-align: start;
@@ -31741,7 +31847,9 @@ svg#kg-svg:active {
   font-size: 13px;
   line-height: 1.55;
 }
-.ct-reel-visual { width: min(900px, 100%); }
+.ct-reel-visual {
+  width: min(980px, 100%);
+}
 .rule {
   width: min(780px, 100%);
   background: var(--ct-card);
@@ -31757,7 +31865,11 @@ svg#kg-svg:active {
   color: var(--ct-muted);
   margin-bottom: 6px;
 }
-.rule p { margin: 0; font-size: 18px; line-height: 1.5; }
+.rule p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+}
 
 /* ── Código ── */
 .cl {
@@ -31783,22 +31895,45 @@ svg#kg-svg:active {
   background: var(--ct-cand-soft);
   box-shadow: inset 3px 0 0 var(--ct-cand);
 }
-.ct-slide.active .cl { opacity: 1; }
+.ct-slide.active .cl {
+  opacity: 1;
+}
 .ct-slide.active .cl.mark {
   animation: ct-sweep 0.8s ease both;
   animation-delay: calc(var(--i, 0) * 34ms + 180ms);
 }
 @keyframes ct-sweep {
-  0% { background: transparent; box-shadow: inset 3px 0 0 var(--ct-cand); }
-  45% { background: rgba(251, 191, 36, 0.42); }
-  100% { background: var(--ct-cand-soft); box-shadow: inset 3px 0 0 var(--ct-cand); }
+  0% {
+    background: transparent;
+    box-shadow: inset 3px 0 0 var(--ct-cand);
+  }
+  45% {
+    background: rgba(251, 191, 36, 0.42);
+  }
+  100% {
+    background: var(--ct-cand-soft);
+    box-shadow: inset 3px 0 0 var(--ct-cand);
+  }
 }
-.tok-k { color: var(--ct-tok-k); }
-.tok-s { color: var(--ct-tok-s); }
-.tok-c { color: var(--ct-tok-c); font-style: italic; }
-.tok-n { color: var(--ct-tok-n); }
-.tok-t { color: var(--ct-tok-t); }
-.tok-f { color: var(--ct-tok-f); }
+.tok-k {
+  color: var(--ct-tok-k);
+}
+.tok-s {
+  color: var(--ct-tok-s);
+}
+.tok-c {
+  color: var(--ct-tok-c);
+  font-style: italic;
+}
+.tok-n {
+  color: var(--ct-tok-n);
+}
+.tok-t {
+  color: var(--ct-tok-t);
+}
+.tok-f {
+  color: var(--ct-tok-f);
+}
 
 /* ── Animações de entrada ── */
 .r {
@@ -31807,11 +31942,22 @@ svg#kg-svg:active {
   transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.25, 1);
   transition-delay: calc(var(--i, 0) * 90ms);
 }
-.ct-slide.active .r { opacity: 1; transform: none; }
-.bob { display: inline-block; animation: ct-bob 1.4s ease-in-out infinite; }
+.ct-slide.active .r {
+  opacity: 1;
+  transform: none;
+}
+.bob {
+  display: inline-block;
+  animation: ct-bob 1.4s ease-in-out infinite;
+}
 @keyframes ct-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(9px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(9px);
+  }
 }
 
 /* ── HUD ── */
@@ -31825,10 +31971,28 @@ svg#kg-svg:active {
   gap: 4px;
   padding: 9px 14px;
 }
-#ct-segs i { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-3); overflow: hidden; }
-#ct-segs i.now { background: var(--ct-accent); animation: ct-seg 0.6s ease both; }
-#ct-segs i.done { background: var(--accent-line); }
-@keyframes ct-seg { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+#ct-segs i {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+#ct-segs i.now {
+  background: var(--ct-accent);
+  animation: ct-seg 0.6s ease both;
+}
+#ct-segs i.done {
+  background: var(--accent-line);
+}
+@keyframes ct-seg {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
 #ct-brand {
   position: absolute;
   top: 22px;
@@ -31869,12 +32033,43 @@ svg#kg-svg:active {
   font-size: 12.5px;
   color: var(--ct-muted);
 }
-#ct-toolbar-info #ct-topic { font-weight: 700; color: var(--ct-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
-#ct-toolbar-info #ct-meta { font-family: var(--font-mono); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
-#ct-toolbar-info #ct-status.ct-wait { animation: ct-pulse 1.4s ease-in-out infinite; }
-@keyframes ct-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
-#ct-toolbar-actions { display: flex; align-items: center; gap: 8px; }
-#ct-links { display: flex; gap: 8px; }
+#ct-toolbar-info #ct-topic {
+  font-weight: 700;
+  color: var(--ct-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40ch;
+}
+#ct-toolbar-info #ct-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40ch;
+}
+#ct-toolbar-info #ct-status.ct-wait {
+  animation: ct-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ct-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+#ct-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#ct-links {
+  display: flex;
+  gap: 8px;
+}
 .ct-hint {
   position: absolute;
   left: 18px;
@@ -31903,24 +32098,143 @@ svg#kg-svg:active {
   cursor: pointer;
   line-height: 1;
 }
-.ct-hud-nav button:hover:not(:disabled) { border-color: var(--accent-line); color: var(--accent); }
-.ct-hud-nav button:disabled { opacity: 0.3; cursor: default; }
-#ct-narr-status { position: absolute; left: 18px; bottom: 54px; z-index: 40; font-size: 12px; color: var(--ct-muted); }
-#ct-audio { display: none; }
-.ct-reel-note { font-size: 13px; color: var(--ct-muted); padding: 12px; }
+.ct-hud-nav button:hover:not(:disabled) {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.ct-hud-nav button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+/* ── Status da narração: pill flutuante centralizada ── */
+#ct-narr-status {
+  position: absolute;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px 10px 14px;
+  border-radius: 999px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-hi);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border-soft);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+}
+#ct-narr-status.on {
+  display: inline-flex;
+  animation: ct-pop 0.22s ease;
+}
+/* ícone: spinner gerando, barras tocando, check pronto "!" erro */
+#ct-narr-status::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: 0 0 14px;
+}
+#ct-narr-status.gen {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+#ct-narr-status.gen::before {
+  border: 2px solid var(--accent-dim);
+  border-top-color: var(--accent);
+  animation: ct-spin 0.8s linear infinite;
+}
+#ct-narr-status.play {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+#ct-narr-status.play::before {
+  background:
+    linear-gradient(var(--accent), var(--accent)) left 0 / 3px 42%,
+    linear-gradient(var(--accent), var(--accent)) center / 3px 62%,
+    linear-gradient(var(--accent), var(--accent)) right 0 / 3px 42%;
+  background-repeat: no-repeat;
+  animation: ct-eq 0.7s ease-in-out infinite alternate;
+  border-radius: 2px;
+}
+#ct-narr-status.ok {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+#ct-narr-status.ok::before {
+  content: '✓';
+  width: auto;
+  flex: 0 0 auto;
+  font-size: 12px;
+  line-height: 14px;
+  text-align: center;
+}
+#ct-narr-status.err {
+  border-color: var(--type-warning);
+  color: var(--type-warning);
+}
+#ct-narr-status.err::before {
+  content: '!';
+  width: auto;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+}
+@keyframes ct-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ct-eq {
+  0% {
+    transform: scaleY(0.55);
+  }
+  100% {
+    transform: scaleY(1.15);
+  }
+}
+@keyframes ct-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+}
+#ct-audio {
+  display: none;
+}
+.ct-reel-note {
+  font-size: 13px;
+  color: var(--ct-muted);
+  padding: 12px;
+}
 
 /* ── Visuais ── */
+/* !important vence o style inline que o mermaid grava no <svg>. */
 .ct-vm-canvas {
   background: var(--surface-2);
   transform-origin: top left;
   padding: 18px;
   box-sizing: border-box;
   overflow: auto;
-  max-height: 56vh;
+  max-height: 62vh;
   border-radius: var(--r-md);
 }
-.ct-vm-canvas svg { max-width: none; height: auto; display: block; margin: 0 auto; }
-.ct-reel-note details { margin-top: 6px; }
+.ct-vm-canvas svg {
+  max-width: none !important;
+  width: auto !important;
+  height: auto !important;
+  display: block;
+  margin: 0 auto;
+}
+.ct-reel-note details {
+  margin-top: 6px;
+}
 .ct-reel-note pre {
   margin: 6px 0 0;
   padding: 10px 12px;
@@ -31940,8 +32254,14 @@ svg#kg-svg:active {
   border: 1px solid var(--ct-line);
   border-radius: var(--r-md);
 }
-.ct-vmap svg { width: 100%; height: 100%; display: block; }
-.ct-vmap .markmap-foreign { color: var(--ct-ink) !important; }
+.ct-vmap svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.ct-vmap .markmap-foreign {
+  color: var(--ct-ink) !important;
+}
 .ct-vhtml {
   padding: 16px 18px;
   font-size: 14px;
@@ -31952,11 +32272,35 @@ svg#kg-svg:active {
   overflow-wrap: anywhere;
   text-align: left;
 }
-.ct-vhtml table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 4px 0; }
-.ct-vhtml th, .ct-vhtml td { border: 1px solid var(--ct-line); padding: 7px 10px; text-align: left; }
-.ct-vhtml th { background: var(--surface-2); font-weight: 700; }
-.ct-vhtml code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-2); padding: 1px 6px; border-radius: var(--r-xs); }
-.ct-vhtml blockquote { border-left: 3px solid var(--ct-accent); margin: 8px 0; padding: 8px 14px; background: var(--ct-accent-soft); }
+.ct-vhtml table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 4px 0;
+}
+.ct-vhtml th,
+.ct-vhtml td {
+  border: 1px solid var(--ct-line);
+  padding: 7px 10px;
+  text-align: left;
+}
+.ct-vhtml th {
+  background: var(--surface-2);
+  font-weight: 700;
+}
+.ct-vhtml code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+}
+.ct-vhtml blockquote {
+  border-left: 3px solid var(--ct-accent);
+  margin: 8px 0;
+  padding: 8px 14px;
+  background: var(--ct-accent-soft);
+}
 
 /* ── Mapa de bolhas ── */
 .ct-vbubble {
@@ -31966,7 +32310,10 @@ svg#kg-svg:active {
   padding: 12px;
   overflow: hidden;
 }
-.ct-vbubble svg { max-width: 100%; touch-action: none; }
+.ct-vbubble svg {
+  max-width: 100%;
+  touch-action: none;
+}
 
 /* ── Sidebar (biblioteca) ── */
 #ct-sidebar {
@@ -31985,7 +32332,13 @@ svg#kg-svg:active {
   gap: 10px;
   flex-shrink: 0;
 }
-#ct-sidebar-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); flex: 1; }
+#ct-sidebar-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  flex: 1;
+}
 #ct-new-btn {
   width: 30px;
   height: 30px;
@@ -32012,8 +32365,16 @@ svg#kg-svg:active {
   color: var(--text-3);
   flex-shrink: 0;
 }
-.ct-nb { border: 1px solid var(--border-soft); border-radius: var(--r-sm); background: var(--surface-2); overflow: hidden; }
-.ct-nb.on { border-color: var(--accent-line); background: var(--accent-dim); }
+.ct-nb {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.ct-nb.on {
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+}
 .ct-nb-main {
   display: flex;
   flex-direction: column;
@@ -32028,10 +32389,128 @@ svg#kg-svg:active {
   font-family: var(--font-ui);
   color: var(--text);
 }
-.ct-nb-main strong, .ct-nb-main span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.ct-nb-main strong { font-size: 13.5px; }
-.ct-nb-main span { font-size: 12px; color: var(--text-3); }
-.ct-nb-main:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ct-nb-main strong,
+.ct-nb-main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.ct-nb-main strong {
+  font-size: 13.5px;
+}
+.ct-nb-main span {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.ct-nb-main:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.ct-nb-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(251, 191, 36, 0.16);
+  color: var(--type-question);
+  width: fit-content;
+  white-space: nowrap;
+}
+.ct-nb.on .ct-nb-badge {
+  background: var(--ct-accent-soft);
+  color: var(--ct-accent);
+}
+
+/* ── Painel do caderno pendente ── */
+#ct-pending {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 26px;
+  overflow-y: auto;
+}
+.ct-pending-card {
+  width: min(860px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 26px 30px;
+  box-shadow: var(--sh-md);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ct-pending-kicker {
+  width: fit-content;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(251, 191, 36, 0.16);
+  color: var(--type-question);
+  animation: ct-bob 2.4s ease-in-out infinite;
+}
+#ct-pending-title {
+  margin: 6px 0 0;
+  font-size: clamp(18px, 2.4vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--text);
+}
+#ct-pending-path {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-xs);
+  padding: 6px 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ct-pending-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+.ct-pending-hint code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface-2);
+  border-radius: var(--r-xs);
+  padding: 1px 6px;
+}
+#ct-pending-prompt {
+  margin: 0;
+  max-height: 34vh;
+  overflow: auto;
+  padding: 14px 16px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+#ct-pending .ct-dialog-actions {
+  justify-content: flex-start;
+}
+#ct-pending #ct-pending-cancel:hover {
+  border-color: var(--type-warning);
+  color: var(--type-warning);
+}
 
 /* ── Botões (compartilhados com o form) ── */
 .ct-btn {
@@ -32049,9 +32528,20 @@ svg#kg-svg:active {
   font-family: var(--font-ui);
   white-space: nowrap;
 }
-.ct-btn:hover { background: var(--surface-3); color: var(--text); }
-.ct-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.ct-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+.ct-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.ct-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ct-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
 
 /* ── Form de criação ── */
 .ct-overlay {
@@ -32072,15 +32562,51 @@ svg#kg-svg:active {
   width: 100%;
   box-shadow: var(--sh-md);
 }
-.ct-dialog h3 { margin: 0 0 8px; font-size: 16px; }
-.ct-dialog p { margin: 0 0 14px; font-size: 13.5px; color: var(--text-2); line-height: 1.6; }
-.ct-dialog label { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; padding: 6px 0; cursor: pointer; }
-.ct-dialog label small { color: var(--text-3); }
-.ct-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
-.ct-dialog.ct-form { max-width: 720px; width: min(720px, calc(100vw - 40px)); padding: 30px 32px; }
-.ct-form h3 { font-size: 19px; margin-bottom: 14px; }
-.ct-form .ct-field { margin-bottom: 18px; }
-.ct-form #ct-f-query { width: 100%; box-sizing: border-box; padding: 11px 14px; font-size: 14px; }
+.ct-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.ct-dialog p {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+.ct-dialog label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13.5px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.ct-dialog label small {
+  color: var(--text-3);
+}
+.ct-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+.ct-dialog.ct-form {
+  max-width: 720px;
+  width: min(720px, calc(100vw - 40px));
+  padding: 30px 32px;
+}
+.ct-form h3 {
+  font-size: 19px;
+  margin-bottom: 14px;
+}
+.ct-form .ct-field {
+  margin-bottom: 18px;
+}
+.ct-form #ct-f-query {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  font-size: 14px;
+}
 .ct-form .ct-field-row {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -32096,10 +32622,25 @@ svg#kg-svg:active {
   width: max-content;
   max-width: 100%;
 }
-.ct-form .ct-radio-row label { padding: 7px 18px; border-radius: 999px; color: var(--text-3); font-weight: 600; }
-.ct-form .ct-radio-row label:has(input:checked) { background: var(--accent); color: var(--on-accent); }
-.ct-form .ct-radio-row input { position: absolute; opacity: 0; pointer-events: none; }
-.ct-form #ct-f-artifacts { grid-template-columns: 1fr 1fr 1fr; gap: 10px 14px; }
+.ct-form .ct-radio-row label {
+  padding: 7px 18px;
+  border-radius: 999px;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.ct-form .ct-radio-row label:has(input:checked) {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ct-form .ct-radio-row input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.ct-form #ct-f-artifacts {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px 14px;
+}
 .ct-form #ct-f-artifacts label {
   font-size: 13.5px;
   padding: 10px 12px;
@@ -32107,10 +32648,24 @@ svg#kg-svg:active {
   border-radius: var(--r-sm);
   background: var(--surface-2);
 }
-.ct-form #ct-f-artifacts label:has(input:checked) { border-color: var(--accent-line); background: var(--accent-dim); }
-.ct-form .ct-dialog-actions { margin-top: 20px; }
-.ct-form .ct-dialog-actions .ct-btn { padding: 10px 20px; font-size: 13.5px; }
-.ct-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; font-size: 13.5px; }
+.ct-form #ct-f-artifacts label:has(input:checked) {
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+}
+.ct-form .ct-dialog-actions {
+  margin-top: 20px;
+}
+.ct-form .ct-dialog-actions .ct-btn {
+  padding: 10px 20px;
+  font-size: 13.5px;
+}
+.ct-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 13.5px;
+}
 .ct-field > span:first-child {
   font-size: 11px;
   font-weight: 700;
@@ -32118,7 +32673,11 @@ svg#kg-svg:active {
   letter-spacing: 0.08em;
   color: var(--text-3);
 }
-.ct-field-row { display: flex; align-items: center; gap: 10px; }
+.ct-field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .ct-field-row code {
   flex: 1;
   font-family: var(--font-mono);
@@ -32137,9 +32696,16 @@ svg#kg-svg:active {
   font-size: 13px;
   font-family: var(--font-ui);
 }
-#ct-f-query:focus { outline: none; border-color: var(--accent-line); }
-.ct-radio-row { display: flex; gap: 14px; }
-.ct-radio-row label, #ct-f-artifacts label {
+#ct-f-query:focus {
+  outline: none;
+  border-color: var(--accent-line);
+}
+.ct-radio-row {
+  display: flex;
+  gap: 14px;
+}
+.ct-radio-row label,
+#ct-f-artifacts label {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -32150,26 +32716,57 @@ svg#kg-svg:active {
   font-weight: 400;
   color: var(--text);
 }
-#ct-f-artifacts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+#ct-f-artifacts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
 
 /* ── Responsivo ── */
 @media (max-width: 760px) {
-  .ct-slide { padding: 70px 16px 108px; }
-  .source .code { font-size: 12px; }
-  .ct-hint { display: none; }
-  #ct-toolbar-info #ct-meta, #ct-toolbar-info #ct-status { display: none; }
-  .ct-card h2 { font-size: clamp(21px, 5.5vw, 28px); }
+  .ct-slide {
+    padding: 70px 16px 108px;
+  }
+  .source .code {
+    font-size: 12px;
+  }
+  .ct-hint {
+    display: none;
+  }
+  #ct-toolbar-info #ct-meta,
+  #ct-toolbar-info #ct-status {
+    display: none;
+  }
+  .ct-card h2 {
+    font-size: clamp(21px, 5.5vw, 28px);
+  }
 }
 @media (max-height: 720px) {
-  .ct-card { gap: 11px; }
-  .ct-slide { padding-top: 60px; padding-bottom: 80px; }
+  .ct-card {
+    gap: 11px;
+  }
+  .ct-slide {
+    padding-top: 60px;
+    padding-bottom: 80px;
+  }
 }
 
 /* ── Respeito a quem prefere sem movimento ── */
 @media (prefers-reduced-motion: reduce) {
-  .r, .cl { opacity: 1 !important; transform: none !important; transition: none !important; }
-  .ct-slide.active .cl.mark, .bob, #ct-status.ct-wait { animation: none !important; }
-  #ct-segs i.now { animation: none !important; }
+  .r,
+  .cl {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .ct-slide.active .cl.mark,
+  .bob,
+  #ct-status.ct-wait {
+    animation: none !important;
+  }
+  #ct-segs i.now {
+    animation: none !important;
+  }
 }
 
 </style>
@@ -33423,6 +34020,25 @@ svg#kg-svg:active {
                 <div
                   id="ct-empty-hint">Uma ideia por tela, código real destacado. Use o ＋ na lateral para criar.</div>
               </div>
+              <div id="ct-pending" style="display:none">
+                <div class="ct-pending-card">
+                  <span id="ct-pending-kicker"
+                    class="ct-pending-kicker">⏳ aguardando a IA</span>
+                  <h3 id="ct-pending-title"></h3>
+                  <code id="ct-pending-path"></code>
+                  <p
+                    class="ct-pending-hint">O caderno já está salvo na lista à esquerda.
+                    Cole o prompt no agente — quando ele devolver o conteúdo
+                    via <code>POST /codetour/import</code>, esta tela abre sozinha.</p>
+                  <pre id="ct-pending-prompt"></pre>
+                  <div class="ct-dialog-actions">
+                    <button class="ct-btn"
+                      id="ct-pending-copy">Copiar prompt de novo</button>
+                    <button class="ct-btn"
+                      id="ct-pending-cancel">Cancelar caderno</button>
+                  </div>
+                </div>
+              </div>
               <div id="ct-active" style="display:none">
                 <div id="ct-segs" aria-hidden="true"></div>
                 <div id="ct-brand">docmap · caderno</div>
@@ -33445,7 +34061,7 @@ svg#kg-svg:active {
                       style="display:none">×</button>
                   </div>
                 </div>
-                <span id="ct-narr-status"></span>
+                <span id="ct-narr-status" aria-live="polite"></span>
                 <audio id="ct-audio" preload="none"></audio>
                 <div class="ct-hint">arrasta ou usa ↑ ↓</div>
                 <div class="ct-hud-nav">
@@ -40810,6 +41426,7 @@ let ctReelData = null;
 let ctSlides = [];
 let ctSlideIdx = 0;
 let ctPollTimer = null;
+let ctPollId = '';
 let ctDepth = 'repasse';
 let ctNotebook = null;
 let ctLibrary = [];
@@ -40817,6 +41434,8 @@ let ctNarrPlaying = false;
 let ctNarrReelId = '';
 let ctBooting = true;
 let ctCurrent = -1;
+// Prompt por caderno pendente (id → texto) — p/ reabrir "copiar prompt".
+const ctPrompts = new Map();
 const ctVisualMounts = new Map();
 let ctListened = new Set();
 try {
@@ -40850,6 +41469,16 @@ const setCtDepth = (depth) => {
 
 // ════ Sessão ════
 
+const ctLoadNotebookMeta = async (id) => {
+  if (!id) return null;
+  try {
+    const res = await fetch(\`/tours/\${encodeURIComponent(id)}\`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.notebook || null;
+  } catch { return null; }
+};
+
 const loadCodetour = async () => {
   try {
     const res = await fetch('/codetour/session');
@@ -40860,9 +41489,19 @@ const loadCodetour = async () => {
     }
   } catch { ctSession = null; }
   renderCodetour();
-  ctSyncSessionNotebook();
+  if (ctSession?.reel) {
+    const nb = await ctLoadNotebookMeta(ctSession.id);
+    if (nb) { ctNotebook = nb; renderCtHeroExtras(); }
+  } else if (ctSession) {
+    const nb = await ctLoadNotebookMeta(ctSession.id);
+    if (nb && nb.status === 'pending') {
+      ctNotebook = nb;
+      await ctShowPending(nb);
+    }
+  }
   loadCtLibrary();
-  startCtPoll();
+  if (ctNotebook?.status === 'pending') startCtPoll(ctNotebook.id);
+  else startCtPoll('');
 };
 
 const pickCodetourFolder = async () => {
@@ -40929,40 +41568,133 @@ const ctSubmitForm = async () => {
     });
     if (!res.ok) return toast(await res.text() || 'Erro ao gerar');
     const data = await res.json();
+    // Caderno já registrado e listado — pendência é só do agente.
     ctSession = data.session;
+    ctNotebook = data.notebook;
     ctRoot = ctSession.projectRoot;
+    if (data.agentPrompt) ctPrompts.set(ctSession.id, data.agentPrompt);
+    ctDebug('decision', 'caderno pendente criado', {
+      id: ctSession.id,
+      query,
+      depth,
+      artifacts: arts.join(','),
+    });
     ctSlideIdx = 0;
-    ctNotebook = null;
     ctCloseForm();
+    if ($('ct-f-query')) $('ct-f-query').value = '';
     copyToClipboard(data.agentPrompt, 'Prompt copiado — cole na IA');
-    renderCodetour();
-    startCtPoll();
+    loadCtLibrary();
+    ctShowPending(data.notebook, data.agentPrompt);
+    startCtPoll(ctSession.id);
   } catch { toast('Erro ao gerar'); }
 };
 
-const startCtPoll = () => {
+// ════ Caderno pendente (aguardando o agente) ════
+
+const ctShowPending = async (nb, prompt) => {
+  ctNotebook = nb || ctNotebook;
+  const box = $('ct-pending');
+  if (!box || !nb) return;
+  if ($('ct-empty')) $('ct-empty').style.display = 'none';
+  if ($('ct-active')) $('ct-active').style.display = 'none';
+  box.style.display = '';
+  if ($('ct-pending-title')) $('ct-pending-title').textContent = nb.query || nb.title;
+  if ($('ct-pending-path')) {
+    $('ct-pending-path').textContent = nb.projectRoot || '';
+    $('ct-pending-path').title = nb.projectRoot || '';
+  }
+  const pre = $('ct-pending-prompt');
+  if (pre) {
+    if (!prompt) {
+      try {
+        const res = await fetch(\`/codetour/agent-prompt?id=\${encodeURIComponent(nb.id)}\`);
+        const data = res.ok ? await res.json() : null;
+        prompt = data?.prompt || '';
+      } catch { prompt = ''; }
+    }
+    if (prompt) ctPrompts.set(nb.id, prompt);
+    pre.textContent = prompt || 'Prompt indisponível — o agente deve usar POST /codetour/import.';
+    pre.dataset.hasPrompt = prompt ? '1' : '';
+  }
+  requestAnimationFrame(() => pre?.scrollIntoView({ block: 'nearest' }));
+};
+
+const ctHidePending = () => {
+  if ($('ct-pending')) $('ct-pending').style.display = 'none';
+};
+
+const ctCancelPending = async () => {
+  const nb = ctNotebook;
+  if (!nb || !nb.id) return;
   stopCtPoll();
-  ctPollTimer = setInterval(async () => {
-    if (currentMode !== 'codetour' || ctReelData) {
-      if (ctReelData) stopCtPoll();
+  try {
+    const res = await fetch(\`/tours/\${encodeURIComponent(nb.id)}\`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refs: { podcast: false, canvas: false, audio: false } }),
+    });
+    if (!res.ok && res.status !== 404) return toast(await res.text() || 'Erro ao cancelar');
+    ctPrompts.delete(nb.id);
+    toast('Caderno cancelado');
+    ctSession = null;
+    ctReelData = null;
+    ctNotebook = null;
+    ctSlides = [];
+    ctHidePending();
+    renderCodetour();
+    loadCtLibrary();
+  } catch { toast('Erro ao cancelar'); }
+};
+
+const ctCopyPendingPrompt = () => {
+  const nb = ctNotebook;
+  const prompt = nb && ctPrompts.get(nb.id) || $('ct-pending-prompt')?.textContent || '';
+  if (!prompt.trim()) return toast('Prompt indisponível');
+  copyToClipboard(prompt, 'Prompt copiado');
+};
+
+const ctPollPending = async (id) => {
+  try {
+    const res = await fetch(\`/codetour/session?id=\${encodeURIComponent(id)}\`);
+    const data = res.ok ? await res.json() : null;
+    if (data?.session?.reel) {
+      ctSession = data.session;
+      ctSlideIdx = 0;
+      ctHidePending();
+      renderCodetour();
+      ctDebug('log', 'import confirmado — caderno pronto', {
+        id,
+        telas: data.session.reel?.reels?.length ?? 0,
+      });
+      const nb = await ctLoadNotebookMeta(id);
+      if (nb) { ctNotebook = nb; renderCtHeroExtras(); }
+      loadCtLibrary();
+      toast('Caderno pronto e salvo');
+      stopCtPoll();
       return;
     }
-    try {
-      const res = await fetch('/codetour/session');
-      const data = await res.json();
-      if (data.session?.reel && !ctReelData) {
-        ctSession = data.session;
-        ctSlideIdx = 0;
-        renderCodetour();
-        ctSyncSessionNotebook();
-        toast('Caderno pronto e salvo');
-        stopCtPoll();
-      } else if (data.session && !ctSession) {
-        ctSession = data.session;
-        ctRoot = data.session.projectRoot;
-        renderCodetour();
-      }
-    } catch { /* próximo tick */ }
+    const nb = await ctLoadNotebookMeta(id);
+    if (nb && nb.status === 'ready') {
+      // App reiniciou e perdeu a sessão: abre pelo corpo gravado.
+      ctDebug('log', 'sessão perdida — reabrindo pelo disco', { id });
+      await ctOpenNotebook(id);
+      stopCtPoll();
+      return;
+    }
+  } catch { /* próximo tick */ }
+};
+
+const startCtPoll = (id) => {
+  if (id && ctPollId === id && ctPollTimer) return;
+  stopCtPoll();
+  if (!id) return;
+  ctPollId = id;
+  ctPollTimer = setInterval(async () => {
+    if (currentMode !== 'codetour') return;
+    const nb = ctNotebook;
+    if (!nb || nb.id !== id) { stopCtPoll(); return; }
+    if (nb.status !== 'pending') { stopCtPoll(); return; }
+    ctPollPending(id);
   }, 2000);
 };
 
@@ -40973,6 +41705,7 @@ const stopCtPoll = () => {
 
 const clearCodetour = async () => {
   await fetch('/codetour/clear', { method: 'POST' });
+  ctClearPollSoon();
   ctStopNarration();
   ctTeardownVisuals();
   ctSession = null;
@@ -40982,9 +41715,9 @@ const clearCodetour = async () => {
   ctSlideIdx = 0;
   ctCurrent = -1;
   ctNotebook = null;
+  ctHidePending();
   renderCodetour();
   renderCtLibrary();
-  startCtPoll();
 };
 
 // ════ Montagem das telas ════
@@ -41106,7 +41839,8 @@ const renderCodetour = () => {
   const reel = ctSession?.reel || null;
   ctReelData = reel;
   const has = !!reel;
-  if ($('ct-empty')) $('ct-empty').style.display = has ? 'none' : 'block';
+  const pendingOpen = $('ct-pending')?.style.display !== 'none';
+  if ($('ct-empty')) $('ct-empty').style.display = has || pendingOpen ? 'none' : 'block';
   if ($('ct-active')) $('ct-active').style.display = has ? 'block' : 'none';
   const clearBtn = $('ct-clear-btn');
   if (clearBtn) clearBtn.style.display = ctSession ? '' : 'none';
@@ -41229,7 +41963,9 @@ const ctMountMermaid = (box, vis) => {
       startOnLoad: false,
       theme: ctIsDark() ? 'dark' : 'default',
       securityLevel: 'strict',
-      flowchart: { curve: 'linear', htmlLabels: false },
+      // useMaxWidth FALSE = diagrama no tamanho natural (sem espremer o
+      // grafo pra dentro do max-width), rolável dentro do canvas.
+      flowchart: { curve: 'linear', htmlLabels: false, useMaxWidth: false },
     });
   } catch { /* já inicializado */ }
   const code = String(vis.content || '')
@@ -41246,6 +41982,17 @@ const ctMountMermaid = (box, vis) => {
     box.innerHTML = \`<div class="ct-vm-canvas">\${
       window.DOMPurify ? window.DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true } }) : svg
     }</div>\`;
+    const el = box.querySelector('svg');
+    if (el) {
+      el.style.maxWidth = 'none';
+      el.style.width = 'auto';
+      el.style.height = 'auto';
+      const vb = el.viewBox?.baseVal;
+      if (vb?.width && vb?.height) {
+        el.setAttribute('width', String(Math.round(vb.width)));
+        el.setAttribute('height', String(Math.round(vb.height)));
+      }
+    }
   }).catch(() => { box.innerHTML = ctmermaidError(code); });
   return null;
 };
@@ -41444,10 +42191,30 @@ const ctWrapLabel = (text, perLine) => {
 
 // ════ Narração por tela ════
 
-const ctSetNarrStatus = (msg) => {
-  if ($('ct-narr-status')) $('ct-narr-status').textContent = msg || '';
+// kind: '' | 'gen' (spinner) | 'play' | 'ok' | 'err' — muda cor/ícone da pill.
+const ctSetNarrStatus = (msg, kind = '') => {
+  const el = $('ct-narr-status');
+  if (el) {
+    el.className = msg ? \`on \${kind}\`.trim() : '';
+    el.textContent = msg;
+  }
   const btn = $('ct-narr-btn');
   if (btn) btn.textContent = ctNarrPlaying ? '⏸ Parar' : '▶ Ouvir';
+};
+
+// Debug Audit local (porta 3333 aceita sem origin) — alimenta a timeline
+// do /debug na sessão "codetour". Fire-and-forget.
+const ctDebug = (type, title, detail) => {
+  try {
+    fetch('/debug', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: 'codetour',
+        payload: { type, title, ...(detail || {}) },
+      }),
+    }).catch(() => {});
+  } catch { /* noop */ }
 };
 
 const ctMarkListened = (id) => {
@@ -41466,34 +42233,28 @@ const ctStopNarration = () => {
     const a = $('ct-audio');
     if (a) { a.pause(); a.removeAttribute('src'); a.load(); }
   } catch { /* noop */ }
-  try {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-  } catch { /* noop */ }
   ctSetNarrStatus('');
 };
 
-const ctSpeakFallback = (text, reelId) => {
-  if (!window.speechSynthesis) {
-    ctSetNarrStatus('sem áudio — instale edge-tts');
-    return;
-  }
+// Sem edge-tts NÃO existe fallback: voz do sistema (webkitSpeech) está
+// proibida no caderno. Falha ⇒ status com instrução de instalação.
+const ctNarrFail = async (reelId, serverError) => {
+  ctNarrPlaying = false;
+  let extra = '';
+  let cmd = '';
   try {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'pt-BR';
-    u.rate = 1.05;
-    u.onend = () => {
-      ctNarrPlaying = false;
-      ctMarkListened(reelId);
-      ctSetNarrStatus('ouvido ✓ (voz do navegador)');
-    };
-    ctNarrPlaying = true;
-    ctSetNarrStatus('falando… (voz do navegador)');
-    window.speechSynthesis.speak(u);
-  } catch {
-    ctNarrPlaying = false;
-    ctSetNarrStatus('falha na voz do navegador');
-  }
+    const res = await fetch('/codetour/voice-health');
+    const health = res.ok ? await res.json() : null;
+    cmd = health?.instructions?.[0]?.cmd || '';
+    if (cmd) extra = \` — rode: \${cmd}\`;
+  } catch { /* segue sem hint */ }
+  ctSetNarrStatus(\`sem áudio — instale edge-tts\${extra}\`, 'err');
+  ctDebug('error', 'narração sem áudio', {
+    reel: reelId || '',
+    serverError: String(serverError || '').slice(0, 160),
+    fix: cmd || 'pip3 install edge-tts',
+  });
+  toast('edge-tts ausente — instale para ouvir o caderno');
 };
 
 const ctToggleNarration = () => {
@@ -41505,12 +42266,18 @@ const ctPlayNarration = async () => {
   const slide = ctSlides[ctSlideIdx];
   if (!slide?.reelId) return;
   const reel = ctReelData?.reels.find((r) => r.id === slide.reelId);
-  const text = String(reel?.narration || '').trim();
-  if (!text) return toast('Tela sem narração');
+  if (!String(reel?.narration || '').trim()) return toast('Tela sem narração');
   ctStopNarration();
-  ctSetNarrStatus('gerando áudio…');
+  const t0 = Date.now();
+  ctSetNarrStatus('gerando áudio…', 'gen');
+  ctDebug('decision', 'tocar narração', {
+    reel: slide.reelId,
+    label: reel.label || '',
+  });
   try {
-    const res = await fetch(\`/codetour/audio?reel=\${encodeURIComponent(slide.reelId)}\`);
+    const res = await fetch(
+      \`/codetour/audio?reel=\${encodeURIComponent(slide.reelId)}\`,
+    );
     if (res.ok) {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -41518,20 +42285,30 @@ const ctPlayNarration = async () => {
       a.src = url;
       ctNarrPlaying = true;
       ctNarrReelId = slide.reelId;
-      ctSetNarrStatus('tocando…');
+      ctSetNarrStatus('tocando… (edge-tts)', 'play');
+      ctDebug('log', 'áudio pronto', {
+        reel: slide.reelId,
+        kb: Math.round(blob.size / 1024),
+        ms: Date.now() - t0,
+      });
       a.onended = () => {
         ctNarrPlaying = false;
         ctMarkListened(slide.reelId);
-        ctSetNarrStatus('ouvido ✓');
+        ctSetNarrStatus('ouvido ✓', 'ok');
+        ctDebug('log', 'narração concluída', {
+          reel: slide.reelId,
+          kb: Math.round(blob.size / 1024),
+        });
         URL.revokeObjectURL(url);
       };
-      a.onerror = () => ctSpeakFallback(text, slide.reelId);
+      a.onerror = () => ctNarrFail(slide.reelId);
       await a.play();
       return;
     }
-    ctSpeakFallback(text, slide.reelId);
-  } catch {
-    ctSpeakFallback(text, slide.reelId);
+    const err = res.ok ? '' : await res.text().catch(() => '');
+    await ctNarrFail(slide.reelId, err);
+  } catch (e) {
+    await ctNarrFail(slide.reelId, String(e?.message || e));
   }
 };
 
@@ -41556,36 +42333,36 @@ const renderCtLibrary = () => {
   }
   box.innerHTML = '';
   for (const nb of ctLibrary) {
+    const pending = nb.status === 'pending';
     const div = document.createElement('div');
     div.className = 'ct-nb' + (ctNotebook && nb.id === ctNotebook.id ? ' on' : '');
     const date = (nb.updatedAt || '').slice(0, 10);
     const main = document.createElement('button');
     main.type = 'button';
     main.className = 'ct-nb-main';
-    main.title = 'Abrir caderno';
+    main.title = pending ? 'Ver caderno aguardando o agente' : 'Abrir caderno';
     main.innerHTML = \`<strong>\${escHtml(nb.title)}</strong>\` +
-      \`<span>\${escHtml(nb.query || '')} · \${nb.reels ?? 0} telas · \${escHtml(date)}</span>\`;
-    main.addEventListener('click', () => ctOpenNotebook(nb.id));
+      (pending
+        ? '<span class="ct-nb-badge">⏳ aguardando a IA</span> '
+        : '') +
+      \`<span>\${escHtml(nb.query || '')}\${pending ? '' : \` · \${nb.reels ?? 0} telas\`} · \${escHtml(date)}</span>\`;
+    main.addEventListener('click', () =>
+      pending ? ctClickPending(nb) : ctOpenNotebook(nb.id));
     div.appendChild(main);
     box.appendChild(div);
   }
 };
 
-const ctLoadNotebookMeta = async (id) => {
-  if (!id || ctNotebook?.id === id) return;
-  try {
-    const res = await fetch(\`/tours/\${encodeURIComponent(id)}\`);
-    if (!res.ok) return;
-    ctNotebook = (await res.json()).notebook;
-    renderCtHeroExtras();
-    renderCtLibrary();
-  } catch { /* segue sem meta */ }
-};
-
-const ctSyncSessionNotebook = () => {
-  const id = ctSession?.notebookId || null;
-  if (id && !ctNotebook) ctLoadNotebookMeta(id);
-  if (!id && ctNotebook && ctReelData) ctNotebook = null;
+// Clique num pendente da lista — reabre o painel de prompt.
+const ctClickPending = async (nb) => {
+  ctNotebook = nb;
+  if (ctSession?.id !== nb.id) ctSession = null;
+  ctReelData = null;
+  ctSlides = [];
+  ctDebug('log', 'reabrindo caderno pendente', { id: nb.id });
+  renderCtLibrary();
+  await ctShowPending(nb, ctPrompts.get(nb.id) || '');
+  startCtPoll(nb.id);
 };
 
 const ctOpenNotebook = async (id) => {
@@ -41593,10 +42370,29 @@ const ctOpenNotebook = async (id) => {
     const metaRes = await fetch(\`/tours/\${encodeURIComponent(id)}\`);
     if (!metaRes.ok) return toast('Caderno não encontrado');
     const data = await metaRes.json();
+    if (data.notebook?.status === 'pending') return ctClickPending(data.notebook);
     ctNotebook = data.notebook;
+    ctDebug('decision', 'abrir caderno', {
+      id,
+      title: ctNotebook.title,
+      telas: ctNotebook.reels ?? '?',
+    });
     const openRes = await fetch(\`/tours/\${encodeURIComponent(id)}/open\`, { method: 'POST' });
-    if (!openRes.ok) return toast(await openRes.text() || 'Erro ao abrir');
+    if (!openRes.ok) {
+      ctDebug('error', 'falha ao abrir caderno', {
+        id,
+        status: openRes.status,
+        body: (await openRes.text()).slice(0, 160),
+      });
+      return toast('Erro ao abrir');
+    }
     ctSession = (await openRes.json()).session;
+    ctDebug('log', 'apresentação recarregada', {
+      id,
+      telas: ctSession?.reel?.reels?.length ?? 0,
+      scan: ctSession?.scan?.files ?? 0,
+    });
+    ctHidePending();
     ctSlideIdx = 0;
     stopCtPoll();
     renderCodetour();
@@ -41742,6 +42538,8 @@ document.addEventListener('click', (e) => {
   if (e.target?.id === 'ct-form-overlay') ctCloseForm();
   if (e.target?.id === 'ct-up') ctGo(-1);
   if (e.target?.id === 'ct-down') ctGo(1);
+  if (e.target?.id === 'ct-pending-copy') ctCopyPendingPrompt();
+  if (e.target?.id === 'ct-pending-cancel') ctCancelPending();
 });
 
 </script>

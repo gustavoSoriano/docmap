@@ -62,7 +62,7 @@ export const notebooksHandler =
       return json({ notebooks: await listNotebookMetas(kv) });
     }
 
-    // ── POST /tours — salva a sessão ativa como caderno ──
+    // ── POST /tours — salva a sessão ativa como caderno pronto ──
     if (req.method === 'POST' && seg.length === 0) {
       const s = getSession();
       if (!s?.reel) return badRequest('gere um caderno antes de salvar');
@@ -78,11 +78,12 @@ export const notebooksHandler =
         artifacts: s.artifacts,
         reels: s.reel.reels.length,
       });
+      const paths = (s.pack?.files ?? []).map((f) => f.path);
       try {
         await writeNotebookBody(meta.id, {
           reel: s.reel,
-          paths: (s.pack?.files ?? []).map((f) => f.path),
-          filesTop: (s.pack?.files ?? []).slice(0, 80).map((f) => f.path),
+          paths,
+          filesTop: paths.slice(0, 80),
         });
       } catch {
         await deleteNotebookMeta(kv, meta.id);
@@ -103,15 +104,23 @@ export const notebooksHandler =
       return json({ notebook: meta, reel: body.reel, filesTop: body.filesTop });
     }
 
-    // ── POST /tours/:id/open — coloca na sessão ativa ──
+    // ── POST /tours/:id/open — coloca o caderno na sessão do id ──
     if (req.method === 'POST' && action === 'open') {
       const meta = await getNotebookMeta(kv, id);
       if (!meta) return notFound();
       const body = await readNotebookBody(id);
-      if (!body) return notFound();
-      openSession(meta.projectRoot, meta.query, meta.depth, meta.artifacts);
-      attachReel(body.reel);
-      return json({ session: publicSession(getSession()) });
+      if (!body?.reel) return badRequest('caderno pendente — aguarde a IA');
+      openSession(
+        meta.id,
+        meta.projectRoot,
+        meta.query,
+        meta.depth,
+        meta.artifacts,
+      );
+      // attachReel grava um NOVO objeto no Map — é ele que vai na resposta.
+      const s = attachReel(meta.id, body.reel);
+      if (!s) return json({ error: 'sessão perdida ao abrir' }, 500);
+      return json({ session: publicSession(s) });
     }
 
     // ── PATCH /tours/:id — título, artefatos, progresso ──
@@ -146,11 +155,16 @@ export const notebooksHandler =
     }
 
     // ── DELETE /tours/:id — apaga caderno (+ referências se marcadas) ──
+    // Pendente não tem reel: sai direto, sem caçar referências.
     if (req.method === 'DELETE' && seg.length === 1) {
       const meta = await getNotebookMeta(kv, id);
       if (!meta) return notFound();
       const body = await readNotebookBody(id);
-      if (!body) return notFound();
+      if (!body?.reel) {
+        await deleteNotebookBody(id);
+        await deleteNotebookMeta(kv, id);
+        return json({ ok: true, removed: {} });
+      }
       const raw = await readBody(req);
       const r = isObj(raw) && isObj(raw.refs) ? raw.refs : {};
       const refs = {
@@ -169,7 +183,7 @@ export const notebooksHandler =
       const meta = await getNotebookMeta(kv, id);
       if (!meta) return notFound();
       const body = await readNotebookBody(id);
-      if (!body) return notFound();
+      if (!body?.reel) return badRequest('caderno pendente — aguarde a IA');
       const out = await exportNotebookPodcast(kv, meta, body.reel);
       if ('error' in out) return conflict(out.error);
       const updated = await getNotebookMeta(kv, id);

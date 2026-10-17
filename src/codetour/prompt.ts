@@ -141,25 +141,35 @@ export const buildCodetourPrompt = (
   ].join('\n');
 };
 
+// Agent-prompt autocontido: as 3 chamadas carregam o id do caderno, então
+// N cadernos pendentes coexistem sem conflito de sessão.
+const queryOf = (notebookId?: string): string =>
+  notebookId ? `?id=${encodeURIComponent(notebookId)}` : '';
+
 export const buildAgentPrompt = (
   projectRoot: string,
   query: string,
   depth: TourDepth,
+  notebookId?: string,
 ): string => {
   const topic = query.trim() || 'visão geral';
+  const q = queryOf(notebookId);
+  const idStep = notebookId
+    ? `8. Devolva SOZINHO via POST http://127.0.0.1:3333/codetour/import com {"id":"${notebookId}","reel": {...}} — use ESSE id em todas as chamadas.`
+    : `8. Devolva SOZINHO via POST http://127.0.0.1:3333/codetour/import com {"reel": {...}}.`;
   return [
     `Monte um caderno visual (reels) de ${
       DEPTH_LABEL[depth]
     } sobre "${topic}" do projeto em ${projectRoot.trim()}.`,
     ``,
-    `1. Busque o protocolo: GET http://127.0.0.1:3333/codetour/prompt`,
-    `2. Busque a estrutura escaneada: GET http://127.0.0.1:3333/codetour/structure`,
+    `1. Busque o protocolo: GET http://127.0.0.1:3333/codetour/prompt${q}`,
+    `2. Busque a estrutura escaneada: GET http://127.0.0.1:3333/codetour/structure${q}`,
     `3. Use SÓ arquivos/símbolos do scan. Snippets REAIS, ordem por dependência.`,
     `4. Uma ideia por reel. Título entrega a conclusão. Snippet com linhas marcadas.`,
     `5. Visual é OPCIONAL: use mermaid/mindmap/html/bubble só quando a ideia for melhor vista do que lida.`,
     `6. Explique técnico e direto: o que é + exemplo com valores + o que quebra. Sem analogias.`,
     `7. narration obrigatória por reel (40 a 800 chars, texto falável, sem código).`,
-    `8. Devolva SOZINHO via POST http://127.0.0.1:3333/codetour/import com {"reel": {...}}.`,
+    idStep,
     `9. Não peça pro usuário colar nada — a tela atualiza sozinha.`,
     ``,
     `Superficial ou com paths inventados será rejeitado.`,

@@ -1,4 +1,6 @@
-// Sessão única em memória — temporária, sem KV, sem arquivo.
+// Sessões em memória, uma por caderno — id é o UUID do caderno pendente.
+// Múltiplos cadernos podem coexistir: cada import valida contra a SUA sessão.
+// Temporário, sem KV, sem arquivo.
 import type {
   CodeReel,
   CodeTourSession,
@@ -10,51 +12,78 @@ import type {
 import type { ArtifactKind } from './artifacts.ts';
 import { ARTIFACTS } from './artifacts.ts';
 
-let active: CodeTourSession | null = null;
+const sessions = new Map<string, CodeTourSession>();
 
-export const getSession = (): CodeTourSession | null => active;
+// Último caderno aberto/importado — fallback p/ agentes sem id no import.
+let activeId: string | null = null;
+
+const touch = (s: CodeTourSession): CodeTourSession => ({
+  ...s,
+  updatedAt: new Date().toISOString(),
+});
 
 export const openSession = (
+  id: string,
   projectRoot: string,
   query: string,
   depth: TourDepth,
   artifacts?: readonly ArtifactKind[],
 ): CodeTourSession => {
-  const now = new Date().toISOString();
-  active = {
+  const s: CodeTourSession = {
+    id,
     projectRoot: projectRoot.trim(),
     query: query.trim(),
     depth,
     artifacts: artifacts ?? [...ARTIFACTS],
-    notebookId: null,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     reel: null,
     pack: null,
   };
-  return active;
+  sessions.set(id, s);
+  activeId = id;
+  return s;
 };
 
-// Id do caderno auto-salvo quando a IA entrega o tour. Nulo até lá.
-export const setSessionNotebookId = (id: string | null): void => {
-  if (!active) return;
-  active = { ...active, notebookId: id, updatedAt: new Date().toISOString() };
+export const getSession = (id?: string | null): CodeTourSession | null => {
+  if (id) return sessions.get(id.trim()) ?? null;
+  return activeId ? sessions.get(activeId) ?? null : null;
 };
 
-export const attachPack = (pack: StructurePack): CodeTourSession | null => {
-  if (!active) return null;
-  active = { ...active, pack, updatedAt: new Date().toISOString() };
-  return active;
+export const attachPack = (
+  id: string,
+  pack: StructurePack,
+): CodeTourSession | null => {
+  const s = sessions.get(id);
+  if (!s) return null;
+  const updated = touch({ ...s, pack });
+  sessions.set(id, updated);
+  return updated;
 };
 
-export const attachReel = (reel: CodeReel): CodeTourSession | null => {
-  if (!active) return null;
-  active = { ...active, reel, updatedAt: new Date().toISOString() };
-  return active;
+export const attachReel = (
+  id: string,
+  reel: CodeReel,
+): CodeTourSession | null => {
+  const s = sessions.get(id);
+  if (!s) return null;
+  const updated = touch({ ...s, reel });
+  sessions.set(id, updated);
+  activeId = id;
+  return updated;
 };
 
-export const clearSession = (): void => {
-  active = null;
+// Sem id → encerra a sessão ativa. Com id → encerra só ela e promove a
+// mais recente restante a ativa.
+export const clearSession = (id?: string | null): void => {
+  if (id) sessions.delete(id.trim());
+  else if (activeId) sessions.delete(activeId);
+  if (activeId && !sessions.has(activeId)) {
+    const last = [...sessions.entries()].sort(
+      (a, b) => b[1].updatedAt.localeCompare(a[1].updatedAt),
+    )[0];
+    activeId = last ? last[1].id : null;
+  }
 };
 
 // Visão pública: sem o pack (vai em GET /codetour/structure).
@@ -67,11 +96,11 @@ export const publicSession = (
     for (const f of s.pack.files) layers[f.path] = f.layer;
   }
   return {
+    id: s.id,
     projectRoot: s.projectRoot,
     query: s.query,
     depth: s.depth,
     artifacts: s.artifacts,
-    notebookId: s.notebookId,
     createdAt: s.createdAt,
     updatedAt: s.updatedAt,
     reel: s.reel,

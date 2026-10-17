@@ -11,7 +11,9 @@ const assertEquals = (a: unknown, b: unknown): void => {
   if (a !== b) throw new Error(`assertEquals falhou: ${a} !== ${b}`);
 };
 
-const withHandler = async (fn: (kv: Deno.Kv) => Promise<void>): Promise<void> => {
+const withHandler = async (
+  fn: (kv: Deno.Kv) => Promise<void>,
+): Promise<void> => {
   const dir = await Deno.makeTempDir({ prefix: 'docmap-agentchats-' });
   const kv = await Deno.openKv(`${dir}/test.sqlite3`);
   try {
@@ -37,7 +39,10 @@ const request = (
     init.body = JSON.stringify(body);
     init.headers = { 'Content-Type': 'application/json' };
   }
-  return handler(new Request(`http://127.0.0.1${path}`, init), new URL(`http://127.0.0.1${path}`));
+  return handler(
+    new Request(`http://127.0.0.1${path}`, init),
+    new URL(`http://127.0.0.1${path}`),
+  );
 };
 
 Deno.test('agentchats: cria sala, join, mensagem e inbox bloqueante', async () => {
@@ -88,10 +93,15 @@ Deno.test('agentchats: cria sala, join, mensagem e inbox bloqueante', async () =
       'GET',
       `/agentchats/${chat.id}/inbox?sessionId=${sessionId}&afterSeq=${inboxData.lastSeq}&wait=2`,
     );
-    const userMsg = await request(kv, 'POST', `/agentchats/${chat.id}/messages`, {
-      body: 'Vamos lá, time!',
-      authorName: 'Você',
-    });
+    const userMsg = await request(
+      kv,
+      'POST',
+      `/agentchats/${chat.id}/messages`,
+      {
+        body: 'Vamos lá, time!',
+        authorName: 'Você',
+      },
+    );
     assertEquals(userMsg.status, 201);
     const woken = await blocking;
     assertEquals(woken.status, 200);

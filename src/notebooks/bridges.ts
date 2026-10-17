@@ -71,15 +71,15 @@ export const exportNotebookPodcast = async (
   return { podcastId: podcast.id };
 };
 
-const reelAudioHashes = (reel: CodeReel): string[] =>
-  reel.reels.map((r) => narrationHash(r.narration)).filter((h) => !!h);
+const reelAudioHashes = (reel: CodeReel | null): string[] =>
+  reel?.reels.map((r) => narrationHash(r.narration)).filter((h) => !!h) ?? [];
 
 // Apaga as referências externas do caderno (escolhidas no diálogo).
 // Áudio: só apaga narrações que NENHUM outro caderno usa (cache compartilhado).
 export const deleteNotebookRefs = async (
   kv: Deno.Kv,
   meta: NotebookMeta,
-  reel: CodeReel,
+  reel: CodeReel | null,
   refs: NotebookRefs,
 ): Promise<
   { readonly podcast: boolean; readonly canvas: number; readonly audio: number }

@@ -19,6 +19,9 @@ export type NotebookProgress = {
 // podcast gerado, então IA e grafo acham o conjunto pelo hub #caderno-<id8>.
 export const notebookTag = (id: string): string => `caderno-${id.slice(0, 8)}`;
 
+// pending = entrada registrada pelo form; espera o agente POSTar o reel.
+export type NotebookStatus = 'pending' | 'ready';
+
 export type NotebookMeta = {
   readonly id: string;
   readonly title: string;
@@ -29,6 +32,7 @@ export type NotebookMeta = {
   readonly artifacts: readonly ArtifactKind[];
   readonly links: NotebookLinks;
   readonly progress: NotebookProgress;
+  readonly status: NotebookStatus;
   readonly reels: number;
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -36,9 +40,10 @@ export type NotebookMeta = {
 
 // Corpo persistido em <dataDir>/notebooks/<id>.json.
 // paths cobre TODOS os arquivos do scan (p/ validar imports futuros);
-// filesTop guarda só o top-80 p/ exibição.
+// filesTop guarda só o top-80 p/ exibição. Caderno pendente grava o corpo
+// com reel null (paths congelados sobrevivem à sessão em memória).
 export type NotebookBody = {
-  readonly reel: CodeReel;
+  readonly reel: CodeReel | null;
   readonly paths: readonly string[];
   readonly filesTop: readonly string[];
 };

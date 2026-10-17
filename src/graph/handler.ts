@@ -25,19 +25,29 @@ import { json } from '../server/response.ts';
 
 export const graphHandler =
   (kv: Deno.Kv) => async (_req: Request, url: URL): Promise<Response> => {
-    const [notes, tasks, macros, podcasts, favorites, skills, mocks, trilhas, agentchats, notebooks] =
-      await Promise.all([
-        listNotes(kv),
-        listTasks(kv),
-        listMacros(kv),
-        listPodcasts(kv),
-        listFavorites(kv),
-        listSkills(kv),
-        listMocks(kv),
-        listTrilhas(kv),
-        listChats(kv),
-        listNotebookMetas(kv),
-      ]);
+    const [
+      notes,
+      tasks,
+      macros,
+      podcasts,
+      favorites,
+      skills,
+      mocks,
+      trilhas,
+      agentchats,
+      notebooks,
+    ] = await Promise.all([
+      listNotes(kv),
+      listTasks(kv),
+      listMacros(kv),
+      listPodcasts(kv),
+      listFavorites(kv),
+      listSkills(kv),
+      listMocks(kv),
+      listTrilhas(kv),
+      listChats(kv),
+      listNotebookMetas(kv),
+    ]);
 
     const entities = toGraphEntities({
       notes,

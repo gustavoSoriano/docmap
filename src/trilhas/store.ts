@@ -1,8 +1,4 @@
-import type {
-  CreateTrilhaInput,
-  Trilha,
-  UpdateTrilhaInput,
-} from './types.ts';
+import type { CreateTrilhaInput, Trilha, UpdateTrilhaInput } from './types.ts';
 import { normalizeTags } from '../tags/normalize.ts';
 
 const GLOBAL = '_global_';
@@ -64,9 +60,7 @@ export const updateTrilha = async (
       : {}),
     ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
     status,
-    ...(status === 'done' && !existing.completedAt
-      ? { completedAt: now }
-      : {}),
+    ...(status === 'done' && !existing.completedAt ? { completedAt: now } : {}),
     updatedAt: now,
   };
   await kv.set(key(id), updated);

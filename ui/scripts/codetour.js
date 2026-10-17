@@ -13,6 +13,7 @@ let ctReelData = null;
 let ctSlides = [];
 let ctSlideIdx = 0;
 let ctPollTimer = null;
+let ctPollId = '';
 let ctDepth = 'repasse';
 let ctNotebook = null;
 let ctLibrary = [];
@@ -20,6 +21,8 @@ let ctNarrPlaying = false;
 let ctNarrReelId = '';
 let ctBooting = true;
 let ctCurrent = -1;
+// Prompt por caderno pendente (id → texto) — p/ reabrir "copiar prompt".
+const ctPrompts = new Map();
 const ctVisualMounts = new Map();
 let ctListened = new Set();
 try {
@@ -53,6 +56,16 @@ const setCtDepth = (depth) => {
 
 // ════ Sessão ════
 
+const ctLoadNotebookMeta = async (id) => {
+  if (!id) return null;
+  try {
+    const res = await fetch(`/tours/${encodeURIComponent(id)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.notebook || null;
+  } catch { return null; }
+};
+
 const loadCodetour = async () => {
   try {
     const res = await fetch('/codetour/session');
@@ -63,9 +76,19 @@ const loadCodetour = async () => {
     }
   } catch { ctSession = null; }
   renderCodetour();
-  ctSyncSessionNotebook();
+  if (ctSession?.reel) {
+    const nb = await ctLoadNotebookMeta(ctSession.id);
+    if (nb) { ctNotebook = nb; renderCtHeroExtras(); }
+  } else if (ctSession) {
+    const nb = await ctLoadNotebookMeta(ctSession.id);
+    if (nb && nb.status === 'pending') {
+      ctNotebook = nb;
+      await ctShowPending(nb);
+    }
+  }
   loadCtLibrary();
-  startCtPoll();
+  if (ctNotebook?.status === 'pending') startCtPoll(ctNotebook.id);
+  else startCtPoll('');
 };
 
 const pickCodetourFolder = async () => {
@@ -132,40 +155,133 @@ const ctSubmitForm = async () => {
     });
     if (!res.ok) return toast(await res.text() || 'Erro ao gerar');
     const data = await res.json();
+    // Caderno já registrado e listado — pendência é só do agente.
     ctSession = data.session;
+    ctNotebook = data.notebook;
     ctRoot = ctSession.projectRoot;
+    if (data.agentPrompt) ctPrompts.set(ctSession.id, data.agentPrompt);
+    ctDebug('decision', 'caderno pendente criado', {
+      id: ctSession.id,
+      query,
+      depth,
+      artifacts: arts.join(','),
+    });
     ctSlideIdx = 0;
-    ctNotebook = null;
     ctCloseForm();
+    if ($('ct-f-query')) $('ct-f-query').value = '';
     copyToClipboard(data.agentPrompt, 'Prompt copiado — cole na IA');
-    renderCodetour();
-    startCtPoll();
+    loadCtLibrary();
+    ctShowPending(data.notebook, data.agentPrompt);
+    startCtPoll(ctSession.id);
   } catch { toast('Erro ao gerar'); }
 };
 
-const startCtPoll = () => {
+// ════ Caderno pendente (aguardando o agente) ════
+
+const ctShowPending = async (nb, prompt) => {
+  ctNotebook = nb || ctNotebook;
+  const box = $('ct-pending');
+  if (!box || !nb) return;
+  if ($('ct-empty')) $('ct-empty').style.display = 'none';
+  if ($('ct-active')) $('ct-active').style.display = 'none';
+  box.style.display = '';
+  if ($('ct-pending-title')) $('ct-pending-title').textContent = nb.query || nb.title;
+  if ($('ct-pending-path')) {
+    $('ct-pending-path').textContent = nb.projectRoot || '';
+    $('ct-pending-path').title = nb.projectRoot || '';
+  }
+  const pre = $('ct-pending-prompt');
+  if (pre) {
+    if (!prompt) {
+      try {
+        const res = await fetch(`/codetour/agent-prompt?id=${encodeURIComponent(nb.id)}`);
+        const data = res.ok ? await res.json() : null;
+        prompt = data?.prompt || '';
+      } catch { prompt = ''; }
+    }
+    if (prompt) ctPrompts.set(nb.id, prompt);
+    pre.textContent = prompt || 'Prompt indisponível — o agente deve usar POST /codetour/import.';
+    pre.dataset.hasPrompt = prompt ? '1' : '';
+  }
+  requestAnimationFrame(() => pre?.scrollIntoView({ block: 'nearest' }));
+};
+
+const ctHidePending = () => {
+  if ($('ct-pending')) $('ct-pending').style.display = 'none';
+};
+
+const ctCancelPending = async () => {
+  const nb = ctNotebook;
+  if (!nb || !nb.id) return;
   stopCtPoll();
-  ctPollTimer = setInterval(async () => {
-    if (currentMode !== 'codetour' || ctReelData) {
-      if (ctReelData) stopCtPoll();
+  try {
+    const res = await fetch(`/tours/${encodeURIComponent(nb.id)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refs: { podcast: false, canvas: false, audio: false } }),
+    });
+    if (!res.ok && res.status !== 404) return toast(await res.text() || 'Erro ao cancelar');
+    ctPrompts.delete(nb.id);
+    toast('Caderno cancelado');
+    ctSession = null;
+    ctReelData = null;
+    ctNotebook = null;
+    ctSlides = [];
+    ctHidePending();
+    renderCodetour();
+    loadCtLibrary();
+  } catch { toast('Erro ao cancelar'); }
+};
+
+const ctCopyPendingPrompt = () => {
+  const nb = ctNotebook;
+  const prompt = nb && ctPrompts.get(nb.id) || $('ct-pending-prompt')?.textContent || '';
+  if (!prompt.trim()) return toast('Prompt indisponível');
+  copyToClipboard(prompt, 'Prompt copiado');
+};
+
+const ctPollPending = async (id) => {
+  try {
+    const res = await fetch(`/codetour/session?id=${encodeURIComponent(id)}`);
+    const data = res.ok ? await res.json() : null;
+    if (data?.session?.reel) {
+      ctSession = data.session;
+      ctSlideIdx = 0;
+      ctHidePending();
+      renderCodetour();
+      ctDebug('log', 'import confirmado — caderno pronto', {
+        id,
+        telas: data.session.reel?.reels?.length ?? 0,
+      });
+      const nb = await ctLoadNotebookMeta(id);
+      if (nb) { ctNotebook = nb; renderCtHeroExtras(); }
+      loadCtLibrary();
+      toast('Caderno pronto e salvo');
+      stopCtPoll();
       return;
     }
-    try {
-      const res = await fetch('/codetour/session');
-      const data = await res.json();
-      if (data.session?.reel && !ctReelData) {
-        ctSession = data.session;
-        ctSlideIdx = 0;
-        renderCodetour();
-        ctSyncSessionNotebook();
-        toast('Caderno pronto e salvo');
-        stopCtPoll();
-      } else if (data.session && !ctSession) {
-        ctSession = data.session;
-        ctRoot = data.session.projectRoot;
-        renderCodetour();
-      }
-    } catch { /* próximo tick */ }
+    const nb = await ctLoadNotebookMeta(id);
+    if (nb && nb.status === 'ready') {
+      // App reiniciou e perdeu a sessão: abre pelo corpo gravado.
+      ctDebug('log', 'sessão perdida — reabrindo pelo disco', { id });
+      await ctOpenNotebook(id);
+      stopCtPoll();
+      return;
+    }
+  } catch { /* próximo tick */ }
+};
+
+const startCtPoll = (id) => {
+  if (id && ctPollId === id && ctPollTimer) return;
+  stopCtPoll();
+  if (!id) return;
+  ctPollId = id;
+  ctPollTimer = setInterval(async () => {
+    if (currentMode !== 'codetour') return;
+    const nb = ctNotebook;
+    if (!nb || nb.id !== id) { stopCtPoll(); return; }
+    if (nb.status !== 'pending') { stopCtPoll(); return; }
+    ctPollPending(id);
   }, 2000);
 };
 
@@ -176,6 +292,7 @@ const stopCtPoll = () => {
 
 const clearCodetour = async () => {
   await fetch('/codetour/clear', { method: 'POST' });
+  ctClearPollSoon();
   ctStopNarration();
   ctTeardownVisuals();
   ctSession = null;
@@ -185,9 +302,9 @@ const clearCodetour = async () => {
   ctSlideIdx = 0;
   ctCurrent = -1;
   ctNotebook = null;
+  ctHidePending();
   renderCodetour();
   renderCtLibrary();
-  startCtPoll();
 };
 
 // ════ Montagem das telas ════
@@ -309,7 +426,8 @@ const renderCodetour = () => {
   const reel = ctSession?.reel || null;
   ctReelData = reel;
   const has = !!reel;
-  if ($('ct-empty')) $('ct-empty').style.display = has ? 'none' : 'block';
+  const pendingOpen = $('ct-pending')?.style.display !== 'none';
+  if ($('ct-empty')) $('ct-empty').style.display = has || pendingOpen ? 'none' : 'block';
   if ($('ct-active')) $('ct-active').style.display = has ? 'block' : 'none';
   const clearBtn = $('ct-clear-btn');
   if (clearBtn) clearBtn.style.display = ctSession ? '' : 'none';
@@ -432,7 +550,9 @@ const ctMountMermaid = (box, vis) => {
       startOnLoad: false,
       theme: ctIsDark() ? 'dark' : 'default',
       securityLevel: 'strict',
-      flowchart: { curve: 'linear', htmlLabels: false },
+      // useMaxWidth FALSE = diagrama no tamanho natural (sem espremer o
+      // grafo pra dentro do max-width), rolável dentro do canvas.
+      flowchart: { curve: 'linear', htmlLabels: false, useMaxWidth: false },
     });
   } catch { /* já inicializado */ }
   const code = String(vis.content || '')
@@ -449,6 +569,17 @@ const ctMountMermaid = (box, vis) => {
     box.innerHTML = `<div class="ct-vm-canvas">${
       window.DOMPurify ? window.DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true } }) : svg
     }</div>`;
+    const el = box.querySelector('svg');
+    if (el) {
+      el.style.maxWidth = 'none';
+      el.style.width = 'auto';
+      el.style.height = 'auto';
+      const vb = el.viewBox?.baseVal;
+      if (vb?.width && vb?.height) {
+        el.setAttribute('width', String(Math.round(vb.width)));
+        el.setAttribute('height', String(Math.round(vb.height)));
+      }
+    }
   }).catch(() => { box.innerHTML = ctmermaidError(code); });
   return null;
 };
@@ -647,10 +778,30 @@ const ctWrapLabel = (text, perLine) => {
 
 // ════ Narração por tela ════
 
-const ctSetNarrStatus = (msg) => {
-  if ($('ct-narr-status')) $('ct-narr-status').textContent = msg || '';
+// kind: '' | 'gen' (spinner) | 'play' | 'ok' | 'err' — muda cor/ícone da pill.
+const ctSetNarrStatus = (msg, kind = '') => {
+  const el = $('ct-narr-status');
+  if (el) {
+    el.className = msg ? `on ${kind}`.trim() : '';
+    el.textContent = msg;
+  }
   const btn = $('ct-narr-btn');
   if (btn) btn.textContent = ctNarrPlaying ? '⏸ Parar' : '▶ Ouvir';
+};
+
+// Debug Audit local (porta 3333 aceita sem origin) — alimenta a timeline
+// do /debug na sessão "codetour". Fire-and-forget.
+const ctDebug = (type, title, detail) => {
+  try {
+    fetch('/debug', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: 'codetour',
+        payload: { type, title, ...(detail || {}) },
+      }),
+    }).catch(() => {});
+  } catch { /* noop */ }
 };
 
 const ctMarkListened = (id) => {
@@ -669,34 +820,28 @@ const ctStopNarration = () => {
     const a = $('ct-audio');
     if (a) { a.pause(); a.removeAttribute('src'); a.load(); }
   } catch { /* noop */ }
-  try {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-  } catch { /* noop */ }
   ctSetNarrStatus('');
 };
 
-const ctSpeakFallback = (text, reelId) => {
-  if (!window.speechSynthesis) {
-    ctSetNarrStatus('sem áudio — instale edge-tts');
-    return;
-  }
+// Sem edge-tts NÃO existe fallback: voz do sistema (webkitSpeech) está
+// proibida no caderno. Falha ⇒ status com instrução de instalação.
+const ctNarrFail = async (reelId, serverError) => {
+  ctNarrPlaying = false;
+  let extra = '';
+  let cmd = '';
   try {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'pt-BR';
-    u.rate = 1.05;
-    u.onend = () => {
-      ctNarrPlaying = false;
-      ctMarkListened(reelId);
-      ctSetNarrStatus('ouvido ✓ (voz do navegador)');
-    };
-    ctNarrPlaying = true;
-    ctSetNarrStatus('falando… (voz do navegador)');
-    window.speechSynthesis.speak(u);
-  } catch {
-    ctNarrPlaying = false;
-    ctSetNarrStatus('falha na voz do navegador');
-  }
+    const res = await fetch('/codetour/voice-health');
+    const health = res.ok ? await res.json() : null;
+    cmd = health?.instructions?.[0]?.cmd || '';
+    if (cmd) extra = ` — rode: ${cmd}`;
+  } catch { /* segue sem hint */ }
+  ctSetNarrStatus(`sem áudio — instale edge-tts${extra}`, 'err');
+  ctDebug('error', 'narração sem áudio', {
+    reel: reelId || '',
+    serverError: String(serverError || '').slice(0, 160),
+    fix: cmd || 'pip3 install edge-tts',
+  });
+  toast('edge-tts ausente — instale para ouvir o caderno');
 };
 
 const ctToggleNarration = () => {
@@ -708,12 +853,18 @@ const ctPlayNarration = async () => {
   const slide = ctSlides[ctSlideIdx];
   if (!slide?.reelId) return;
   const reel = ctReelData?.reels.find((r) => r.id === slide.reelId);
-  const text = String(reel?.narration || '').trim();
-  if (!text) return toast('Tela sem narração');
+  if (!String(reel?.narration || '').trim()) return toast('Tela sem narração');
   ctStopNarration();
-  ctSetNarrStatus('gerando áudio…');
+  const t0 = Date.now();
+  ctSetNarrStatus('gerando áudio…', 'gen');
+  ctDebug('decision', 'tocar narração', {
+    reel: slide.reelId,
+    label: reel.label || '',
+  });
   try {
-    const res = await fetch(`/codetour/audio?reel=${encodeURIComponent(slide.reelId)}`);
+    const res = await fetch(
+      `/codetour/audio?reel=${encodeURIComponent(slide.reelId)}`,
+    );
     if (res.ok) {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -721,20 +872,30 @@ const ctPlayNarration = async () => {
       a.src = url;
       ctNarrPlaying = true;
       ctNarrReelId = slide.reelId;
-      ctSetNarrStatus('tocando…');
+      ctSetNarrStatus('tocando… (edge-tts)', 'play');
+      ctDebug('log', 'áudio pronto', {
+        reel: slide.reelId,
+        kb: Math.round(blob.size / 1024),
+        ms: Date.now() - t0,
+      });
       a.onended = () => {
         ctNarrPlaying = false;
         ctMarkListened(slide.reelId);
-        ctSetNarrStatus('ouvido ✓');
+        ctSetNarrStatus('ouvido ✓', 'ok');
+        ctDebug('log', 'narração concluída', {
+          reel: slide.reelId,
+          kb: Math.round(blob.size / 1024),
+        });
         URL.revokeObjectURL(url);
       };
-      a.onerror = () => ctSpeakFallback(text, slide.reelId);
+      a.onerror = () => ctNarrFail(slide.reelId);
       await a.play();
       return;
     }
-    ctSpeakFallback(text, slide.reelId);
-  } catch {
-    ctSpeakFallback(text, slide.reelId);
+    const err = res.ok ? '' : await res.text().catch(() => '');
+    await ctNarrFail(slide.reelId, err);
+  } catch (e) {
+    await ctNarrFail(slide.reelId, String(e?.message || e));
   }
 };
 
@@ -759,36 +920,36 @@ const renderCtLibrary = () => {
   }
   box.innerHTML = '';
   for (const nb of ctLibrary) {
+    const pending = nb.status === 'pending';
     const div = document.createElement('div');
     div.className = 'ct-nb' + (ctNotebook && nb.id === ctNotebook.id ? ' on' : '');
     const date = (nb.updatedAt || '').slice(0, 10);
     const main = document.createElement('button');
     main.type = 'button';
     main.className = 'ct-nb-main';
-    main.title = 'Abrir caderno';
+    main.title = pending ? 'Ver caderno aguardando o agente' : 'Abrir caderno';
     main.innerHTML = `<strong>${escHtml(nb.title)}</strong>` +
-      `<span>${escHtml(nb.query || '')} · ${nb.reels ?? 0} telas · ${escHtml(date)}</span>`;
-    main.addEventListener('click', () => ctOpenNotebook(nb.id));
+      (pending
+        ? '<span class="ct-nb-badge">⏳ aguardando a IA</span> '
+        : '') +
+      `<span>${escHtml(nb.query || '')}${pending ? '' : ` · ${nb.reels ?? 0} telas`} · ${escHtml(date)}</span>`;
+    main.addEventListener('click', () =>
+      pending ? ctClickPending(nb) : ctOpenNotebook(nb.id));
     div.appendChild(main);
     box.appendChild(div);
   }
 };
 
-const ctLoadNotebookMeta = async (id) => {
-  if (!id || ctNotebook?.id === id) return;
-  try {
-    const res = await fetch(`/tours/${encodeURIComponent(id)}`);
-    if (!res.ok) return;
-    ctNotebook = (await res.json()).notebook;
-    renderCtHeroExtras();
-    renderCtLibrary();
-  } catch { /* segue sem meta */ }
-};
-
-const ctSyncSessionNotebook = () => {
-  const id = ctSession?.notebookId || null;
-  if (id && !ctNotebook) ctLoadNotebookMeta(id);
-  if (!id && ctNotebook && ctReelData) ctNotebook = null;
+// Clique num pendente da lista — reabre o painel de prompt.
+const ctClickPending = async (nb) => {
+  ctNotebook = nb;
+  if (ctSession?.id !== nb.id) ctSession = null;
+  ctReelData = null;
+  ctSlides = [];
+  ctDebug('log', 'reabrindo caderno pendente', { id: nb.id });
+  renderCtLibrary();
+  await ctShowPending(nb, ctPrompts.get(nb.id) || '');
+  startCtPoll(nb.id);
 };
 
 const ctOpenNotebook = async (id) => {
@@ -796,10 +957,29 @@ const ctOpenNotebook = async (id) => {
     const metaRes = await fetch(`/tours/${encodeURIComponent(id)}`);
     if (!metaRes.ok) return toast('Caderno não encontrado');
     const data = await metaRes.json();
+    if (data.notebook?.status === 'pending') return ctClickPending(data.notebook);
     ctNotebook = data.notebook;
+    ctDebug('decision', 'abrir caderno', {
+      id,
+      title: ctNotebook.title,
+      telas: ctNotebook.reels ?? '?',
+    });
     const openRes = await fetch(`/tours/${encodeURIComponent(id)}/open`, { method: 'POST' });
-    if (!openRes.ok) return toast(await openRes.text() || 'Erro ao abrir');
+    if (!openRes.ok) {
+      ctDebug('error', 'falha ao abrir caderno', {
+        id,
+        status: openRes.status,
+        body: (await openRes.text()).slice(0, 160),
+      });
+      return toast('Erro ao abrir');
+    }
     ctSession = (await openRes.json()).session;
+    ctDebug('log', 'apresentação recarregada', {
+      id,
+      telas: ctSession?.reel?.reels?.length ?? 0,
+      scan: ctSession?.scan?.files ?? 0,
+    });
+    ctHidePending();
     ctSlideIdx = 0;
     stopCtPoll();
     renderCodetour();
@@ -945,4 +1125,6 @@ document.addEventListener('click', (e) => {
   if (e.target?.id === 'ct-form-overlay') ctCloseForm();
   if (e.target?.id === 'ct-up') ctGo(-1);
   if (e.target?.id === 'ct-down') ctGo(1);
+  if (e.target?.id === 'ct-pending-copy') ctCopyPendingPrompt();
+  if (e.target?.id === 'ct-pending-cancel') ctCancelPending();
 });

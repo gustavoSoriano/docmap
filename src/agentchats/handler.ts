@@ -87,9 +87,7 @@ export const agentChatsHandler =
           ...(body?.objective !== undefined
             ? { objective: body.objective }
             : {}),
-          ...(Array.isArray(body?.tags)
-            ? { tags: body.tags as string[] }
-            : {}),
+          ...(Array.isArray(body?.tags) ? { tags: body.tags as string[] } : {}),
         });
         broadcastChatEvent({
           id: crypto.randomUUID(),
@@ -124,10 +122,14 @@ export const agentChatsHandler =
           status?: 'open' | 'closed';
           tags?: unknown;
         } | null;
-        if (!body || typeof body !== 'object') return badRequest('Invalid JSON');
+        if (!body || typeof body !== 'object') {
+          return badRequest('Invalid JSON');
+        }
         const updated = await updateChat(kv, id, {
           ...(body.title !== undefined ? { title: body.title } : {}),
-          ...(body.objective !== undefined ? { objective: body.objective } : {}),
+          ...(body.objective !== undefined
+            ? { objective: body.objective }
+            : {}),
           ...(body.status !== undefined ? { status: body.status } : {}),
           ...(Array.isArray(body.tags) ? { tags: body.tags as string[] } : {}),
         });
@@ -180,7 +182,9 @@ export const agentChatsHandler =
           sessionId?: unknown;
           authorName?: unknown;
         } | null;
-        if (!body || typeof body !== 'object') return badRequest('Invalid JSON');
+        if (!body || typeof body !== 'object') {
+          return badRequest('Invalid JSON');
+        }
         if (typeof body.body !== 'string' || !body.body.trim()) {
           return badRequest('body required');
         }
@@ -226,7 +230,9 @@ export const agentChatsHandler =
           provider?: unknown;
           model?: unknown;
         } | null;
-        if (!body || typeof body !== 'object') return badRequest('Invalid JSON');
+        if (!body || typeof body !== 'object') {
+          return badRequest('Invalid JSON');
+        }
         if (typeof body.name !== 'string' || !body.name.trim()) {
           return badRequest('name required');
         }

@@ -32,7 +32,12 @@ const PREFIX = ['trilha_events', GLOBAL] as const;
 const MAX_PER_TRILHA = 500;
 
 export const statusLabel = (s: TrilhaNodeStatus): string =>
-  ({ todo: 'a fazer', doing: 'fazendo', done: 'pronto', blocked: 'bloqueado' } as Record<
+  ({
+    todo: 'a fazer',
+    doing: 'fazendo',
+    done: 'pronto',
+    blocked: 'bloqueado',
+  } as Record<
     string,
     string
   >)[s] ?? s;

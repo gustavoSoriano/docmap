@@ -47,11 +47,16 @@ async (
         return badRequest('filePath required');
       }
       const loaded = await loadImageFromPath(filePath);
-      if (!loaded) return badRequest('cannot read image file (max 5MB: png/jpg/gif/webp)');
+      if (!loaded) {
+        return badRequest('cannot read image file (max 5MB: png/jpg/gif/webp)');
+      }
       const saved = await saveAttachment(noteId, loaded.bytes, loaded.mime);
       if (!saved) return badRequest('invalid image file');
       const url = attachmentUrl(noteId, saved.filename);
-      return json({ filename: saved.filename, url, markdown: `![](${url})` }, 201);
+      return json(
+        { filename: saved.filename, url, markdown: `![](${url})` },
+        201,
+      );
     }
     if (!contentType.toLowerCase().startsWith('image/')) {
       return badRequest('content-type must be image/* or application/json');
@@ -65,7 +70,10 @@ async (
     const saved = await saveAttachment(noteId, bytes, contentType);
     if (!saved) return badRequest('invalid image (max 5MB: png/jpg/gif/webp)');
     const url = attachmentUrl(noteId, saved.filename);
-    return json({ filename: saved.filename, url, markdown: `![](${url})` }, 201);
+    return json(
+      { filename: saved.filename, url, markdown: `![](${url})` },
+      201,
+    );
   }
 
   // ── GET /notes/:id/attachments/:file — serve a imagem ──

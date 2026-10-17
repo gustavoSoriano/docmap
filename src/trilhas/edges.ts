@@ -35,9 +35,7 @@ export const createEdge = async (
   }
   const existing = await listEdges(kv, trilhaId);
   if (
-    existing.some((e) =>
-      e.fromNodeId === fromNodeId && e.toNodeId === toNodeId
-    )
+    existing.some((e) => e.fromNodeId === fromNodeId && e.toNodeId === toNodeId)
   ) return { error: 'duplicate' };
   if (createsCycle(existing, fromNodeId, toNodeId)) return { error: 'cycle' };
   const edge: TrilhaEdge = {
