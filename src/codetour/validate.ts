@@ -1,74 +1,53 @@
-// Validação v6 — visuais por slide, todas as tools obrigatórias no tour.
+// Validação v7 (reels) — 1 ideia por reel; visuais OPCIONAIS (só da paleta).
 // Erros em pt-BR.
-import type { CodeTour, TourDepth, TourVisualKind } from './types.ts';
+import type { CodeReel, Reel, ReelVisualKind, TourDepth } from './types.ts';
 import { parseBubbleContent } from './bubble.ts';
 
-type Ok = { readonly tour: CodeTour };
+type Ok = { readonly reel: CodeReel };
 type Err = { readonly error: string };
 
 export type TourContext = {
   readonly depth: TourDepth;
   readonly paths: ReadonlySet<string>;
-  // Tools visuais exigidas (derivadas dos artefatos inline do caderno).
-  // Omitido → todas (compat com tours v6).
-  readonly required?: readonly TourVisualKind[];
+  // Paleta permitida de visuais (derivada dos artefatos inline do caderno).
+  // Omitido → todas permitidas.
+  readonly allowed?: readonly ReelVisualKind[];
 };
 
 type Bounds = {
-  readonly slides: [number, number];
-  readonly explain: [number, number];
-  readonly snippet: [number, number];
-  readonly flows: [number, number];
-  readonly flowDetail: [number, number];
-  readonly lists: number;
+  readonly reels: [number, number];
+  readonly code: [number, number];
 };
 
 const BOUNDS: Record<TourDepth, Bounds> = {
-  resumo: {
-    slides: [1, 4],
-    explain: [40, 400],
-    snippet: [0, 800],
-    flows: [1, 6],
-    flowDetail: [20, 200],
-    lists: 6,
-  },
-  repasse: {
-    slides: [1, 6],
-    explain: [200, 900],
-    snippet: [20, 1500],
-    flows: [1, 12],
-    flowDetail: [20, 400],
-    lists: 6,
-  },
-  deep: {
-    slides: [1, 10],
-    explain: [200, 1500],
-    snippet: [20, 2500],
-    flows: [1, 16],
-    flowDetail: [20, 400],
-    lists: 8,
-  },
+  resumo: { reels: [3, 6], code: [20, 800] },
+  repasse: { reels: [6, 12], code: [20, 1500] },
+  deep: { reels: [10, 18], code: [20, 2500] },
 };
 
-const ALL_KINDS: readonly TourVisualKind[] = [
+const ALL_KINDS: readonly ReelVisualKind[] = [
   'mermaid',
   'mindmap',
   'html',
   'bubble',
 ];
 
+const LABEL: [number, number] = [2, 24];
+const TITLE: [number, number] = [8, 100];
+const SUB_MAX = 160;
+const RULE: [number, number] = [20, 300];
+const NARRATION: [number, number] = [40, 800];
+const MARK_MAX = 8;
+
 const isObj = (v: unknown): v is Record<string, unknown> =>
   v !== null && typeof v === 'object' && !Array.isArray(v);
 
-const isStrArr = (v: unknown, max: number): v is readonly string[] =>
-  Array.isArray(v) &&
-  v.length <= max &&
-  v.every((s) => typeof s === 'string' && s.trim().length > 0);
+const isStr = (v: unknown): v is string => typeof v === 'string';
 
 export const isDepth = (v: unknown): v is TourDepth =>
   v === 'resumo' || v === 'repasse' || v === 'deep';
 
-const isKind = (v: unknown): v is TourVisualKind =>
+const isKind = (v: unknown): v is ReelVisualKind =>
   v === 'mermaid' || v === 'mindmap' || v === 'html' || v === 'bubble';
 
 export const validateOpenInput = (v: unknown): string | null => {
@@ -91,158 +70,238 @@ export const validateOpenInput = (v: unknown): string | null => {
 
 const basePathOf = (fileRef: string): string => fileRef.split(':')[0];
 
-export const parseCodeTour = (v: unknown, ctx: TourContext): Ok | Err => {
+// Start line de "path:line" — 1 quando não há linha.
+const startLineOf = (fileRef: string): number => {
+  const m = /:(\d+)$/.exec(fileRef);
+  return m ? Number(m[1]) : 1;
+};
+
+export const parseCodeReel = (v: unknown, ctx: TourContext): Ok | Err => {
   const b = BOUNDS[ctx.depth];
-  if (!isObj(v)) return { error: 'tour deve ser um objeto' };
+  if (!isObj(v)) return { error: 'caderno deve ser um objeto' };
   const r = v as Record<string, unknown>;
-  const topic = typeof r.topic === 'string'
-    ? r.topic
-    : typeof r.layer === 'string'
-    ? r.layer
-    : '';
-  if (!topic.trim()) return { error: 'tour.topic obrigatório' };
-  if (typeof r.goal !== 'string' || !r.goal.trim()) {
-    return { error: 'tour.goal obrigatório' };
+  const topic = isStr(r.topic) ? r.topic : '';
+  if (!topic.trim()) return { error: 'caderno.topic obrigatório' };
+  if (!isStr(r.goal) || !r.goal.trim()) {
+    return { error: 'caderno.goal obrigatório' };
   }
-  if (r.goal.length > 400) return { error: 'tour.goal excede 400 chars' };
-  const slidesErr = checkSlides(r.slides, b, ctx);
-  if (slidesErr) return { error: slidesErr };
-  const slides = r.slides as Ok['tour']['slides'];
-  const kindsErr = checkAllTools(slides, ctx.required ?? ALL_KINDS);
-  if (kindsErr) return { error: kindsErr };
-  const flows = Array.isArray(r.flows) ? r.flows : [];
-  const flowsErr = checkFlows(flows, b);
-  if (flowsErr) return { error: flowsErr };
-  const contracts = Array.isArray(r.contracts) ? r.contracts : [];
-  if (contracts.length > 12) return { error: 'tour.contracts: máx 12' };
-  if (!isStrArr(r.keyFiles ?? [], 15)) {
-    return { error: 'tour.keyFiles: até 15 (ex: src/x.ts:10)' };
+  if (r.goal.length > 400) return { error: 'caderno.goal excede 400 chars' };
+  if (
+    !Array.isArray(r.reels) ||
+    r.reels.length < b.reels[0] ||
+    r.reels.length > b.reels[1]
+  ) {
+    return { error: `caderno.reels: de ${b.reels[0]} a ${b.reels[1]} telas` };
   }
-  if (!isStrArr(r.pitfalls ?? [], b.lists)) {
-    return { error: `tour.pitfalls: até ${b.lists}` };
+  const allowed = ctx.allowed ?? ALL_KINDS;
+  const ids = new Set<string>();
+  for (const [i, raw] of r.reels.entries()) {
+    const err = checkReel(raw, i, b, ctx, allowed, ids);
+    if (err) return { error: err };
   }
-  if (!isStrArr(r.nextSteps ?? [], b.lists)) {
-    return { error: `tour.nextSteps: até ${b.lists}` };
+  const reelIds = new Set<string>();
+  for (const [i, raw] of r.reels.entries()) {
+    if (isObj(raw)) {
+      const id = isStr(raw.id) && raw.id.trim() ? raw.id.trim() : `r${i + 1}`;
+      reelIds.add(id);
+    }
   }
   return {
-    tour: {
+    reel: {
       topic: topic.trim(),
       goal: (r.goal as string).trim(),
-      slides,
-      flows: flows as Ok['tour']['flows'],
-      contracts: contracts as Ok['tour']['contracts'],
-      keyFiles: (r.keyFiles ?? []) as readonly string[],
-      pitfalls: (r.pitfalls ?? []) as readonly string[],
-      nextSteps: (r.nextSteps ?? []) as readonly string[],
+      reels: r.reels as readonly Reel[],
     },
   };
 };
 
-// Todas as tools exigidas precisam aparecer ao menos 1x no tour.
-const checkAllTools = (
-  slides: Ok['tour']['slides'],
-  required: readonly TourVisualKind[],
+const checkReel = (
+  raw: unknown,
+  i: number,
+  b: Bounds,
+  ctx: TourContext,
+  allowed: readonly ReelVisualKind[],
+  ids: Set<string>,
 ): string | null => {
-  const seen = new Set<string>();
-  for (const s of slides) {
-    for (const vis of s.visuals ?? []) {
-      if (isObj(vis) && isKind(vis.kind)) seen.add(vis.kind);
-    }
+  if (!isObj(raw)) return `caderno.reels[${i}] deve ser objeto`;
+  const id = isStr(raw.id) && raw.id.trim() ? raw.id.trim() : `r${i + 1}`;
+  if (ids.has(id)) return `caderno.reels[${i}] id duplicado (${id})`;
+  ids.add(id);
+
+  const label = isStr(raw.label) ? raw.label.trim() : '';
+  if (label.length < LABEL[0] || label.length > LABEL[1]) {
+    return `caderno.reels[${i}].label: ${LABEL[0]} a ${LABEL[1]} chars`;
   }
-  const missing = required.filter((k) => !seen.has(k));
-  if (missing.length > 0) {
-    return `tour sem usar: ${
-      missing.join(', ')
-    } — use todas as tools do caderno (${required.join(', ')})`;
+  const title = isStr(raw.title) ? raw.title.trim() : '';
+  if (title.length < TITLE[0] || title.length > TITLE[1]) {
+    return `caderno.reels[${i}].title: ${TITLE[0]} a ${
+      TITLE[1]
+    } chars — diga a conclusão`;
+  }
+  const sub = isStr(raw.sub) ? raw.sub.trim() : '';
+  if (sub.length > SUB_MAX) {
+    return `caderno.reels[${i}].sub excede ${SUB_MAX} chars`;
+  }
+  const narration = isStr(raw.narration) ? raw.narration : '';
+  const narrErr = checkNarration(narration, i);
+  if (narrErr) return narrErr;
+
+  const codeErr = checkCode(raw.code, i, b, ctx);
+  if (codeErr) return codeErr;
+
+  const ruleErr = checkRule(raw.rule, i);
+  if (ruleErr) return ruleErr;
+
+  const visual = raw.visual;
+  if (visual !== null && visual !== undefined) {
+    const visErr = checkVisual(visual, i, ctx, allowed);
+    if (visErr) return visErr;
+  }
+
+  (raw as Record<string, unknown>).id = id;
+  if (raw.code === undefined) (raw as Record<string, unknown>).code = null;
+  if (raw.visual === undefined) (raw as Record<string, unknown>).visual = null;
+  if (raw.rule === undefined) (raw as Record<string, unknown>).rule = null;
+  if (raw.sub === undefined) (raw as Record<string, unknown>).sub = '';
+  return null;
+};
+
+const checkCode = (
+  raw: unknown,
+  i: number,
+  b: Bounds,
+  ctx: TourContext,
+): string | null => {
+  if (raw === null || raw === undefined) return null; // prova é opcional
+  if (!isObj(raw)) return `caderno.reels[${i}].code deve ser objeto`;
+  const file = isStr(raw.file) ? raw.file.trim() : '';
+  if (!file) return `caderno.reels[${i}].code.file obrigatório (path:linha)`;
+  if (ctx.paths.size > 0 && !ctx.paths.has(basePathOf(file))) {
+    return `caderno.reels[${i}].code.file fora do scan (${file})`;
+  }
+  const code = isStr(raw.code) ? raw.code : '';
+  if (code.trim().length < b.code[0] || code.length > b.code[1]) {
+    return `caderno.reels[${i}].code.code: ${b.code[0]} a ${b.code[1]} chars`;
+  }
+  const start = startLineOf(file);
+  const lines = code.replace(/\n+$/, '').split('\n').length;
+  const end = start + lines - 1;
+  const mark = raw.mark;
+  if (mark !== undefined) {
+    if (!Array.isArray(mark) || mark.length > MARK_MAX) {
+      return `caderno.reels[${i}].code.mark: lista de até ${MARK_MAX} linhas`;
+    }
+    for (const m of mark) {
+      if (typeof m !== 'number' || !Number.isInteger(m)) {
+        return `caderno.reels[${i}].code.mark deve conter números de linha`;
+      }
+      if (m < start || m > end) {
+        return `caderno.reels[${i}].code.mark ${m} fora do trecho (${start}–${end})`;
+      }
+    }
+  } else {
+    (raw as Record<string, unknown>).mark = [];
   }
   return null;
 };
 
-const checkBubbleRefs = (
-  raw: string,
-  slideIdx: number,
-  ctx: TourContext,
-  slideIds: ReadonlySet<string>,
-): string | null => {
-  if (raw.trim().length > 12_000) {
-    return `tour.slides[${slideIdx}].bubble excede 12000 chars`;
+const checkRule = (raw: unknown, i: number): string | null => {
+  if (raw === null || raw === undefined) return null; // rule é opcional
+  if (!isObj(raw)) return `caderno.reels[${i}].rule deve ser objeto`;
+  const text = isStr(raw.text) ? raw.text.trim() : '';
+  if (text.length < RULE[0] || text.length > RULE[1]) {
+    return `caderno.reels[${i}].rule.text: ${RULE[0]} a ${RULE[1]} chars`;
   }
-  const parsed = parseBubbleContent(raw);
-  if ('error' in parsed) return `tour.slides[${slideIdx}].${parsed.error}`;
-  for (const n of parsed.content.nodes) {
-    if (n.file !== null && ctx.paths.size > 0 && !ctx.paths.has(basePathOf(n.file))) {
-      return `tour.slides[${slideIdx}].bubble.node ${n.id} fora do scan (${n.file})`;
-    }
-    if (n.slide !== null && !slideIds.has(n.slide)) {
-      return `tour.slides[${slideIdx}].bubble.node ${n.id} aponta p/ slide inexistente (${n.slide})`;
-    }
+  if (raw.file !== undefined && raw.file !== null && !isStr(raw.file)) {
+    return `caderno.reels[${i}].rule.file deve ser texto`;
   }
   return null;
 };
 
 const checkVisual = (
   vis: unknown,
-  slideIdx: number,
+  i: number,
   ctx: TourContext,
-  slideIds: ReadonlySet<string>,
+  allowed: readonly ReelVisualKind[],
 ): string | null => {
-  if (!isObj(vis)) return `tour.slides[${slideIdx}].visuals deve ser objetos`;
+  if (!isObj(vis)) return `caderno.reels[${i}].visual deve ser objeto`;
   if (!isKind(vis.kind)) {
-    return `tour.slides[${slideIdx}].visual kind deve ser mermaid, mindmap, html ou bubble`;
+    return `caderno.reels[${i}].visual.kind deve ser mermaid, mindmap, html ou bubble`;
   }
-  if (typeof vis.title !== 'string' || !vis.title.trim()) {
-    return `tour.slides[${slideIdx}].visual.title obrigatório`;
+  if (!allowed.includes(vis.kind)) {
+    return `caderno.reels[${i}].visual.kind ${vis.kind} desativado nos artefatos`;
   }
-  if (vis.title.length > 120) {
-    return `tour.slides[${slideIdx}].visual.title excede 120 chars`;
+  const title = isStr(vis.title) ? vis.title.trim() : '';
+  if (!title || title.length > 120) {
+    return `caderno.reels[${i}].visual.title: 1 a 120 chars`;
   }
-  if (typeof vis.content !== 'string' || !vis.content.trim()) {
-    return `tour.slides[${slideIdx}].visual.content obrigatório`;
+  if (!isStr(vis.content) || !vis.content.trim()) {
+    return `caderno.reels[${i}].visual.content obrigatório`;
   }
   const content = vis.content.trim();
   if (vis.kind === 'mermaid') {
     if (content.length < 60) {
-      return `tour.slides[${slideIdx}].mermaid curto — desenhe o fluxo`;
+      return `caderno.reels[${i}].mermaid curto — desenhe o fluxo`;
     }
     if (content.length > 4000) {
-      return `tour.slides[${slideIdx}].mermaid excede 4000 chars`;
+      return `caderno.reels[${i}].mermaid excede 4000 chars`;
     }
     if (!/^(flowchart|graph)\s+[A-Z]{1,2}\b/m.test(content)) {
-      return `tour.slides[${slideIdx}].mermaid deve começar com "flowchart LR"`;
+      return `caderno.reels[${i}].mermaid deve começar com "flowchart LR"`;
     }
     if (!/-->|---|==>/.test(content)) {
-      return `tour.slides[${slideIdx}].mermaid sem conexões`;
+      return `caderno.reels[${i}].mermaid sem conexões`;
     }
-    const mermaidErr = checkMermaidSafe(content, slideIdx);
+    const mermaidErr = checkMermaidSafe(content, i);
     if (mermaidErr) return mermaidErr;
   }
   if (vis.kind === 'mindmap') {
     if (content.length < 20 || content.length > 3000) {
-      return `tour.slides[${slideIdx}].mindmap: 20 a 3000 chars de markdown`;
+      return `caderno.reels[${i}].mindmap: 20 a 3000 chars de markdown`;
     }
     if (
       !/^#{1,6}\s/m.test(content) && !/^(\s*[-*]|\s*\d+\.)\s/m.test(content)
     ) {
-      return `tour.slides[${slideIdx}].mindmap precisa de títulos (#) ou lista (-)`;
+      return `caderno.reels[${i}].mindmap precisa de títulos (#) ou lista (-)`;
     }
   }
   if (vis.kind === 'html') {
     if (content.length < 20 || content.length > 5000) {
-      return `tour.slides[${slideIdx}].html: 20 a 5000 chars`;
+      return `caderno.reels[${i}].html: 20 a 5000 chars`;
     }
     if (/<\s*script/i.test(content) || /<\s*iframe/i.test(content)) {
-      return `tour.slides[${slideIdx}].html não pode ter script nem iframe`;
+      return `caderno.reels[${i}].html não pode ter script nem iframe`;
     }
   }
   if (vis.kind === 'bubble') {
-    return checkBubbleRefs(content, slideIdx, ctx, slideIds);
+    return checkBubbleRefs(content, i, ctx);
+  }
+  return null;
+};
+
+const checkBubbleRefs = (
+  raw: string,
+  i: number,
+  ctx: TourContext,
+): string | null => {
+  if (raw.length > 12_000) {
+    return `caderno.reels[${i}].bubble excede 12000 chars`;
+  }
+  const parsed = parseBubbleContent(raw);
+  if ('error' in parsed) return `caderno.reels[${i}].${parsed.error}`;
+  for (const n of parsed.content.nodes) {
+    if (
+      n.file !== null && ctx.paths.size > 0 &&
+      !ctx.paths.has(basePathOf(n.file))
+    ) {
+      return `caderno.reels[${i}].bubble.node ${n.id} fora do scan (${n.file})`;
+    }
   }
   return null;
 };
 
 // Subconjunto seguro do mermaid: o render 10.x quebra (bomba "Syntax error")
 // com fences, HTML, aspas, pipes, hashtags e diretivas click/style/subgraph.
-// Ids devem ser ASCII simples e todo "class X camada" precisa de nó X.
 const MERMAID_FORBIDDEN: ReadonlyArray<[RegExp, string]> = [
   [/```/, 'sem cercas de código (```)'],
   [/[<]/, 'sem <'],
@@ -254,149 +313,46 @@ const MERMAID_FORBIDDEN: ReadonlyArray<[RegExp, string]> = [
   [/\b(click|style|subgraph|classDef)\b/i, 'sem click/style/subgraph/classDef'],
 ];
 
-const MERMAID_LAYERS = ['api', 'service', 'data', 'ui', 'test', 'util'] as const;
+const MERMAID_LAYERS = [
+  'api',
+  'service',
+  'data',
+  'ui',
+  'test',
+  'util',
+] as const;
 
-const checkMermaidSafe = (content: string, slideIdx: number): string | null => {
+const checkMermaidSafe = (content: string, i: number): string | null => {
   for (const [re, why] of MERMAID_FORBIDDEN) {
-    if (re.test(content)) return `tour.slides[${slideIdx}].mermaid inválido: ${why}`;
+    if (re.test(content)) return `caderno.reels[${i}].mermaid inválido: ${why}`;
   }
   const ids = new Set<string>();
-  for (const m of content.matchAll(/\b([A-Za-z][\w-]*)\s*[\[{]/g)) ids.add(m[1]);
+  for (const m of content.matchAll(/\b([A-Za-z][\w-]*)\s*[\[{]/g)) {
+    ids.add(m[1]);
+  }
   for (const m of content.matchAll(/\bclass\s+([\w-]+)\s+([A-Za-z]+)/g)) {
     if (!ids.has(m[1])) {
-      return `tour.slides[${slideIdx}].mermaid: class ${m[1]} sem nó definido`;
+      return `caderno.reels[${i}].mermaid: class ${m[1]} sem nó definido`;
     }
     if (!(MERMAID_LAYERS as readonly string[]).includes(m[2])) {
-      return `tour.slides[${slideIdx}].mermaid: camada ${m[2]} inválida (use api/service/data/ui/test/util)`;
+      return `caderno.reels[${i}].mermaid: camada ${
+        m[2]
+      } inválida (use api/service/data/ui/test/util)`;
     }
   }
   return null;
 };
 
-// Narração p/ TTS — texto de fala, não de leitura. Limites fixos em todas
-// as depths p/ caber em ~1min de áudio e não travar o edge-tts.
+// Narração p/ TTS — texto de fala, não de leitura.
 const checkNarration = (narration: string, i: number): string | null => {
   const text = narration.trim();
-  if (text.length < 40 || narration.length > 800) {
-    return `tour.slides[${i}].narration: 40 a 800 chars de texto falável`;
+  if (text.length < NARRATION[0] || narration.length > NARRATION[1]) {
+    return `caderno.reels[${i}].narration: ${NARRATION[0]} a ${
+      NARRATION[1]
+    } chars de texto falável`;
   }
   if (/```/.test(narration) || /<\s*script/i.test(narration)) {
-    return `tour.slides[${i}].narration: texto puro, sem código nem script`;
-  }
-  return null;
-};
-
-const checkSlides = (
-  v: unknown,
-  b: Bounds,
-  ctx: TourContext,
-): string | null => {
-  if (!Array.isArray(v) || v.length < b.slides[0] || v.length > b.slides[1]) {
-    return `tour.slides: de ${b.slides[0]} a ${b.slides[1]} slides`;
-  }
-  const slideIds = new Set<string>();
-  for (const [i, s] of v.entries()) {
-    const id = isObj(s) && typeof s.id === 'string' && s.id.trim()
-      ? (s.id as string).trim()
-      : `s${i + 1}`;
-    slideIds.add(id);
-  }
-  for (const [i, s] of v.entries()) {
-    if (!isObj(s)) return `tour.slides[${i}] deve ser objeto`;
-    if (typeof s.title !== 'string' || !s.title.trim()) {
-      return `tour.slides[${i}].title obrigatório`;
-    }
-    if ((s.title as string).trim().length > 100) {
-      return `tour.slides[${i}].title excede 100 chars — direto à conclusão`;
-    }
-    if (!Array.isArray(s.bullets) || s.bullets.length > 3) {
-      return `tour.slides[${i}].bullets: máx 3`;
-    }
-    for (const item of s.bullets as unknown[]) {
-      if (typeof item !== 'string' || !item.trim()) {
-        return `tour.slides[${i}] com bullet vazio`;
-      }
-      if (item.length > 140) {
-        return `tour.slides[${i}] tem bullet > 140 chars`;
-      }
-    }
-    const explain = typeof s.explain === 'string' ? s.explain : '';
-    if (
-      explain.trim().length < b.explain[0] || explain.length > b.explain[1]
-    ) {
-      return `tour.slides[${i}].explain: ${b.explain[0]} a ${
-        b.explain[1]
-      } chars`;
-    }
-    const check = typeof s.check === 'string' ? s.check : '';
-    if (check.trim().length < 20 || check.length > 280) {
-      return `tour.slides[${i}].check: pergunta de 20 a 280 chars`;
-    }
-    const narration = typeof s.narration === 'string' ? s.narration : '';
-    const narrErr = checkNarration(narration, i);
-    if (narrErr) return narrErr;
-    const visuals = Array.isArray(s.visuals) ? s.visuals : [];
-    if (visuals.length > 4) {
-      return `tour.slides[${i}].visuals: máx 4 por slide`;
-    }
-    for (const vis of visuals) {
-      const err = checkVisual(vis, i, ctx, slideIds);
-      if (err) return err;
-    }
-    const sn = s.snippet as unknown;
-    if (sn === null || sn === undefined) {
-      if (b.snippet[0] > 0) return `tour.slides[${i}].snippet obrigatório`;
-    } else {
-      if (!isObj(sn)) return `tour.slides[${i}].snippet deve ser objeto`;
-      if (typeof sn.file !== 'string' || !sn.file.trim()) {
-        return `tour.slides[${i}].snippet.file obrigatório`;
-      }
-      if (ctx.paths.size > 0 && !ctx.paths.has(basePathOf(sn.file))) {
-        return `tour.slides[${i}].snippet.file fora do scan (${sn.file})`;
-      }
-      const code = typeof sn.code === 'string' ? sn.code : '';
-      if (
-        code.trim().length < b.snippet[0] || code.length > b.snippet[1]
-      ) {
-        return `tour.slides[${i}].snippet.code: ${b.snippet[0]} a ${
-          b.snippet[1]
-        } chars`;
-      }
-    }
-    if (s.files !== undefined && !isStrArr(s.files, 5)) {
-      return `tour.slides[${i}].files: até 5`;
-    }
-    if (typeof s.id !== 'string' || !s.id.trim()) {
-      (s as Record<string, unknown>).id = `s${i + 1}`;
-    }
-    if (s.files === undefined) (s as Record<string, unknown>).files = [];
-    if (!Array.isArray(s.visuals)) {
-      (s as Record<string, unknown>).visuals = [];
-    }
-  }
-  return null;
-};
-
-const checkFlows = (flows: unknown[], b: Bounds): string | null => {
-  if (flows.length < b.flows[0] || flows.length > b.flows[1]) {
-    return `tour.flows: de ${b.flows[0]} a ${b.flows[1]} passos`;
-  }
-  for (const [i, f] of flows.entries()) {
-    if (!isObj(f)) return `tour.flows[${i}] deve ser objeto`;
-    if (typeof f.label !== 'string' || !f.label.trim()) {
-      return `tour.flows[${i}].label obrigatório`;
-    }
-    if (typeof f.file !== 'string' || !f.file.trim()) {
-      return `tour.flows[${i}].file obrigatório`;
-    }
-    const d = typeof f.detail === 'string' ? f.detail : '';
-    if (
-      d.trim().length < b.flowDetail[0] || d.length > b.flowDetail[1]
-    ) {
-      return `tour.flows[${i}].detail: ${b.flowDetail[0]} a ${
-        b.flowDetail[1]
-      } chars`;
-    }
+    return `caderno.reels[${i}].narration: texto puro, sem código nem script`;
   }
   return null;
 };

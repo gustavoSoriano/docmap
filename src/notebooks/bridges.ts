@@ -6,7 +6,7 @@ import { audioPathForHash } from '../codetour/audio.ts';
 // board único em memória). O ramo canvas abaixo só limpa referências
 // legadas de cadernos que já exportaram.
 import { narrationHash } from '../codetour/narration.ts';
-import type { CodeTour } from '../codetour/types.ts';
+import type { CodeReel } from '../codetour/types.ts';
 import { deleteAudio } from '../podcasts/audio.ts';
 import { checkDeps } from '../podcasts/health.ts';
 import { runPodcastPipeline } from '../podcasts/pipeline.ts';
@@ -34,7 +34,7 @@ type Fail = { readonly error: string };
 export const exportNotebookPodcast = async (
   kv: Deno.Kv,
   meta: NotebookMeta,
-  tour: CodeTour,
+  reel: CodeReel,
 ): Promise<{ readonly podcastId: string } | Fail> => {
   if (meta.links.podcastId) {
     return { error: 'podcast já gerado — apague a referência para regerar' };
@@ -46,7 +46,7 @@ export const exportNotebookPodcast = async (
       .join(' | ');
     return { error: `dependências faltando — ${missing}` };
   }
-  const script = buildNotebookPodcastScript(tour);
+  const script = buildNotebookPodcastScript(reel);
   const picked = await pickRandomVoices(2, ['pt-BR']);
   if (picked.length < 2) return { error: 'sem vozes pt-BR no edge-tts' };
   const voices = picked.map((v, i) => ({
@@ -56,7 +56,7 @@ export const exportNotebookPodcast = async (
   const segErr = validateSegments(parseScript(script), voices);
   if (segErr) return { error: segErr };
   const podcast = await createPodcast(kv, {
-    title: `Caderno: ${tour.topic}`.slice(0, 120),
+    title: `Caderno: ${reel.topic}`.slice(0, 120),
     folder: 'cadernos',
     tags: normalizeTags(['caderno', notebookTag(meta.id)]),
     script,
@@ -71,15 +71,15 @@ export const exportNotebookPodcast = async (
   return { podcastId: podcast.id };
 };
 
-const tourAudioHashes = (tour: CodeTour): string[] =>
-  tour.slides.map((s) => narrationHash(s.narration)).filter((h) => !!h);
+const reelAudioHashes = (reel: CodeReel): string[] =>
+  reel.reels.map((r) => narrationHash(r.narration)).filter((h) => !!h);
 
 // Apaga as referências externas do caderno (escolhidas no diálogo).
 // Áudio: só apaga narrações que NENHUM outro caderno usa (cache compartilhado).
 export const deleteNotebookRefs = async (
   kv: Deno.Kv,
   meta: NotebookMeta,
-  tour: CodeTour,
+  reel: CodeReel,
   refs: NotebookRefs,
 ): Promise<
   { readonly podcast: boolean; readonly canvas: number; readonly audio: number }
@@ -100,13 +100,13 @@ export const deleteNotebookRefs = async (
     canvas = boardHub.removeRecords(meta.links.canvasShapeIds);
   }
   if (refs.audio) {
-    const mine = new Set(tourAudioHashes(tour));
+    const mine = new Set(reelAudioHashes(reel));
     const others = await listNotebookMetas(kv);
     for (const o of others) {
       if (o.id === meta.id) continue;
       const body = await readNotebookBody(o.id);
       if (!body) continue;
-      for (const h of tourAudioHashes(body.tour)) mine.delete(h);
+      for (const h of reelAudioHashes(body.reel)) mine.delete(h);
     }
     for (const h of mine) {
       try {

@@ -24,7 +24,7 @@ export const readNotebookBody = async (
   try {
     const raw = await Deno.readTextFile(bodyPath(id));
     const v = JSON.parse(raw) as Partial<NotebookBody>;
-    if (!v || typeof v !== 'object' || !('tour' in v)) return null;
+    if (!v || typeof v !== 'object' || !('reel' in v)) return null;
     return v as NotebookBody;
   } catch {
     return null;

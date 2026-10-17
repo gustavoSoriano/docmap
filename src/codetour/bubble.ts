@@ -62,11 +62,11 @@ export const parseBubbleContent = (raw: string): Ok | Err => {
       return { error: `bubble.node ${id}: parent inválido` };
     }
     const file = str(o.file).trim() || null;
-    const slide = str(o.slide).trim() || null;
-    if (slide !== null && !ID_RE.test(slide)) {
-      return { error: `bubble.node ${id}: slide inválido` };
+    const reel = str(o.reel).trim() || null;
+    if (reel !== null && !ID_RE.test(reel)) {
+      return { error: `bubble.node ${id}: reel inválido` };
     }
-    parsed.push({ id, label, detail, parent, file, slide });
+    parsed.push({ id, label, detail, parent, file, reel });
   }
   for (const n of parsed) {
     if (n.parent !== null && !ids.has(n.parent)) {

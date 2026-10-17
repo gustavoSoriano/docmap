@@ -1,6 +1,6 @@
 // Sessão única em memória — temporária, sem KV, sem arquivo.
 import type {
-  CodeTour,
+  CodeReel,
   CodeTourSession,
   PublicSession,
   StructurePack,
@@ -29,7 +29,7 @@ export const openSession = (
     notebookId: null,
     createdAt: now,
     updatedAt: now,
-    tour: null,
+    reel: null,
     pack: null,
   };
   return active;
@@ -47,9 +47,9 @@ export const attachPack = (pack: StructurePack): CodeTourSession | null => {
   return active;
 };
 
-export const attachTour = (tour: CodeTour): CodeTourSession | null => {
+export const attachReel = (reel: CodeReel): CodeTourSession | null => {
   if (!active) return null;
-  active = { ...active, tour, updatedAt: new Date().toISOString() };
+  active = { ...active, reel, updatedAt: new Date().toISOString() };
   return active;
 };
 
@@ -74,7 +74,7 @@ export const publicSession = (
     notebookId: s.notebookId,
     createdAt: s.createdAt,
     updatedAt: s.updatedAt,
-    tour: s.tour,
+    reel: s.reel,
     scan: s.pack
       ? { files: s.pack.files.length, truncated: s.pack.truncated }
       : null,

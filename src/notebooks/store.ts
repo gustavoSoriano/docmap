@@ -1,11 +1,7 @@
 // Store KV dos cadernos — só metadados (ver body-file.ts p/ o corpo).
 import type { ArtifactKind } from '../codetour/artifacts.ts';
 import type { TourDepth } from '../codetour/types.ts';
-import type {
-  NotebookLinks,
-  NotebookMeta,
-  NotebookProgress,
-} from './types.ts';
+import type { NotebookLinks, NotebookMeta, NotebookProgress } from './types.ts';
 import { notebookTag } from './types.ts';
 import { normalizeTags } from '../tags/normalize.ts';
 
@@ -30,7 +26,7 @@ export type CreateNotebookData = {
   readonly projectRoot: string;
   readonly depth: TourDepth;
   readonly artifacts: readonly ArtifactKind[];
-  readonly slides: number;
+  readonly reels: number;
 };
 
 export const createNotebookMeta = async (
@@ -49,7 +45,7 @@ export const createNotebookMeta = async (
     artifacts: data.artifacts,
     links: emptyLinks(),
     progress: emptyProgress(),
-    slides: data.slides,
+    reels: data.reels,
     createdAt: now,
     updatedAt: now,
   };
@@ -71,7 +67,9 @@ export const listNotebookMetas = async (
   const out: NotebookMeta[] = [];
   for await (const e of kv.list<NotebookMeta>({ prefix: PREFIX })) {
     if (e.value) {
-      out.push(Array.isArray(e.value.tags) ? e.value : { ...e.value, tags: [] });
+      out.push(
+        Array.isArray(e.value.tags) ? e.value : { ...e.value, tags: [] },
+      );
     }
   }
   out.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));

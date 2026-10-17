@@ -1,22 +1,22 @@
 // Narração por slide — lookup + cache + síntese sob demanda.
 // Não importa de podcasts/*: usa o primitivo compartilhado src/voice/*.
 import { hashText } from '../voice/hash.ts';
-import { DEFAULT_VOICE, isVoiceId, synthesizeSpeech } from '../voice/synthesize.ts';
 import {
-  audioPathForHash,
-  ensureCodetourDir,
-  statNarration,
-} from './audio.ts';
-import type { CodeTourSession, TourSlide } from './types.ts';
+  DEFAULT_VOICE,
+  isVoiceId,
+  synthesizeSpeech,
+} from '../voice/synthesize.ts';
+import { audioPathForHash, ensureCodetourDir, statNarration } from './audio.ts';
+import type { CodeTourSession, Reel } from './types.ts';
 
 const SLIDE_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
-export const findSlide = (
+export const findReel = (
   session: CodeTourSession | null,
-  slideId: string,
-): TourSlide | null => {
-  if (!session?.tour || !SLIDE_ID_RE.test(slideId)) return null;
-  return session.tour.slides.find((s) => s.id === slideId) ?? null;
+  reelId: string,
+): Reel | null => {
+  if (!session?.reel || !SLIDE_ID_RE.test(reelId)) return null;
+  return session.reel.reels.find((r) => r.id === reelId) ?? null;
 };
 
 export const narrationHash = (text: string): string => hashText(text.trim());

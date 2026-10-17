@@ -258,16 +258,27 @@ const migrations: Migration[] = [
         }
         return { id: crypto.randomUUID(), text: '', done: false };
       });
-        if (JSON.stringify(converted) !== JSON.stringify(v.doneCriteria)) {
-          await kv.set(entry.key, { ...v, doneCriteria: converted });
-        }
+      if (JSON.stringify(converted) !== JSON.stringify(v.doneCriteria)) {
+        await kv.set(entry.key, { ...v, doneCriteria: converted });
       }
-    },
+    }
+  },
 
   // v19 — cadernos (tours salvos com artefatos). Prefixo novo
   // (notebooks), corpo em <dataDir>/notebooks/<id>.json.
   // Sem dados para transformar.
   async (_kv) => {},
+
+  // v20 — caderno vira "reels" (1 ideia por tela). O formato antigo (v6) é
+  // descartado: purga as metas ["notebooks", …] e o diretório de corpos.
+  // Recomeço limpo. Idempotente.
+  async (kv) => {
+    const { notebooksDir } = await import('../config.ts');
+    for await (const entry of kv.list<unknown>({ prefix: ['notebooks'] })) {
+      await kv.delete(entry.key);
+    }
+    await Deno.remove(notebooksDir(), { recursive: true }).catch(() => {});
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

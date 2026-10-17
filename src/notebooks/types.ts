@@ -2,7 +2,7 @@
 // Metadados leves no KV; o corpo (tour + paths) vai pro filesystem
 // (KV tem limite de ~64 KiB/valor). Ver body-file.ts e store.ts.
 import type { ArtifactKind } from '../codetour/artifacts.ts';
-import type { CodeTour, TourDepth } from '../codetour/types.ts';
+import type { CodeReel, TourDepth } from '../codetour/types.ts';
 
 export type NotebookLinks = {
   readonly podcastId: string | null;
@@ -29,7 +29,7 @@ export type NotebookMeta = {
   readonly artifacts: readonly ArtifactKind[];
   readonly links: NotebookLinks;
   readonly progress: NotebookProgress;
-  readonly slides: number;
+  readonly reels: number;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -38,7 +38,7 @@ export type NotebookMeta = {
 // paths cobre TODOS os arquivos do scan (p/ validar imports futuros);
 // filesTop guarda só o top-80 p/ exibição.
 export type NotebookBody = {
-  readonly tour: CodeTour;
+  readonly reel: CodeReel;
   readonly paths: readonly string[];
   readonly filesTop: readonly string[];
 };

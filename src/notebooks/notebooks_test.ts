@@ -3,69 +3,54 @@ import {
   assertEquals,
 } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import {
+  allowedVisualKinds,
   ARTIFACTS,
   isArtifact,
-  kindsOf,
   normalizeArtifacts,
 } from '../codetour/artifacts.ts';
-import type { CodeTour } from '../codetour/types.ts';
+import type { CodeReel } from '../codetour/types.ts';
 import { parseScript, validateSegments } from '../podcasts/parser.ts';
 import { buildNotebookPodcastScript } from './artifacts-podcast.ts';
 import { isNotebookId } from './body-file.ts';
 import { notebookTag } from './types.ts';
 
-const tour = (): CodeTour => ({
+const reel = (): CodeReel => ({
   topic: 'serviço de notas',
   goal: 'Centraliza regras antes do store.',
-  slides: [
+  reels: [
     {
-      id: 's1',
-      title: 'Valida antes de salvar',
-      bullets: ['barra título vazio'],
-      explain:
-        'O service recebe o título e barra vazio antes de salvar no store. Chega string vazia e explode com erro. Sem isso dado sujo pararia no banco de dados do aplicativo.',
-      check: 'Onde um título vazio é barrado antes de salvar?',
+      id: 'r1',
+      label: 'valida',
+      title: 'O service barra título vazio antes de salvar',
+      code: null,
+      visual: null,
+      rule: { file: null, text: 'Título vazio nunca chega ao store.' },
+      sub: 'Sem essa barreira, dado sujo pararia no banco.',
       narration:
         'Olha esse service. Ele recebe o título, barra vazio e só aí salva no banco de dados.',
-      snippet: null,
-      visuals: [],
-      files: [],
     },
   ],
-  flows: [
-    {
-      label: 'handler → service',
-      file: 'src/a.ts:1',
-      detail: 'O handler delega ao service que valida.',
-    },
-    {
-      label: 'service → store',
-      file: 'src/b.ts:2',
-      detail: 'O service normaliza e persiste no store.',
-    },
-  ],
-  contracts: [],
-  keyFiles: [],
-  pitfalls: [],
-  nextSteps: ['revisar amanhã'],
 });
 
 Deno.test('artefatos: normaliza seleção e mapeia p/ kinds', () => {
   assertEquals(normalizeArtifacts(undefined).length, ARTIFACTS.length);
   assertEquals(normalizeArtifacts(['bubble', 'x', 'bubble']), ['bubble']);
   assertEquals(normalizeArtifacts([]), []);
-  assert(isArtifact('quiz') && !isArtifact('tour'));
-  assertEquals(kindsOf(['diagrams', 'tables', 'bubble', 'mindmap']), [
-    'mermaid',
-    'mindmap',
-    'html',
-    'bubble',
-  ]);
-  assertEquals(kindsOf(['audio', 'podcast', 'quiz']), []);
+  assert(!isArtifact('quiz') && isArtifact('bubble'));
+  assertEquals(
+    allowedVisualKinds(['diagrams', 'tables', 'bubble', 'mindmap']),
+    [
+      'mermaid',
+      'mindmap',
+      'html',
+      'bubble',
+    ],
+  );
+  assertEquals(allowedVisualKinds(['audio', 'podcast']), []);
 });
 
 Deno.test('roteiro do caderno vira diálogo válido p/ pipeline', () => {
-  const script = buildNotebookPodcastScript(tour());
+  const script = buildNotebookPodcastScript(reel());
   assert(script.includes('<Guia>') && script.includes('<Explorador>'));
   const voices = [
     { name: 'Guia', voice: 'pt-BR-AntonioNeural' },

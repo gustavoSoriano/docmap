@@ -1,7 +1,7 @@
 // Artefatos selecionáveis do caderno (estilo NotebookLM).
-// Inline (vão no JSON do tour): bubble, mindmap, diagrams, tables.
-// Externos (vão como links): audio, podcast, canvas, quiz.
-import type { TourVisualKind } from './types.ts';
+// Inline (vão no JSON dos reels, todos OPCIONAIS): bubble, mindmap,
+// diagrams, tables. Externos (vão como links): audio, podcast.
+import type { ReelVisualKind } from './types.ts';
 
 export const ARTIFACTS = [
   'audio',
@@ -10,7 +10,6 @@ export const ARTIFACTS = [
   'mindmap',
   'diagrams',
   'tables',
-  'quiz',
 ] as const;
 
 export type ArtifactKind = (typeof ARTIFACTS)[number];
@@ -27,11 +26,12 @@ export const normalizeArtifacts = (v: unknown): ArtifactKind[] => {
   return out;
 };
 
-// Artefatos inline mapeiam para tools visuais obrigatórias no tour.
-export const kindsOf = (
+// Artefatos inline viram a PALETA PERMITIDA de visuais (nunca obrigatória):
+// a IA usa só o que está marcado, e só quando a ideia pede.
+export const allowedVisualKinds = (
   artifacts: readonly ArtifactKind[],
-): readonly TourVisualKind[] => {
-  const kinds: TourVisualKind[] = [];
+): readonly ReelVisualKind[] => {
+  const kinds: ReelVisualKind[] = [];
   if (artifacts.includes('diagrams')) kinds.push('mermaid');
   if (artifacts.includes('mindmap')) kinds.push('mindmap');
   if (artifacts.includes('tables')) kinds.push('html');

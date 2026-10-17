@@ -1,4 +1,4 @@
-// Tipos do codetour v4 — híbrido: estrutura extraída localmente (scan),
+// Tipos do caderno v7 (reels) — híbrido: estrutura extraída localmente (scan),
 // semântica escrita pela IA. Sessão única temporária, sem KV.
 import type { ArtifactKind } from './artifacts.ts';
 
@@ -12,12 +12,45 @@ export type TourLayer =
   | 'test'
   | 'util';
 
-export type TourSnippet = {
-  readonly file: string;
-  readonly code: string;
+// ── Reel: uma ideia por tela (metodologia Reels) ──
+// label = kicker curto · title = a conclusão · code = prova real com linhas
+// marcadas · visual = opcional (só quando a ideia é melhor vista) · rule =
+// regra/porquê com arquivo · sub = legenda · narration = texto falável.
+export type ReelVisualKind = 'mermaid' | 'mindmap' | 'html' | 'bubble';
+
+export type ReelCode = {
+  readonly file: string; // "src/x.ts:10" (path:linha inicial)
+  readonly code: string; // trecho real do arquivo
+  readonly mark: readonly number[]; // linhas absolutas destacadas
 };
 
-export type TourVisualKind = 'mermaid' | 'mindmap' | 'html' | 'bubble';
+export type ReelVisual = {
+  readonly kind: ReelVisualKind;
+  readonly title: string;
+  readonly content: string;
+};
+
+export type ReelRule = {
+  readonly file: string | null;
+  readonly text: string;
+};
+
+export type Reel = {
+  readonly id: string;
+  readonly label: string;
+  readonly title: string;
+  readonly code: ReelCode | null;
+  readonly visual: ReelVisual | null;
+  readonly rule: ReelRule | null;
+  readonly sub: string;
+  readonly narration: string;
+};
+
+export type CodeReel = {
+  readonly topic: string;
+  readonly goal: string;
+  readonly reels: readonly Reel[];
+};
 
 // Mapa de bolhas radial (estilo hub-satélite): 1 centro + hubs + folhas.
 // O content do visual é JSON stringificado (ver parseBubbleContent).
@@ -27,55 +60,12 @@ export type TourBubbleNode = {
   readonly detail: string;
   readonly parent: string | null;
   readonly file: string | null;
-  readonly slide: string | null;
+  readonly reel: string | null;
 };
 
 export type TourBubbleContent = {
   readonly center: { readonly label: string; readonly detail: string };
   readonly nodes: readonly TourBubbleNode[];
-};
-
-// Bloco visual de um slide — a IA escolhe a tool certa para o momento.
-export type TourVisual = {
-  readonly kind: TourVisualKind;
-  readonly title: string;
-  readonly content: string;
-};
-
-export type TourSlide = {
-  readonly id: string;
-  readonly title: string;
-  readonly bullets: readonly string[];
-  readonly explain: string;
-  readonly check: string;
-  readonly narration: string;
-  readonly snippet: TourSnippet | null;
-  readonly visuals: readonly TourVisual[];
-  readonly files: readonly string[];
-};
-
-export type TourFlowStep = {
-  readonly label: string;
-  readonly file: string;
-  readonly detail: string;
-};
-
-export type TourContract = {
-  readonly name: string;
-  readonly input: string;
-  readonly output: string;
-  readonly notes: string;
-};
-
-export type CodeTour = {
-  readonly topic: string;
-  readonly goal: string;
-  readonly slides: readonly TourSlide[];
-  readonly flows: readonly TourFlowStep[];
-  readonly contracts: readonly TourContract[];
-  readonly keyFiles: readonly string[];
-  readonly pitfalls: readonly string[];
-  readonly nextSteps: readonly string[];
 };
 
 // ── Estrutura extraída localmente (Deno, determinística) ──
@@ -121,7 +111,7 @@ export type CodeTourSession = {
   readonly notebookId: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
-  readonly tour: CodeTour | null;
+  readonly reel: CodeReel | null;
   readonly pack: StructurePack | null;
 };
 
@@ -134,7 +124,7 @@ export type PublicSession = {
   readonly notebookId: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
-  readonly tour: CodeTour | null;
+  readonly reel: CodeReel | null;
   readonly scan: { readonly files: number; readonly truncated: boolean } | null;
   readonly layers: Readonly<Record<string, TourLayer>>;
 };

@@ -4,12 +4,12 @@ import {
 } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import { buildAgentPrompt, buildCodetourPrompt } from './prompt.ts';
 import {
-  attachTour,
+  attachReel,
   clearSession,
   getSession,
   openSession,
 } from './session.ts';
-import { parseCodeTour, validateOpenInput } from './validate.ts';
+import { parseCodeReel, validateOpenInput } from './validate.ts';
 import { scanProject } from './scan.ts';
 import {
   detectLayer,
@@ -18,7 +18,7 @@ import {
   resolveImport,
   scoreFile,
 } from './symbols.ts';
-import type { CodeTour, StructurePack, TourSlide, TourVisual } from './types.ts';
+import type { CodeReel, Reel, StructurePack, TourDepth } from './types.ts';
 
 const MERMAID =
   'flowchart LR; A[handler]-->B[service]; B-->C[store]; class A api; class B service;';
@@ -32,7 +32,7 @@ const BUBBLE_JSON = JSON.stringify({
       detail: 'Barra título vazio na linha doze.',
       parent: null,
       file: 'src/notes/service.ts:12',
-      slide: 's1',
+      reel: 'r1',
     },
     {
       id: 'persistencia',
@@ -49,68 +49,47 @@ const BUBBLE_JSON = JSON.stringify({
   ],
 });
 
-const bubbleVisual = (): TourVisual => ({
-  kind: 'bubble',
-  title: 'Mapa geral',
-  content: BUBBLE_JSON,
-});
-
-const slide = (over: Partial<TourSlide> = {}): TourSlide => ({
-  id: 's1',
-  title: 'Visão',
-  bullets: ['valida e orquestra'],
-  explain:
-    'Pense no service como o porteiro: nada chega ao store sem passar por ele. ' +
-    'Chega {title: ""} na linha 12 e explode com title required antes de gravar. ' +
-    'Sem ele, cada handler duplicaria a validação e dado sujo pararia no KV. ' +
-    'Se apagar este arquivo, o porteiro some e o store aceita qualquer coisa.',
-  check: 'Se entendeu, você responde: onde um título vazio é barrado?',
-  narration:
-    'Olha esse service. Ele recebe o título, barra vazio na linha doze e só aí salva. ' +
-    'Sem ele, dado sujo pararia no banco e cada handler duplicaria a validação.',
-  snippet: {
+const reel = (over: Partial<Reel> = {}): Reel => ({
+  id: 'r1',
+  label: 'valida',
+  title: 'O service barra título vazio antes de salvar',
+  code: {
     file: 'src/notes/service.ts:12',
     code:
       'export const createNote = (input: CreateInput) => {\n  if (!input.title.trim()) throw new Error("title required");\n  return store.save(normalize(input));\n};',
+    mark: [12, 13],
   },
-  visuals: [
-    { kind: 'mermaid', title: 'Fluxo', content: MERMAID },
-    {
-      kind: 'mindmap',
-      title: 'Mapa',
-      content: '# service\n- validate\n- store',
-    },
-    {
-      kind: 'html',
-      title: 'Antes/depois',
-      content:
-        '<table><tr><th>entra</th><th>sai</th></tr><tr><td>x</td><td>y</td></tr></table>',
-    },
-    { kind: 'bubble', title: 'Mapa geral', content: BUBBLE_JSON },
-  ],
-  files: ['src/notes/service.ts:12'],
+  visual: null,
+  rule: {
+    file: 'src/notes/service.ts',
+    text: 'Título vazio nunca chega ao store.',
+  },
+  sub: 'Sem essa barreira, dado sujo pararia no banco.',
+  narration:
+    'Ele recebe o título, barra vazio na linha doze e só aí salva. Sem isso, dado sujo pararia no banco de dados do aplicativo.',
   ...over,
 });
 
-const deepTour = (): CodeTour => ({
+const caderno = (
+  n: number,
+  over: (i: number) => Partial<Reel> = () => ({}),
+): CodeReel => ({
   topic: 'camada de serviço',
   goal: 'Centraliza regras antes do store, por isso importa.',
-  slides: [slide()],
-  flows: [{
-    label: 'handler → service → store',
-    file: 'src/notes/service.ts:12',
-    detail:
-      'O handler extrai o corpo e delega; o service valida e normaliza antes de persistir para evitar dado sujo no KV.',
-  }],
-  contracts: [],
-  keyFiles: ['src/notes/service.ts:1'],
-  pitfalls: ['pular validação no handler e duplicar regra'],
-  nextSteps: ['ler src/notes/service.ts'],
+  reels: Array.from(
+    { length: n },
+    (_, i) => reel({ id: `r${i + 1}`, ...over(i) }),
+  ),
 });
 
-const ctxOf = (paths: string[] = ['src/notes/service.ts']) => ({
-  depth: 'repasse' as const,
+const ctxOf = (
+  paths: string[] = ['src/notes/service.ts'],
+  depth: TourDepth = 'repasse',
+  allowed?: readonly ('mermaid' | 'mindmap' | 'html' | 'bubble')[],
+) => ({
+  depth,
   paths: new Set(paths),
+  ...(allowed ? { allowed } : {}),
 });
 
 Deno.test('camada detectada pelo path', () => {
@@ -179,7 +158,7 @@ Deno.test('scan varre tempdir com teto', async () => {
   await Deno.remove(dir, { recursive: true });
 });
 
-Deno.test('protocolo lista tools e linguagem simples', () => {
+Deno.test('protocolo descreve reels e não exige todas as tools', () => {
   const pack: StructurePack = {
     root: '/tmp/p',
     query: 'auth',
@@ -189,11 +168,11 @@ Deno.test('protocolo lista tools e linguagem simples', () => {
     truncated: false,
   };
   const p = buildCodetourPrompt('/tmp/p', 'auth', 'repasse', pack);
+  assert(p.includes('reels') && p.includes('mark') && p.includes('narration'));
   assert(p.includes('mermaid') && p.includes('mindmap') && p.includes('html'));
-  assert(p.includes('bubble'));
-  assert(p.includes('check'));
-  assert(p.includes('narration'));
-  assert(buildAgentPrompt('/tmp/p', 'x', 'deep').includes('TODAS as tools'));
+  assert(p.includes('OPCIONAL'));
+  assert(!p.includes('TODAS as tools'));
+  assert(!buildAgentPrompt('/tmp/p', 'x', 'deep').includes('TODAS as tools'));
 });
 
 Deno.test('open aceita depth e rejeita inválida', () => {
@@ -207,17 +186,39 @@ Deno.test('open aceita depth e rejeita inválida', () => {
   );
 });
 
-Deno.test('parse exige as quatro tools no tour', () => {
-  const t = deepTour();
-  const onlyMermaid = {
-    ...t,
-    slides: [
-      slide({ visuals: [{ kind: 'mermaid', title: 'F', content: MERMAID }] }),
-    ],
-  };
-  const r = parseCodeTour(onlyMermaid, ctxOf());
-  assert('error' in r && r.error.includes('mindmap'));
-  assert('error' in r && r.error.includes('bubble'));
+Deno.test('parse aceita caderno sem nenhum visual', () => {
+  const r = parseCodeReel(caderno(6), ctxOf());
+  assert(!('error' in r));
+  if (!('error' in r)) assertEquals(r.reel.reels.length, 6);
+});
+
+Deno.test('parse aceita visual opcional (mermaid)', () => {
+  const r = parseCodeReel(
+    caderno(
+      6,
+      (i) =>
+        i === 0
+          ? { visual: { kind: 'mermaid', title: 'Fluxo', content: MERMAID } }
+          : {},
+    ),
+    ctxOf(),
+  );
+  assert(!('error' in r));
+});
+
+Deno.test('parse rejeita visual fora da paleta permitida', () => {
+  const c = caderno(6, (i) =>
+    i === 0
+      ? {
+        visual: {
+          kind: 'mindmap',
+          title: 'Mapa',
+          content: '# tópico\n- item um\n- item dois',
+        },
+      }
+      : {});
+  const r = parseCodeReel(c, ctxOf(undefined, 'repasse', ['mermaid']));
+  assert('error' in r && r.error.includes('desativado'));
 });
 
 Deno.test('parse rejeita mermaid fora do subconjunto seguro', () => {
@@ -229,148 +230,161 @@ Deno.test('parse rejeita mermaid fora do subconjunto seguro', () => {
     'flowchart LR; A[x]-->B[y]; click A callback;',
   ];
   for (const content of bads) {
-    const t = deepTour();
-    const evil = {
-      ...t,
-      slides: [slide({
-        visuals: [
-          { kind: 'mermaid', title: 'F', content },
-          {
-            kind: 'mindmap',
-            title: 'M',
-            content: '# tópico\n- item um\n- item dois',
-          },
-          {
-            kind: 'html',
-            title: 'H',
-            content:
-              '<table><tr><th>entra</th><th>sai</th></tr><tr><td>x</td><td>y</td></tr></table>',
-          },
-          bubbleVisual(),
-        ],
-      })],
-    };
-    const r = parseCodeTour(evil, ctxOf());
+    const c = caderno(
+      6,
+      (i) =>
+        i === 0 ? { visual: { kind: 'mermaid', title: 'F', content } } : {},
+    );
+    const r = parseCodeReel(c, ctxOf());
     assert('error' in r && r.error.includes('mermaid'), content);
   }
 });
 
 Deno.test('parse rejeita html com script', () => {
-  const t = deepTour();
-  const evil = {
-    ...t,
-    slides: [slide({
-      visuals: [
-        { kind: 'mermaid', title: 'F', content: MERMAID },
-        {
-          kind: 'mindmap',
-          title: 'M',
-          content: '# tópico\n- item um\n- item dois',
-        },
-        {
+  const c = caderno(6, (i) =>
+    i === 0
+      ? {
+        visual: {
           kind: 'html',
           title: 'H',
           content: '<div onclick="x()">oi</div><script>alert(1)</script>',
         },
-        bubbleVisual(),
-      ],
-    })],
-  };
-  const r = parseCodeTour(evil, ctxOf());
+      }
+      : {});
+  const r = parseCodeReel(c, ctxOf());
   assert('error' in r && r.error.includes('script'));
 });
 
-Deno.test('parse exige check por slide', () => {
-  const t = deepTour();
-  const noCheck = { ...t, slides: [slide({ check: '' })] };
-  assert('error' in parseCodeTour(noCheck, ctxOf()));
+Deno.test('parse rejeita mark fora do trecho', () => {
+  const c = caderno(
+    6,
+    (i) => (i === 0 ? { code: { ...reel().code!, mark: [99] } } : {}),
+  );
+  const r = parseCodeReel(c, ctxOf());
+  assert('error' in r && r.error.includes('mark'));
 });
 
-Deno.test('parse exige narration por slide', () => {
-  const t = deepTour();
-  const noNarr = { ...t, slides: [slide({ narration: '' })] };
-  const r = parseCodeTour(noNarr, ctxOf());
+Deno.test('parse rejeita code fora do scan', () => {
+  const c = caderno(
+    6,
+    (i) =>
+      i === 0
+        ? {
+          code: { file: 'src/outro.ts:1', code: reel().code!.code, mark: [1] },
+        }
+        : {},
+  );
+  const r = parseCodeReel(c, ctxOf());
+  assert('error' in r && r.error.includes('fora do scan'));
+});
+
+Deno.test('parse exige narration por reel', () => {
+  const c = caderno(6, (i) => (i === 0 ? { narration: '' } : {}));
+  const r = parseCodeReel(c, ctxOf());
   assert('error' in r && r.error.includes('narration'));
 });
 
 Deno.test('parse rejeita narration com código', () => {
-  const t = deepTour();
-  const evil = { ...t, slides: [slide({ narration: '```code``` fala isso' })] };
-  assert('error' in parseCodeTour(evil, ctxOf()));
+  const c = caderno(
+    6,
+    (i) => i === 0 ? { narration: '```code``` fala isso' } : {},
+  );
+  assert('error' in parseCodeReel(c, ctxOf()));
 });
 
-Deno.test('parse aceita tour v6 completo', () => {
-  const r = parseCodeTour(deepTour(), ctxOf());
+Deno.test('parse aceita caderno completo e popula a sessão', () => {
+  const r = parseCodeReel(caderno(6), ctxOf());
   assert(!('error' in r));
   clearSession();
   openSession('/tmp/a', 'camada de serviço', 'repasse');
-  if (!('error' in r)) attachTour(r.tour);
-  assertEquals(getSession()?.tour?.slides[0].visuals.length, 4);
+  if (!('error' in r)) attachReel(r.reel);
+  assertEquals(getSession()?.reel?.reels.length, 6);
   clearSession();
 });
 
 Deno.test('parse rejeita bubble com parent inexistente', () => {
-  const t = deepTour();
-  const bad = {
-    ...t,
-    slides: [slide({
-      visuals: [
-        { kind: 'mermaid', title: 'F', content: MERMAID },
-        {
-          kind: 'mindmap',
-          title: 'M',
-          content: '# tópico\n- item um\n- item dois',
-        },
-        {
-          kind: 'html',
-          title: 'H',
-          content:
-            '<table><tr><th>entra</th><th>sai</th></tr><tr><td>x</td><td>y</td></tr></table>',
-        },
-        {
+  const c = caderno(6, (i) =>
+    i === 0
+      ? {
+        visual: {
           kind: 'bubble',
           title: 'B',
           content: JSON.stringify({
             center: { label: 'C', detail: 'Centro de teste para o mapa.' },
             nodes: [
-              { id: 'h1', label: 'H1', detail: 'Hub um do mapa.', parent: null },
-              { id: 'h2', label: 'H2', detail: 'Hub dois do mapa.', parent: null },
-              { id: 's1', label: 'S1', detail: 'Satélite órfão.', parent: 'fantasma' },
+              {
+                id: 'h1',
+                label: 'H1',
+                detail: 'Hub um do mapa.',
+                parent: null,
+              },
+              {
+                id: 'h2',
+                label: 'H2',
+                detail: 'Hub dois do mapa.',
+                parent: null,
+              },
+              {
+                id: 's1',
+                label: 'S1',
+                detail: 'Satélite órfão.',
+                parent: 'fantasma',
+              },
             ],
           }),
         },
-      ],
-    })],
-  };
-  const r = parseCodeTour(bad, ctxOf());
+      }
+      : {});
+  const r = parseCodeReel(c, ctxOf());
   assert('error' in r && r.error.includes('fantasma'));
 });
 
-Deno.test('parse rejeita bubble que aponta p/ slide inexistente', () => {
-  const t = deepTour();
-  const bad = {
-    ...t,
-    slides: [slide({
-      visuals: [...(slide().visuals.slice(0, 3)), {
-        kind: 'bubble',
-        title: 'B',
-        content: JSON.stringify({
-          center: { label: 'C', detail: 'Centro de teste para o mapa.' },
-          nodes: [
-            { id: 'h1', label: 'H1', detail: 'Hub um do mapa.', parent: null },
-            { id: 'h2', label: 'H2', detail: 'Hub dois do mapa.', parent: null },
-            {
-              id: 's1',
-              label: 'S1',
-              detail: 'Satélite com slide errado.',
-              parent: 'h1',
-              slide: 's99',
-            },
-          ],
-        }),
-      }],
-    })],
-  };
-  const r = parseCodeTour(bad, ctxOf());
-  assert('error' in r && r.error.includes('s99'));
+Deno.test('parse valida refs de bubble (arquivo fora do scan)', () => {
+  const c = caderno(6, (i) =>
+    i === 0
+      ? {
+        visual: {
+          kind: 'bubble',
+          title: 'B',
+          content: JSON.stringify({
+            center: { label: 'C', detail: 'Centro de teste para o mapa.' },
+            nodes: [
+              {
+                id: 'h1',
+                label: 'H1',
+                detail: 'Hub um do mapa.',
+                parent: null,
+                file: 'src/fantasma.ts:1',
+              },
+              {
+                id: 'h2',
+                label: 'H2',
+                detail: 'Hub dois do mapa.',
+                parent: null,
+              },
+              { id: 's1', label: 'S1', detail: 'Satélite.', parent: 'h1' },
+            ],
+          }),
+        },
+      }
+      : {});
+  const r = parseCodeReel(c, ctxOf());
+  assert('error' in r && r.error.includes('fantasma'));
+});
+
+Deno.test('parse rejeita número de reels fora da faixa', () => {
+  assert('error' in parseCodeReel(caderno(2), ctxOf()));
+  assert('error' in parseCodeReel(caderno(20), ctxOf()));
+});
+
+Deno.test('bubble do parser aceita campo reel', () => {
+  const c = caderno(
+    6,
+    (i) =>
+      i === 0
+        ? { visual: { kind: 'bubble', title: 'B', content: BUBBLE_JSON } }
+        : {},
+  );
+  const r = parseCodeReel(c, ctxOf());
+  assert(!('error' in r));
 });

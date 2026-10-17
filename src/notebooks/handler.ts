@@ -2,7 +2,7 @@
 // Montado em /tours*. A sessão ativa do codetour segue sendo o "aberto".
 import { normalizeArtifacts } from '../codetour/artifacts.ts';
 import {
-  attachTour,
+  attachReel,
   getSession,
   openSession,
   publicSession,
@@ -65,22 +65,22 @@ export const notebooksHandler =
     // ── POST /tours — salva a sessão ativa como caderno ──
     if (req.method === 'POST' && seg.length === 0) {
       const s = getSession();
-      if (!s?.tour) return badRequest('gere um tour antes de salvar');
+      if (!s?.reel) return badRequest('gere um caderno antes de salvar');
       const body = await readBody(req);
       const title = isObj(body) && typeof body.title === 'string'
         ? body.title.trim().slice(0, 120)
-        : s.tour.topic;
+        : s.reel.topic;
       const meta = await createNotebookMeta(kv, {
         title: title || 'Caderno sem título',
         query: s.query,
         projectRoot: s.projectRoot,
         depth: s.depth,
         artifacts: s.artifacts,
-        slides: s.tour.slides.length,
+        reels: s.reel.reels.length,
       });
       try {
         await writeNotebookBody(meta.id, {
-          tour: s.tour,
+          reel: s.reel,
           paths: (s.pack?.files ?? []).map((f) => f.path),
           filesTop: (s.pack?.files ?? []).slice(0, 80).map((f) => f.path),
         });
@@ -100,7 +100,7 @@ export const notebooksHandler =
       if (!meta) return notFound();
       const body = await readNotebookBody(id);
       if (!body) return notFound();
-      return json({ notebook: meta, tour: body.tour, filesTop: body.filesTop });
+      return json({ notebook: meta, reel: body.reel, filesTop: body.filesTop });
     }
 
     // ── POST /tours/:id/open — coloca na sessão ativa ──
@@ -110,7 +110,7 @@ export const notebooksHandler =
       const body = await readNotebookBody(id);
       if (!body) return notFound();
       openSession(meta.projectRoot, meta.query, meta.depth, meta.artifacts);
-      attachTour(body.tour);
+      attachReel(body.reel);
       return json({ session: publicSession(getSession()) });
     }
 
@@ -158,7 +158,7 @@ export const notebooksHandler =
         canvas: r.canvas === true,
         audio: r.audio === true,
       };
-      const removed = await deleteNotebookRefs(kv, meta, body.tour, refs);
+      const removed = await deleteNotebookRefs(kv, meta, body.reel, refs);
       await deleteNotebookBody(id);
       await deleteNotebookMeta(kv, id);
       return json({ ok: true, removed });
@@ -170,7 +170,7 @@ export const notebooksHandler =
       if (!meta) return notFound();
       const body = await readNotebookBody(id);
       if (!body) return notFound();
-      const out = await exportNotebookPodcast(kv, meta, body.tour);
+      const out = await exportNotebookPodcast(kv, meta, body.reel);
       if ('error' in out) return conflict(out.error);
       const updated = await getNotebookMeta(kv, id);
       return json({ podcastId: out.podcastId, notebook: updated }, 202);

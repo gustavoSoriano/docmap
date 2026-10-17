@@ -4,7 +4,7 @@ import { createNotebookMeta } from '../notebooks/store.ts';
 import { writeNotebookBody } from '../notebooks/body-file.ts';
 import {
   attachPack,
-  attachTour,
+  attachReel,
   clearSession,
   getSession,
   openSession,
@@ -12,15 +12,11 @@ import {
   setSessionNotebookId,
 } from './session.ts';
 import { buildAgentPrompt, buildCodetourPrompt } from './prompt.ts';
-import { kindsOf, normalizeArtifacts } from './artifacts.ts';
-import { isDepth, parseCodeTour, validateOpenInput } from './validate.ts';
+import { allowedVisualKinds, normalizeArtifacts } from './artifacts.ts';
+import { isDepth, parseCodeReel, validateOpenInput } from './validate.ts';
 import { scanProject } from './scan.ts';
 import { serveNarrationFile } from './audio.ts';
-import {
-  ensureNarrationAudio,
-  findSlide,
-  resolveVoice,
-} from './narration.ts';
+import { ensureNarrationAudio, findReel, resolveVoice } from './narration.ts';
 import { checkVoiceDeps } from '../voice/health.ts';
 import { openFolderDialog } from '../window/dialog.ts';
 import { badRequest, json, notFound } from '../server/response.ts';
@@ -103,30 +99,30 @@ export const codetourHandler =
       if (!s) return badRequest('selecione a pasta primeiro');
       const body = await readBody(req);
       const payload = body !== null && typeof body === 'object' &&
-          'tour' in (body as Record<string, unknown>)
-        ? (body as Record<string, unknown>).tour
+          'reel' in (body as Record<string, unknown>)
+        ? (body as Record<string, unknown>).reel
         : body;
       const paths = new Set((s.pack?.files ?? []).map((f) => f.path));
-      const parsed = parseCodeTour(payload, {
+      const parsed = parseCodeReel(payload, {
         depth: s.depth,
         paths,
-        required: kindsOf(s.artifacts),
+        allowed: allowedVisualKinds(s.artifacts),
       });
       if ('error' in parsed) return badRequest(parsed.error);
-      attachTour(parsed.tour);
-      // Auto-save: gerou, salvou. Falha de disco não derruba o tour.
+      attachReel(parsed.reel);
+      // Auto-save: gerou, salvou. Falha de disco não derruba o caderno.
       let notebook = null;
       try {
         const created = await createNotebookMeta(kv, {
-          title: parsed.tour.topic,
+          title: parsed.reel.topic,
           query: s.query,
           projectRoot: s.projectRoot,
           depth: s.depth,
           artifacts: s.artifacts,
-          slides: parsed.tour.slides.length,
+          reels: parsed.reel.reels.length,
         });
         await writeNotebookBody(created.id, {
-          tour: parsed.tour,
+          reel: parsed.reel,
           paths: [...paths],
           filesTop: (s.pack?.files ?? []).slice(0, 80).map((f) => f.path),
         });
@@ -149,13 +145,14 @@ export const codetourHandler =
 
     if (req.method === 'GET' && pathname === '/codetour/audio') {
       const s = getSession();
-      if (!s?.tour) return badRequest('selecione a pasta primeiro');
-      const slideId = url.searchParams.get('slide') ?? '';
-      const slide = findSlide(s, slideId);
-      if (!slide) return badRequest('slide inválido');
-      const narration = slide.narration?.trim() ?? '';
+      if (!s?.reel) return badRequest('selecione a pasta primeiro');
+      const reelId = url.searchParams.get('reel') ??
+        url.searchParams.get('slide') ?? '';
+      const reel = findReel(s, reelId);
+      if (!reel) return badRequest('reel inválido');
+      const narration = reel.narration?.trim() ?? '';
       if (!narration) {
-        return badRequest('tour antigo sem narration — gere de novo');
+        return badRequest('reel antigo sem narration — gere de novo');
       }
       const voice = resolveVoice(url.searchParams.get('voice'));
       try {
