@@ -2,7 +2,7 @@ import { listMocks } from './store.ts';
 import { executeScript } from './executor.ts';
 import type { MockContext } from './types.ts';
 
-export const MOCK_PORT = 3335;
+export const MOCK_PORT = Number(Deno.env.get('DOCMAP_MOCK_PORT') ?? 3335);
 
 // Faz o match de um padrão com parâmetros (/users/:id) contra um path real.
 // Retorna os params extraídos ou null se não casar.

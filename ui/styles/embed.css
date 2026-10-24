@@ -1,0 +1,16 @@
+/* ════════════════════════════════════════════════════════════════
+   Modo embed (/?embed=<tipo>:<id>): o app mostra só o artefato.
+   Sem topbar, sem listas laterais, sem avisos — a ilha do editor
+   ocupa a janela do iframe.
+   ════════════════════════════════════════════════════════════════ */
+body.embed #topbar,
+body.embed #update-banner,
+body.embed #notes-col,
+body.embed #macros-col,
+body.embed #skills-col,
+body.embed #pod-col {
+  display: none;
+}
+body.embed #stage {
+  padding-top: var(--gap);
+}

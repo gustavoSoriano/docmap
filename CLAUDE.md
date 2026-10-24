@@ -33,6 +33,22 @@ ui/
   scripts/             ← JS por domínio (sem frameworks, sem bundler)
 ```
 
+## Design system da UI ("Carta noturna")
+
+- **Arquivos**: `ui/styles/fonts.css` (Archivo variável embutida em base64, OFL) →
+  `tokens.css` (cores, raios, tipografia; tema escuro + claro) → `layout.css`
+  (topbar + palco de **ilhas** + padrão de sidebar) → `components.css`
+  (botões, campos, chips, estado vazio, modais) → um CSS por modo.
+- **Regras**: âmbar (`--accent`) = ação primária/seleção, no máximo um por região;
+  `--info` só foco/links; status só com `.status`; sem caixa-alta, sem emoji,
+  texto ≥ 12px, sem hex solto fora de `tokens.css`. Ícones só via `ICON('nome')`
+  (`ui/scripts/icons.js`).
+- **Layout**: todo modo é um flex de ilhas (`--surface`, borda, `--r-island`)
+  separadas por `--gap`. Páginas em iframe (`/canvas`, `/debug`) não herdam CSS:
+  recebem `FONT_CSS`/`TOKENS_CSS`/`COMPONENTS_CSS` de
+  `src/server/handlers/ui-shared.gen.ts`, gerado por `deno task bundle-ui`
+  (rode sempre que mexer em `ui/styles/{fonts,tokens,components}.css`).
+
 ## Princípios
 
 ### Programação Funcional
@@ -72,6 +88,13 @@ linhas, é sinal de que precisa ser dividido.
 ["skills",         "_global_", skillId]          → Skill
 ["skill_collections", id]                      → SkillCollection
 ["podcasts",       "_global_", podcastId]        → Podcast (metadados; áudio MP3 vai no filesystem)
+["trilhas",        "_global_", trilhaId]         → Trilha
+["trilha_nodes",   "_global_", nodeId]           → TrilhaNode (status, claim, group)
+["trilha_edges",   "_global_", edgeId]           → TrilhaEdge (DAG, sem ciclo)
+["trilha_stickies","_global_", stickyId]         → TrilhaSticky
+["trilha_refs",    "_global_", refId]            → TrilhaRef (kind+targetId; nodeId ausente = fixada na trilha)
+["trilha_signals", "_global_", signalId]         → TrilhaSignal (blocker|warning|question|pending)
+["trilha_events",  "_global_", trilhaId, iso, id]→ TrilhaEvent (log append-only, máx. 500)
 ["mock_collections", id]                         → MockCollection
 ["mocks_data",     collectionId, mockId]         → Mock
 ```
@@ -110,6 +133,22 @@ faltar algum. A geração é assíncrona: o POST retorna 202 e o pipeline
 slides podem ser enviados por agentes externos; o parser em
 `src/podcasts/parser.ts` valida as tags `<Person1>…</Person1>`. Sempre 2+
 personas com vozes pt-BR distintas.
+
+**Trilhas (harness humano + IA):** `src/trilhas/` é o quadro compartilhado de
+um objetivo: blocos (DAG) com `group`, **sinais** (bloqueio/aviso/pergunta/
+pendência), **refs** para notas/skills/macros/podcasts/favoritos e o
+**contexto** (`GET /trilhas/:id/context[?node=]`) que o agente lê para não
+perder o fio. Estado derivado — `attention` (fila "o que pede olhar") e
+`health` — é calculado por funções puras (`attention.ts`) e nunca persistido;
+`layout.ts` (auto-layout por frente) idem. Refs guardam só `(kind, targetId)`:
+título/tags vêm sempre do artefato original, sem cópia. Tempo real: `logEvent`
+avisa os assinantes de `GET /trilhas/:id/stream` (SSE sem payload); a UI refaz
+o GET. UI em módulos (`ui/scripts/trilhas-*.js`: head, map, canvas, nodes,
+rail, signals, arsenal, embed, live). O modal de artefatos NÃO duplica telas:
+carrega o próprio app em `/?embed=<note|skill|macro|podcast>:<id>`
+(`workspace.js` + `embed.css`), então evolui junto com a tela original.
+Para testar sem tocar no app real: `DOCMAP_UI_PORT`/`DOCMAP_API_PORT`/
+`DOCMAP_MOCK_PORT` mudam as portas e `HOME` isola os dados.
 
 **Canvas (lousa única):** `src/canvas/` não usa o KV — o board persiste em
 `<dataDir>/canvas/board.json` (`src/canvas/board-file.ts`, teto 20MB).

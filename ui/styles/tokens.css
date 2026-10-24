@@ -1,100 +1,199 @@
+/* ════════════════════════════════════════════════════════════════
+   docmap — sistema de design "Carta noturna"
+
+   Regras de uso (valem para TODOS os modos):
+   1. Atenção: no máximo UM elemento âmbar (--accent) por região —
+      a ação primária OU a seleção ativa. O resto fica em degraus de
+      azul-tinta (--surface-*, --text-*).
+   2. --info (sonar) é para foco, links e seleção de texto. Nunca CTA.
+   3. Cores de status (--ok / --warn / --danger) só aparecem em
+      ponto + texto de status. Nunca como decoração.
+   4. Sem sombras em repouso. Elevação só em overlays (menus, modais).
+   5. Texto mínimo: 12px. Títulos: font-stretch var(--stretch-display), peso 650.
+   7. Layout em ILHAS: tudo que preenche um modo é uma ilha (--surface,
+      borda 1px --border, raio --r-island) separada por --gap. Nunca
+      painéis colados com border-right/border-bottom entre si.
+   6. Sem caixa-alta em rótulos; use peso e tamanho para hierarquia.
+   ════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Surfaces (near-black, layered) ── */
-  --bg: #0b0c0e;
-  --surface: #101216;
-  --surface-2: #16191f;
-  --surface-3: #1e222a;
-  --surface-4: #262b34;
+  color-scheme: dark;
 
-  /* ── Borders ── */
-  --border: #22262e;
-  --border-soft: rgba(255,255,255,.05);
-  --border-mid: rgba(255,255,255,.09);
-  --border-hi: rgba(255,255,255,.16);
+  /* ── Superfícies (azul-tinta, em camadas) ── */
+  --bg: #070c14;        /* fundo da janela (mais fundo que as ilhas) */
+  --surface: #0e1723;   /* ilha: painel principal */
+  --surface-2: #142032; /* elementos dentro da ilha */
+  --surface-3: #1b2b41; /* hover / selecionado */
+  --surface-4: #263a56; /* pressionado / chips fortes */
 
-  /* ── Text ── */
-  --text: #edeef1;
-  --text-2: #9ca3af;
-  --text-3: #626976;
-  --text-4: #454b56;
+  /* ── Bordas ── */
+  --border: #1c2b40;
+  --border-soft: rgba(160,190,230,.07);
+  --border-mid: rgba(160,190,230,.13);
+  --border-hi: rgba(160,190,230,.24);
 
-  /* ── Accent (emerald) ── */
-  --accent: #37d99a;
-  --accent-2: #29c088;
-  --accent-dim: rgba(55,217,154,.14);
-  --accent-line: rgba(55,217,154,.35);
-  --on-accent: #06120d;
+  /* ── Texto ── */
+  --text: #e9e7e0;
+  --text-2: #aab6c6;
+  --text-3: #7587a0;
+  --text-4: #52647d;
 
-  /* ── Graph categories ── */
-  --cat-entry: #fbbf24;
-  --cat-arch: #60a5fa;
-  --cat-design: #f472b6;
-  --cat-security: #fb7185;
-  --cat-process: #94a3b8;
-  --cat-default: #6b7280;
+  /* ── Accent: farol (âmbar) — única cor de ação/seleção ── */
+  --accent: #ffb224;
+  --accent-2: #ffc24d;
+  --accent-dim: rgba(255,178,36,.12);
+  --accent-line: rgba(255,178,36,.38);
+  --on-accent: #1c1202;
+  /* âmbar legível como TEXTO sobre a superfície (no claro escurece) */
+  --accent-text: #ffbf47;
 
-  /* ── Annotation / note types ── */
-  --type-note: #94a3b8;
-  --type-decision: #60a5fa;
-  --type-question: #fbbf24;
-  --type-todo: #37d99a;
-  --type-warning: #fb7185;
-  --type-reference: #a78bfa;
-  --type-general: #94a3b8;
+  /* ── Info: sonar (foco, links, seleção) ── */
+  --info: #62c6ff;
+  --info-dim: rgba(98,198,255,.13);
+  --info-line: rgba(98,198,255,.42);
 
-  /* ── Typography ── */
-  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  /* ── Status semântico ── */
+  --ok: #4fd6a0;
+  --ok-dim: rgba(79,214,160,.13);
+  --warn: #f5a524;
+  --warn-dim: rgba(245,165,36,.13);
+  --danger: #ff6b6b;
+  --danger-dim: rgba(255,107,107,.12);
+  --danger-line: rgba(255,107,107,.38);
+
+  /* ── Categorias do grafo ── */
+  --cat-entry: #f5c451;
+  --cat-arch: #62c6ff;
+  --cat-design: #f48fb1;
+  --cat-security: #ff6b6b;
+  --cat-process: #9fb0c8;
+  --cat-default: #6b7d96;
+
+  /* ── Tipos de anotação ── */
+  --type-note: #9fb0c8;
+  --type-decision: #62c6ff;
+  --type-question: #f5c451;
+  --type-todo: #4fd6a0;
+  --type-warning: #ff6b6b;
+  --type-reference: #b69cff;
+  --type-general: #9fb0c8;
+
+  /* luminosidade das cores determinísticas de categoria (catColor em dom.js) */
+  --cat-l: 64%;
+
+  /* ── Tipografia ── */
+  --font-ui: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, 'Liberation Mono', monospace;
   /* aliases padronizados para iframes e plugins */
   --font: var(--font-ui);
   --mono: var(--font-mono);
-  --danger: var(--cat-security);
   --radius: var(--r-sm);
+  /* títulos: eixo de largura do Archivo (62–125) */
+  --stretch-display: 114%;  /* font-stretch dos títulos (Archivo 62–125%) */
 
-  /* ── Metrics ── */
+  /* escala tipográfica (Major Third 1.25 sobre 13.5px) */
+  --fs-xs: 12px;
+  --fs-sm: 12.5px;
+  --fs-md: 13.5px;
+  --fs-lg: 15px;
+  --fs-xl: 18px;
+  --fs-2xl: 24px;
+  --fs-3xl: 32px;
+
+  /* ── Métricas ── */
   /* Breakpoints usados nas @media queries: 600px (mobile), 900px (tablet) */
-  --rail-w: 60px;
-  --sidebar-w: 280px;
-  --sidebar-w-tablet: 220px;
-  --r-xs: 5px;
-  --r-sm: 7px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-xl: 20px;
+  --topbar-h: 56px;
+  --head-h: 58px;          /* altura padrão do cabeçalho de toda ilha */
+  --gap: 10px;             /* espaço entre ilhas e borda da janela */
+  --r-island: 18px;        /* raio das ilhas */
+  --sidebar-w: 304px;
+  --sidebar-w-tablet: 240px;
+  /* raios: cada nível de hierarquia tem o seu */
+  --r-xs: 4px;   /* chips, tags */
+  --r-sm: 7px;   /* controles: botão, input */
+  --r-md: 10px;  /* itens de lista, cartões */
+  --r-lg: 14px;  /* painéis, popovers */
+  --r-xl: 20px;  /* modais */
 
-  /* ── Elevation ── */
-  --sh-sm: 0 1px 2px rgba(0,0,0,.4);
-  --sh-md: 0 8px 24px rgba(0,0,0,.45);
-  --sh-lg: 0 20px 60px rgba(0,0,0,.6);
-  --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(55,217,154,.18);
+  /* ── Elevação (só overlays) ── */
+  --sh-sm: 0 1px 2px rgba(3,8,16,.45);
+  --sh-md: 0 10px 30px rgba(3,8,16,.5);
+  --sh-lg: 0 24px 70px rgba(3,8,16,.65);
+  --glow: 0 0 0 1px var(--accent-line);
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--info);
+
+  /* movimento */
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --dur: .16s;
 }
 
-/* ════════ Light theme ════════ */
+/* ════════ Tema claro: "Papel de carta" ════════ */
 :root[data-theme='light'] {
-  --bg: #f6f7f9;
+  color-scheme: light;
+
+  --bg: #e2e9f2;
   --surface: #ffffff;
-  --surface-2: #eef0f4;
-  --surface-3: #e3e6ec;
-  --surface-4: #d6dae2;
+  --surface-2: #f2f6fb;
+  --surface-3: #e6edf6;
+  --surface-4: #d6e0ed;
 
-  --border: #d4d8e0;
-  --border-soft: rgba(0,0,0,.05);
-  --border-mid: rgba(0,0,0,.10);
-  --border-hi: rgba(0,0,0,.18);
+  --border: #d5deea;
+  --border-soft: rgba(16,38,70,.06);
+  --border-mid: rgba(16,38,70,.11);
+  --border-hi: rgba(16,38,70,.2);
 
-  --text: #1a1d23;
-  --text-2: #525a68;
-  --text-3: #828b9a;
-  --text-4: #aab2bf;
+  --text: #0f1c2e;
+  --text-2: #475a74;
+  --text-3: #70829b;
+  --text-4: #a2b0c3;
 
-  --accent: #0e9f6e;
-  --accent-2: #0b8a5e;
-  --accent-dim: rgba(14,159,110,.12);
-  --accent-line: rgba(14,159,110,.32);
-  --on-accent: #ffffff;
+  --accent: #f5a000;
+  --accent-2: #e09000;
+  --accent-dim: rgba(245,160,0,.14);
+  --accent-line: rgba(200,125,0,.45);
+  --on-accent: #1c1202;
+  --accent-text: #9a5b00;
 
-  --sh-sm: 0 1px 2px rgba(0,0,0,.08);
-  --sh-md: 0 8px 24px rgba(0,0,0,.10);
-  --sh-lg: 0 20px 60px rgba(0,0,0,.14);
-  --glow: 0 0 0 1px var(--accent-line), 0 4px 20px rgba(14,159,110,.14);
+  --info: #0a76c4;
+  --info-dim: rgba(10,118,196,.1);
+  --info-line: rgba(10,118,196,.4);
+
+  --ok: #0a7f58;
+  --ok-dim: rgba(10,127,88,.12);
+  --warn: #8f5c00;
+  --warn-dim: rgba(143,92,0,.12);
+  --danger: #d6384a;
+  --danger-dim: rgba(214,56,74,.1);
+  --danger-line: rgba(214,56,74,.4);
+
+  --cat-entry: #c98a00;
+  --cat-arch: #0a76c4;
+  --cat-design: #c2457c;
+  --cat-security: #d6384a;
+  --cat-process: #5f7390;
+  --cat-default: #8294ad;
+
+  --type-note: #5f7390;
+  --type-decision: #0a76c4;
+  --type-question: #c98a00;
+  --type-todo: #0f9d6e;
+  --type-warning: #d6384a;
+  --type-reference: #6d4fd6;
+  --type-general: #5f7390;
+
+  --cat-l: 42%;
+
+  --sh-sm: 0 1px 2px rgba(15,38,70,.08);
+  --sh-md: 0 10px 30px rgba(15,38,70,.12);
+  --sh-lg: 0 24px 70px rgba(15,38,70,.2);
+  --glow: 0 0 0 1px var(--accent-line);
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--info);
+}
+
+/* Movimento reduzido: sem transições nem animações */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
 }

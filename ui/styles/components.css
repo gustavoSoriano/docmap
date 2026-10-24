@@ -1,0 +1,476 @@
+/* ════════════════════════════════════════════════════════════════
+   Componentes compartilhados — usados por TODOS os modos.
+   Os arquivos por modo não redefinem botão, modal, chip ou estado
+   vazio: usam estas classes.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Foco visível (teclado) ── */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  box-shadow: 0 0 0 3px var(--info-dim);
+}
+
+::selection {
+  background: var(--info-dim);
+  color: var(--text);
+}
+
+kbd,
+.kbd {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  border: 1px solid var(--border-mid);
+  color: var(--text-2);
+}
+
+/* ════════ Botões ════════
+   hierarquia: .primary (âmbar, 1 por região) > padrão (tonal)
+   > .ghost-btn (sem fundo) > ícone solto. .danger só no hover. */
+.tool-btn,
+.pop-btn,
+.app-secondary-btn,
+.app-primary-btn {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur), border-color var(--dur), color var(--dur),
+    transform var(--dur);
+}
+.tool-btn:hover,
+.pop-btn:hover,
+.app-secondary-btn:hover {
+  background: var(--surface-3);
+  border-color: var(--border-hi);
+}
+.tool-btn:active,
+.pop-btn:active,
+.app-secondary-btn:active,
+.app-primary-btn:active {
+  transform: translateY(1px);
+}
+.tool-btn .ico,
+.pop-btn .ico,
+.app-primary-btn .ico,
+.app-secondary-btn .ico {
+  width: 16px;
+  height: 16px;
+}
+.tool-btn.primary,
+.pop-btn.primary,
+.app-primary-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 650;
+}
+.tool-btn.primary:hover,
+.pop-btn.primary:hover,
+.app-primary-btn:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+.tool-btn.danger,
+.app-secondary-btn.danger {
+  color: var(--text-2);
+}
+.tool-btn.danger:hover,
+.app-secondary-btn.danger:hover {
+  color: var(--danger);
+  background: var(--danger-dim);
+  border-color: var(--danger-line);
+}
+.tool-btn[disabled],
+.app-primary-btn[disabled] {
+  opacity: .4;
+  pointer-events: none;
+}
+
+.ghost-btn {
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  font-weight: 580;
+  cursor: pointer;
+  transition: background var(--dur), color var(--dur);
+}
+.ghost-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.ghost-btn.danger:hover {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+.ghost-btn .ico {
+  width: 15px;
+  height: 15px;
+}
+
+/* botão só-ícone quadrado */
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-3);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background var(--dur), color var(--dur);
+}
+.icon-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.icon-btn.danger:hover {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+.icon-btn .ico {
+  width: 17px;
+  height: 17px;
+}
+
+/* ════════ Campos ════════ */
+.field,
+.sel {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: var(--fs-md);
+  outline: none;
+  transition: border-color var(--dur), box-shadow var(--dur);
+}
+.field:focus,
+.sel:focus {
+  border-color: var(--info-line);
+  box-shadow: 0 0 0 3px var(--info-dim);
+}
+.field::placeholder {
+  color: var(--text-3);
+}
+/* select com seta própria (nunca a nativa do SO) */
+.sel,
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237587a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+/* ════════ Chips / tags / status ════════ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 560;
+  white-space: nowrap;
+}
+.chip.info {
+  background: var(--info-dim);
+  color: var(--info);
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-2);
+}
+.status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-4);
+}
+.status.ok::before { background: var(--ok); }
+.status.warn::before { background: var(--warn); }
+.status.danger::before { background: var(--danger); }
+.status.info::before { background: var(--info); }
+.status.live::before { background: var(--accent); }
+
+/* controle segmentado (Preview | Editar, etc.) */
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.seg > button {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur), color var(--dur);
+}
+.seg > button:hover {
+  color: var(--text);
+}
+.seg > button.on,
+.seg > button.active {
+  background: var(--surface-4);
+  color: var(--text);
+}
+
+/* ════════ Estado vazio (padrão único) ════════
+   <div class="empty-state">
+     <div class="empty-mark" data-icon="…"></div>
+     <div class="empty-title">…</div>
+     <div class="empty-hint">…</div>
+     [<button class="app-primary-btn">…</button>]
+   </div>
+   Fundo: grade de carta náutica que esmaece nas bordas. */
+.empty-state {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  text-align: center;
+  isolation: isolate;
+}
+.empty-state::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(var(--border-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
+  background-size: 36px 36px;
+  background-position: center;
+  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, #000 0%, transparent 100%);
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, #000 0%, transparent 100%);
+}
+.empty-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-mid);
+  color: var(--text-3);
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+}
+.empty-mark .ico {
+  width: 28px;
+  height: 28px;
+}
+.empty-title {
+  font-size: var(--fs-xl);
+  font-weight: 650;
+  font-stretch: var(--stretch-display);
+  letter-spacing: -.015em;
+  color: var(--text);
+}
+.empty-hint {
+  max-width: 44ch;
+  color: var(--text-3);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+}
+.empty-state .app-primary-btn {
+  margin-top: 10px;
+  height: 38px;
+  padding: 0 18px;
+}
+
+/* título de ilha: cabeçalho padrão de qualquer workspace */
+.island-head {
+  height: var(--head-h);
+  padding: 0 18px 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.display {
+  font-weight: 650;
+  font-stretch: var(--stretch-display);
+  letter-spacing: -.015em;
+}
+
+/* ════════ Modal genérico (categorias, trilhas, chats...) ════════ */
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(3,7,13,.62);
+  backdrop-filter: blur(6px);
+}
+.app-modal-overlay.visible {
+  display: flex;
+}
+.app-modal {
+  width: min(520px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--sh-lg);
+  animation: popIn .22s var(--ease);
+}
+.app-modal.wide {
+  width: min(800px, 100%);
+}
+.app-modal input[type="checkbox"],
+.app-modal input[type="radio"] {
+  accent-color: var(--accent);
+}
+.app-modal-head {
+  min-height: 62px;
+  padding: 0 14px 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--fs-xl);
+  font-weight: 650;
+  font-stretch: var(--stretch-display);
+  letter-spacing: -.015em;
+}
+.app-modal-head button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.app-modal-head button:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.app-modal-head button .ico {
+  width: 18px;
+  height: 18px;
+}
+.app-modal-body {
+  padding: 4px 24px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.app-modal label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.app-modal label > span,
+.app-field-label {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.app-modal input,
+.app-modal textarea,
+.app-modal select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  outline: 0;
+  background-color: var(--surface-2);
+  color: var(--text);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  transition: border-color var(--dur), box-shadow var(--dur);
+}
+.app-modal input,
+.app-modal select {
+  height: 40px;
+  padding: 0 12px;
+}
+.app-modal textarea {
+  padding: 10px 12px;
+  resize: vertical;
+}
+.app-modal input:focus,
+.app-modal textarea:focus,
+.app-modal select:focus {
+  border-color: var(--info-line);
+  box-shadow: 0 0 0 3px var(--info-dim);
+}
+.app-modal-actions {
+  min-height: 68px;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+.app-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.app-secondary-btn,
+.app-primary-btn {
+  height: 38px;
+  padding: 0 18px;
+}

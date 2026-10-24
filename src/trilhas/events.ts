@@ -14,7 +14,14 @@ export type TrilhaEventType =
   | 'edge.removed'
   | 'sticky.created'
   | 'sticky.updated'
-  | 'sticky.removed';
+  | 'sticky.removed'
+  | 'signal.created'
+  | 'signal.resolved'
+  | 'signal.reopened'
+  | 'ref.added'
+  | 'ref.removed'
+  | 'macro.run'
+  | 'layout.applied';
 
 export type TrilhaEvent = {
   readonly id: string;
@@ -42,6 +49,27 @@ export const statusLabel = (s: TrilhaNodeStatus): string =>
     string
   >)[s] ?? s;
 
+// Quem assiste a trilha em tempo real (SSE). Em memória: UI e API rodam no
+// mesmo worker, então todo logEvent chega a todos os assinantes.
+const watchers = new Map<string, Set<() => void>>();
+
+export const watchTrilha = (
+  trilhaId: string,
+  notify: () => void,
+): () => void => {
+  const set = watchers.get(trilhaId) ?? new Set<() => void>();
+  set.add(notify);
+  watchers.set(trilhaId, set);
+  return () => {
+    set.delete(notify);
+    if (!set.size) watchers.delete(trilhaId);
+  };
+};
+
+export const notifyTrilhaChange = (trilhaId: string): void => {
+  for (const notify of watchers.get(trilhaId) ?? []) notify();
+};
+
 export const logEvent = async (
   kv: Deno.Kv,
   trilhaId: string,
@@ -60,6 +88,7 @@ export const logEvent = async (
     createdAt: now,
   };
   await kv.set([...PREFIX, trilhaId, now, event.id], event);
+  notifyTrilhaChange(trilhaId);
   // Poda os mais antigos além do teto (chaves ordenam doVelho→novo pelo ISO).
   const keys: Deno.KvKey[] = [];
   for await (

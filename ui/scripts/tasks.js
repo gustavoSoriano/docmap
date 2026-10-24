@@ -155,8 +155,8 @@ const closeNoteDropdown = (e) => {
 // ══════════════════════════════════════════
 
 const COLUMNS = [
-  { status: 'todo',        label: 'A Fazer'      },
-  { status: 'in-progress', label: 'Em Andamento' },
+  { status: 'todo',        label: 'A fazer'      },
+  { status: 'in-progress', label: 'Em andamento' },
   { status: 'review',      label: 'Revisão'      },
   { status: 'done',        label: 'Concluído'    },
 ];
@@ -178,7 +178,10 @@ const renderBoard = () => {
 
     const container = $(`kanban-cards-${col.status}`);
     if (!colTasks.length) {
-      container.innerHTML = `<div class="kanban-col-empty">Nenhuma task</div>`;
+      container.innerHTML = `<div class="kanban-col-empty">
+        <span class="kanban-col-empty-idle">Nenhuma task</span>
+        <span class="kanban-col-empty-drop">Solte uma task aqui</span>
+      </div>`;
     } else {
       container.innerHTML = colTasks.map((t) => renderCard(t)).join('');
       hydrateIcons(container);
@@ -187,6 +190,18 @@ const renderBoard = () => {
     // Re-registra drag events nas cards
     container.querySelectorAll('.kanban-card').forEach(bindCardDrag);
   }
+
+  renderBoardTotals(filteredTasks);
+};
+
+// Contadores totais do cabeçalho da ilha (apenas apresentação).
+const renderBoardTotals = (tasks) => {
+  const total = tasks.length;
+  const done  = tasks.filter((t) => t.status === 'done').length;
+  const totalChip = $('kanban-total-chip');
+  const doneChip  = $('kanban-done-chip');
+  if (totalChip) totalChip.textContent = `${total} ${total === 1 ? 'task' : 'tasks'}`;
+  if (doneChip)  doneChip.textContent  = `${done} ${done === 1 ? 'concluída' : 'concluídas'}`;
 };
 
 const formatDue = (dueDate, status) => {
@@ -196,18 +211,20 @@ const formatDue = (dueDate, status) => {
   const diff    = Math.ceil((new Date(due) - new Date(today)) / 86400000);
   let cls = 'kanban-card-due';
   let label;
+  let icon = 'calendar';
 
   // Task concluída nunca aparece como atrasada — mostra a data em verde.
   if (status === 'done') {
     cls += ' is-done';
-    label = `✓ ${due.split('-').reverse().join('/')}`;
+    label = due.split('-').reverse().join('/');
+    icon  = 'check';
   }
-  else if (diff < 0)       { cls += ' overdue';   label = `Atrasada ${Math.abs(diff)}d`; }
+  else if (diff < 0)       { cls += ' overdue';   label = `Atrasada ${Math.abs(diff)}d`; icon = 'alert-triangle'; }
   else if (diff === 0)     { cls += ' due-today'; label = 'Hoje'; }
   else if (diff === 1)     { label = 'Amanhã'; }
   else                     { label = due.split('-').reverse().join('/'); }
 
-  return `<span class="${cls}">📅 ${escHtml(label)}</span>`;
+  return `<span class="${cls}">${ICON(icon)}${escHtml(label)}</span>`;
 };
 
 const formatChecklistBadge = (task) => {
@@ -215,20 +232,21 @@ const formatChecklistBadge = (task) => {
   if (!list.length) return '';
   const done = list.filter((i) => i.done).length;
   const cls = done === list.length ? 'kanban-card-checklist all-done' : 'kanban-card-checklist';
-  return `<span class="${cls}">☑ ${done}/${list.length}</span>`;
+  return `<span class="${cls}">${ICON('list-checks')}<span>${done}/${list.length}</span>
+    <progress class="kanban-card-progress" max="${list.length}" value="${done}"></progress></span>`;
 };
 
 const renderCard = (task) => {
   const due  = formatDue(task.dueDate, task.status);
   const note = task.noteId
-    ? `<span class="kanban-card-note-link">nota</span>`
+    ? `<span class="kanban-card-note-link">${ICON('file')}Nota</span>`
     : '';
   const checklist = formatChecklistBadge(task);
   const desc = task.description
     ? `<div class="kanban-card-desc">${escHtml(task.description.slice(0, 120))}</div>`
     : '';
   const tags = (task.tags || []).length
-    ? `<div class="kanban-card-tags">${task.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>`
+    ? `<div class="kanban-card-tags">${task.tags.map((t) => `<span class="chip">${escHtml(t)}</span>`).join('')}</div>`
     : '';
   const meta = (due || note || checklist)
     ? `<div class="kanban-card-meta">${due}${checklist}${note}</div>`
@@ -239,8 +257,8 @@ const renderCard = (task) => {
     onclick="openTaskModal('${task.id}')">
     <div class="kanban-card-title">${escHtml(task.title)}</div>
     ${desc}
-    ${meta}
     ${tags}
+    ${meta}
   </div>`;
 };
 
@@ -411,6 +429,8 @@ const openTaskModal = async (id) => {
   showTaskModal();
   taskSnapshot = captureTaskSnapshot();
   $('task-title-input').focus();
+  $('task-title-input').setSelectionRange(0, 0); // título longo: mostra o início
+  $('task-title-input').scrollLeft = 0;
 };
 
 const populateNoteSelect = (selectedId) => {
@@ -515,7 +535,7 @@ const updateDueHint = () => {
   const pretty = due.split('-').reverse().join('/');
 
   if (status === 'done') {
-    hint.textContent = `✓ Concluída • prazo ${pretty}`;
+    hint.innerHTML = `${ICON('check')}<span>Concluída, prazo ${pretty}</span>`;
     hint.className = 'is-done';
     return;
   }
@@ -523,7 +543,7 @@ const updateDueHint = () => {
   const today = new Date().toISOString().slice(0, 10);
   const diff  = Math.ceil((new Date(due) - new Date(today)) / 86400000);
   if (diff < 0) {
-    hint.textContent = `⚠ Atrasada ${Math.abs(diff)}d`;
+    hint.innerHTML = `${ICON('alert-triangle')}<span>Atrasada ${Math.abs(diff)}d</span>`;
     hint.className = 'overdue';
   } else if (diff === 0) {
     hint.textContent = 'Vence hoje';
@@ -548,7 +568,7 @@ const renderChecklist = () => {
   const box = $('task-checklist');
   if (!box) return;
   if (!draftChecklist.length) {
-    box.innerHTML = `<div class="task-checklist-empty">Nenhum item — adicione abaixo.</div>`;
+    box.innerHTML = `<div class="task-checklist-empty">Nenhum item. Adicione abaixo.</div>`;
   } else {
     box.innerHTML = draftChecklist.map((item) => `
       <div class="task-checklist-item${item.done ? ' done' : ''}" data-id="${escHtml(item.id)}">
@@ -560,7 +580,7 @@ const renderChecklist = () => {
           onclick="toggleChecklistItem('${escHtml(item.id)}')">${escHtml(item.text)}</span>
         <button type="button" class="task-checklist-del"
           onclick="removeChecklistItem('${escHtml(item.id)}')"
-          title="Remover item">×</button>
+          title="Remover item" aria-label="Remover item">${ICON('x')}</button>
       </div>`).join('');
   }
   updateChecklistProgress();

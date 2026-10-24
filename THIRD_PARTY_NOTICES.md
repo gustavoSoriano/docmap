@@ -13,6 +13,9 @@ remoto em runtime. As licenças completas ficam em `docs/licenses/`.
 | mermaid         | 10.9.4  | MIT                   |
 | markmap-view    | 0.18.12 | MIT                   |
 | markmap-lib     | 0.18.12 | MIT                   |
+| turndown        | 7.2.0   | MIT                   |
+| turndown-plugin-gfm | 1.0.2 | MIT                |
+| Archivo (fonte variável, embutida em `ui/styles/fonts.css`) | 1.x | SIL OFL 1.1 |
 
 Também há código vendorizado do `quickdrawjs/core@0.2.0` em
 `src/canvas/vendor.gen.ts`; a licença é MIT.

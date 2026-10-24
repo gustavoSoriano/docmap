@@ -1,7 +1,7 @@
 import { createApiRouter } from './router.ts';
 import type { HandlerDeps } from '../server/types.ts';
 
-export const API_PORT = 3334;
+export const API_PORT = Number(Deno.env.get('DOCMAP_API_PORT') ?? 3334);
 
 export const startApiServer = (deps: HandlerDeps): Deno.HttpServer => {
   const handler = createApiRouter(deps);

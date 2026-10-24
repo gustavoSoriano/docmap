@@ -89,17 +89,17 @@ const renderMacrosList = () => {
   $('macros-list-heading').textContent = collection?.name ?? 'Sem collection';
   if (!macros.length) {
     const emptyLabel = activeMacroCollectionId ? 'Nenhuma macro nesta collection ainda.' : 'Nenhuma macro sem collection ainda.';
-    list.innerHTML = `<div class="macros-empty">${emptyLabel}<br>Clique em <strong>+</strong> para criar.</div>`;
+    list.innerHTML = `<div class="macros-empty">${emptyLabel}<br>Use o botão de novo no topo para criar uma.</div>`;
     return;
   }
   list.innerHTML = macros.map((m) => {
     return `<div class="macro-item${currentMacro?.id === m.id ? ' active' : ''}" onclick="openMacro('${m.id}')">
-      <div class="macro-item-top">
-        <span class="macro-interp-dot ${m.interpreter}">${m.interpreter === 'deno' ? '🦕' : '⬡'}</span>
-        <span class="macro-item-title">${escHtml(m.title)}</span>
-      </div>
+      <div class="macro-item-title">${escHtml(m.title)}</div>
       <div class="macro-item-desc">${escHtml(m.description || '')}</div>
-      ${(m.tags||[]).length ? `<div class="macro-item-tags">${m.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
+      <div class="macro-item-tags">
+        <span class="chip macro-item-interp${m.interpreter === 'deno' ? ' info' : ''}">${escHtml(m.interpreter)}</span>
+        ${(m.tags||[]).map((t) => `<span class="chip">${escHtml(t)}</span>`).join('')}
+      </div>
     </div>`;
   }).join('');
 };
@@ -149,7 +149,7 @@ const newMacroCollection = () => {
   row.id = 'new-macro-col-row';
   row.className = 'macros-col-new-row';
   row.innerHTML = `<input id="new-macro-col-input" class="macros-col-new-input"
-    placeholder="Nome da collection…" autocomplete="off" spellcheck="false" />
+    placeholder="Nome da collection" autocomplete="off" spellcheck="false" />
     <button class="macros-col-new-ok" onclick="confirmNewMacroCollection()" title="Criar">
       <span data-icon="plus"></span>
     </button>`;
@@ -356,7 +356,7 @@ const newMacro = () => {
   $('macro-slug-value').textContent = '';
   $('macro-slug-copy-btn').style.display = 'none';
   populateMacroCollectionSelect(activeMacroCollectionId);
-  macroSet('#!/bin/bash\n# Seu script aqui\n# $DOCMAP_API       → http://127.0.0.1:3334\n\necho "Olá do docmap!"');
+  macroSet('#!/bin/bash\n# Seu script aqui\n# $DOCMAP_API  =  http://127.0.0.1:3334\n\necho "Olá do docmap!"');
   $('macro-interp-badge').textContent = 'bash';
   $('macro-interp-badge').className   = 'macro-badge bash';
   setMacroMode('bash');
@@ -391,7 +391,7 @@ const showMacroEditor = () => {
 
 const populateMacroCollectionSelect = (selectedId) => {
   const select = $('macro-collection-select');
-  select.innerHTML = `<option value="">— sem collection —</option>` +
+  select.innerHTML = `<option value="">Sem collection</option>` +
     macroCollections.map((collection) =>
       `<option value="${collection.id}"${collection.id === selectedId ? ' selected' : ''}>${escHtml(collection.name)}</option>`
     ).join('');
@@ -475,8 +475,8 @@ const runCurrentMacro = async () => {
 
   setRunning(true);
   clearOutput();
-  appendOutput(`▶ Executando: ${currentMacro.title}\n`, 'info');
-  appendOutput(`─────────────────────────────────────\n`, 'info');
+  appendOutput(`Executando ${currentMacro.title}\n`, 'info');
+  appendOutput('', 'rule');
 
   try {
     const res = await fetch(`/macros/${currentMacro.id}/run`, inputLabel
@@ -489,7 +489,7 @@ const runCurrentMacro = async () => {
 
     if (res.status === 403) {
       const data = await res.json();
-      appendOutput(`🚫 Bloqueado: ${data.reason}\n`, 'error');
+      appendOutput(`Bloqueado: ${data.reason}\n`, 'error');
       setRunning(false);
       return;
     }
@@ -517,8 +517,8 @@ const runCurrentMacro = async () => {
             const isExit = /^\d+$/.test(parsed);
             if (isExit) {
               const code = parseInt(parsed);
-              appendOutput(`\n─────────────────────────────────────\n`, 'info');
-              appendOutput(code === 0 ? '✓ Concluído com sucesso\n' : `✗ Saiu com código ${code}\n`, code === 0 ? 'success' : 'error');
+              appendOutput('', 'rule');
+              appendOutput(code === 0 ? 'Concluído com sucesso\n' : `Saiu com código ${code}\n`, code === 0 ? 'success' : 'error');
             } else {
               appendOutput(parsed + '\n', 'out');
             }
@@ -528,7 +528,7 @@ const runCurrentMacro = async () => {
     }
   } catch (err) {
     if (err.name !== 'AbortError') {
-      appendOutput(`\n✗ Erro: ${err.message}\n`, 'error');
+      appendOutput(`\nErro: ${err.message}\n`, 'error');
     }
   } finally {
     runReader = null;
@@ -541,7 +541,7 @@ const stopMacro = async () => {
     try { runReader.cancel(); } catch { /* noop */ }
     runReader = null;
   }
-  appendOutput('\n⬛ Interrompido pelo usuário\n', 'info');
+  appendOutput('\nInterrompido pelo usuário\n', 'info');
   setRunning(false);
 };
 
@@ -570,11 +570,11 @@ const setRunning = (running) => {
 
   runBtn.disabled = running;
   runBtn.innerHTML = running
-    ? `<span class="run-spinner"></span> Executando…`
-    : `${ICON('sparkles')} Executar`;
+    ? `<span class="run-spinner"></span> Executando`
+    : `${ICON('play')} Executar`;
   stopBtn.style.display  = running ? 'inline-flex' : 'none';
   badge.textContent      = running ? 'rodando' : '';
-  badge.className        = running ? 'macro-status running' : 'macro-status';
+  badge.className        = running ? 'macro-status status info' : 'macro-status';
 };
 
 // Ctrl+Enter executa

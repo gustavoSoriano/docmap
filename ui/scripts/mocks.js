@@ -124,7 +124,7 @@ const newCollection = () => {
   row.className = 'mocks-col-new-row';
   row.innerHTML = `
     <input id="new-col-input" class="mocks-col-new-input"
-      placeholder="Nome da collection…" autocomplete="off" spellcheck="false"/>
+      placeholder="Nome da collection" autocomplete="off" spellcheck="false"/>
     <button class="mocks-col-new-ok" onclick="confirmNewCollection()" title="Criar">
       <span data-icon="plus"></span>
     </button>
@@ -237,14 +237,15 @@ const renderMocksList = () => {
 
   if (!filtered.length) {
     const emptyText = activeColId
-      ? 'Nenhum mock nesta collection.'
-      : 'Nenhum mock sem collection.';
+      ? 'Nenhum mock aqui'
+      : 'Nenhum mock avulso';
     const emptyAction = activeColId
-      ? 'Crie o primeiro.'
+      ? 'Crie o primeiro mock desta collection com o botão +.'
       : 'Selecione uma collection para criar novos mocks.';
-    list.innerHTML = `<div class="mocks-list-empty">
-      <span data-icon="share"></span>
-      <span>${emptyText}<br>${emptyAction}</span>
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-mark" data-icon="mock"></div>
+      <div class="empty-title">${emptyText}</div>
+      <div class="empty-hint">${emptyAction}</div>
     </div>`;
     hydrateIcons(list);
     return;
@@ -268,20 +269,19 @@ const renderMocksList = () => {
   for (const [group, mocks] of sortedGroups) {
     if (group) {
       html += `<div class="mocks-group-sep">
-        <span class="mocks-group-line"></span>
         <span class="mocks-group-label">${escHtml(group)}</span>
-        <span class="mocks-group-line"></span>
+        <span class="mocks-group-count">${mocks.length}</span>
       </div>`;
     }
     html += mocks.map((m) => {
       const active  = m.id === currentMockId ? ' active' : '';
       const mCls    = METHOD_CLS[m.method] ?? 'method-gray';
-      return `<div class="mocks-item${active}" data-id="${m.id}" onclick="openMockEditor('${m.id}')">
+      return `<div class="mocks-item${active}" data-id="${m.id}" title="${escHtml(m.method)} ${escHtml(m.path)}" onclick="openMockEditor('${m.id}')">
         <span class="mock-method-badge ${mCls}">${escHtml(m.method)}</span>
         <div class="mock-item-info">
           <span class="mock-item-path">${escHtml(m.path)}</span>
           ${m.name ? `<span class="mock-item-name">${escHtml(m.name)}</span>` : ''}
-          ${(m.tags||[]).length ? `<div class="mock-item-tags">${m.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
+          ${(m.tags||[]).length ? `<div class="mock-item-tags">${m.tags.map((t) => `<span class="chip">${escHtml(t)}</span>`).join('')}</div>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -358,14 +358,9 @@ const showEditorForm = (mock) => {
   initScriptEditor();
   editorSet(mock.script ?? DEFAULT_SCRIPT);
 
-  const badge   = $('mock-id-badge');
   const delBtn  = $('btn-mock-delete');
   const isNew   = !mock.id;
 
-  if (badge) {
-    badge.textContent   = isNew ? '— novo mock —' : `${mock.method}  ${mock.path}`;
-    badge.dataset.method = mock.method ?? 'GET';
-  }
   if (delBtn) delBtn.style.display = isNew ? 'none' : 'inline-flex';
 
   hideTestPanel();
@@ -385,7 +380,7 @@ const populateCollectionSelect = (selectedId) => {
     ? allCollections.map((c) =>
         `<option value="${c.id}"${c.id === selectedId ? ' selected' : ''}>${escHtml(c.name)}</option>`
       ).join('')
-    : `<option value="">— sem collections —</option>`;
+    : `<option value="">Nenhuma collection</option>`;
 };
 
 const updateMethodSelectColor = (method) => {
@@ -429,12 +424,6 @@ const saveMock = async () => {
     await loadMocksData();
     toast('Mock salvo');
 
-    // Atualiza badge
-    const badge = $('mock-id-badge');
-    if (badge) {
-      badge.textContent    = `${method}  ${path}`;
-      badge.dataset.method = method;
-    }
     $('btn-mock-delete') && ($('btn-mock-delete').style.display = 'inline-flex');
   } catch { toast('Erro ao salvar mock'); }
 };
@@ -470,18 +459,22 @@ const showTestPanel = () => {
 
   panel.style.display = 'flex';
 
+  const target = $('mock-test-target');
+  if (target) target.textContent = `${$('mock-method-select').value} ${MOCK_SERVER.replace('http://', '')}${path}`;
+
   const params    = extractPathParams(path);
   const paramsEl  = $('mock-test-params');
   if (paramsEl) {
     if (params.length) {
       paramsEl.style.display = 'block';
-      paramsEl.innerHTML     = `<div class="test-params-label">Path params</div>` +
+      paramsEl.innerHTML     = `<div class="test-params-label">Parâmetros da rota</div>
+        <div class="test-params-grid">` +
         params.map((p) =>
-          `<div class="test-param-row">
+          `<label class="test-param-row">
             <span class="test-param-name">:${escHtml(p)}</span>
-            <input class="test-param-input" id="test-param-${escHtml(p)}" value="1" spellcheck="false"/>
-          </div>`
-        ).join('');
+            <input class="test-param-input field" id="test-param-${escHtml(p)}" value="1" spellcheck="false"/>
+          </label>`
+        ).join('') + `</div>`;
     } else {
       paramsEl.innerHTML     = '';
       paramsEl.style.display = 'none';
@@ -509,7 +502,7 @@ const runTest = async () => {
   }
 
   const btn = $('btn-test-run');
-  if (btn) { btn.disabled = true; btn.textContent = 'Chamando…'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = `${ICON('refresh-cw')} Chamando`; }
 
   try {
     const t0   = performance.now();
@@ -528,8 +521,32 @@ const runTest = async () => {
   } catch (err) {
     renderTestResult({ status: 0, ms: 0, body: String(err), ok: false });
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Executar'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = `${ICON('play')} Executar`; }
   }
+};
+
+// Tom semântico do status HTTP: 2xx ok · 3xx info · 4xx warn · 5xx/erro danger
+const statusTone = (status) => {
+  if (status >= 200 && status < 300) return 'tone-ok';
+  if (status >= 300 && status < 400) return 'tone-info';
+  if (status >= 400 && status < 500) return 'tone-warn';
+  return 'tone-danger';
+};
+
+// Realce simples de JSON (só apresentação): escapa cada trecho antes de envolver em span.
+const JSON_TOKEN = /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g;
+const highlightJson = (text) => {
+  let out = '';
+  let last = 0;
+  for (const m of text.matchAll(JSON_TOKEN)) {
+    out += escHtml(text.slice(last, m.index));
+    const cls = m[1] ? (m[2] ? 'j-key' : 'j-str') : m[3] ? 'j-lit' : 'j-num';
+    out += m[1] && m[2]
+      ? `<span class="${cls}">${escHtml(m[1])}</span>${escHtml(m[2])}`
+      : `<span class="${cls}">${escHtml(m[0])}</span>`;
+    last = m.index + m[0].length;
+  }
+  return out + escHtml(text.slice(last));
 };
 
 const renderTestResult = ({ status, ms, body, ok }) => {
@@ -537,15 +554,15 @@ const renderTestResult = ({ status, ms, body, ok }) => {
   if (!el) return;
   el.style.display = 'flex';
 
-  const sCls   = ok ? 'test-status-ok' : 'test-status-err';
-  const sLabel = status ? String(status) : 'ERR';
+  const sCls   = statusTone(status);
+  const sLabel = status ? String(status) : 'Erro';
 
   el.innerHTML = `
     <div class="test-result-meta">
       <span class="test-status-badge ${sCls}">${escHtml(sLabel)}</span>
-      ${ms ? `<span class="test-ms">${ms}ms</span>` : ''}
+      ${ms ? `<span class="test-ms">${ms} ms</span>` : ''}
     </div>
-    <pre class="test-body">${escHtml(body)}</pre>
+    <pre class="test-body">${highlightJson(body)}</pre>
   `;
 };
 
@@ -584,7 +601,7 @@ const clearMockDatabase = async () => {
     return;
   }
 
-  // Nenhuma collection selecionada → zerar tudo
+  // Nenhuma collection selecionada: zerar tudo
   const total = allMocks.length;
   const cols  = allCollections.length;
   if (!total && !cols) { toast('Banco já está vazio'); return; }
@@ -655,7 +672,9 @@ const copyCurl = () => {
 
 const updateServerBadge = () => {
   const el = $('mocks-server-count');
-  if (el) el.dataset.count = String(allMocks.length);
+  if (!el) return;
+  el.dataset.count = String(allMocks.length);
+  el.textContent   = allMocks.length === 1 ? '1 mock' : `${allMocks.length} mocks`;
 };
 
 const updateClearBtn = () => {

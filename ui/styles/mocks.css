@@ -1,838 +1,675 @@
-/* ════ Mocks ════ */
+/* ════════════════════════════════════════════════════════════════
+   Mocks HTTP — o editor parece um cliente de API.
+   Sidebar genérica (head, collections, footer base) vem do layout.css.
+   Aqui: lista de mocks, barra de requisição, editor de script e gaveta
+   de teste. Tudo com tokens; nada de hex solto.
+   ════════════════════════════════════════════════════════════════ */
 
+/* ── Cor semântica por método HTTP ──
+   GET info · POST ok · PUT/PATCH warn · DELETE danger · resto neutro.
+   Usada pelo badge da lista (classe) e pelo select do editor (data-method). */
 #mode-mocks {
-  flex-direction: row;
-  overflow: hidden;
+  --mc: var(--text-3);
+  --mc-dim: var(--surface-3);
+}
+#mode-mocks .method-get,
+#mode-mocks [data-method='GET'] {
+  --mc: var(--info);
+  --mc-dim: var(--info-dim);
+}
+#mode-mocks .method-post,
+#mode-mocks [data-method='POST'] {
+  --mc: var(--ok);
+  --mc-dim: var(--ok-dim);
+}
+#mode-mocks .method-put,
+#mode-mocks .method-patch,
+#mode-mocks [data-method='PUT'],
+#mode-mocks [data-method='PATCH'] {
+  --mc: var(--warn);
+  --mc-dim: var(--warn-dim);
+}
+#mode-mocks .method-delete,
+#mode-mocks [data-method='DELETE'] {
+  --mc: var(--danger);
+  --mc-dim: var(--danger-dim);
 }
 
-/* ── Coluna esquerda (estrutura no layout.css — padrão sidebar) ── */
-
-#mocks-col {
-  min-width: 220px;
-  overflow: hidden;
-  background: var(--surface);
-}
-
-/* ── Lista de mocks ── */
-
+/* ════════ Lista de mocks ════════ */
 #mocks-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 4px 5px;
-}
-
-.mocks-list-empty {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--text-4);
-  font-size: 0.75rem;
-  padding: 28px 14px;
-  text-align: center;
-  line-height: 1.55;
+  padding: 2px 10px 12px;
 }
-.mocks-list-empty .ico {
-  width: 22px;
-  height: 22px;
-  opacity: 0.35;
-}
-
-/* ── Separadores de grupo ── */
-
-.mocks-group-sep {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 11px 6px 4px;
-  user-select: none;
-}
-
-.mocks-group-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--border) 30%,
-    var(--border) 70%, transparent);
-}
-
-.mocks-group-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-4);
-  white-space: nowrap;
+#mocks-list > * {
   flex-shrink: 0;
 }
+/* estado vazio compacto dentro da sidebar */
+#mocks-list .empty-state {
+  padding: 28px 12px;
+}
+#mocks-list .empty-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+}
+#mocks-list .empty-mark .ico {
+  width: 20px;
+  height: 20px;
+}
+#mocks-list .empty-title {
+  font-size: var(--fs-lg);
+}
+#mocks-list .empty-hint {
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
 
-/* ── Item de mock ── */
+/* separador de grupo: rótulo discreto + contagem */
+.mocks-group-sep {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 16px 10px 6px;
+  user-select: none;
+}
+.mocks-group-label {
+  min-width: 0;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mocks-group-count {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-4);
+  font-variant-numeric: tabular-nums;
+}
 
+/* item: badge de método | path + nome */
 .mocks-item {
   display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 8px;
-  border-radius: var(--r-sm);
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--r-md);
   cursor: pointer;
-  transition: background 0.1s, box-shadow 0.1s;
   min-width: 0;
+  transition: background var(--dur);
 }
 .mocks-item:hover {
   background: var(--surface-2);
 }
 .mocks-item.active {
   background: var(--surface-2);
-  box-shadow: inset 2px 0 0 var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
-
-/* ── Badges HTTP ── */
 
 .mock-method-badge {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-xs);
+  background: var(--mc-dim);
+  color: var(--mc);
   font-family: var(--font-mono);
-  font-size: 0.595rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.03em;
-  padding: 2px 5px;
-  border-radius: 4px;
-  flex-shrink: 0;
   line-height: 1;
-  text-transform: uppercase;
-  min-width: 38px;
-  text-align: center;
-}
-
-.method-get {
-  color: var(--accent);
-  background: var(--accent-dim);
-}
-.method-post {
-  color: #60a5fa;
-  background: rgba(96,165,250,.13);
-}
-.method-put {
-  color: #f59e0b;
-  background: rgba(245,158,11,.12);
-}
-.method-patch {
-  color: #a78bfa;
-  background: rgba(167,139,250,.13);
-}
-.method-delete {
-  color: #fb7185;
-  background: rgba(251,113,133,.13);
-}
-.method-gray {
-  color: var(--text-3);
-  background: var(--surface-3);
 }
 
 .mock-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-
 .mock-item-path {
+  min-height: 22px;
+  display: flex;
+  align-items: center;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: var(--fs-sm);
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .mock-item-name {
-  font-size: 0.65rem;
-  color: var(--text-4);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  color: var(--text-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.mock-item-col {
-  font-size: 0.6rem;
-  color: var(--text-4);
-  background: var(--surface-3);
-  border-radius: 4px;
-  padding: 1px 5px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  max-width: 60px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.mock-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.mock-item-tags .chip {
+  height: 20px;
+  padding: 0 6px;
 }
 
-/* ── Rodapé da coluna ── */
-
+/* ════════ Rodapé: servidor + ação destrutiva discreta ════════ */
 #mocks-col-footer {
-  border-top: 1px solid var(--border);
-  padding: 10px 12px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex-shrink: 0;
-  background: var(--surface);
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 14px 12px 20px;
+  border-top: 1px solid var(--border);
 }
-
 #mocks-server-badge {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+  max-width: 100%;
+  min-width: 0;
 }
-
-.mocks-server-pulse {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 0 var(--accent-dim);
-  animation: pulse-dot 2.4s ease-in-out infinite;
-  flex-shrink: 0;
-}
-
-@keyframes pulse-dot {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(55,217,154,.5);
-  }
-  50% {
-    box-shadow: 0 0 0 5px rgba(55,217,154,0);
-  }
-}
-
 .mocks-server-url {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--text-3);
-  flex: 1;
+  color: var(--text-2);
 }
-
 #mocks-server-count {
-  font-size: 0.65rem;
-  color: var(--text-4);
+  color: var(--text-3);
+  font-weight: 500;
 }
 #mocks-server-count::before {
-  content: attr(data-count) ' mock(s)';
+  content: '·';
+  margin-right: 7px;
+  color: var(--text-4);
 }
-
 #mocks-clear-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.74rem;
-  font-weight: 500;
-  color: #fb7185;
-  background: rgba(251,113,133,.07);
-  border: 1px solid rgba(251,113,133,.18);
-  border-radius: var(--r-sm);
-  padding: 6px 10px;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
-  width: 100%;
-  font-family: var(--font-ui);
-}
-#mocks-clear-btn:hover {
-  background: rgba(251,113,133,.15);
-  border-color: rgba(251,113,133,.38);
-}
-
-/* ────────────────────────────
-   Editor
-──────────────────────────── */
-
-#mocks-editor {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--surface-2);
-}
-
-#mocks-editor-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-}
-
-#mocks-editor-empty-mark .ico {
-  width: 38px;
-  height: 38px;
-  color: var(--text-4);
-  opacity: 0.28;
-}
-
-#mocks-editor-empty-text {
-  font-size: 0.875rem;
-  color: var(--text-4);
-}
-
-#mocks-editor-form {
-  display: none;
-  flex-direction: column;
-  flex: 1;
-  overflow-y: auto;
-  padding: 18px 20px;
-  gap: 14px;
-}
-
-/* ── Cabeçalho do mock ── */
-
-#mock-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-#mock-id-badge {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
+  max-width: 100%;
+  min-width: 0;
+  margin-left: -10px;
+  height: 28px;
+  font-size: var(--fs-xs);
   color: var(--text-3);
-  background: var(--surface-3);
-  border-radius: var(--r-sm);
-  padding: 4px 10px;
-  flex: 1;
-  white-space: nowrap;
+}
+.mocks-clear-label {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
-  display: inline-flex;
+  white-space: nowrap;
 }
 
-/* Cor do badge de método no cabeçalho */
-#mock-id-badge[data-method="GET"] {
-  color: var(--accent);
-  background: var(--accent-dim);
+/* ════════ Workspace ════════ */
+#mocks-editor {
+  display: flex;
+  flex-direction: column;
 }
-#mock-id-badge[data-method="POST"] {
-  color: #60a5fa;
-  background: rgba(96,165,250,.12);
+#mocks-editor-form {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
 }
-#mock-id-badge[data-method="PUT"] {
-  color: #f59e0b;
-  background: rgba(245,158,11,.12);
+
+/* ── Barra de requisição: método + path + ações ── */
+#mock-head {
+  gap: 14px;
+  padding: 0 18px;
 }
-#mock-id-badge[data-method="PATCH"] {
-  color: #a78bfa;
-  background: rgba(167,139,250,.12);
+#mock-reqline {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  transition: border-color var(--dur), box-shadow var(--dur);
 }
-#mock-id-badge[data-method="DELETE"] {
-  color: #fb7185;
-  background: rgba(251,113,133,.12);
+#mock-reqline:focus-within {
+  border-color: var(--info-line);
+  box-shadow: 0 0 0 3px var(--info-dim);
+}
+#mock-method-select {
+  flex: 0 0 auto;
+  width: 112px;
+  height: auto;
+  padding: 0 30px 0 14px;
+  border: 0;
+  border-right: 1px solid var(--border-mid);
+  border-radius: 0;
+  background-color: var(--mc-dim);
+  color: var(--mc);
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+#mock-method-select:focus,
+#mock-method-select:focus-visible {
+  border-color: var(--border-mid);
+  box-shadow: inset 0 0 0 2px var(--info-line);
+}
+#mock-method-select option {
+  background: var(--surface-2);
+  color: var(--text);
+}
+#mock-path-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  outline: none;
+}
+#mock-path-input:focus,
+#mock-path-input:focus-visible {
+  box-shadow: none;
+}
+#mock-path-input::placeholder {
+  color: var(--text-4);
 }
 
 #mock-head-actions {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+}
+#btn-mock-delete {
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
 }
 
-/* ── Campos do form ── */
-
-.mock-field {
+/* ── Corpo rolável ── */
+#mock-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 22px;
+  padding: 22px 24px 24px;
 }
 
+/* campos: grade limpa, rótulo em sentence case */
+#mock-meta {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 16px;
+  flex-shrink: 0;
+}
+.mock-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
 .mock-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--text-4);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+}
+.mock-field .field,
+.mock-field .sel {
+  width: 100%;
+  min-width: 0;
 }
 
-.mock-input,
-.mock-select {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: var(--r-sm);
-  padding: 7px 10px;
-  font-size: 0.845rem;
-  font-family: var(--font-ui);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.mock-input:focus,
-.mock-select:focus {
-  border-color: var(--accent-line);
-}
-.mock-input::placeholder {
-  color: var(--text-4);
-}
-
-#mock-path-input {
-  font-family: var(--font-mono);
-  font-size: 0.845rem;
-  letter-spacing: 0.01em;
-}
-
-#mock-meta-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: end;
-}
-
-#mock-meta-row-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-/* Method select colorido */
-#mock-method-select {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  font-weight: 700;
-  padding: 7px 8px;
-  cursor: pointer;
-  min-width: 90px;
-}
-#mock-method-select[data-method="GET"] {
-  color: var(--accent);
-}
-#mock-method-select[data-method="POST"] {
-  color: #60a5fa;
-}
-#mock-method-select[data-method="PUT"] {
-  color: #f59e0b;
-}
-#mock-method-select[data-method="PATCH"] {
-  color: #a78bfa;
-}
-#mock-method-select[data-method="DELETE"] {
-  color: #fb7185;
-}
-
-/* ── Script editor (CodeMirror) ── */
-
+/* ── Editor de script ── */
 .mock-field-script {
   flex: 1;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  transition: border-color var(--dur), box-shadow var(--dur);
 }
-
-/* Encaixa CodeMirror no tema dark do app.
-   `color` sem !important: garante texto legível se o tema CDN não carregar,
-   mas perde para o seletor mais específico `.cm-s-one-dark.CodeMirror`
-   quando o tema estiver presente — os tokens de sintaxe usam color nos
-   próprios spans e ganham de qualquer jeito. */
-.mock-field-script .CodeMirror {
-  background: var(--surface) !important;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  font-family: var(--font-mono) !important;
-  font-size: 0.8rem;
-  line-height: 1.65;
-  height: auto;
-  min-height: 160px;
-  flex: 1;
-  transition: border-color 0.15s;
+.mock-field-script:focus-within {
+  border-color: var(--info-line);
+  box-shadow: 0 0 0 3px var(--info-dim);
 }
-.mock-field-script .CodeMirror-focused {
-  border-color: var(--accent-line);
-}
-.mock-field-script .CodeMirror-scroll {
-  min-height: 160px;
-}
-.mock-field-script .CodeMirror-gutters {
-  background: var(--surface-2) !important;
-  border-right: 1px solid var(--border) !important;
-}
-.mock-field-script .CodeMirror-linenumber {
-  color: var(--text-4) !important;
-  font-size: 0.72rem;
-}
-.mock-field-script .CodeMirror-cursor {
-  border-left-color: var(--accent) !important;
-}
-.mock-field-script .CodeMirror-selectedtext,
-.mock-field-script .CodeMirror-selected {
-  background: rgba(55,217,154,.15) !important;
-}
-
-/* ── Sintaxe JS embutida (paleta one-dark, sem CDN) ── */
-.mock-field-script .cm-keyword {
-  color: #c678dd;
-}
-.mock-field-script .cm-operator {
-  color: #c678dd;
-}
-.mock-field-script .cm-string {
-  color: #98c379;
-}
-.mock-field-script .cm-string-2 {
-  color: #98c379;
-}
-.mock-field-script .cm-number {
-  color: #d19a66;
-}
-.mock-field-script .cm-atom {
-  color: #d19a66;
-}
-.mock-field-script .cm-comment {
-  color: #5c6370;
-  font-style: italic;
-}
-.mock-field-script .cm-def {
-  color: #61afef;
-}
-.mock-field-script .cm-variable {
-  color: #e06c75;
-}
-.mock-field-script .cm-variable-2 {
-  color: #abb2bf;
-}
-.mock-field-script .cm-property {
-  color: #e5c07b;
-}
-.mock-field-script .cm-qualifier {
-  color: #e5c07b;
-}
-.mock-field-script .cm-builtin {
-  color: #56b6c2;
-}
-.mock-field-script .cm-tag {
-  color: #e06c75;
-}
-.mock-field-script .cm-bracket {
-  color: #abb2bf;
-}
-.mock-field-script .cm-punctuation {
-  color: #abb2bf;
-}
-.mock-field-script .cm-meta {
-  color: #abb2bf;
-}
-
 #mock-script-label-row {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
+  gap: 12px;
+  padding: 8px 10px 8px 16px;
+  border-bottom: 1px solid var(--border);
 }
-
+#mock-script-label-row .mock-label {
+  color: var(--text);
+}
 #mock-script-hint {
-  font-size: 0.63rem;
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--text-4);
   flex: 1;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#mock-script-hint code {
+  font-family: var(--font-mono);
+  color: var(--info);
 }
 
-#btn-format-script {
-  font-size: 0.7rem;
-  color: var(--text-4);
-  gap: 4px;
-  padding: 2px 6px;
-  border-radius: var(--r-xs);
-  transition: color 0.12s, background 0.12s;
-}
-#btn-format-script:hover {
-  color: var(--accent);
-  background: var(--accent-dim);
-}
-
-/* Textarea fica escondido após CodeMirror assumir; estilos de fallback caso CDN falhe */
+/* textarea é o fallback caso o CodeMirror não carregue */
 #mock-script-textarea {
   flex: 1;
-  min-height: 160px;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  line-height: 1.65;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  min-height: 200px;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
   color: var(--text);
-  border-radius: var(--r-md);
-  padding: 12px 14px;
-  outline: none;
-  resize: vertical;
-  transition: border-color 0.15s;
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  line-height: 1.65;
   tab-size: 2;
-  caret-color: var(--accent);
+  resize: none;
+  outline: none;
+  caret-color: var(--text);
 }
-#mock-script-textarea:focus {
-  border-color: var(--accent-line);
+#mock-script-textarea:focus-visible {
+  box-shadow: none;
 }
-/* CodeMirror esconde o textarea original — não quebramos o layout */
-#mock-script-textarea + .CodeMirror {
+
+/* CodeMirror encaixado no painel (vence o tema CDN por especificidade) */
+#mocks-editor .CodeMirror {
   flex: 1;
+  height: auto;
+  min-height: 200px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  line-height: 1.65;
+}
+#mocks-editor .CodeMirror-scroll {
+  min-height: 200px;
+}
+#mocks-editor .CodeMirror-lines {
+  padding: 12px 0;
+}
+#mocks-editor .CodeMirror pre.CodeMirror-line,
+#mocks-editor .CodeMirror pre.CodeMirror-line-like {
+  padding: 0 16px 0 8px;
+}
+#mocks-editor .CodeMirror-gutters {
+  background: transparent;
+  border-right: 1px solid var(--border);
+}
+#mocks-editor .CodeMirror-linenumber {
+  padding: 0 10px 0 14px;
+  color: var(--text-4);
+  font-size: var(--fs-xs);
+}
+#mocks-editor .CodeMirror-cursor {
+  border-left: 1px solid var(--text);
+}
+#mocks-editor .CodeMirror-selected,
+#mocks-editor .CodeMirror-focused .CodeMirror-selected {
+  background: var(--info-dim);
 }
 
-/* ────────────────────────────
-   Painel de teste
-──────────────────────────── */
+/* sintaxe JS — paleta dos tokens, vale nos dois temas */
+#mocks-editor .cm-keyword,
+#mocks-editor .cm-operator {
+  color: var(--type-reference);
+}
+#mocks-editor .cm-string,
+#mocks-editor .cm-string-2 {
+  color: var(--ok);
+}
+#mocks-editor .cm-number,
+#mocks-editor .cm-atom {
+  color: var(--cat-design);
+}
+#mocks-editor .cm-comment {
+  color: var(--text-3);
+  font-style: italic;
+}
+#mocks-editor .cm-def,
+#mocks-editor .cm-variable {
+  color: var(--text);
+}
+#mocks-editor .cm-variable-2 {
+  color: var(--text-2);
+}
+#mocks-editor .cm-property,
+#mocks-editor .cm-qualifier {
+  color: var(--cat-entry);
+}
+#mocks-editor .cm-builtin,
+#mocks-editor .cm-tag {
+  color: var(--info);
+}
+#mocks-editor .cm-bracket,
+#mocks-editor .cm-punctuation,
+#mocks-editor .cm-meta {
+  color: var(--text-2);
+}
 
+/* ════════ Gaveta de teste ════════ */
 #mock-test-panel {
+  flex: 0 0 auto;
+  max-height: 50%;
   flex-direction: column;
+  overflow-y: auto;
+  border-top: 1px solid var(--border-mid);
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  overflow: hidden;
-  flex-shrink: 0;
-  transition: border-color 0.12s;
+  animation: drawerIn .24s var(--ease);
 }
-#mock-test-panel:focus-within {
-  border-color: var(--border-mid);
+@keyframes drawerIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
 }
-
 .test-panel-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 9px 12px;
-  border-bottom: 1px solid var(--border);
-  gap: 8px;
-  background: var(--surface-2);
+  gap: 12px;
+  padding: 8px 14px 8px 24px;
+  background: var(--surface);
 }
-
 .test-panel-title {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-4);
+  font-size: var(--fs-lg);
+  font-weight: 650;
+  font-stretch: var(--stretch-display);
+  letter-spacing: -.015em;
+}
+#mock-test-target {
   flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+#mock-test-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 2px 24px 20px;
+}
 #mock-test-params {
-  padding: 10px 12px 4px;
+  min-width: 0;
 }
-
 .test-params-label {
-  font-size: 0.63rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-4);
   margin-bottom: 8px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
 }
-
+.test-params-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
 .test-param-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 6px;
 }
-
 .test-param-name {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--accent);
-  width: 80px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--info);
+}
+.test-param-input {
+  width: 160px;
+  height: 34px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+}
+#btn-test-run {
   flex-shrink: 0;
 }
 
-.test-param-input {
-  flex: 1;
-  max-width: 180px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: var(--r-xs);
-  padding: 4px 8px;
-  font-size: 0.8rem;
-  font-family: var(--font-mono);
-  outline: none;
-  transition: border-color 0.12s;
-}
-.test-param-input:focus {
-  border-color: var(--accent-line);
-}
-
-#btn-test-run {
-  margin: 8px 12px 10px;
-  align-self: flex-start;
-}
-
+/* resultado: chip de status + tempo + corpo */
 #mock-test-result {
   flex-direction: column;
-  padding: 10px 12px;
-  border-top: 1px solid var(--border);
-  gap: 8px;
+  gap: 10px;
 }
-
 .test-result-meta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
-
 .test-status-badge {
+  height: 24px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-xs);
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-.test-status-ok {
-  color: var(--accent);
-  background: var(--accent-dim);
-}
-.test-status-err {
-  color: #fb7185;
-  background: rgba(251,113,133,.13);
-}
-
-.test-ms {
-  font-size: 0.7rem;
-  color: var(--text-4);
-  font-family: var(--font-mono);
-}
-
-.test-body {
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
+  background: var(--surface-3);
   color: var(--text-2);
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-all;
-  margin: 0;
-  max-height: 190px;
-  overflow-y: auto;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 8px 10px;
 }
-
-/* ── Tags ── */
-.mock-item-tags {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  margin-top: 4px;
+.test-status-badge.tone-ok {
+  background: var(--ok-dim);
+  color: var(--ok);
 }
-
-#mock-tags-input {
-  height: 30px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--text);
-  padding: 0 9px;
-  outline: none;
-  width: 100%;
-  box-sizing: border-box;
+.test-status-badge.tone-info {
+  background: var(--info-dim);
+  color: var(--info);
 }
-#mock-tags-input:focus {
-  border-color: var(--accent-line);
+.test-status-badge.tone-warn {
+  background: var(--warn-dim);
+  color: var(--warn);
 }
-#mock-tags-input::placeholder {
+.test-status-badge.tone-danger {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+.test-ms {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
+.test-body {
+  max-height: 200px;
+  margin: 0;
+  padding: 14px 16px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.test-body .j-key { color: var(--info); }
+.test-body .j-str { color: var(--ok); }
+.test-body .j-num { color: var(--cat-design); }
+.test-body .j-lit { color: var(--type-reference); }
 
 /* ════════ Responsivo ════════ */
-@media (max-width: 900px) {
-  #mocks-col {
-    width: var(--sidebar-w-tablet);
-    min-width: 180px;
+@media (max-width: 1200px) {
+  #mock-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  #mock-meta-row-2 {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  #btn-mock-curl .btn-lbl {
+    display: none;
+  }
+  #btn-mock-curl {
+    padding: 0 10px;
   }
 }
-
-@media (max-width: 600px) {
-  #mode-mocks {
-    flex-direction: column;
-  }
-  /* Sidebar escondida por padrão — clique no ◆ para abrir */
-  #mocks-col {
-    width: 100%;
-    min-width: 0;
-    max-height: 0;
-    overflow: hidden;
-    flex-shrink: 0;
-    border-right: none;
-    border-bottom: none;
-    transition: max-height 0.25s ease;
-  }
-  #mocks-col.col-collapsed {
-    max-height: 60vh;
-    overflow-y: auto;
-    border-bottom: 1px solid var(--border);
-    opacity: 1;
-    pointer-events: auto;
-    width: 100%;
-    min-width: 0;
-    flex-shrink: 0;
-  }
-  #mocks-col-list {
-    max-height: 120px;
-  }
-  #mocks-col-head,
-  #mocks-col-subhead,
-  #mocks-list-head {
-    padding: 6px 8px;
-  }
-  .mocks-section-label {
-    font-size: 0.6rem;
-  }
-  .mocks-col-item-inner {
-    padding: 5px 6px;
-  }
-  .mocks-col-name {
-    font-size: 0.75rem;
-  }
-  #mocks-list {
-    padding: 2px 4px;
-  }
-  .mocks-item {
-    padding: 4px 6px;
-  }
-  #mocks-editor {
-    flex: 1;
-    min-height: 0;
-  }
-  #mocks-editor-form {
-    padding: 12px 14px;
-    gap: 10px;
-  }
-  #mock-meta-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  #mock-meta-row-2 {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
+@media (max-width: 900px) {
   #mock-head {
-    flex-wrap: wrap;
-    gap: 6px;
+    gap: 10px;
+    padding: 0 12px;
   }
-  #mock-head-actions {
-    flex-wrap: wrap;
-    gap: 4px;
+  #mock-head-actions .btn-lbl {
+    display: none;
   }
   #mock-head-actions .tool-btn {
-    padding: 0 8px;
-    font-size: 11px;
-    height: 28px;
+    padding: 0 10px;
   }
-  .mock-field-script .CodeMirror {
-    min-height: 120px;
+  #mock-method-select {
+    width: 100px;
   }
-  .mock-field-script .CodeMirror-scroll {
-    min-height: 120px;
+  #mock-body {
+    padding: 18px 18px 20px;
   }
-  #mock-script-textarea {
-    min-height: 120px;
+  #mock-test-body {
+    padding: 4px 18px 18px;
+  }
+  .test-panel-head {
+    padding-left: 18px;
+  }
+}
+@media (max-width: 600px) {
+  #mock-head {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+  #mock-reqline {
+    flex: 1 1 100%;
+  }
+  #mock-head-actions {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+  #mock-meta {
+    grid-template-columns: 1fr;
+  }
+  #mock-script-hint {
+    display: none;
+  }
+  .test-param-input {
+    width: 120px;
   }
 }

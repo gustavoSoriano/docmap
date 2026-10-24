@@ -1,542 +1,217 @@
 // ════ Página standalone do Debug Audit, servida em /debug ════
+// Standalone (iframe): não herda o CSS do app. Fonte, tokens e componentes
+// vêm de ui-shared.gen.ts (gerado por scripts/bundle-ui.ts).
 
 import { html } from '../server/response.ts';
+import {
+  COMPONENTS_CSS,
+  FONT_CSS,
+  TOKENS_CSS,
+} from '../server/handlers/ui-shared.gen.ts';
 
-const PAGE = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>docmap — debug</title>
-<style>
-:root{
-  --bg:#0b0c0e;
-  --surface:#101216;
-  --surface-2:#16191f;
-  --surface-3:#1e222a;
-  --surface-4:#262b34;
-  --border:#22262e;
-  --border-soft:rgba(255,255,255,.05);
-  --border-mid:rgba(255,255,255,.09);
-  --border-hi:rgba(255,255,255,.16);
-  --text:#edeef1;
-  --text-2:#9ca3af;
-  --text-3:#626976;
-  --text-4:#454b56;
-  --accent:#37d99a;
-  --accent-2:#29c088;
-  --accent-dim:rgba(55,217,154,.14);
-  --accent-line:rgba(55,217,154,.35);
-  --on-accent:#06120d;
-  --cat-entry:#fbbf24;
-  --cat-arch:#60a5fa;
-  --cat-design:#f472b6;
-  --cat-security:#fb7185;
-  --cat-process:#94a3b8;
-  --cat-default:#6b7280;
-  --type-note:#94a3b8;
-  --type-decision:#60a5fa;
-  --type-question:#fbbf24;
-  --type-todo:#37d99a;
-  --type-warning:#fb7185;
-  --type-reference:#a78bfa;
-  --type-general:#94a3b8;
-  --font-ui:'Geist','Onest',system-ui,sans-serif;
-  --font-mono:'Geist Mono','JetBrains Mono',monospace;
-  --font:var(--font-ui);
-  --mono:var(--font-mono);
-  --danger:var(--cat-security);
-  --radius:7px;
-  --rail-w:60px;
-  --r-xs:5px;
-  --r-sm:7px;
-  --r-md:10px;
-  --r-lg:14px;
-  --r-xl:20px;
-  --sh-sm:0 1px 2px rgba(0,0,0,.4);
-  --sh-md:0 8px 24px rgba(0,0,0,.45);
-  --sh-lg:0 20px 60px rgba(0,0,0,.6);
-  --glow:0 0 0 1px var(--accent-line),0 4px 20px rgba(55,217,154,.18);
-}
-:root[data-theme='light']{
-  --bg:#f6f7f9;
-  --surface:#ffffff;
-  --surface-2:#eef0f4;
-  --surface-3:#e3e6ec;
-  --surface-4:#d6dae2;
-  --border:#d4d8e0;
-  --border-soft:rgba(0,0,0,.05);
-  --border-mid:rgba(0,0,0,.10);
-  --border-hi:rgba(0,0,0,.18);
-  --text:#1a1d23;
-  --text-2:#525a68;
-  --text-3:#828b9a;
-  --text-4:#aab2bf;
-  --accent:#0e9f6e;
-  --accent-2:#0b8a5e;
-  --accent-dim:rgba(14,159,110,.12);
-  --accent-line:rgba(14,159,110,.32);
-  --on-accent:#ffffff;
-  --sh-sm:0 1px 2px rgba(0,0,0,.08);
-  --sh-md:0 8px 24px rgba(0,0,0,.10);
-  --sh-lg:0 20px 60px rgba(0,0,0,.14);
-  --glow:0 0 0 1px var(--accent-line),0 4px 20px rgba(14,159,110,.14);
-}
+const PAGE_CSS = `
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
-body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:var(--font-ui);
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  -webkit-font-smoothing:antialiased;
-}
-#debug-header{
-  flex-shrink:0;
-  padding:14px 18px;
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  gap:18px;
-}
-#debug-title{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-size:15px;
-  font-weight:600;
-}
-#debug-title .ico{color:var(--accent)}
-#debug-stats{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin-left:auto;
-}
-.stat{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:12px;
-  color:var(--text-2);
-  background:var(--surface-2);
-  padding:5px 10px;
-  border-radius:var(--radius);
-  border:1px solid var(--border);
-}
-.stat strong{color:var(--text)}
-#debug-update{
-  font-size:11px;
-  color:var(--text-3);
-}
-#debug-main{
-  flex:1;
-  min-height:0;
-  display:flex;
-  overflow:hidden;
-}
-#debug-sessions{
-  width:300px;
-  flex-shrink:0;
-  background:var(--surface);
-  border-right:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-#debug-sessions-head{
-  padding:12px 14px;
-  border-bottom:1px solid var(--border);
-  font-size:12px;
-  font-weight:600;
-  color:var(--text-2);
-  text-transform:uppercase;
-  letter-spacing:.03em;
-}
-#debug-session-list{
-  flex:1;
-  overflow-y:auto;
-  padding:8px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-.session-card{
-  background:var(--surface-2);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:10px 12px;
-  cursor:pointer;
-  transition:background .13s,border-color .13s;
-}
-.session-card:hover{
-  background:var(--surface-3);
-  border-color:var(--border-mid);
-}
-.session-card.active{
-  border-color:var(--accent-line);
-  background:var(--accent-dim);
-}
-.session-id{
-  font-family:var(--mono);
-  font-size:12px;
-  color:var(--text);
-  word-break:break-all;
-  margin-bottom:6px;
-}
-.session-meta{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size:11px;
-  color:var(--text-3);
-  margin-bottom:8px;
-}
-.session-actions{
-  display:flex;
-  gap:6px;
-}
-.session-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  background:transparent;
-  border:1px solid var(--border);
-  color:var(--text-2);
-  padding:4px 8px;
-  border-radius:var(--radius);
-  font-size:11px;
-  cursor:pointer;
-  transition:all .13s;
-}
-.session-btn:hover{
-  background:var(--surface-3);
-  color:var(--text);
-  border-color:var(--border-mid);
-}
-.session-btn.danger:hover{
-  background:rgba(244,67,54,.12);
-  border-color:var(--danger);
-  color:var(--danger);
-}
-.session-btn .ico{width:12px;height:12px}
-#debug-empty-state{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  color:var(--text-3);
-  gap:10px;
-}
-#debug-empty-state .ico{width:36px;height:36px;opacity:.25}
-#debug-empty-state div{font-size:13px}
-#debug-loading{
-  flex:1;
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  color:var(--text-3);
-  font-size:13px;
-}
-#debug-loading.visible{display:flex}
-#debug-loading .spinner{
-  width:22px;
-  height:22px;
-  border:2px solid var(--border);
-  border-top-color:var(--accent);
-  border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-#debug-detail{
-  flex:1;
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-#debug-detail-head{
-  padding:12px 16px;
-  border-bottom:1px solid var(--border);
-  background:var(--surface);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-}
-#debug-detail-title{
-  font-size:13px;
-  font-weight:600;
-  color:var(--text);
-  word-break:break-all;
-}
-#debug-detail-count{font-size:11px;color:var(--text-3)}
-#debug-detail-actions{display:flex;gap:6px}
-#debug-filters{
-  flex-shrink:0;
-  padding:10px 16px;
-  border-bottom:1px solid var(--border);
-  background:var(--surface);
-  display:none;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-#debug-filters.visible{display:flex}
-#debug-search{
-  background:var(--surface-2);
-  border:1px solid var(--border-mid);
-  color:var(--text);
-  font-family:var(--font-ui);
-  font-size:12px;
-  padding:7px 12px;
-  border-radius:var(--r-sm);
-  width:220px;
-  outline:none;
-}
-#debug-search:focus{border-color:var(--accent-line)}
-#debug-search::placeholder{color:var(--text-4)}
-.kinds{display:flex;gap:6px;flex-wrap:wrap}
-.kind-chip{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  background:var(--surface-2);
-  border:1px solid var(--border);
-  color:var(--text-2);
-  font-size:11px;
-  font-weight:600;
-  padding:5px 10px;
-  border-radius:999px;
-  cursor:pointer;
-  transition:all .13s;
-}
-.kind-chip:hover{background:var(--surface-3);color:var(--text)}
-.kind-chip.on{border-color:var(--kind,var(--border-hi));color:var(--kind,var(--accent));background:var(--kind-soft,var(--surface-3))}
-.kind-chip .n{opacity:.65;font-weight:500}
-#debug-sheet-actions{margin-left:auto;display:flex;gap:6px}
-#debug-entries{
-  flex:1;
-  overflow-y:auto;
-  padding:16px 20px;
-}
-.tl-empty-note{
-  text-align:center;
-  color:var(--text-3);
-  font-size:13px;
-  padding:30px 10px;
-}
-#debug-timeline{
-  max-width:900px;
-  margin:0 auto;
-  position:relative;
-}
-.tl-item{
-  position:relative;
-  display:flex;
-  gap:14px;
-}
-.tl-rail{
-  position:relative;
-  width:20px;
-  flex-shrink:0;
-  display:flex;
-  justify-content:center;
-}
-.tl-rail::before{
-  content:'';
-  position:absolute;
-  top:0;
-  bottom:0;
-  width:2px;
-  left:9px;
-  background:linear-gradient(to bottom,var(--border-hi),var(--border-soft));
-}
-.tl-item:first-child .tl-rail::before{top:14px}
-.tl-item:last-child .tl-rail::before{bottom:auto;height:14px}
-.tl-dot{
-  position:relative;
-  z-index:1;
-  width:14px;
-  height:14px;
-  margin-top:14px;
-  border-radius:50%;
-  background:var(--kind,var(--type-general));
-  box-shadow:0 0 0 3px var(--bg),0 0 0 4px color-mix(in srgb,var(--kind) 45%,transparent);
-}
-.tl-card{
-  flex:1;
-  min-width:0;
-  margin-bottom:14px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--r-md);
-  overflow:hidden;
-  transition:border-color .15s;
-}
-.tl-card:hover{border-color:var(--border-hi)}
-.tl-item.open .tl-card{border-color:var(--border-hi);box-shadow:var(--sh-sm)}
-.tl-item.error.open .tl-card{border-color:color-mix(in srgb,var(--type-warning) 55%,transparent)}
-.tl-head{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:11px 14px;
-  cursor:pointer;
-  user-select:none;
-  background:transparent;
-  width:100%;
-  border:none;
-  text-align:left;
-  font-family:var(--font-ui);
-}
-.tl-head:hover{background:var(--surface-2)}
-.tl-kind{
-  flex-shrink:0;
-  font-size:10px;
-  font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:var(--kind,var(--type-general));
-  background:var(--kind-soft,var(--surface-2));
-  border:1px solid color-mix(in srgb,var(--kind,var(--type-general)) 38%,transparent);
-  padding:3px 8px;
-  border-radius:999px;
-  min-width:44px;
-  text-align:center;
-}
-.tl-title{
-  flex:1;
-  min-width:0;
-  margin:0;
-  font-size:13px;
-  font-weight:600;
-  color:var(--text);
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.tl-ts{
-  flex-shrink:0;
-  font-family:var(--mono);
-  font-size:11px;
-  color:var(--text-3);
-}
-.tl-seq{
-  flex-shrink:0;
-  font-family:var(--mono);
-  font-size:11px;
-  color:var(--accent);
-}
-.tl-chev{
-  flex-shrink:0;
-  font-size:10px;
-  color:var(--text-3);
-  transition:transform .18s;
-}
-.tl-item.open .tl-chev{transform:rotate(180deg)}
-.tl-body{
-  display:none;
-  padding:0 14px 14px;
-}
-.tl-item.open .tl-body{display:block}
-.tl-body pre{
-  margin:0;
-  padding:12px 14px;
-  max-height:340px;
-  overflow:auto;
-  white-space:pre-wrap;
-  word-break:break-word;
-  font-family:var(--mono);
-  font-size:11.5px;
-  line-height:1.55;
-  color:var(--text-2);
-  background:var(--bg);
-  border:1px solid var(--border-soft);
-  border-radius:var(--r-sm);
-}
-.tl-item.error .tl-body{border-left:3px solid var(--type-warning)}
-#debug-toast{
-  position:fixed;
-  bottom:18px;
-  left:50%;
-  transform:translate(-50%,10px);
-  background:var(--surface-4);
-  color:var(--text);
-  border:1px solid var(--border-hi);
-  padding:8px 16px;
-  border-radius:var(--r-xl);
-  font-size:12px;
-  opacity:0;
-  pointer-events:none;
-  transition:all .25s;
-  z-index:100;
-}
-#debug-toast.visible{opacity:1;transform:translate(-50%,0)}
-</style>
-</head>
-<body>
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:var(--fs-md);line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input{font-family:inherit}
+button{color:inherit}
+.ico{width:16px;height:16px;flex-shrink:0}
+.mono{font-family:var(--font-mono)}
 
+/* ── Cabeçalho: título, contadores e hora de atualização ── */
+#debug-header{flex-shrink:0;height:var(--head-h);padding:0 22px;display:flex;align-items:center;gap:14px}
+#debug-title{display:flex;align-items:center;gap:10px;font-size:var(--fs-xl);font-weight:650;font-stretch:var(--stretch-display);letter-spacing:-.015em}
+#debug-title .ico{width:22px;height:22px;color:var(--text-2)}
+#debug-stats{display:flex;align-items:center;gap:6px}
+.stat{height:24px;padding:0 9px;gap:6px}
+.stat strong{font-weight:650;color:var(--text);font-variant-numeric:tabular-nums}
+#debug-update{margin-left:auto;font-size:var(--fs-xs);color:var(--text-3);font-variant-numeric:tabular-nums}
+
+/* ── Ilhas: sessões à esquerda, detalhe à direita ── */
+#debug-main{flex:1;min-height:0;display:flex;gap:var(--gap);padding:0 var(--gap) var(--gap)}
+#debug-sessions,#debug-detail{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-island)}
+#debug-sessions{width:var(--sidebar-w);flex-shrink:0}
+#debug-detail{flex:1}
+.pane-head{flex-shrink:0;height:52px;padding:0 14px 0 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.pane-title{font-size:var(--fs-md);font-weight:650;color:var(--text)}
+
+/* ── Lista de sessões ── */
+#debug-session-list{flex:1;min-height:0;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:2px}
+.session-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 8px;padding:10px 10px 8px 14px;border-radius:var(--r-md);cursor:pointer;transition:background var(--dur)}
+.session-card:hover{background:var(--surface-3)}
+.session-card.active{background:var(--surface-3);box-shadow:inset 3px 0 0 var(--accent)}
+.session-id{grid-column:1 / -1;font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:560;color:var(--text);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45}
+.session-meta{display:flex;align-items:center;gap:8px;min-width:0;font-size:var(--fs-xs);color:var(--text-3)}
+.session-meta .chip{background:var(--surface-4);color:var(--text-2);font-variant-numeric:tabular-nums}
+.session-ts{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.session-actions{display:flex;align-items:center;gap:2px}
+.session-btn{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 8px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text-3);font-size:var(--fs-xs);font-weight:600;cursor:pointer;transition:background var(--dur),color var(--dur)}
+.session-btn:hover{background:var(--surface-4);color:var(--text)}
+.session-btn.danger:hover{background:var(--danger-dim);color:var(--danger)}
+.session-btn .ico{width:14px;height:14px}
+.session-btn.busy{opacity:.5;pointer-events:none}
+.session-card .session-btn{width:28px;padding:0;justify-content:center}
+.session-card .session-btn .lbl{display:none}
+#debug-detail-actions .session-btn{height:30px;padding:0 10px;color:var(--text-2)}
+#debug-detail-actions .session-btn .ico{width:15px;height:15px}
+
+/* ── Cabeçalho do detalhe ── */
+#debug-detail-title{min-width:0;font-size:var(--fs-md);font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#debug-detail-title.is-id{font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:560}
+#debug-detail-count{flex-shrink:0}
+#debug-detail-count:empty{display:none}
+#debug-detail-actions{margin-left:auto;display:flex;align-items:center;gap:2px}
+
+/* ── Filtros ── */
+#debug-filters{flex-shrink:0;padding:10px 14px;border-bottom:1px solid var(--border);display:none;align-items:center;gap:10px;flex-wrap:wrap}
+#debug-filters.visible{display:flex}
+.search{position:relative;display:flex;align-items:center}
+.search .ico{position:absolute;left:11px;top:50%;margin-top:-7.5px;width:15px;height:15px;color:var(--text-3);pointer-events:none}
+#debug-search{width:220px;height:32px;padding:0 12px 0 33px;font-size:var(--fs-sm);background:var(--surface-2);border-radius:var(--r-sm)}
+.kinds{display:flex;gap:6px;flex-wrap:wrap}
+.kind-chip{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border:1px solid var(--border-mid);border-radius:var(--r-sm);background:transparent;color:var(--text-2);font-size:var(--fs-xs);font-weight:600;cursor:pointer;transition:background var(--dur),color var(--dur),border-color var(--dur)}
+.kind-chip:hover{background:var(--surface-3);color:var(--text)}
+.kind-chip.on{background:var(--surface-4);border-color:var(--border-hi);color:var(--text)}
+.kind-chip .n{color:var(--text-3);font-weight:560;font-variant-numeric:tabular-nums}
+.kind-dot{width:7px;height:7px;border-radius:50%;background:var(--text-4);flex-shrink:0}
+.kind-dot.danger{background:var(--danger)}
+.kind-dot.warn{background:var(--warn)}
+.kind-dot.ok{background:var(--ok)}
+.kind-dot.info{background:var(--info)}
+#debug-sheet-actions{margin-left:auto;display:flex;gap:2px}
+#debug-sheet-actions .session-btn{height:28px;color:var(--text-2)}
+
+/* ── Linha do tempo ── */
+#debug-entries{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding:8px}
+#debug-entries-content{display:block}
+.tl-empty-note{padding:36px 12px;text-align:center;color:var(--text-3);font-size:var(--fs-md)}
+#debug-timeline{--c-time:96px;--c-kind:92px;--c-gap:12px;display:flex;flex-direction:column;gap:2px}
+.tl-item{border-radius:var(--r-md);transition:background var(--dur)}
+.tl-item:hover,.tl-item.open{background:var(--surface-3)}
+.tl-head{width:100%;min-height:40px;padding:6px 12px;display:grid;grid-template-columns:var(--c-time) var(--c-kind) minmax(0,1fr) auto 16px;align-items:center;column-gap:var(--c-gap);border:0;background:transparent;text-align:left;cursor:pointer;border-radius:var(--r-md)}
+.tl-ts{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--text-3);font-variant-numeric:tabular-nums}
+.tl-kind{justify-self:start;display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:var(--r-xs);background:var(--surface-4);color:var(--text-2);font-size:var(--fs-xs);font-weight:600;max-width:100%}
+.tl-kind::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--text-4);flex-shrink:0}
+.tl-kind span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-kind.danger{background:var(--danger-dim);color:var(--danger)}
+.tl-kind.danger::before{background:var(--danger)}
+.tl-kind.warn{background:var(--warn-dim);color:var(--warn)}
+.tl-kind.warn::before{background:var(--warn)}
+.tl-kind.ok{background:var(--ok-dim);color:var(--ok)}
+.tl-kind.ok::before{background:var(--ok)}
+.tl-kind.info{background:var(--info-dim);color:var(--info)}
+.tl-kind.info::before{background:var(--info)}
+.tl-title{min-width:0;font-size:13px;font-weight:560;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-seq{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--text-3);font-variant-numeric:tabular-nums}
+.tl-chev{display:grid;place-items:center;color:var(--text-3);transition:transform .18s var(--ease)}
+.tl-chev .ico{width:15px;height:15px}
+.tl-item.open .tl-chev{transform:rotate(180deg)}
+.tl-body{display:none;padding:0 12px 12px calc(12px + var(--c-time) + var(--c-kind) + var(--c-gap) * 2)}
+.tl-item.open .tl-body{display:block}
+.tl-body pre{margin:0;padding:12px 14px;max-height:340px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-family:var(--font-mono);font-size:var(--fs-xs);line-height:1.6;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm)}
+
+/* ── Carregando ── */
+#debug-loading{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-3);font-size:var(--fs-md)}
+#debug-loading.visible{display:flex}
+#debug-loading .spinner{width:22px;height:22px;border:2px solid var(--border-hi);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Estados vazios (padrão .empty-state de components.css) ── */
+#debug-empty-state{padding:24px}
+#debug-session-list .empty-state{padding:32px 16px}
+#debug-session-list .empty-mark{width:52px;height:52px;border-radius:16px}
+#debug-session-list .empty-mark .ico{width:24px;height:24px}
+#debug-session-list .empty-title{font-size:var(--fs-lg)}
+#debug-session-list .empty-hint{font-size:var(--fs-sm)}
+#debug-empty-state .empty-mark,#debug-session-list .empty-mark{background:var(--surface-3)}
+
+/* ── Aviso (toast) ── */
+#debug-toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,8px);padding:9px 16px;border:1px solid var(--border-hi);border-radius:var(--r-lg);background:var(--surface-4);color:var(--text);font-size:var(--fs-sm);font-weight:560;box-shadow:var(--sh-md);opacity:0;pointer-events:none;transition:opacity .22s var(--ease),transform .22s var(--ease);z-index:100}
+#debug-toast.visible{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1180px){
+  #debug-sheet-actions{order:2}
+  .kinds{order:3;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .kind-chip{flex-shrink:0}
+}
+@media (max-width:760px){
+  #debug-sessions{width:var(--sidebar-w-tablet)}
+  #debug-timeline{--c-time:84px;--c-kind:84px;--c-gap:10px}
+  .tl-seq{display:none}
+  .tl-head{grid-template-columns:var(--c-time) var(--c-kind) minmax(0,1fr) 16px}
+  #debug-search{width:170px}
+}
+@media (max-width:560px){
+  #debug-main{flex-direction:column}
+  #debug-sessions{width:auto;height:34%;flex-shrink:0}
+  #debug-timeline{--c-time:0px;--c-kind:78px}
+  .tl-ts{display:none}
+  .tl-head{grid-template-columns:var(--c-kind) minmax(0,1fr) 16px}
+  .tl-body{padding-left:12px}
+  #debug-header{padding:0 14px}
+  #debug-update{display:none}
+}
+`;
+
+const PAGE_BODY = `
 <header id="debug-header">
-  <div id="debug-title"><span data-icon="bug"></span> Debug Audit</div>
+  <h1 id="debug-title"><span data-icon="bug"></span>Debug</h1>
   <div id="debug-stats">
-    <span class="stat">Sessions <strong id="stat-sessions">0</strong></span>
-    <span class="stat">Entries <strong id="stat-entries">0</strong></span>
+    <span class="chip stat">Sessões <strong id="stat-sessions">0</strong></span>
+    <span class="chip stat">Entradas <strong id="stat-entries">0</strong></span>
   </div>
-  <span id="debug-update">Updated —</span>
+  <span id="debug-update">Atualizado às --:--:--</span>
 </header>
 
 <main id="debug-main">
   <aside id="debug-sessions">
-    <div id="debug-sessions-head">Sessions</div>
+    <div class="pane-head"><span class="pane-title" id="debug-sessions-head">Sessões</span></div>
     <div id="debug-session-list"></div>
   </aside>
   <section id="debug-detail">
-    <div id="debug-detail-head">
-      <div>
-        <div id="debug-detail-title">Select a session</div>
-        <div id="debug-detail-count"></div>
-      </div>
+    <div class="pane-head" id="debug-detail-head">
+      <span id="debug-detail-title">Selecione uma sessão</span>
+      <span class="chip" id="debug-detail-count"></span>
       <div id="debug-detail-actions"></div>
     </div>
     <div id="debug-filters">
-      <input id="debug-search" type="text"
-        placeholder="Filtrar por texto…" autocomplete="off" />
+      <label class="search">
+        <span data-icon="search"></span>
+        <input id="debug-search" class="field" type="text"
+          placeholder="Filtrar por texto" aria-label="Filtrar entradas por texto" autocomplete="off" />
+      </label>
       <div class="kinds" id="debug-kinds"></div>
       <div id="debug-sheet-actions">
-        <button class="session-btn" id="tl-expand-all" title="Abrir todos os blocos">Expandir</button>
-        <button class="session-btn" id="tl-collapse-all" title="Fechar todos os blocos">Colapsar</button>
+        <button class="session-btn" id="tl-expand-all" title="Abrir todas as entradas">Expandir</button>
+        <button class="session-btn" id="tl-collapse-all" title="Fechar todas as entradas">Recolher</button>
       </div>
     </div>
     <div id="debug-entries">
-      <div id="debug-empty-state">
-        <span data-icon="bug"></span>
-        <div>No debug session selected</div>
+      <div id="debug-empty-state" class="empty-state">
+        <div class="empty-mark" data-icon="bug"></div>
+        <div class="empty-title">Nenhuma sessão aberta</div>
+        <div class="empty-hint">Escolha uma sessão na lista para acompanhar as entradas em tempo real.</div>
       </div>
-      <div id="debug-loading"><div class="spinner"></div><div>Loading entries...</div></div>
+      <div id="debug-loading"><div class="spinner"></div><div>Carregando entradas</div></div>
       <div id="debug-entries-content"></div>
     </div>
   </section>
 </main>
 
 <div id="debug-toast"></div>
+`;
 
-<script>
+const PAGE_SCRIPT = `
 (function(){
+  // Mesmos traços de ui/scripts/icons.js (grade 24, traço 1.75).
   var ICONS = {
-    bug:'<path d="m8 6 4-4 4 4"/><path d="M12 2v10"/><path d="m8 18 4 4 4-4"/><path d="M12 12v10"/><path d="m19 8 2 1-2 1"/><path d="m5 8-2 1 2 1"/><path d="M20 10H4"/><path d="M20 14H4"/>',
+    bug:'<path d="M9 8.5V8a3 3 0 0 1 6 0v.5"/><path d="M7 12a5 5 0 0 1 10 0v2.5a5 5 0 0 1-10 0z"/><path d="M12 11v9M7 13.5H3.5M17 13.5h3.5M7.5 18 4.5 19.5M16.5 18l3 1.5M8 5 6.5 3.5M16 5l1.5-1.5"/>',
     copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
     trash:'<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
-    x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
+    search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    'chevron-down':'<path d="m6 9 6 6 6-6"/>'
   };
-  var icon = function(name){ return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || '') + '</svg>'; };
+  var icon = function(name){ return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || '') + '</svg>'; };
   var el = function(id){ return document.getElementById(id); };
   var toastEl = el('debug-toast');
   var toastTimer = null;
@@ -544,15 +219,14 @@ body{
   var sessions = [];
   var refreshTimer = null;
 
+  // ── Tema: o app guarda localStorage['docmap-theme'] ('dark' | 'light').
+  // Dark = sem atributo (como no index.html); reage ao evento 'storage'.
   function setTheme(){
     var root = document.documentElement;
-    try {
-      var parentTheme = window.parent && window.parent.document && window.parent.document.documentElement && window.parent.document.documentElement.dataset.theme;
-      if (parentTheme) { root.dataset.theme = parentTheme; return; }
-    } catch(e){ /* cross-origin parent */ }
     var stored = null;
     try { stored = localStorage.getItem('docmap-theme'); } catch(e){}
-    if (stored) root.dataset.theme = stored;
+    if (stored === 'light') root.dataset.theme = 'light';
+    else delete root.dataset.theme;
   }
 
   function showToast(msg){
@@ -570,27 +244,41 @@ body{
     return hh + ':' + mm + ':' + ss;
   }
 
+  function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
+
   function updateHeader(){
     var total = sessions.reduce(function(s, x){ return s + x.count; }, 0);
     el('stat-sessions').textContent = sessions.length;
     el('stat-entries').textContent = total;
-    el('debug-update').textContent = 'Updated ' + formatTime(new Date());
+    el('debug-update').textContent = 'Atualizado às ' + formatTime(new Date());
+  }
+
+  // Estado vazio no padrão .empty-state: título + dica.
+  function setEmpty(box, title, hint){
+    if (!box) return;
+    var t = box.querySelector('.empty-title');
+    var h = box.querySelector('.empty-hint');
+    if (t) t.textContent = title;
+    if (h) h.textContent = hint || '';
   }
 
   function renderSessions(){
     var list = el('debug-session-list');
     if (!sessions.length) {
-      list.innerHTML = '<div id="debug-empty-state" style="flex:1;justify-content:flex-start;padding-top:40px"><span data-icon="bug"></span><div>No sessions yet</div></div>';
+      list.innerHTML = '<div class="empty-state"><div class="empty-mark" data-icon="bug"></div>' +
+        '<div class="empty-title">Nenhuma sessão ainda</div>' +
+        '<div class="empty-hint">Quando um agente enviar logs de depuração, a sessão aparece aqui sozinha.</div></div>';
       hydrateIcons();
       return;
     }
     list.innerHTML = sessions.map(function(s){
-      return '<div class="session-card' + (s.sessionId === currentSessionId ? ' active' : '') + '" data-session="' + encodeURIComponent(s.sessionId) + '">' +
+      var sid = encodeURIComponent(s.sessionId);
+      return '<div class="session-card' + (s.sessionId === currentSessionId ? ' active' : '') + '" data-session="' + sid + '" role="button" tabindex="0" title="' + escHtml(s.sessionId) + '">' +
         '<div class="session-id">' + escHtml(s.sessionId) + '</div>' +
-        '<div class="session-meta"><span>' + s.count + ' entries</span><span>' + (s.lastTs || '—') + '</span></div>' +
+        '<div class="session-meta"><span class="chip">' + plural(s.count, 'entrada', 'entradas') + '</span><span class="session-ts">' + (s.lastTs || '') + '</span></div>' +
         '<div class="session-actions">' +
-          '<button class="session-btn copy-session" data-session="' + encodeURIComponent(s.sessionId) + '" title="Copy GET command">' + icon('copy') + ' GET</button>' +
-          '<button class="session-btn danger delete-session" data-session="' + encodeURIComponent(s.sessionId) + '" title="Delete session">' + icon('trash') + '</button>' +
+          '<button class="session-btn copy-session" data-session="' + sid + '" title="Copiar comando GET">' + icon('copy') + '<span class="lbl">GET</span></button>' +
+          '<button class="session-btn danger delete-session" data-session="' + sid + '" title="Excluir sessão" aria-label="Excluir sessão">' + icon('trash') + '</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -620,6 +308,14 @@ body{
       if (card) {
         selectSession(decodeURIComponent(card.dataset.session || ''));
       }
+    });
+    // Teclado: Enter/Espaço no cartão focado abre a sessão.
+    list.addEventListener('keydown', function(e){
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var target = e.target;
+      if (!(target instanceof Element) || !target.classList.contains('session-card')) return;
+      e.preventDefault();
+      selectSession(decodeURIComponent(target.dataset.session || ''));
     });
   }
 
@@ -669,13 +365,12 @@ body{
     if (last) last.scrollIntoView({ block: 'end', behavior: 'smooth' });
   }
 
-  var KIND_COLOR = {
-    error:'var(--type-warning)', fail:'var(--type-warning)',
-    warning:'var(--cat-entry)', warn:'var(--cat-entry)',
-    decision:'var(--type-decision)', todo:'var(--type-todo)',
-    done:'var(--type-todo)', ok:'var(--type-todo)',
-    question:'var(--type-question)', reference:'var(--type-reference)',
-    note:'var(--type-note)', log:'var(--type-general)', debug:'var(--type-general)'
+  // Tipo da entrada -> cor semântica do chip (danger / warn / ok / info / neutro).
+  var KIND_CLASS = {
+    error:'danger', fail:'danger',
+    warning:'warn', warn:'warn',
+    ok:'ok', done:'ok',
+    decision:'info', todo:'info', question:'info', reference:'info'
   };
 
   function kindOf(p){
@@ -700,8 +395,8 @@ body{
     return fallback;
   }
 
-  function kindVarOf(kind){
-    return KIND_COLOR[kind] || 'var(--type-general)';
+  function kindClassOf(kind){
+    return Object.prototype.hasOwnProperty.call(KIND_CLASS, kind) ? KIND_CLASS[kind] : '';
   }
 
   function isErrKind(kind){ return kind === 'error' || kind === 'warning'; }
@@ -727,23 +422,22 @@ body{
     if (!box) return;
     var chips = ['<button class="kind-chip' + (currentKind ? '' : ' on') + '" data-kind="">Todos <span class="n">' + entries.length + '</span></button>']
       .concat(kinds.map(function(k){
-        return '<button class="kind-chip' + (currentKind === k ? ' on' : '') + '" data-kind="' + escHtml(k) + '" style="--kind:' + kindVarOf(k) + ';--kind-soft:var(--surface-2)">' + escHtml(k) + ' <span class="n">' + all[k] + '</span></button>';
+        return '<button class="kind-chip' + (currentKind === k ? ' on' : '') + '" data-kind="' + escHtml(k) + '"><span class="kind-dot ' + kindClassOf(k) + '"></span>' + escHtml(k) + ' <span class="n">' + all[k] + '</span></button>';
       }));
     box.innerHTML = chips.join('');
   }
 
   function toggleHtml(e, open, title, kind){
     return '<article class="tl-item' + (open ? ' open' : '') + (isErrKind(kind) ? ' ' + kind : '') +
-      '" data-seq="' + e.seq + '" data-kind="' + escHtml(kind) + '" style="--kind:' + kindVarOf(kind) + '">' +
-      '<div class="tl-rail"><span class="tl-dot"></span></div>' +
-      '<div class="tl-card">' +
-        '<header class="tl-head"><span class="tl-kind">' + escHtml(kind) + '</span>' +
-        '<h4 class="tl-title" title="' + escHtml(title) + '">' + escHtml(title) + '</h4>' +
+      '" data-seq="' + e.seq + '" data-kind="' + escHtml(kind) + '">' +
+      '<button type="button" class="tl-head" aria-expanded="' + (open ? 'true' : 'false') + '">' +
         '<span class="tl-ts">' + escHtml(e.ts) + '</span>' +
+        '<span class="tl-kind ' + kindClassOf(kind) + '"><span>' + escHtml(kind) + '</span></span>' +
+        '<span class="tl-title" title="' + escHtml(title) + '">' + escHtml(title) + '</span>' +
         '<span class="tl-seq">#' + e.seq + '</span>' +
-        '<span class="tl-chev">▼</span></header>' +
-        '<div class="tl-body"><pre>' + escHtml(JSON.stringify(e.payload, null, 2)) + '</pre></div>' +
-      '</div></article>';
+        '<span class="tl-chev">' + icon('chevron-down') + '</span></button>' +
+      '<div class="tl-body"><pre>' + escHtml(JSON.stringify(e.payload, null, 2)) + '</pre></div>' +
+    '</article>';
   }
 
   function renderSetupFor(entries){
@@ -761,11 +455,12 @@ body{
     var empty = el('debug-empty-state');
     var loading = el('debug-loading');
 
-    title.textContent = currentSessionId || 'Select a session';
-    count.textContent = entries.length ? entries.length + ' entradas' : '';
+    title.textContent = currentSessionId || 'Selecione uma sessão';
+    title.classList.toggle('is-id', !!currentSessionId);
+    count.textContent = entries.length ? plural(entries.length, 'entrada', 'entradas') : '';
     actions.innerHTML = currentSessionId ?
-      '<button class="session-btn" id="detail-copy">' + icon('copy') + ' GET</button>' +
-      '<button class="session-btn danger" id="detail-delete">' + icon('trash') + '</button>' : '';
+      '<button class="session-btn" id="detail-copy" title="Copiar comando GET">' + icon('copy') + '<span class="lbl">GET</span></button>' +
+      '<button class="session-btn danger" id="detail-delete" title="Excluir sessão" aria-label="Excluir sessão">' + icon('trash') + '</button>' : '';
     if (filters) filters.classList.toggle('visible', entries.length > 0);
 
     if (loading) loading.classList.remove('visible');
@@ -773,7 +468,10 @@ body{
     if (!entries.length) {
       if (wrap) wrap.innerHTML = '';
       if (wrap) wrap.style.display = 'none';
-      if (empty) { empty.style.display = ''; empty.querySelector('div').textContent = 'Nenhuma entrada nesta sessão'; }
+      if (empty) {
+        empty.style.display = '';
+        setEmpty(empty, 'Nenhuma entrada nesta sessão', 'A sessão existe, mas ainda não recebeu logs. Novas entradas aparecem aqui sozinhas.');
+      }
       return;
     }
 
@@ -801,20 +499,28 @@ body{
     if (setup.lastSeq) maybeAutoScroll(setup.lastSeq);
   }
 
+  function setItemOpen(item, open){
+    item.classList.toggle('open', open);
+    var head = item.querySelector('.tl-head');
+    if (head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
   function wireTimelineEvents(){
     var wrap = el('debug-entries-content');
     if (!wrap || wrap.dataset.wired) return;
     wrap.dataset.wired = '1';
+    // Só o cabeçalho da linha alterna: clicar/selecionar o JSON não recolhe.
     wrap.addEventListener('click', function(ev){
       var target = ev.target;
       if (!(target instanceof Element)) return;
+      if (!target.closest('.tl-head')) return;
       var item = target.closest('.tl-item');
       if (!item) return;
       var seq = Number(item.dataset.seq || 0);
       var open = item.classList.contains('open');
       ev.preventDefault();
-      if (open) { collapsedSet.add(seq); expandedSet.delete(seq); item.classList.remove('open'); }
-      else { expandedSet.add(seq); collapsedSet.delete(seq); item.classList.add('open'); }
+      if (open) { collapsedSet.add(seq); expandedSet.delete(seq); setItemOpen(item, false); }
+      else { expandedSet.add(seq); collapsedSet.delete(seq); setItemOpen(item, true); }
     });
   }
 
@@ -848,13 +554,13 @@ body{
     if (expandBtn && !expandBtn.dataset.wired) {
       expandBtn.dataset.wired = '1';
       expandBtn.addEventListener('click', function(){
-        document.querySelectorAll('.tl-item').forEach(function(item){ item.classList.add('open'); });
+        document.querySelectorAll('.tl-item').forEach(function(item){ setItemOpen(item, true); });
       });
     }
     if (collapseBtn && !collapseBtn.dataset.wired) {
       collapseBtn.dataset.wired = '1';
       collapseBtn.addEventListener('click', function(){
-        document.querySelectorAll('.tl-item').forEach(function(item){ item.classList.remove('open'); });
+        document.querySelectorAll('.tl-item').forEach(function(item){ setItemOpen(item, false); });
       });
     }
   }
@@ -889,15 +595,15 @@ body{
     fetch('/debug/api/' + encodeURIComponent(sessionId))
       .then(function(r){ return r.json(); })
       .then(function(entries){ renderEntries(entries); wireFilters({ reload: function(){ loadEntries(sessionId); } }); })
-      .catch(function(err){ console.error(err); setLoading(false); showToast('Failed to load entries'); });
+      .catch(function(err){ console.error(err); setLoading(false); showToast('Falha ao carregar as entradas'); });
   }
 
   function copySession(sessionId){
     if (!sessionId) return;
     var cmd = 'curl http://127.0.0.1:3334/debug/' + sessionId;
     navigator.clipboard.writeText(cmd)
-      .then(function(){ showToast('GET command copied'); })
-      .catch(function(){ showToast('Copy failed'); });
+      .then(function(){ showToast('Comando GET copiado'); })
+      .catch(function(){ showToast('Falha ao copiar'); });
   }
 
   function clearDetail(){
@@ -906,30 +612,35 @@ body{
     var title = el('debug-detail-title');
     var count = el('debug-detail-count');
     var actions = el('debug-detail-actions');
+    var filters = el('debug-filters');
     var wrap = el('debug-entries-content');
     var empty = el('debug-empty-state');
     var loading = el('debug-loading');
-    if (title) title.textContent = 'Select a session';
+    if (title) { title.textContent = 'Selecione uma sessão'; title.classList.remove('is-id'); }
     if (count) count.textContent = '';
     if (actions) actions.innerHTML = '';
+    if (filters) filters.classList.remove('visible');
     if (wrap) { wrap.innerHTML = ''; wrap.style.display = 'none'; }
     if (loading) loading.classList.remove('visible');
-    if (empty) { empty.style.display = ''; empty.querySelector('div').textContent = 'No debug session selected'; }
+    if (empty) {
+      empty.style.display = '';
+      setEmpty(empty, 'Nenhuma sessão aberta', 'Escolha uma sessão na lista para acompanhar as entradas em tempo real.');
+    }
   }
 
   function deleteSession(sessionId){
     if (!sessionId) return;
     var list = el('debug-session-list');
     var btn = list ? list.querySelector('.delete-session[data-session="' + encodeURIComponent(sessionId) + '"]') : null;
-    if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+    if (btn) { btn.disabled = true; btn.classList.add('busy'); }
     fetch('/debug/api/' + encodeURIComponent(sessionId), { method: 'DELETE' })
       .then(function(r){ return r.json(); })
       .then(function(){
-        showToast('Session deleted');
+        showToast('Sessão excluída');
         if (currentSessionId === sessionId) clearDetail();
         refresh();
       })
-      .catch(function(){ showToast('Delete failed'); if (btn) { btn.disabled = false; btn.style.opacity = ''; } });
+      .catch(function(){ showToast('Falha ao excluir'); if (btn) { btn.disabled = false; btn.classList.remove('busy'); } });
   }
 
   function loadSessions(){
@@ -958,19 +669,44 @@ body{
 
   function start(){
     setTheme();
+    hydrateIcons();
     attachSessionListEvents();
     attachDetailEvents();
     wireTimelineEvents();
     wireFilters({ reload: function(){ if (currentSessionId) loadEntries(currentSessionId); } });
     refresh();
     refreshTimer = setInterval(refresh, 2000);
-    // re-check theme periodically in case parent toggles
-    setInterval(setTheme, 2000);
   }
+
+  // Troca de tema no app (mesma origem): o evento 'storage' chega aqui.
+  window.addEventListener('storage', function(e){
+    if (e.key === null || e.key === 'docmap-theme') setTheme();
+  });
 
   document.addEventListener('DOMContentLoaded', start);
 })();
-<\/script>
+`;
+
+const PAGE = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>docmap · debug</title>
+<script>
+// Tema antes da primeira pintura (sem flash). Dark = sem atributo.
+try{if(localStorage.getItem('docmap-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}
+</script>
+<style>
+${FONT_CSS}
+${TOKENS_CSS}
+${COMPONENTS_CSS}
+${PAGE_CSS}
+</style>
+</head>
+<body>
+${PAGE_BODY}
+<script>${PAGE_SCRIPT}<\/script>
 </body>
 </html>`;
 

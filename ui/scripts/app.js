@@ -2,7 +2,7 @@
 
 let currentMode = 'graph';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', codetour: 'Tour', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -13,7 +13,6 @@ const PANEL_BY_MODE = {
   mocks:     'mocks-col',
   favorites: 'fav-sidebar',
   podcasts:  'pod-col',
-  codetour:  'ct-sidebar',
   trilhas: 'trilha-sidebar',
   agentchats: 'ac-sidebar',
 };
@@ -25,7 +24,10 @@ const toggleSidebar = () => {
   if (!panelId) return;
   const panel = $(panelId);
   if (!panel) return;
-  panel.classList.toggle('col-collapsed');
+  const collapsed = panel.classList.toggle('col-collapsed');
+  const btn = $('top-panel');
+  btn?.classList.toggle('active', collapsed);
+  btn?.setAttribute('data-tip', collapsed ? 'Mostrar painel' : 'Recolher painel');
 };
 
 const setMode = (mode) => {
@@ -34,8 +36,11 @@ const setMode = (mode) => {
   document.querySelectorAll('.mode').forEach((m) => m.classList.remove('active'));
   $('mode-' + mode)?.classList.add('active');
 
-  document.querySelectorAll('.rail-btn').forEach((b) => b.classList.remove('active'));
-  $('rail-' + mode)?.classList.add('active');
+  document.querySelectorAll('.nav-btn, .top-btn').forEach((b) => b.classList.remove('active'));
+  $('nav-' + mode)?.classList.add('active');
+  // o botão de recolher painel só faz sentido em modos que têm coluna lateral
+  const panelBtn = $('top-panel');
+  if (panelBtn) panelBtn.toggleAttribute('disabled', !PANEL_BY_MODE[mode]);
 
   if (mode === 'macros')         loadMacrosList();
   else if (mode === 'notes')     loadNotesList();
@@ -43,7 +48,6 @@ const setMode = (mode) => {
   else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
   else if (mode === 'trilhas') loadTrilhas();
   else if (mode === 'agentchats') loadAgentChatsList();
-  else if (mode === 'codetour') loadCodetour();
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
@@ -52,7 +56,10 @@ const setMode = (mode) => {
   else if (mode === 'graph')     loadGraph();
 };
 
-document.addEventListener('DOMContentLoaded', () => loadGraph());
+document.addEventListener('DOMContentLoaded', () => {
+  // Em embed o grafo não carrega: só o artefato pedido.
+  if (!new URLSearchParams(window.location.search).has('embed')) loadGraph();
+});
 
 // ── Settings modal ──
 // depends on: theme.js (getStoredTheme, toggleTheme), system.js (copyHeadlessBootstrap, downloadBackup, triggerRestore)

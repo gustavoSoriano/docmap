@@ -39,7 +39,7 @@ const catColor = (name) => {
   const s = (name || 'general').toLowerCase();
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
-  return `hsl(${h} 62% 62%)`;
+  return `hsl(${h} 58% var(--cat-l, 64%))`;
 };
 
 // ── Toast ──

@@ -58,7 +58,7 @@ const renderSkillsList = (skills) => {
       ? 'Nenhuma skill nesta collection ainda.'
       : 'Nenhuma skill sem collection ainda.';
     list.innerHTML =
-      `<div class="skills-empty">${emptyLabel}<br>Clique em <strong>+</strong> para criar.</div>`;
+      `<div class="skills-empty">${emptyLabel}<br>Use o botão de novo no topo para criar uma.</div>`;
     return;
   }
   list.innerHTML = skills.map((s) =>
@@ -68,7 +68,7 @@ const renderSkillsList = (skills) => {
         <span class="skill-item-title">${escHtml(s.title)}</span>
       </div>
       <div class="skill-item-desc">${escHtml(s.description || '')}</div>
-      ${(s.tags||[]).length ? `<div class="skill-item-tags">${(s.tags||[]).map(t=>`<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
+      ${(s.tags||[]).length ? `<div class="skill-item-tags">${(s.tags||[]).map(t=>`<span class="chip">${escHtml(t)}</span>`).join('')}</div>` : ''}
     </div>`
   ).join('');
 };
@@ -124,7 +124,7 @@ const newSkillCollection = () => {
   row.id = 'new-skill-col-row';
   row.className = 'skills-col-new-row';
   row.innerHTML = `<input id="new-skill-col-input" class="skills-col-new-input"
-    placeholder="Nome da collection…" autocomplete="off" spellcheck="false" />
+    placeholder="Nome da collection" autocomplete="off" spellcheck="false" />
     <button class="skills-col-new-ok" onclick="confirmNewSkillCollection()" title="Criar">
       <span data-icon="plus"></span>
     </button>`;
@@ -331,7 +331,7 @@ const fillSkillEditor = (s) => {
 const populateSkillCollectionSelect = (selectedId) => {
   const select = $('skill-collection-select');
   if (!select) return;
-  select.innerHTML = `<option value="">— sem collection —</option>` +
+  select.innerHTML = `<option value="">Sem collection</option>` +
     skillCollections.map((collection) =>
       `<option value="${collection.id}"${collection.id === selectedId ? ' selected' : ''}>${escHtml(collection.name)}</option>`
     ).join('');
@@ -419,16 +419,15 @@ const setSkillPreview = (on) => {
   skillPreview = on;
   const ta  = $('skill-content-textarea');
   const pv  = $('skill-preview');
-  const btn = $('btn-skill-preview');
+  $('btn-skill-preview').classList.toggle('on', on);
+  $('btn-skill-edit').classList.toggle('on', !on);
   if (on) {
     pv.innerHTML = renderMarkdown(ta.value);
     ta.style.display = 'none';
     pv.classList.add('visible');
-    btn.innerHTML = `${ICON('pencil')} Editar`;
   } else {
     pv.classList.remove('visible');
     ta.style.display = '';
-    btn.innerHTML = `${ICON('eye')} Preview`;
   }
 };
 const toggleSkillPreview = () => setSkillPreview(!skillPreview);

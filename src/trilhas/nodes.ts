@@ -36,6 +36,10 @@ export const isNodeStatus = (value: unknown): value is TrilhaNodeStatus =>
 
 const defaultAssignee = (): Assignee => ({ kind: 'ai', label: 'IA' });
 
+// Grupo é rótulo livre e curto; vazio = sem grupo.
+export const normalizeGroup = (value: unknown): string =>
+  typeof value === 'string' ? value.trim().slice(0, 60) : '';
+
 // Sanitiza critérios vindos de fora (API/UI/agentes): aceita string curta
 // ou { id?, text, done? }; remove vazios, limita tamanho e garante shape
 // { id, text, done }. Também cura registros antigos (string[]) na leitura.
@@ -95,6 +99,9 @@ export const createNode = async (
       : {}),
     status: input.status ?? 'todo',
     assignee: input.assignee ?? defaultAssignee(),
+    ...(normalizeGroup(input.group)
+      ? { group: normalizeGroup(input.group) }
+      : {}),
     position: input.position ??
       { x: 80 + (index % 4) * 240, y: 80 + Math.floor(index / 4) * 160 },
     createdAt: now,
@@ -148,6 +155,9 @@ export const updateNode = async (
     ...(input.doneCriteria !== undefined ? { doneCriteria } : {}),
     ...(input.status !== undefined ? { status: input.status } : {}),
     ...(input.assignee !== undefined ? { assignee: input.assignee } : {}),
+    ...(input.group !== undefined
+      ? { group: normalizeGroup(input.group) }
+      : {}),
     ...(input.position !== undefined ? { position: input.position } : {}),
     // Concluir libera a trava automaticamente — trabalho acabou.
     ...(status === 'done'
@@ -162,6 +172,7 @@ export const updateNode = async (
   delete base.tags;
   if (!blockedReason) delete base.blockedReason;
   else base.blockedReason = blockedReason;
+  if (!base.group) delete base.group;
   if (status === 'done') {
     delete base.claimedBy;
     delete base.claimedAt;
@@ -251,4 +262,36 @@ export const deleteNodesOfTrilha = async (
   for await (const entry of kv.list<TrilhaNode>({ prefix: PREFIX })) {
     if (entry.value?.trilhaId === trilhaId) await kv.delete(entry.key);
   }
+};
+
+// Troca de status feita pelo sistema (sinais de bloqueio): ignora a trava de
+// claim, pois não é edição de conteúdo. Não mexe em updatedAt do briefing.
+export const forceNodeStatus = async (
+  kv: Deno.Kv,
+  id: string,
+  status: TrilhaNodeStatus,
+  blockedReason?: string,
+): Promise<TrilhaNode | null> => {
+  const existing = await getNode(kv, id);
+  if (!existing) return null;
+  const base = { ...existing, status } as Record<string, unknown>;
+  if (blockedReason) base.blockedReason = blockedReason;
+  else delete base.blockedReason;
+  base.updatedAt = new Date().toISOString();
+  await kv.set(key(id), base as TrilhaNode);
+  return base as TrilhaNode;
+};
+
+export const moveNodes = async (
+  kv: Deno.Kv,
+  positions: ReadonlyMap<string, { x: number; y: number }>,
+): Promise<number> => {
+  let moved = 0;
+  for (const [id, position] of positions) {
+    const existing = await getNode(kv, id);
+    if (!existing) continue;
+    await kv.set(key(id), { ...existing, position });
+    moved += 1;
+  }
+  return moved;
 };

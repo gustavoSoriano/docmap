@@ -8,6 +8,9 @@ let currentPodcast = null;
 let podSearchTimer = null;
 let podHealth = null;
 
+// Matiz determinístico por voz (índice) — usado no roteiro e nos chips de voz.
+const podHue = (idx) => (205 + idx * 137) % 360;
+
 // ── Health check das dependências externas ──
 const loadPodHealth = async () => {
   const btn = $('pod-health');
@@ -28,12 +31,12 @@ const renderPodHealth = () => {
   if (podHealth.ready) {
     btn.classList.add('pod-health-ok');
     btn.classList.remove('pod-health-bad');
-    btn.innerHTML = `${ICON('mic')}<span>deps OK</span>`;
+    btn.innerHTML = '<span class="status ok">Dependências</span>';
     btn.title = 'edge-tts, ffmpeg e ffprobe disponíveis';
   } else {
     btn.classList.add('pod-health-bad');
     btn.classList.remove('pod-health-ok');
-    btn.innerHTML = `${ICON('audio-lines')}<span>faltam deps</span>`;
+    btn.innerHTML = '<span class="status warn">Faltam deps</span>';
     const missing = [
       !podHealth.edgeTts && 'edge-tts',
       !podHealth.ffmpeg && 'ffmpeg',
@@ -51,17 +54,22 @@ const togglePodHealth = () => {
   }
   panel.classList.add('open');
   if (podHealth.ready) {
-    panel.innerHTML = `<div class="pod-health-row ok">
-      <span>${ICON('mic')} Todas as dependências de áudio estão instaladas:</span>
-      <code>edge-tts ✓ · ffmpeg ✓ · ffprobe ✓</code>
-    </div>`;
+    const bins = podHealth.bins || {};
+    const dep = (name, path) =>
+      `<div class="pod-health-row"><span class="status ok">${name}</span>${path ? `<code title="${escHtml(path)}">${escHtml(path)}</code>` : ''}</div>`;
+    panel.innerHTML = '<div class="pod-health-card">' +
+      '<div class="pod-health-lead">Tudo pronto para gerar podcasts.</div>' +
+      dep('edge-tts', bins.edgeTts) + dep('ffmpeg', bins.ffmpeg) + dep('ffprobe', bins.ffprobe) +
+      '</div>';
     return;
   }
-  panel.innerHTML = '<div class="pod-health-row bad"><span>Dependências faltando para gerar podcasts:</span></div>' +
+  panel.innerHTML = '<div class="pod-health-card">' +
+    '<div class="pod-health-lead">Instale o que falta para gerar podcasts.</div>' +
     podHealth.instructions.map((i) =>
-      `<div class="pod-health-cmd"><span class="pod-health-dep">${escHtml(i.dep)}</span><code onclick="copyToClipboard(this.textContent,'Comando copiado')">${escHtml(i.cmd)}</code></div>`
+      `<div class="pod-health-cmd"><span class="status warn pod-health-dep">${escHtml(i.dep)}</span><div class="pod-health-line"><button type="button" class="pod-health-code" title="Copiar comando" onclick="copyToClipboard(this.textContent,'Comando copiado')">${escHtml(i.cmd)}</button>${ICON('copy')}</div></div>`
     ).join('') +
-    '<div class="pod-health-note">Após instalar, reinicie o docmap. Se o binário não estiver no PATH, defina <code>DOCMAP_EDGE_TTS</code> no arquivo <code>.env</code> da pasta de dados do app.</div>';
+    '<div class="pod-health-note">Depois de instalar, reinicie o docmap. Se o binário não estiver no PATH, defina <code>DOCMAP_EDGE_TTS</code> no arquivo <code>.env</code> da pasta de dados do app.</div>' +
+    '</div>';
 };
 
 // ── Lista ──
@@ -102,31 +110,32 @@ const renderPodcastsList = () => {
 
   if (!items.length) {
     list.innerHTML = allPodcasts.length
-      ? `<div class="pod-empty">Nenhum podcast para este filtro.</div>`
-      : `<div class="pod-empty">Nenhum podcast ainda.<br>Peça à IA externa para gerar um via <code>POST /podcasts</code>.</div>`;
+      ? `<div class="pod-empty"><div class="pod-empty-title">Nenhum resultado</div>Nenhum podcast corresponde à busca ou à pasta escolhida.</div>`
+      : `<div class="pod-empty"><div class="pod-empty-title">Nenhum podcast ainda</div>Peça à IA externa para gerar um via <code>POST /podcasts</code>.</div>`;
     return;
   }
 
   list.innerHTML = items.map((p) => {
     const status = p.status === 'generating'
-      ? '<span class="pod-status gen">gerando…</span>'
+      ? '<span class="status info pod-status gen">Gerando</span>'
       : p.status === 'error'
-      ? '<span class="pod-status err">erro</span>'
+      ? '<span class="status danger pod-status">Erro</span>'
       : '';
     const dur = p.durationMs ? formatDuration(p.durationMs) : '';
-    const tags = (p.tags || []).length
-      ? `<div class="pod-item-tags">${p.tags.map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('')}</div>`
+    const allTags = p.tags || [];
+    const extra = allTags.length - 3;
+    const tags = allTags.length
+      ? `<div class="pod-item-tags">${allTags.slice(0, 3).map((t) => `<span class="chip">${escHtml(t)}</span>`).join('')}${extra > 0 ? `<span class="chip pod-tags-more">+${extra}</span>` : ''}</div>`
       : '';
     return `<div class="pod-item${currentPodcast?.id === p.id ? ' active' : ''}" onclick="openPodcast('${p.id}')">
       <div class="pod-item-top">
-        <span class="pod-item-title">${ICON('mic')} ${escHtml(p.title)}</span>
+        <span class="pod-item-title" title="${escHtml(p.title)}">${escHtml(p.title)}</span>
         ${status}
       </div>
       <div class="pod-item-meta">
-        <span class="pod-folder">${escHtml(p.folder)}</span>
-        <span class="pod-dot">·</span>
-        <span>${p.voices?.length || 0} vozes</span>
-        ${dur ? `<span class="pod-dot">·</span><span>${dur}</span>` : ''}
+        <span class="chip pod-folder">${ICON('folder')}<span>${escHtml(p.folder)}</span></span>
+        <span class="pod-stat" title="Vozes">${ICON('mic')}${p.voices?.length || 0}</span>
+        ${dur ? `<span class="pod-stat" title="Duração">${ICON('clock')}${dur}</span>` : ''}
       </div>
       ${tags}
     </div>`;
@@ -151,6 +160,7 @@ const fillPodcastPlayer = (p) => {
   const titleInput = $('pod-title-input');
   const folderInput = $('pod-folder-input');
   const tagsInput  = $('pod-tags-input');
+  titleInput.title = p.title;
   if (document.activeElement !== titleInput) titleInput.value = p.title;
   if (document.activeElement !== tagsInput) tagsInput.value = (p.tags || []).join(', ');
   if (document.activeElement !== folderInput) folderInput.value = p.folder;
@@ -172,20 +182,21 @@ const renderPodStatus = (p) => {
 
   if (p.status === 'generating') {
     wrap.style.display = 'none';
-    meta.innerHTML = `<span class="pod-status gen">${ICON('refresh-cw')} gerando áudio…</span>`;
+    meta.innerHTML = '<span class="status info pod-status gen">Gerando áudio</span>';
   } else if (p.status === 'error') {
     wrap.style.display = 'none';
-    meta.innerHTML = `<span class="pod-status err">erro: ${escHtml(p.error || 'desconhecido')}</span>`;
+    meta.innerHTML = `<span class="status danger pod-status">Erro: ${escHtml(p.error || 'desconhecido')}</span>`;
   } else {
     wrap.style.display = 'block';
     audio.src = '/podcasts/' + p.id + '/audio';
     audio.load();
-    const voices = (p.voices || []).map((v) => escHtml(v.name)).join(' · ');
+    const voices = (p.voices || []).map((v, i) =>
+      `<span class="chip pod-voice" style="--h:${podHue(i)}">${escHtml(v.name)}</span>`
+    ).join('');
     meta.innerHTML = [
-      p.durationMs ? `<span>${ICON('clock')} ${formatDuration(p.durationMs)}</span>` : '',
-      voices ? `<span>${ICON('audio-lines')} ${voices}</span>` : '',
-      `<span>${ICON('folder')} ${escHtml(p.folder)}</span>`,
-      `<span>${new Date(p.createdAt).toLocaleDateString('pt-BR')}</span>`,
+      voices ? `<span class="pod-meta-voices" title="Vozes">${ICON('mic')}${voices}</span>` : '',
+      p.durationMs ? `<span class="chip">${ICON('clock')}${formatDuration(p.durationMs)}</span>` : '',
+      `<span class="chip">${ICON('calendar')}${new Date(p.createdAt).toLocaleDateString('pt-BR')}</span>`,
     ].join('');
   }
 };
@@ -198,25 +209,27 @@ const renderPodScript = (p) => {
       : '';
     return;
   }
-  // Quebra o script em falas por persona, com cor por índice.
+  // Quebra o script em falas por persona, com matiz (--h) por índice.
   const voiceNames = (p.voices || []).map((v) => v.name);
-  const colorOf = (name) => {
-    const idx = voiceNames.indexOf(name);
-    return idx < 0 ? 'var(--text-2)' : `hsl(${(idx * 137) % 360} 55% 62%)`;
-  };
   const re = /<([A-Za-z][A-Za-z0-9_-]*)>([\s\S]*?)<\/\1>/g;
   let html = '';
+  let count = 0;
   let m;
   while ((m = re.exec(p.script)) !== null) {
     const name = m[1];
     const text = m[2].trim();
     if (!text) continue;
-    html += `<div class="pod-line">
-      <span class="pod-line-name" style="color:${colorOf(name)}">${escHtml(name)}</span>
-      <span class="pod-line-text">${escHtml(text)}</span>
+    const idx = voiceNames.indexOf(name);
+    const hue = idx < 0 ? '' : ` style="--h:${podHue(idx)}"`;
+    count++;
+    html += `<div class="pod-line ${idx < 0 ? 'neutral' : idx % 2 ? 'side-b' : 'side-a'}"${hue}>
+      <span class="pod-line-name">${escHtml(name)}</span>
+      <p class="pod-line-text">${escHtml(text)}</p>
     </div>`;
   }
-  box.innerHTML = html || `<div class="pod-script-pending">Roteiro sem falas parseáveis.</div>`;
+  box.innerHTML = html
+    ? `<div class="pod-script-head">Roteiro<span class="chip">${count} falas</span></div>${html}`
+    : `<div class="pod-script-pending">Roteiro sem falas parseáveis.</div>`;
 };
 
 // ── Editar metadados (title/folder/tags) ──
@@ -304,10 +317,10 @@ const connectPodcastEvents = () => {
     item.status = 'generating';
     renderPodcastsList();
     if (currentPodcast?.id === id) {
-      const label = stage === 'slides' ? `compondo slides ${detail || ''}`
-        : stage === 'tts' ? `sintetizando vozes ${detail || ''}`
-        : stage === 'concat' ? 'montando áudio…' : 'processando…';
-      $('pod-meta').innerHTML = `<span class="pod-status gen">${ICON('refresh-cw')} ${label}</span>`;
+      const label = stage === 'slides' ? `Compondo slides ${detail || ''}`
+        : stage === 'tts' ? `Sintetizando vozes ${detail || ''}`
+        : stage === 'concat' ? 'Montando áudio' : 'Processando';
+      $('pod-meta').innerHTML = `<span class="status info pod-status gen">${escHtml(label.trim())}</span>`;
     }
   });
 

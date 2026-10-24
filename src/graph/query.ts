@@ -1,11 +1,11 @@
 // ════ Query do grafo — funções puras ════
-// Teto padrão 2k entidades: com busca no backend, o que ficar de fora
-// o usuário acha via ?q=. Evita travar o D3/SVG em bases de 500-2000+ nós.
+// Teto de 500 entidades (padrão e máximo): com busca no backend, o que
+// ficar de fora o usuário acha via ?q=. Evita travar o D3/SVG.
 
 import type { EntityKind, GraphEntity } from './types.ts';
 
-export const GRAPH_DEFAULT_LIMIT = 2000;
-export const GRAPH_MAX_LIMIT = 5000;
+export const GRAPH_DEFAULT_LIMIT = 500;
+export const GRAPH_MAX_LIMIT = 500;
 
 export type GraphQuery = {
   readonly limit: number;

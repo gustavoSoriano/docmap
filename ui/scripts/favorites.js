@@ -1,23 +1,29 @@
 // ════ Favorites / Bookmarks Manager ════
 
 const FAV_TYPES = {
-  site:   { label: 'SITE'   },
-  slack:  { label: 'SLACK'  },
-  grid:   { label: 'GRID'   },
-  dash:   { label: 'DASH'   },
-  github: { label: 'GITHUB' },
+  site:   { label: 'Site',      icon: 'globe'          },
+  slack:  { label: 'Slack',     icon: 'message-square' },
+  grid:   { label: 'Grid',      icon: 'folder'         },
+  dash:   { label: 'Dashboard', icon: 'bar-chart'      },
+  github: { label: 'GitHub',    icon: 'github'         },
+};
+
+// Selo de tipo: ícone (cor de domínio via CSS) + rótulo
+const favTypeBadge = (type) => {
+  const t = FAV_TYPES[type];
+  return `<span class="fav-type-badge">${ICON(t?.icon ?? 'link')}${escHtml(t?.label ?? type)}</span>`;
 };
 
 const FAV_CATEGORIES = [
-  { id: 'all',        label: 'Todos',       icon: '◈' },
-  { id: 'produto',    label: 'Produto',     icon: '◆' },
-  { id: 'design',     label: 'Design',      icon: '✦' },
-  { id: 'metricas',   label: 'Métricas',    icon: '◉' },
-  { id: 'docs',       label: 'Docs',        icon: '◎' },
-  { id: 'referencia', label: 'Referência',  icon: '◇' },
-  { id: 'devops',     label: 'DevOps',      icon: '⬡' },
-  { id: 'arquitetura',label: 'Arquitetura', icon: '⬢' },
-  { id: 'incidentes', label: 'Incidentes',  icon: '▲' },
+  { id: 'all',        label: 'Todos',       icon: 'list'         },
+  { id: 'produto',    label: 'Produto',     icon: 'star'         },
+  { id: 'design',     label: 'Design',      icon: 'paintbrush'   },
+  { id: 'metricas',   label: 'Métricas',    icon: 'bar-chart'    },
+  { id: 'docs',       label: 'Docs',        icon: 'file'         },
+  { id: 'referencia', label: 'Referência',  icon: 'bookmark'     },
+  { id: 'devops',     label: 'DevOps',      icon: 'terminal'     },
+  { id: 'arquitetura',label: 'Arquitetura', icon: 'layers'       },
+  { id: 'incidentes', label: 'Incidentes',  icon: 'alert-circle' },
 ];
 
 const FAV_PAGE_SIZE = 30;
@@ -131,9 +137,9 @@ const renderFavSidebar = () => {
       ? favAll.length
       : (counts[cat.label.toLowerCase()] || 0);
     return `
-      <div class="fav-cat-item ${favState.category === cat.id ? 'active' : ''}" data-cat="${cat.id}">
+      <div class="fav-cat-item ${favState.category === cat.id ? 'active' : ''} ${count === 0 ? 'is-empty' : ''}" data-cat="${cat.id}">
         <span class="fav-cat-left">
-          <span class="fav-cat-icon">${cat.icon}</span>
+          <span class="fav-cat-icon">${ICON(cat.icon)}</span>
           ${escHtml(cat.label)}
         </span>
         <span class="fav-cat-count">${count}</span>
@@ -157,7 +163,7 @@ const renderFavSidebar = () => {
   const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 22);
 
   tagCloud.innerHTML = topTags.map(([tag]) =>
-    `<span class="fav-tag ${favState.tag === tag ? 'active' : ''}" data-tag="${escHtml(tag)}">#${escHtml(tag)}</span>`
+    `<span class="fav-tag ${favState.tag === tag ? 'active' : ''}" data-tag="${escHtml(tag)}"><span class="fav-tag-h">#</span>${escHtml(tag)}</span>`
   ).join('');
 
   tagCloud.querySelectorAll('.fav-tag').forEach(el => {
@@ -254,11 +260,15 @@ const renderFeaturedCards = (items) => {
 
   row.innerHTML = items.map(b => `
     <div class="fav-featured-card" data-type="${b.type}" data-id="${b.id}" data-url="${escHtml(b.url)}">
+      <div class="fav-featured-top">
+        ${favTypeBadge(b.type)}
+        <span class="fav-featured-open">${ICON('external-link')}</span>
+      </div>
       <div class="fav-featured-title">${escHtml(b.title)}</div>
       <div class="fav-featured-url">${escHtml(b.url)}</div>
       <div class="fav-featured-footer">
-        <span class="fav-type-badge">${FAV_TYPES[b.type]?.label ?? b.type}</span>
-        <span class="fav-access-badge">${b.accessCount} visita${b.accessCount !== 1 ? 's' : ''}</span>
+        <span class="fav-access-num">${b.accessCount}</span>
+        <span class="fav-access-badge">visita${b.accessCount !== 1 ? 's' : ''}</span>
       </div>
     </div>
   `).join('');
@@ -284,18 +294,18 @@ const renderFavPagination = (total, totalPages) => {
   for (let p = Math.max(1, favPage - 2); p <= Math.min(totalPages, favPage + 2); p++) range.add(p);
   const sorted = [...range].sort((a, b) => a - b);
 
-  let html = `<div class="fav-page-info">${total} links · página ${favPage} de ${totalPages}</div><div class="fav-page-btns">`;
+  let html = `<div class="fav-page-info">Página ${favPage} de ${totalPages}</div><div class="fav-page-btns">`;
 
-  html += `<button class="fav-page-btn" data-p="${favPage - 1}" ${favPage === 1 ? 'disabled' : ''}>←</button>`;
+  html += `<button class="fav-page-btn" data-p="${favPage - 1}" aria-label="Página anterior" ${favPage === 1 ? 'disabled' : ''}>${ICON('chevron-left')}</button>`;
 
   let prev = 0;
   for (const p of sorted) {
-    if (prev && p - prev > 1) html += `<span class="fav-page-gap">…</span>`;
+    if (prev && p - prev > 1) html += `<span class="fav-page-gap">${ICON('more')}</span>`;
     html += `<button class="fav-page-btn ${p === favPage ? 'active' : ''}" data-p="${p}">${p}</button>`;
     prev = p;
   }
 
-  html += `<button class="fav-page-btn" data-p="${favPage + 1}" ${favPage === totalPages ? 'disabled' : ''}>→</button>`;
+  html += `<button class="fav-page-btn" data-p="${favPage + 1}" aria-label="Próxima página" ${favPage === totalPages ? 'disabled' : ''}>${ICON('chevron-right')}</button>`;
   html += '</div>';
 
   el.innerHTML = html;
@@ -321,31 +331,33 @@ const buildFavCard = (b, index) => {
   el.className = 'fav-card';
   el.dataset.type = b.type;
   el.dataset.id   = b.id;
-  el.style.animationDelay = `${index * 22}ms`;
 
-  const dateStr   = new Date(b.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-  const typeLabel = FAV_TYPES[b.type]?.label ?? b.type.toUpperCase();
+  const dateStr = new Date(b.createdAt)
+    .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+    .replace(' de ', ' ').replace('.', '');
 
   el.innerHTML = `
     <div class="fav-card-top">
-      <span class="fav-type-badge">${typeLabel}</span>
+      ${favTypeBadge(b.type)}
       <div class="fav-card-actions">
-        <button class="fav-action-btn" title="Abrir" data-action="open">${ICON('external-link')}</button>
-        <button class="fav-action-btn" title="Editar" data-action="edit">${ICON('pencil')}</button>
-        <button class="fav-action-btn danger" title="Remover" data-action="delete">${ICON('trash')}</button>
+        <button class="fav-action-btn" title="Abrir" aria-label="Abrir" data-action="open">${ICON('external-link')}</button>
+        <button class="fav-action-btn" title="Editar" aria-label="Editar" data-action="edit">${ICON('pencil')}</button>
+        <button class="fav-action-btn danger" title="Remover" aria-label="Remover" data-action="delete">${ICON('trash')}</button>
       </div>
     </div>
     <div class="fav-card-title">${favHl(b.title)}</div>
     <div class="fav-card-url">${favHl(b.url)}</div>
     ${b.note ? `<div class="fav-card-note">${favHl(b.note)}</div>` : ''}
+    ${b.tags.length ? `<div class="fav-card-tags">
+      ${b.tags.slice(0, 4).map(t => `<span class="fav-card-tag" data-tag="${escHtml(t)}">#${escHtml(t)}</span>`).join('')}
+      ${b.tags.length > 4 ? `<span class="fav-card-more" title="${escHtml(b.tags.slice(4).map(t => '#' + t).join(' '))}">+${b.tags.length - 4}</span>` : ''}
+    </div>` : ''}
     <div class="fav-card-footer">
-      <div class="fav-card-tags">
-        ${b.tags.map(t => `<span class="fav-card-tag" data-tag="${escHtml(t)}">#${escHtml(t)}</span>`).join('')}
-      </div>
-      <div class="fav-card-meta">
-        <span class="fav-card-cat">${escHtml(b.category)}</span>
-        <span class="fav-card-date">${dateStr}</span>
-      </div>
+      <span class="fav-card-cat">${ICON('folder')}${escHtml(b.category)}</span>
+      <span class="fav-card-meta">
+        ${b.accessCount > 0 ? `<span class="fav-card-visits" title="Visitas">${ICON('eye')}${b.accessCount}</span>` : ''}
+        <span class="fav-card-date" title="Adicionado em">${ICON('calendar')}${dateStr}</span>
+      </span>
     </div>
   `;
 
@@ -460,7 +472,7 @@ const renderFavModalTags = () => {
   favModalTags.forEach((tag, i) => {
     const chip = document.createElement('span');
     chip.className = 'fav-tag-chip';
-    chip.innerHTML = `#${escHtml(tag)} <span class="fav-tag-chip-rm" data-i="${i}">×</span>`;
+    chip.innerHTML = `#${escHtml(tag)}<span class="fav-tag-chip-rm" data-i="${i}" role="button" aria-label="Remover tag">${ICON('x')}</span>`;
     chip.querySelector('.fav-tag-chip-rm').addEventListener('click', () => {
       favModalTags.splice(i, 1);
       renderFavModalTags();
@@ -473,7 +485,7 @@ const renderFavModalCats = () => {
   const sel = document.getElementById('fav-cat-sel');
   if (!sel) return;
   sel.innerHTML = FAV_CATEGORIES.filter(c => c.id !== 'all').map(cat =>
-    `<button class="fav-cat-sel-btn ${favModalCat === cat.label ? 'active' : ''}" data-cat="${escHtml(cat.label)}">${escHtml(cat.label)}</button>`
+    `<button class="fav-cat-sel-btn ${favModalCat === cat.label ? 'active' : ''}" data-cat="${escHtml(cat.label)}">${favModalCat === cat.label ? ICON('check') : ''}${escHtml(cat.label)}</button>`
   ).join('');
   sel.querySelectorAll('.fav-cat-sel-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -494,7 +506,7 @@ const openFavAddModal = () => {
   favModalCat  = '';
 
   const titleText = document.getElementById('fav-modal-title-text');
-  if (titleText) titleText.textContent = '⚡ Novo Favorito';
+  if (titleText) titleText.textContent = 'Novo favorito';
 
   const urlEl   = document.getElementById('fav-modal-url');
   const titleEl = document.getElementById('fav-modal-title');
@@ -528,7 +540,7 @@ const openFavEditModal = (b) => {
   favModalCat  = b.category;
 
   const titleText = document.getElementById('fav-modal-title-text');
-  if (titleText) titleText.textContent = '✏️ Editar Favorito';
+  if (titleText) titleText.textContent = 'Editar favorito';
 
   const urlEl   = document.getElementById('fav-modal-url');
   const titleEl = document.getElementById('fav-modal-title');

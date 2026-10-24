@@ -15,6 +15,7 @@ import {
   isNodeStatus,
   isStaleClaim,
   listNodes,
+  moveNodes,
   releaseNode,
   updateNode,
 } from './nodes.ts';
@@ -34,7 +35,16 @@ import {
   listStickies,
   updateSticky,
 } from './stickies.ts';
-import { deleteEventsOfTrilha, listEvents, logEvent } from './events.ts';
+import {
+  deleteEventsOfTrilha,
+  listEvents,
+  logEvent,
+  notifyTrilhaChange,
+} from './events.ts';
+import { extraRoutes } from './routes.ts';
+import { loadTrilhaDetail } from './detail.ts';
+import { deleteRefsOf } from './refs.ts';
+import { deleteSignalsOf } from './signals.ts';
 import { badRequest, conflict, json, notFound } from '../server/response.ts';
 import type {
   Assignee,
@@ -65,6 +75,17 @@ const validAssignee = (value: unknown): value is Assignee => {
   return (a.kind === 'human' || a.kind === 'ai') &&
     typeof a.label === 'string' && !!a.label.trim();
 };
+
+const validPosition = (p: unknown): boolean =>
+  !!p && typeof p === 'object' &&
+  Number.isFinite((p as { x: number }).x) &&
+  Number.isFinite((p as { y: number }).y);
+
+const isLayoutOnly = (input: UpdateNodeInput): boolean =>
+  validPosition(input.position) &&
+  Object.keys(input).every((k) =>
+    k === 'position' || k === 'by' || k === 'expectedUpdatedAt'
+  );
 
 const nodeTrilhaOf =
   (kv: Deno.Kv) => async (id: string): Promise<string | null> => {
@@ -99,20 +120,16 @@ export const trilhasHandler =
 
     const [id, sub, subId] = segments;
 
+    const extra = await extraRoutes(kv, req, url, segments);
+    if (extra) return extra;
+
     if (segments.length === 1 && sub !== 'nodes' && sub !== 'edges') {
       if (req.method === 'GET') {
-        const trilha = await getTrilha(kv, id);
-        if (!trilha) return notFound();
-        const [nodes, edges, stickies] = await Promise.all([
-          listNodes(kv, id),
-          listEdges(kv, id),
-          listStickies(kv, id),
-        ]);
+        const detail = await loadTrilhaDetail(kv, id);
+        if (!detail) return notFound();
         return json({
-          trilha: { ...trilha, deepLink: deepLink(id) },
-          nodes,
-          edges,
-          stickies,
+          ...detail,
+          trilha: { ...detail.trilha, deepLink: deepLink(id) },
         });
       }
       if (req.method === 'PUT') {
@@ -135,6 +152,8 @@ export const trilhasHandler =
           deleteEdgesOfTrilha(kv, id),
           deleteStickiesOfTrilha(kv, id),
           deleteEventsOfTrilha(kv, id),
+          deleteRefsOf(kv, (r) => r.trilhaId === id),
+          deleteSignalsOf(kv, (sg) => sg.trilhaId === id),
         ]);
         return json({ ok: true });
       }
@@ -260,6 +279,13 @@ export const trilhasHandler =
         }
         const current = await getNode(kv, subId);
         if (!current || current.trilhaId !== id) return notFound();
+        if (isLayoutOnly(input)) {
+          // Mover bloco é layout, não conteúdo: vale mesmo com trava de
+          // outro dono, não invalida expectedUpdatedAt nem polui a atividade.
+          await moveNodes(kv, new Map([[subId, input.position!]]));
+          notifyTrilhaChange(id);
+          return json(await getNode(kv, subId));
+        }
         const { node, error, claimedBy } = await updateNode(kv, subId, input);
         if (error === 'not_found') return notFound();
         if (error === 'claimed') {
@@ -300,6 +326,8 @@ export const trilhasHandler =
         const current = await getNode(kv, subId);
         if (!current || current.trilhaId !== id) return notFound();
         await deleteEdgesOfNode(kv, id, subId);
+        await deleteRefsOf(kv, (r) => r.nodeId === subId);
+        await deleteSignalsOf(kv, (sg) => sg.nodeId === subId);
         await deleteNode(kv, subId);
         return json({ ok: true });
       }

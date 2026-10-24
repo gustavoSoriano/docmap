@@ -34,14 +34,46 @@ const renderAgentChatsList = () => {
     (c.objective || '').toLowerCase().includes(q) ||
     (c.tags || []).join(' ').toLowerCase().includes(q)
   );
-  $('ac-sidebar-count').textContent = allAgentChats.length + ' salas';
-  list.innerHTML = filtered.map((c) =>
-    `<button class="ac-card ${c.id === currentAgentChatId ? 'active' : ''}" onclick="openAgentChat('${c.id}')">` +
-    `<div class="ac-card-title">${escHtml(c.title || 'Sem título')}</div>` +
-    `<div class="ac-card-meta">${escHtml((c.objective || '').slice(0, 80))}</div>` +
-    ((c.tags || []).length ? `<div class="ac-card-tags">${c.tags.map((t) => `<span class="note-tag">#${escHtml(t)}</span>`).join('')}</div>` : '') +
-    `</button>`
-  ).join('') || '<div class="ac-card-meta">Nenhuma sala. Crie a primeira.</div>';
+  $('ac-sidebar-count').textContent = allAgentChats.length === 1
+    ? '1 sala'
+    : allAgentChats.length + ' salas';
+  const emptyMsg = allAgentChats.length
+    ? 'Nenhuma sala encontrada.'
+    : 'Nenhuma sala ainda. Crie a primeira.';
+  list.innerHTML = filtered.map((c) => {
+    const tags = c.tags || [];
+    const shown = tags.slice(0, 2)
+      .map((t) => `<span class="chip">${escHtml(t)}</span>`).join('');
+    const extra = tags.length > 2 ? `<span class="chip">+${tags.length - 2}</span>` : '';
+    const live = acIsRecent(c.updatedAt)
+      ? '<span class="status ok ac-card-live" title="Atividade recente"></span>'
+      : '';
+    return `<button class="ac-card ${c.id === currentAgentChatId ? 'active' : ''}" onclick="openAgentChat('${c.id}')">` +
+      `<div class="ac-card-head"><span class="ac-card-title">${escHtml(c.title || 'Sem título')}</span>${live}</div>` +
+      ((c.objective || '').trim() ? `<div class="ac-card-meta">${escHtml((c.objective || '').slice(0, 140))}</div>` : '') +
+      `<div class="ac-card-foot"><span class="ac-card-tags">${shown}${extra}</span>` +
+      `<span class="ac-card-time">${escHtml(acAgo(c.updatedAt))}</span></div>` +
+      `</button>`;
+  }).join('') || `<div class="ac-list-empty">${emptyMsg}</div>`;
+};
+
+// ── Tempo relativo (apresentação a partir de updatedAt) ──
+const acIsRecent = (iso) => {
+  const t = Date.parse(iso || '');
+  return Number.isFinite(t) && Date.now() - t < 10 * 60 * 1000;
+};
+
+const acAgo = (iso) => {
+  const t = Date.parse(iso || '');
+  if (!Number.isFinite(t)) return '';
+  const min = Math.floor((Date.now() - t) / 60000);
+  if (min < 1) return 'agora';
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h} h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d} d`;
+  return new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 };
 
 const openAgentChatModal = (id) => {
@@ -124,12 +156,13 @@ const refreshCurrentAgentChat = async () => {
   }
 };
 
-// ── Identidade visual por autor (cor determinística + iniciais) ──
-const acColorFor = (name) => {
-  const s = String(name || '?').toLowerCase();
+// ── Identidade visual por autor (matiz determinístico + iniciais) ──
+// Matiz entre 75 e 330: evita o âmbar (reservado) e o vermelho (status).
+const acHue = (name) => {
+  const str = String(name || '?').toLowerCase();
   let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
-  return `hsl(${h} 65% 55%)`;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 255;
+  return 75 + h;
 };
 
 const acInitials = (name) => {
@@ -138,39 +171,33 @@ const acInitials = (name) => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
-// ── Robozinho determinístico por agente (olhos + boca + antena variam) ──
-const acRobotSvg = (name) => {
-  const s = String(name || '?');
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  const eyes = h % 3;
-  const mouth = (h >> 2) % 3;
-  const antenna = (h >> 4) % 3;
-
-  const eyeSvg = eyes === 0
-    ? '<circle cx="12" cy="13.5" r="1.7" fill="#ffffff" stroke="none"/>' +
-      '<circle cx="20" cy="13.5" r="1.7" fill="#ffffff" stroke="none"/>'
-    : eyes === 1
-    ? '<path d="M10.2 14.2 Q12 12 13.8 14.2"/><path d="M18.2 14.2 Q20 12 21.8 14.2"/>'
-    : '<path d="M10.3 13.8 h3.2"/><path d="M18.5 13.8 h3.2"/>';
-
-  const mouthSvg = mouth === 0
-    ? '<path d="M12 17.6 Q16 20.6 20 17.6"/>'
-    : mouth === 1
-    ? '<rect x="12.4" y="16.4" width="7.2" height="3.2" rx="1.6" fill="#ffffff" stroke="none"/>'
-    : '<path d="M13 18.2 h6"/>';
-
-  const antennaSvg = antenna === 0
-    ? '<path d="M16 8 V4.4"/><circle cx="16" cy="3" r="1.5" fill="#ffffff" stroke="none"/>'
-    : antenna === 1
-    ? '<path d="M16 8 V5"/><path d="M14.6 5 L16.4 2.8 L15.4 2.8 L17 0.8"/>'
-    : '';
-
-  return `<svg viewBox="0 0 32 32" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
-    antennaSvg +
-    `<rect x="5.5" y="11" width="2.6" height="6" rx="1.3"/><rect x="23.9" y="11" width="2.6" height="6" rx="1.3"/>` +
-    `<rect x="8" y="8" width="16" height="13.5" rx="4.5"/>` +
-    eyeSvg + mouthSvg + `</svg>`;
+// Destaca @menções no HTML já sanitizado (ignora code, pre e links).
+const acHighlightMentions = (html) => {
+  const box = document.createElement('div');
+  box.innerHTML = html;
+  const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    if (!n.parentElement.closest('code, pre, a') && /@[\w-]+/.test(n.nodeValue)) nodes.push(n);
+  }
+  for (const n of nodes) {
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    n.nodeValue.replace(/(^|[^\w@])@([\w-]+)/g, (m, pre, name, idx) => {
+      const start = idx + pre.length;
+      frag.append(n.nodeValue.slice(last, start));
+      const span = document.createElement('span');
+      span.className = 'ac-mention';
+      span.textContent = '@' + name;
+      frag.append(span);
+      last = start + name.length + 1;
+      return m;
+    });
+    frag.append(n.nodeValue.slice(last));
+    n.replaceWith(frag);
+  }
+  return box.innerHTML;
 };
 
 const acTime = (iso) => {
@@ -203,8 +230,9 @@ const renderAcReplyChip = () => {
     return;
   }
   chip.hidden = false;
-  $('ac-reply-label').textContent =
-    `Respondendo a ${acReplyTo.name}: ${acReplyTo.snippet}`;
+  $('ac-reply-label').innerHTML =
+    `<span class="ac-reply-to">Respondendo a ${escHtml(acReplyTo.name)}</span>` +
+    `<span class="ac-reply-snippet">${escHtml(acReplyTo.snippet.replace(/[*_`#>]+/g, ''))}</span>`;
   if (window.hydrateIcons) hydrateIcons(chip);
 };
 
@@ -220,21 +248,28 @@ const renderAgentChatDetail = () => {
   $('ac-active').style.display = has ? 'flex' : 'none';
   if (!has) return;
   $('ac-toolbar-title').textContent = detail.chat.title || 'Sem título';
-  $('ac-toolbar-objective').textContent = detail.chat.objective
-    ? 'Objetivo: ' + detail.chat.objective
-    : 'Sem objetivo definido. Edite e diga aos agentes o que fazer.';
+  $('ac-toolbar-title').title = detail.chat.title || '';
+  $('ac-toolbar-objective').textContent = detail.chat.objective ||
+    'Sem objetivo definido. Edite e diga aos agentes o que fazer.';
   $('ac-toolbar-tags').innerHTML = (detail.chat.tags || [])
-    .map((t) => `<span class="note-tag">#${escHtml(t)}</span>`).join('');
+    .map((t) => `<span class="chip">${escHtml(t)}</span>`).join('');
+  if (acLastOpenChatId !== detail.chat.id) acSetObjectiveOpen(false);
+  acSyncObjectiveToggle();
 
   const parts = detail.participants || [];
   $('ac-participants').innerHTML = parts.length
-    ? parts.map((p) =>
-      `<span class="ac-presence ${p.presence === 'online' ? 'online' : ''}">` +
-      `<span class="ac-dot" style="background:${acColorFor(p.name)}"></span>` +
-      `<span class="ac-presence-name">${escHtml(p.name)}</span>` +
-      `<span class="ac-presence-state"> · ${escHtml(p.presence)}</span></span>`
-    ).join('')
-    : '<span>Nenhum agente conectado. Copie o prompt e chame os agentes.</span>';
+    ? parts.map((p) => {
+      const on = p.presence === 'online';
+      const role = [p.tool, p.model].filter(Boolean)
+        .map((r) => `<span>${escHtml(r)}</span>`).join('');
+      return `<span class="ac-presence ${on ? 'online' : ''}" style="--h:${acHue(p.name)}" title="${escHtml(p.presence)}">` +
+        `<span class="ac-avatar" aria-hidden="true">${escHtml(acInitials(p.name))}</span>` +
+        `<span class="ac-presence-text"><span class="ac-presence-name">${escHtml(p.name)}</span>` +
+        `<span class="ac-presence-role">${role}</span></span>` +
+        (on ? '<span class="status ok ac-presence-state">online</span>' : '') +
+        `</span>`;
+    }).join('')
+    : '<span class="ac-participants-empty">Nenhum agente conectado. Copie o prompt e chame os agentes.</span>';
 
   const box = $('ac-messages');
   ensureAcScrollListener();
@@ -246,26 +281,33 @@ const renderAgentChatDetail = () => {
   const prevScrollTop = box.scrollTop;
   acMsgById = {};
   for (const m of messages) acMsgById[m.id] = m;
+  let prev = null;
   box.innerHTML = messages.map((m) => {
     if (m.authorKind === 'system') {
-      return `<div class="ac-msg system">${escHtml(m.body)}</div>`;
+      prev = null;
+      return `<div class="ac-msg system"><span>${escHtml(m.body)}</span></div>`;
     }
-    const mine = m.authorKind === 'user' ? ' mine' : '';
-    const color = m.authorKind === 'user' ? 'var(--accent)' : acColorFor(m.authorName);
-    const avatar = m.authorKind === 'user'
-      ? escHtml(acInitials(m.authorName))
-      : acRobotSvg(m.authorName);
-    const to = m.to ? `<span class="ac-msg-to">→ ${escHtml(m.to)}</span>` : '';
-    const time = m.createdAt ? `<span class="ac-msg-time">${escHtml(acTime(m.createdAt))}</span>` : '';
-    const kind = `<span class="ac-msg-kind ac-kind-${escHtml(m.authorKind)}">${escHtml(m.authorKind)}</span>`;
-    return `<div class="ac-msg${mine}" style="--ac-color:${color}">` +
-      `<div class="ac-avatar" aria-hidden="true" title="${escHtml(m.authorName)}">${avatar}</div>` +
-      `<div class="ac-msg-main">` +
-      `<div class="ac-msg-head"><span class="ac-msg-author">${escHtml(m.authorName)}</span>` +
-      `${kind}${to}${time}</div>` +
-      `<div class="ac-msg-body">${renderMarkdown(m.body)}</div>` +
-      `<div class="ac-msg-foot"><button class="ac-reply-btn" onclick="replyToAgentChatById('${m.id}')" title="Responder ${escHtml(m.authorName)}">Responder</button></div>` +
-      `</div></div>`;
+    const isUser = m.authorKind === 'user';
+    const gap = prev && m.createdAt && prev.createdAt
+      ? Date.parse(m.createdAt) - Date.parse(prev.createdAt) : 0;
+    const cont = !!prev && prev.authorKind === m.authorKind &&
+      prev.authorName === m.authorName && (prev.to || '') === (m.to || '') &&
+      gap < 5 * 60 * 1000;
+    prev = m;
+    const time = m.createdAt ? acTime(m.createdAt) : '';
+    const to = m.to
+      ? `<span class="ac-msg-to">${ICON('arrow-right')}${escHtml(m.to)}</span>` : '';
+    const avatar = isUser || cont ? '' : `<div class="ac-avatar" aria-hidden="true" title="${escHtml(m.authorName)}">${escHtml(acInitials(m.authorName))}</div>`;
+    const head = cont ? '' :
+      `<div class="ac-msg-head"><span class="ac-msg-author">${escHtml(m.authorName)}</span>${to}` +
+      `<span class="ac-msg-time">${escHtml(time)}</span></div>`;
+    return `<div class="ac-msg${isUser ? ' mine' : ''}${cont ? ' cont' : ''}" style="--h:${acHue(m.authorName)}">` +
+      avatar +
+      `<div class="ac-msg-main">` + head +
+      `<div class="ac-bubble-row"><div class="ac-msg-body">${acHighlightMentions(renderMarkdown(m.body))}</div>` +
+      `<div class="ac-msg-foot">${cont ? `<span class="ac-msg-time">${escHtml(time)}</span>` : ''}` +
+      `<button class="ac-reply-btn icon-btn" onclick="replyToAgentChatById('${m.id}')" title="Responder ${escHtml(m.authorName)}" aria-label="Responder ${escHtml(m.authorName)}">${ICON('reply')}</button></div>` +
+      `</div></div></div>`;
   }).join('');
   const shouldStick = acForceScrollBottom || isChatSwitch || wasNearBottom;
   if (shouldStick) {
@@ -283,6 +325,27 @@ const renderAgentChatDetail = () => {
   acForceScrollBottom = false;
   renderAcNewMsgPill();
   renderAcReplyChip();
+};
+
+// ── Objetivo recolhível (2 linhas + expandir) ──
+const acSetObjectiveOpen = (open) => {
+  $('ac-toolbar')?.classList.toggle('open', open);
+  $('ac-objective-toggle')?.setAttribute('aria-expanded', String(open));
+};
+
+const acToggleObjective = () =>
+  acSetObjectiveOpen(!$('ac-toolbar').classList.contains('open'));
+
+// Só oferece o botão quando o texto realmente passa de 2 linhas.
+const acSyncObjectiveToggle = () => {
+  const obj = $('ac-toolbar-objective');
+  const btn = $('ac-objective-toggle');
+  if (!obj || !btn) return;
+  const wasOpen = $('ac-toolbar').classList.contains('open');
+  $('ac-toolbar').classList.remove('open');
+  const overflows = obj.scrollHeight > obj.clientHeight + 1;
+  $('ac-toolbar').classList.toggle('open', wasOpen);
+  btn.hidden = !overflows && !wasOpen;
 };
 
 // ── Scroll inteligente: só desce sozinho se o usuário já estava no final ──
@@ -308,9 +371,9 @@ const renderAcNewMsgPill = () => {
   const show = !acStickToBottom && acPendingNewCount > 0;
   pill.hidden = !show;
   if (show) {
-    pill.textContent = acPendingNewCount === 1
-      ? '↓ 1 nova mensagem'
-      : `↓ ${acPendingNewCount} novas mensagens`;
+    pill.innerHTML = ICON('arrow-down') + (acPendingNewCount === 1
+      ? ' 1 nova mensagem'
+      : ` ${acPendingNewCount} novas mensagens`);
   }
 };
 

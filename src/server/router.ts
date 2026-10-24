@@ -12,8 +12,6 @@ import { podcastsHandler } from '../podcasts/handler.ts';
 import { createCanvasHandler } from '../canvas/handler.ts';
 import { trilhasHandler } from '../trilhas/handler.ts';
 import { agentChatsHandler } from '../agentchats/handler.ts';
-import { codetourHandler } from '../codetour/handler.ts';
-import { notebooksHandler } from '../notebooks/handler.ts';
 import { createDebugHandler } from '../debug/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
@@ -36,8 +34,6 @@ export const createRouter = (deps: HandlerDeps) => {
   const canvas = createCanvasHandler(deps);
   const trilhas = trilhasHandler(deps.kv);
   const agentChats = agentChatsHandler(deps.kv);
-  const codetour = codetourHandler(deps.kv);
-  const notebooks = notebooksHandler(deps.kv);
   const debug = createDebugHandler();
   return (req: Request): Response | Promise<Response> => {
     const url = new URL(req.url);
@@ -69,10 +65,6 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/canvas')) return canvas(req, url);
     if (pathname.startsWith('/trilhas')) return trilhas(req, url);
     if (pathname.startsWith('/agentchats')) return agentChats(req, url);
-    if (pathname.startsWith('/codetour')) return codetour(req, url);
-    if (pathname === '/tours' || pathname.startsWith('/tours/')) {
-      return notebooks(req, url);
-    }
 
     return notFound();
   };

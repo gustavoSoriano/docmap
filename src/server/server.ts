@@ -1,7 +1,7 @@
 import { createRouter } from './router.ts';
 import type { HandlerDeps } from './types.ts';
 
-export const UI_PORT = 3333;
+export const UI_PORT = Number(Deno.env.get('DOCMAP_UI_PORT') ?? 3333);
 
 // Bind padrão em loopback: a superfície principal inclui macros,
 // backups e update. Use DOCMAP_HOST=0.0.0.0 apenas para expor o canvas na LAN.

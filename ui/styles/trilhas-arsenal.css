@@ -1,0 +1,335 @@
+/* ════════════════════════════════════════════════════════════════
+   Trilhas — Arsenal (coluna esquerda) e modais de embed e macro.
+   ════════════════════════════════════════════════════════════════ */
+.tr-dock-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 14px 16px 6px;
+}
+.tr-dock-title {
+  font-size: var(--fs-lg);
+  font-weight: 650;
+  font-stretch: var(--stretch-display);
+  letter-spacing: -.015em;
+}
+.tr-dock-sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.tr-dock-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  margin: 4px 12px 8px;
+  padding: 0 10px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+.tr-dock-search:focus-within {
+  border-color: var(--info-line);
+  box-shadow: 0 0 0 3px var(--info-dim);
+}
+.tr-dock-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-sm);
+}
+#trilha-arsenal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Escopo: o que "Trilha" e "Bloco" significam agora ── */
+.tr-scope {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.tr-scope-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  min-width: 0;
+}
+.tr-scope-pill {
+  flex-shrink: 0;
+  min-width: 46px;
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+  background: var(--surface-4);
+  color: var(--text);
+  font-weight: 650;
+  text-align: center;
+}
+.tr-scope-row.on .tr-scope-pill {
+  background: var(--info-dim);
+  color: var(--info);
+}
+.tr-scope-node {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 600;
+}
+.tr-scope .icon-btn {
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Seções e linhas ── */
+.tr-dock-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tr-dock-sec-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: 650;
+}
+.tr-dock-sec-h .ico {
+  width: 15px;
+  height: 15px;
+  color: var(--text-3);
+}
+.tr-dock-sec-h .chip {
+  margin-left: auto;
+}
+.tr-dock-hint {
+  padding: 0 2px;
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--text-3);
+}
+.tr-dock-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px 10px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  cursor: grab;
+  transition: border-color var(--dur), background var(--dur);
+}
+.tr-dock-item:hover {
+  border-color: var(--border-hi);
+}
+.tr-dock-item.missing {
+  opacity: .6;
+  cursor: default;
+}
+.tr-dock-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.tr-dock-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 560;
+  text-align: left;
+  cursor: pointer;
+}
+.tr-dock-open:disabled {
+  cursor: default;
+}
+.tr-dock-open .ico {
+  width: 15px;
+  height: 15px;
+  color: var(--text-3);
+}
+.tr-dock-open span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tr-dock-line .icon-btn {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.tr-guard-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--r-xs);
+  background: var(--surface-4);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.tr-guard-badge .ico {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── Botões de vínculo: sempre visíveis, com rótulo e estado ── */
+.tr-dock-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-left: 24px;
+}
+.tr-link-btn,
+.tr-link-used {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 620;
+  cursor: pointer;
+  transition: background var(--dur), border-color var(--dur), color var(--dur);
+}
+.tr-link-btn:hover:not([disabled]),
+.tr-link-used:hover {
+  background: var(--surface-3);
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+.tr-link-btn .ico,
+.tr-link-used .ico {
+  width: 13px;
+  height: 13px;
+}
+.tr-link-btn[disabled] {
+  opacity: .4;
+  cursor: default;
+}
+/* vinculado: azul de link (--info) + check, impossível confundir */
+.tr-link-btn.on {
+  background: var(--info-dim);
+  border-color: var(--info-line);
+  color: var(--info);
+}
+.tr-link-btn.on:hover:not([disabled]) {
+  background: var(--danger-dim);
+  border-color: var(--danger-line);
+  color: var(--danger);
+}
+.tr-link-used {
+  margin-left: auto;
+  border-color: transparent;
+  color: var(--text-3);
+}
+.tr-dock-empty {
+  padding: 10px 4px;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* ── Embed: o app inteiro dentro do modal ── */
+.app-modal.embed {
+  width: min(1180px, 100%);
+  height: min(88vh, 940px);
+  max-height: calc(100vh - 48px);
+}
+.tr-embed-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#trilha-embed-body {
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--border);
+}
+#trilha-embed-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--bg);
+}
+
+/* ── Saída da macro ── */
+#trilha-macro-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#trilha-macro-result[hidden] {
+  display: none;
+}
+#trilha-macro-output {
+  max-height: 320px;
+  overflow: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.app-modal-head .tr-embed-actions .ghost-btn {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 6px;
+  width: auto;
+  height: 34px;
+  padding: 0 12px;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.app-modal-head .tr-embed-actions .ghost-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}

@@ -3,7 +3,6 @@
 let allNotes           = [];
 let allCategories      = [];
 let currentNote        = null;
-let previewMode        = false;
 
 // ── Lista ──
 const loadNotesList = async () => {
@@ -32,24 +31,33 @@ const refreshCategoryOptions = () => {
   $('note-cat-list').innerHTML = cats.map((c) => `<option value="${escHtml(c)}">`).join('');
 };
 
+const NOTE_CHIPS_MAX = 2;
+
+const noteMetaHtml = (n) => {
+  const cat = n.category
+    ? `<span class="note-item-cat"><span class="note-cat-dot" style="background:${catColor(n.category)}"></span><span class="note-item-cat-name">${escHtml(n.category)}</span></span>`
+    : '';
+  const all = n.tags || [];
+  const chips = all.slice(0, NOTE_CHIPS_MAX).map((t) => `<span class="chip">${escHtml(t)}</span>`).join('');
+  const more = all.length > NOTE_CHIPS_MAX ? `<span class="chip chip-more">+${all.length - NOTE_CHIPS_MAX}</span>` : '';
+  return cat || chips ? `<div class="note-item-meta">${cat}${chips}${more}</div>` : '';
+};
+
 const renderNotesList = (notes) => {
   const list = $('notes-list');
   if (!notes.length) {
-    list.innerHTML = `<div class="notes-empty">Nenhuma nota ainda.<br>Clique em <strong>+</strong> para criar.</div>`;
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-mark">${ICON('notebook')}</div>
+      <div class="empty-title">Nenhuma nota aqui</div>
+      <div class="empty-hint">Ajuste a busca e os filtros, ou crie uma nota com o botão +.</div>
+    </div>`;
     return;
   }
-  list.innerHTML = notes.map((n) => {
-    const color = catColor(n.category);
-    const tags = (n.tags || []).map((t) => `<span class="note-tag">${escHtml(t)}</span>`).join('');
-    return `<div class="note-item${currentNote?.id === n.id ? ' active' : ''}" onclick="openNote('${n.id}')">
-      <div class="note-item-top">
-        <span class="note-cat-dot" style="background:${color}"></span>
-        <span class="note-item-title">${escHtml(n.title)}</span>
-      </div>
-      <div class="note-item-preview">${escHtml(n.preview || '')}</div>
-      ${tags ? `<div class="note-item-tags">${tags}</div>` : ''}
-    </div>`;
-  }).join('');
+  list.innerHTML = notes.map((n) => `<div class="note-item${currentNote?.id === n.id ? ' active' : ''}" onclick="openNote('${n.id}')">
+      <div class="note-item-title">${escHtml(n.title)}</div>
+      ${n.preview ? `<div class="note-item-preview">${escHtml(n.preview)}</div>` : ''}
+      ${noteMetaHtml(n)}
+    </div>`).join('');
 };
 
 // ── Filtros ──
@@ -61,11 +69,11 @@ const renderFilters = () => {
   const curTag = selTag.value;
 
   const cats = categoryNames();
-  selCat.innerHTML = '<option value="">Todas as categorias</option>' +
+  selCat.innerHTML = '<option value="">Categorias</option>' +
     cats.map((c) => `<option value="${escHtml(c)}"${c === curCat ? ' selected' : ''}>${escHtml(c)}</option>`).join('');
 
   const tags = [...new Set(allNotes.flatMap((n) => n.tags || []))].sort();
-  selTag.innerHTML = '<option value="">Todas as tags</option>' +
+  selTag.innerHTML = '<option value="">Tags</option>' +
     tags.map((t) => `<option value="${escHtml(t)}"${t === curTag ? ' selected' : ''}>${escHtml(t)}</option>`).join('');
 };
 
@@ -116,7 +124,7 @@ const updateCatDot = () => {
 const newNote = () => {
   currentNote = null;
   $('note-title-input').value = '';
-  $('note-content-textarea').value = '';
+  noteEditorSetMarkdown('');
   $('note-tags-input').value = '';
   $('note-cat-input').value = '';
   updateCatDot();
@@ -124,13 +132,14 @@ const newNote = () => {
   $('btn-copy-note').style.display = 'none';
   $('btn-delete-note').style.display = 'none';
   showEditor();
-  setPreviewMode(false);
   $('note-title-input').focus();
 };
 
-const fillEditor = (note) => {
+// keepBody: após salvar, mantém o editor como está (cursor e scroll intactos).
+const fillEditor = (note, { keepBody = false } = {}) => {
   $('note-title-input').value = note.title;
-  $('note-content-textarea').value = note.content;
+  if (keepBody) noteEditorMarkSaved(note.content ?? '');
+  else noteEditorSetMarkdown(note.content);
   $('note-tags-input').value = (note.tags || []).join(', ');
   $('note-cat-input').value = note.category || '';
   updateCatDot();
@@ -140,13 +149,12 @@ const fillEditor = (note) => {
   $('btn-copy-note').style.display = 'inline-flex';
   $('btn-delete-note').style.display = 'inline-flex';
   showEditor();
-  setPreviewMode(true); // abre em preview; usuário clica "Editar" se quiser modificar
 };
 
 // ── Salvar / excluir ──
 const saveCurrentNote = async () => {
   const title = $('note-title-input').value.trim();
-  const content = $('note-content-textarea').value.trim();
+  const content = noteEditorGetMarkdown().trim();
   const tags = $('note-tags-input').value.split(',').map((t) => t.trim()).filter(Boolean);
   const category = $('note-cat-input').value.trim();
   if (!title) { $('note-title-input').focus(); toast('Dê um título à nota'); return null; }
@@ -160,7 +168,7 @@ const saveCurrentNote = async () => {
       body: JSON.stringify({ title, content, tags, category }),
     });
     currentNote = await res.json();
-    fillEditor(currentNote);
+    fillEditor(currentNote, { keepBody: true });
     const [listRes, catsRes] = await Promise.all([fetch('/notes'), fetch('/categories')]);
     allNotes = await listRes.json();
     try { allCategories = await catsRes.json(); } catch { /* mantém anterior */ }
@@ -197,9 +205,8 @@ const insertAtCursor = (ta, text) => {
 };
 
 const insertImageMarkdown = (url) => {
-  const ta = $('note-content-textarea');
-  insertAtCursor(ta, `\n![](${url})\n`);
-  if (previewMode) setPreviewMode(true); // re-renderiza o preview
+  if (noteEd.source) insertAtCursor($('note-content-textarea'), `\n![](${url})\n`);
+  else noteEditorInsertHtml(`<p><img src="${escHtml(url)}" alt=""></p>`);
   toast('Imagem anexada');
 };
 
@@ -271,7 +278,12 @@ const onNotePaste = (e) => {
   if (types.some((t) => /^image\//i.test(t) || /tiff|picture|public\.image/i.test(t))) {
     e.preventDefault();
     toast('Formato de imagem não suportado');
+    return;
   }
+  // No WYSIWYG o texto colado entra limpo (sem estilos do HTML de origem).
+  if (noteEd.source) return;
+  e.preventDefault();
+  noteEditorPasteText(e.clipboardData?.getData('text/plain') || '');
 };
 
 // macOS: Ctrl+V não tem binding nativo (colar é Cmd+V) — o WebKit nem
@@ -294,7 +306,7 @@ const onNoteManualPaste = async (e) => {
   const wantCtrl = e.ctrlKey && !e.metaKey;
   const wantMeta = e.metaKey && !e.ctrlKey && !!navigator.clipboard?.read;
   if (!wantCtrl && !wantMeta) return;
-  if (e.target !== $('note-content-textarea')) return;
+  if (e.target !== $('note-content-textarea') && e.target !== noteSurface()) return;
   e.preventDefault();
   try {
     if (!navigator.clipboard?.read) {
@@ -324,13 +336,13 @@ const onNoteManualPaste = async (e) => {
         const text = await (await item.getType(textType)).text();
         const path = looksLikeImagePath(text);
         if (path) { await uploadNoteImagePath(path); return; }
-        if (text) { insertAtCursor($('note-content-textarea'), text); return; }
+        if (text) { notePasteAtCursor(text); return; }
       }
     }
     const text = await navigator.clipboard?.readText?.();
     const path = looksLikeImagePath(text || '');
     if (path) { await uploadNoteImagePath(path); return; }
-    if (text) { insertAtCursor($('note-content-textarea'), text); return; }
+    if (text) { notePasteAtCursor(text); return; }
     toast('Clipboard tem só: ' + (seenTypes.join(', ') || 'nada legível'));
   } catch (err) {
     console.error('Erro ao ler clipboard:', err);
@@ -391,15 +403,18 @@ const catsMore = async () => {
 const catRowHtml = (c, isSel) => `
     <div class="cat-row${isSel ? ' selected' : ''}" data-id="${escHtml(c.id)}">
       <div class="cat-row-head">
+        <span class="note-cat-dot" style="background:${catColor(c.name)}"></span>
         <strong>${escHtml(c.name)}</strong>
-        ${isSel ? '<span class="cat-current-badge">atual</span>' : ''}
-        <span class="note-tag">${escHtml(c.id)}</span>
-        <span class="note-tag">${c.notes ?? 0} notas</span>
-        <button class="ghost-btn" onclick="applyCatToNote('${escHtml(c.id)}')">usar</button>
-        <button class="ghost-btn danger" onclick="deleteCat('${escHtml(c.id)}')">excluir</button>
+        ${isSel ? '<span class="chip info">atual</span>' : ''}
+        <span class="cat-row-count">${c.notes ?? 0} ${(c.notes ?? 0) === 1 ? 'nota' : 'notas'}</span>
+        <span class="cat-row-actions">
+          <button class="ghost-btn" onclick="applyCatToNote('${escHtml(c.id)}')">${ICON('check')} Usar</button>
+          <button class="icon-btn danger" title="Excluir categoria" aria-label="Excluir categoria" onclick="deleteCat('${escHtml(c.id)}')">${ICON('trash')}</button>
+        </span>
       </div>
+      ${c.id !== c.name ? `<div class="cat-row-id">${escHtml(c.id)}</div>` : ''}
       <input class="cat-desc-input" data-id="${escHtml(c.id)}"
-        placeholder="Descrição (para a IA entender o uso)…"
+        placeholder="Descrição para a IA entender o uso"
         value="${escHtml(c.description || '')}"
         onchange="saveCatDescription('${escHtml(c.id)}', this.value)" />
     </div>`;
@@ -420,9 +435,9 @@ const renderCatsList = () => {
       html += `<button class="ghost-btn cats-more" onclick="catsMore()">Mostrar mais (${Math.min(catsLimit, catsTotal)} de ${catsTotal})</button>`;
     }
   } else if (q) {
-    html += `<div class="notes-empty">Nada para “${escHtml(q)}”.</div>`;
+    html += `<div class="cats-empty">Nada encontrado para “${escHtml(q)}”.</div>`;
   } else if (!catsSelected) {
-    html += '<div class="notes-empty">Nenhuma categoria ainda.</div>';
+    html += '<div class="cats-empty">Nenhuma categoria ainda. Crie a primeira abaixo.</div>';
   }
   list.innerHTML = html;
 };
@@ -526,31 +541,14 @@ const deleteCat = async (id) => {
   toast(moved > 0 ? `Categoria excluída — ${moved} ${moved === 1 ? 'nota ficou' : 'notas ficaram'} sem categoria` : 'Categoria excluída');
 };
 
-// ── Preview ──
-const setPreviewMode = (on) => {
-  previewMode = on;
-  const ta = $('note-content-textarea');
-  const pv = $('note-preview');
-  const btn = $('btn-preview');
-  if (on) {
-    pv.innerHTML = renderMarkdown(ta.value);
-    ta.style.display = 'none';
-    pv.classList.add('visible');
-    btn.innerHTML = `${ICON('pencil')} Editar`;
-  } else {
-    pv.classList.remove('visible');
-    ta.style.display = '';
-    btn.innerHTML = `${ICON('eye')} Preview`;
-  }
-};
-const toggleNotePreview = () => setPreviewMode(!previewMode);
-
 // ── Atualiza o pontinho de cor ao digitar a categoria ──
 $('note-cat-input').addEventListener('input', updateCatDot);
 
 // ── Colar imagem direto no conteúdo ──
-$('note-content-textarea').addEventListener('paste', onNotePaste);
-$('note-content-textarea').addEventListener('keydown', onNoteManualPaste);
+[noteSurface(), $('note-content-textarea')].forEach((el) => {
+  el.addEventListener('paste', onNotePaste);
+  el.addEventListener('keydown', onNoteManualPaste);
+});
 
 // ── Busca + filtros combinados ──
 $('notes-search-input').addEventListener('input', debounce(() => applyFilters(), 200));

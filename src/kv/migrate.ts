@@ -273,11 +273,27 @@ const migrations: Migration[] = [
   // descartado: purga as metas ["notebooks", …] e o diretório de corpos.
   // Recomeço limpo. Idempotente.
   async (kv) => {
-    const { notebooksDir } = await import('../config.ts');
+    const { dataDir } = await import('../config.ts');
     for await (const entry of kv.list<unknown>({ prefix: ['notebooks'] })) {
       await kv.delete(entry.key);
     }
-    await Deno.remove(notebooksDir(), { recursive: true }).catch(() => {});
+    await Deno.remove(`${dataDir()}/notebooks`, { recursive: true }).catch(
+      () => {},
+    );
+  },
+
+  // v21 — cadernos e codetour removidos do app. Purga as metas
+  // ["notebooks", …] e os diretórios de corpos/áudios. Idempotente.
+  async (kv) => {
+    const { dataDir } = await import('../config.ts');
+    for await (const entry of kv.list<unknown>({ prefix: ['notebooks'] })) {
+      await kv.delete(entry.key);
+    }
+    for (const dir of ['notebooks', 'codetour']) {
+      await Deno.remove(`${dataDir()}/${dir}`, { recursive: true }).catch(
+        () => {},
+      );
+    }
   },
 ];
 

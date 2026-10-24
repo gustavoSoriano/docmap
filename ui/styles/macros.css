@@ -1,172 +1,177 @@
-/* ════ Macros mode ════ */
-#mode-macros {
-  background: var(--bg);
-}
+/* ════ Macros ════
+   Sidebar (head, collections, footer): layout.css.
+   Aqui: itens da lista e o editor em forma de runner
+   (script no alto, terminal ancorado embaixo). */
 
-/* ── List column (estrutura no layout.css — padrão sidebar) ── */
-#macros-col {
-  background: var(--surface);
-}
-
+/* ── Lista ── */
 #macros-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 4px 5px;
+  padding: 6px 10px 12px;
 }
 .macros-empty {
-  padding: 34px 22px;
+  padding: 28px 16px;
   text-align: center;
   color: var(--text-3);
-  font-size: 12.5px;
-  line-height: 1.7;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
 }
 
 .macro-item {
-  padding: 9px 10px;
-  border-radius: var(--r-sm);
+  padding: 10px 12px 11px;
+  margin-bottom: 2px;
+  border-radius: var(--r-md);
   cursor: pointer;
-  transition: background .1s;
-  border-left: 2px solid transparent;
+  transition: background var(--dur);
 }
 .macro-item:hover {
   background: var(--surface-2);
 }
-.macro-item-collection {
-  display: inline-block;
-  margin-top: 5px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: var(--surface-3);
-  color: var(--text-4);
-  font-size: .6rem;
-}
-.macro-item-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.macro-interp-dot {
-  font-size: 13px;
-  flex-shrink: 0;
-}
 .macro-item-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.35;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.macro-item.active .macro-item-title {
-  color: var(--accent);
-}
 .macro-item-desc {
-  font-size: 11.5px;
+  margin-top: 3px;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
   color: var(--text-3);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-
-/* ── Editor column ── */
-#macros-editor {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.macro-item-desc:empty {
+  display: none;
 }
-#macros-editor-empty {
-  flex: 1;
+.macro-item-tags {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-height: 20px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.macro-item-tags .chip {
+  height: 20px;
+  padding: 0 7px;
+}
+.macro-item-tags .macro-item-interp {
+  padding-left: 0;
+  background: transparent;
   color: var(--text-3);
+  font-family: var(--font-mono);
 }
-#macros-editor-empty-mark {
-  width: 66px;
-  height: 66px;
-  display: grid;
-  place-items: center;
-  color: var(--text-4);
-  border: 1px dashed var(--border-mid);
-  border-radius: 18px;
-}
-#macros-editor-empty-mark .ico {
-  width: 28px;
-  height: 28px;
-}
-#macros-editor-empty-text {
-  font-size: 14px;
+.macro-item-tags .macro-item-interp.info {
+  color: var(--info);
 }
 
+/* ── Editor: runner ── */
+#macros-editor {
+  display: flex;
+  flex-direction: column;
+}
 #macros-editor-form {
   display: none;
   flex-direction: column;
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
 }
 #macros-editor-form.visible {
   display: flex;
 }
 
+/* cabeçalho: título + interpretador + slug | salvar (tonal) + executar (âmbar) */
 #macro-head {
+  min-height: var(--head-h);
+  padding: 0 18px 0 22px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 20px 10px;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
 }
 #macro-title-input {
   flex: 1;
-  border: none;
-  outline: none;
+  min-width: 120px;
+  border: 0;
+  outline: 0;
   background: transparent;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 20px;
+  font-weight: 650;
+  font-stretch: var(--stretch-display);
+  font-size: 28px;
   letter-spacing: -.02em;
+  line-height: 1.2;
   color: var(--text);
+  text-overflow: ellipsis;
 }
 #macro-title-input::placeholder {
   color: var(--text-4);
 }
+#macro-title-input:focus-visible {
+  box-shadow: none;
+}
 
+/* chip do interpretador (shebang) */
+.macro-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  flex-shrink: 0;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.macro-badge::before {
+  content: '#!';
+  margin-right: 3px;
+  opacity: .55;
+}
+.macro-badge.deno {
+  background: var(--info-dim);
+  color: var(--info);
+}
+#macro-interp-badge:empty {
+  display: none;
+}
+
+/* chip do slug (clique copia) */
 .macro-slug-chip {
   appearance: none;
   min-width: 0;
-  max-width: 220px;
-  height: 28px;
+  max-width: 240px;
+  height: 24px;
+  padding: 0 8px 0 9px;
   align-items: center;
-  gap: 6px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0)),
-    var(--surface-2);
+  gap: 7px;
+  flex-shrink: 1;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-xs);
+  background: transparent;
   color: var(--text-3);
   cursor: pointer;
-  font-family: var(--font-ui);
-  padding: 0 8px 0 9px;
-  flex-shrink: 1;
   white-space: nowrap;
-  transition: border-color .12s, background .12s, color .12s;
+  transition: background var(--dur), border-color var(--dur), color var(--dur);
 }
 .macro-slug-chip:hover {
-  border-color: var(--accent-line);
   background: var(--surface-3);
+  border-color: var(--border-hi);
   color: var(--text);
 }
-.macro-slug-chip:focus-visible {
-  outline: 2px solid var(--accent-line);
-  outline-offset: 2px;
-}
 .macro-slug-label {
-  color: var(--text-4);
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 600;
+  color: var(--text-3);
 }
 #macro-slug-value {
   min-width: 0;
@@ -175,393 +180,346 @@
   white-space: nowrap;
   color: var(--text-2);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   line-height: 1;
 }
 .macro-slug-chip .ico {
   width: 13px;
   height: 13px;
   flex-shrink: 0;
-  color: var(--accent);
-}
-
-.macro-badge {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: var(--r-sm);
-  flex-shrink: 0;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-.macro-badge.bash {
-  background: rgba(251,191,36,.12);
-  color: #fbbf24;
-  border: 1px solid rgba(251,191,36,.3);
-}
-.macro-badge.deno {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border: 1px solid var(--accent-line);
 }
 
 #macro-head-actions {
   display: flex;
-  gap: 7px;
-  flex-shrink: 0;
-}
-.macro-run-btn {
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 2px 10px rgba(55,217,154,.25);
-}
-.macro-run-btn:hover {
-  background: var(--accent-2) !important;
-}
-.macro-run-btn:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-}
-
-#macro-desc-row {
-  display: flex;
-  gap: 8px;
   align-items: center;
-  padding: 0 20px 12px;
-  border-bottom: 1px solid var(--border);
+  gap: 8px;
   flex-shrink: 0;
+  margin-left: 4px;
 }
-#macro-desc-input,
-#macro-input-label {
-  flex: 1;
-  height: 30px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--text-2);
-  padding: 0 10px;
-  outline: none;
+#btn-macro-delete {
+  align-items: center;
+  justify-content: center;
 }
-#macro-collection-select {
-  height: 30px;
-  max-width: 170px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  padding: 0 8px;
-  outline: none;
+#btn-macro-run {
+  min-width: 108px;
 }
-#macro-collection-select:focus {
-  border-color: var(--accent-line);
-}
-#macro-desc-input:focus,
-#macro-input-label:focus {
-  border-color: var(--accent-line);
-}
-#macro-desc-input::placeholder,
-#macro-input-label::placeholder {
-  color: var(--text-3);
-}
-
-#macro-path-hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  margin: 15px 20px 0;
-  padding: 8px 12px;
-  background: rgba(96,165,250,.08);
-  border: 1px solid rgba(96,165,250,.2);
-  border-radius: var(--r-sm);
-  font-size: 11.5px;
-  color: var(--cat-arch);
-  line-height: 1.5;
-  flex-shrink: 0;
-}
-#macro-path-hint .ico {
+.run-spinner {
+  display: inline-block;
   width: 13px;
   height: 13px;
-  flex-shrink: 0;
-  margin-top: 1px;
-  color: var(--text-3);
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  opacity: .8;
+  animation: macro-spin .7s linear infinite;
 }
-#macro-path-hint code {
-  font-family: var(--font-mono);
-  color: var(--text-2);
+@keyframes macro-spin {
+  to { transform: rotate(360deg); }
 }
 
+/* metadados compactos */
+#macro-desc-row {
+  padding: 14px 22px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+#macro-collection-select,
+#macro-desc-input,
+#macro-input-label,
+#macro-tags-input {
+  height: 32px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+}
+#macro-collection-select {
+  max-width: 190px;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+#macro-desc-input {
+  flex: 2 1 220px;
+  min-width: 0;
+}
+#macro-input-label,
+#macro-tags-input {
+  flex: 1 1 170px;
+  min-width: 0;
+}
+
+/* painel do script */
 #macro-body {
   flex: 1;
-  min-height: 0;
+  min-height: 120px;
   display: flex;
   flex-direction: column;
+  margin: 0 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+#macro-body:focus-within {
+  border-color: var(--border-hi);
 }
 #macro-script {
   flex: 1;
-  border: none;
-  outline: none;
-  resize: none;
-  padding: 18px 20px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.75;
-  color: var(--text);
-  background: var(--surface);
-  tab-size: 2;
   min-height: 120px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  padding: 16px 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+  background: transparent;
+  tab-size: 2;
+}
+#macro-script:focus-visible {
+  box-shadow: none;
 }
 #macro-script::placeholder {
   color: var(--text-3);
 }
 
-/* CodeMirror — substitui o textarea quando inicializado.
-   `color` sem !important: garante texto legível se o tema CDN não carregar,
-   mas perde para seletores mais específicos quando o tema está presente. */
+/* CodeMirror: tema por variáveis (claro e escuro) */
 #macro-body .CodeMirror {
   flex: 1;
   min-height: 120px;
-  font-family: var(--font-mono) !important;
-  font-size: 12.5px;
-  line-height: 1.75;
-  background: var(--surface) !important;
-  color: var(--text);
-  border: none;
   height: auto;
-}
-#macro-body .CodeMirror-focused {
-  /* sem borda extra, o editor já preenche o container */
+  font-family: var(--font-mono) !important;
+  font-size: 13px;
+  line-height: 1.65;
+  background: transparent !important;
+  color: var(--text);
 }
 #macro-body .CodeMirror-scroll {
   min-height: 120px;
 }
+#macro-body .CodeMirror-lines {
+  padding: 14px 0;
+}
+#macro-body .CodeMirror pre.CodeMirror-line,
+#macro-body .CodeMirror pre.CodeMirror-line-like {
+  padding: 0 20px 0 6px;
+}
 #macro-body .CodeMirror-gutters {
-  background: var(--surface-2) !important;
-  border-right: 1px solid var(--border) !important;
-  padding-right: 4px;
+  background: transparent !important;
+  border-right: 0 !important;
 }
 #macro-body .CodeMirror-linenumber {
+  padding: 0 6px 0 14px;
   color: var(--text-4) !important;
-  font-size: 0.68rem;
+  font-size: var(--fs-xs);
 }
 #macro-body .CodeMirror-cursor {
-  border-left-color: var(--accent) !important;
+  border-left: 2px solid var(--text) !important;
 }
-#macro-body .CodeMirror-selectedtext,
-#macro-body .CodeMirror-selected {
-  background: rgba(55,217,154,.15) !important;
+#macro-body .CodeMirror-selected,
+#macro-body .CodeMirror-focused .CodeMirror-selected {
+  background: var(--info-dim) !important;
+}
+#macro-body .CodeMirror-line::selection,
+#macro-body .CodeMirror-line > span::selection,
+#macro-body .CodeMirror-line > span > span::selection {
+  background: var(--info-dim);
+}
+#macro-body .cm-s-default .cm-keyword,
+#macro-body .cm-s-default .cm-builtin,
+#macro-body .cm-s-default .cm-atom,
+#macro-body .cm-s-default .cm-qualifier {
+  color: var(--info);
+}
+#macro-body .cm-s-default .cm-string,
+#macro-body .cm-s-default .cm-string-2 {
+  color: var(--ok);
+}
+#macro-body .cm-s-default .cm-comment,
+#macro-body .cm-s-default .cm-meta {
+  color: var(--text-3);
+  font-style: italic;
+}
+#macro-body .cm-s-default .cm-number {
+  color: var(--warn);
+}
+#macro-body .cm-s-default .cm-variable,
+#macro-body .cm-s-default .cm-variable-2,
+#macro-body .cm-s-default .cm-variable-3,
+#macro-body .cm-s-default .cm-def,
+#macro-body .cm-s-default .cm-property,
+#macro-body .cm-s-default .cm-attribute {
+  color: var(--text);
+}
+#macro-body .cm-s-default .cm-operator,
+#macro-body .cm-s-default .cm-punctuation,
+#macro-body .cm-s-default .cm-bracket {
+  color: var(--text-2);
+}
+#macro-body .cm-s-default .cm-error {
+  color: var(--danger);
 }
 
-/* ── Output panel ── */
+/* dica de uso: linha de ajuda, não faixa */
+#macro-path-hint {
+  padding: 10px 22px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  color: var(--text-3);
+}
+#macro-path-hint .ico {
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+}
+#macro-path-hint code {
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  color: var(--info);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+/* ── Terminal: ancorado embaixo da ilha ── */
 #macro-output-panel {
   flex-shrink: 0;
-  max-height: 45%;
+  max-height: 40%;
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--border);
-  background: #080a0d;
+  background: var(--bg);
 }
 #macro-output-header {
+  min-height: 40px;
+  padding: 0 12px 0 22px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
   flex-shrink: 0;
 }
 #macro-output-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+}
+#macro-output-title .ico {
+  width: 15px;
+  height: 15px;
   color: var(--text-3);
 }
-.macro-status {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: var(--r-xl);
+.macro-output-spacer {
+  flex: 1;
 }
-.macro-status.running {
-  background: rgba(55,217,154,.15);
-  color: var(--accent);
-  border: 1px solid var(--accent-line);
-  animation: pulse-dot 1.5s ease-in-out infinite;
+.macro-status:empty {
+  display: none;
+}
+.macro-status.status.info::before {
+  animation: macro-pulse 1.4s ease-in-out infinite;
+}
+@keyframes macro-pulse {
+  50% { opacity: .35; }
 }
 
 #macro-output {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: auto;
-  padding: 14px 20px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.6;
+  min-height: 56px;
   margin: 0;
+  padding: 2px 22px 16px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
 }
+#macro-output:empty::before {
+  content: 'A saída da execução aparece aqui.';
+  color: var(--text-4);
+}
 .out-out {
-  color: #d4d4d4;
+  color: var(--text);
 }
 .out-info {
-  color: #626976;
+  color: var(--text-3);
 }
 .out-error {
-  color: var(--cat-security);
+  color: var(--danger);
+  font-weight: 600;
 }
 .out-success {
-  color: var(--accent);
+  color: var(--ok);
+  font-weight: 600;
 }
-
-/* spinner */
-.run-spinner {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(6,18,13,.4);
-  border-top-color: var(--on-accent);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  vertical-align: middle;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.ghost-btn.danger:hover {
-  color: var(--cat-security);
-  border-color: var(--cat-security);
-}
-
-/* ── Tags ── */
-.macro-item-tags {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  margin-top: 5px;
-}
-
-#macro-tags-input {
-  height: 30px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--text);
-  padding: 0 9px;
-  outline: none;
-  flex: 1;
-}
-#macro-tags-input:focus {
-  border-color: var(--accent-line);
-}
-#macro-tags-input::placeholder {
-  color: var(--text-3);
+.out-rule {
+  display: block;
+  height: 1px;
+  margin: 8px 0;
+  background: var(--border-mid);
 }
 
 /* ════════ Responsivo ════════ */
-@media (max-width: 900px) {
-  #macros-col {
-    width: var(--sidebar-w-tablet);
-  }
+@media (max-width: 1100px) {
   #macro-head {
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px 14px 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    row-gap: 8px;
   }
   #macro-title-input {
-    font-size: 18px;
-  }
-  #macro-desc-row {
-    flex-wrap: wrap;
-    padding: 0 14px 10px;
-  }
-  #macro-path-hint {
-    margin: 10px 14px 0;
-  }
-}
-
-@media (max-width: 600px) {
-  #mode-macros {
-    flex-direction: column;
-  }
-  /* Sidebar escondida por padrão — clique no ◆ para abrir */
-  #macros-col {
-    width: 100%;
-    max-height: 0;
-    overflow: hidden;
-    flex-shrink: 0;
-    border-right: none;
-    border-bottom: none;
-    transition: max-height 0.25s ease;
-  }
-  #macros-col.col-collapsed {
-    max-height: 60vh;
-    overflow-y: auto;
-    border-bottom: 1px solid var(--border);
-    opacity: 1;
-    pointer-events: auto;
-    width: 100%;
-    min-width: 0;
-    flex-shrink: 0;
-  }
-  #macros-col-head {
-    padding: 8px 12px 6px;
-  }
-  #macros-col-subhead {
-    padding: 6px 8px 6px 12px;
-  }
-  #macros-col-title {
-    font-size: 14px;
-  }
-  .macro-item {
-    padding: 7px 12px;
-  }
-  .macro-item-title {
-    font-size: 11.5px;
-  }
-  .macro-item-desc {
-    font-size: 10.5px;
-  }
-  #macros-editor {
-    flex: 1;
-    min-height: 0;
-  }
-  #macro-head {
-    padding: 10px 12px 6px;
-  }
-  #macro-title-input {
-    font-size: 16px;
-  }
-  #macro-desc-row {
-    padding: 0 12px 8px;
+    flex: 1 1 100%;
+    font-size: var(--fs-2xl);
   }
   #macro-head-actions {
-    gap: 4px;
+    margin-left: auto;
+  }
+}
+@media (max-width: 900px) {
+  #macro-desc-row,
+  #macro-path-hint {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  #macro-body {
+    margin: 0 16px;
+  }
+  #macro-head {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  #macro-output-header {
+    padding-left: 16px;
+  }
+  #macro-output {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+@media (max-width: 600px) {
+  #macro-title-input {
+    font-size: var(--fs-xl);
   }
   #macro-head-actions .tool-btn {
-    padding: 0 8px;
-    font-size: 11px;
-    height: 28px;
+    padding: 0 10px;
   }
-  #macro-script {
-    padding: 12px 14px;
-    font-size: 11.5px;
+  #macro-desc-row,
+  #macro-path-hint {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  #macro-body {
+    margin: 0 12px;
   }
   #macro-output-panel {
     max-height: 35%;
-  }
-  #macro-output {
-    padding: 10px 14px;
-    font-size: 11px;
   }
 }

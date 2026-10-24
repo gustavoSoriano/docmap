@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '13.2.0';
+export const HEADLESS_MANUAL_VERSION = '13.3.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -73,8 +73,9 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     id: 'trilhas',
     title: 'Trilhas',
     heading: 'Trilhas — objetivo visual editável (humano + IA)',
-    summary: 'Fluxograma de blocos com detalhes, status, responsável e tags.',
-    tags: ['trilhas', 'visual', 'dag'],
+    summary:
+      'Harness compartilhado: blocos, sinais, guardrails, arsenal e contexto para IA.',
+    tags: ['trilhas', 'visual', 'dag', 'harness'],
   },
   {
     id: 'podcasts',
@@ -371,13 +372,13 @@ Bloqueio: \`blockedReason\` diz o que falta (fila "aguardando humano").
 |--------|----------|-----------|
 | GET | \`/trilhas\` | Lista com \`nodeCount\` + \`deepLink\` |
 | POST | \`/trilhas\` | Cria \`{ title, objective, description?, tags? }\` |
-| GET | \`/trilhas/:id\` | Trilha + \`nodes\` + \`edges\` + \`stickies\` |
+| GET | \`/trilhas/:id\` | Trilha + \`nodes\` + \`edges\` + \`stickies\` + \`refs\` + \`signals\` + \`attention\` + \`health\` |
 | PUT | \`/trilhas/:id\` | Edita (parcial, inclui \`status\`) |
 | DELETE | \`/trilhas/:id\` | Remove trilha + nós + arestas + stickers + eventos |
 | GET | \`/trilhas/:id/next?by=<nome>\` | Próximo bloco acionável (todo + deps done); com \`by\`, já reserva; 404 \`no_work\` se vazio |
 | GET | \`/trilhas/:id/events?limit=100\` | Log append-only (criações, status, claims, setas) |
 | GET | \`/trilhas/:id/nodes\` | Lista nós da trilha |
-| POST | \`/trilhas/:id/nodes\` | Cria \`{ title, details?, result?, doneCriteria?, blockedReason?, status?, assignee?, position?, dependsOn? }\` |
+| POST | \`/trilhas/:id/nodes\` | Cria \`{ title, details?, result?, doneCriteria?, blockedReason?, status?, assignee?, group?, position?, dependsOn? }\` |
 | GET | \`/trilhas/:id/nodes/:nodeId\` | Nó avulso (para a IA executar só ele) |
 | PUT | \`/trilhas/:id/nodes/:nodeId\` | Edita nó; aceita \`by\` e \`expectedUpdatedAt\` (409 em conflito/trava alheia) |
 | DELETE | \`/trilhas/:id/nodes/:nodeId\` | Remove nó + arestas ligadas |
@@ -392,10 +393,44 @@ Bloqueio: \`blockedReason\` diz o que falta (fila "aguardando humano").
 | GET | \`/trilhas/:id/stickies/:stickyId\` | Sticker avulso |
 | PUT | \`/trilhas/:id/stickies/:stickyId\` | Edita sticker (texto, cor, posição) |
 | DELETE | \`/trilhas/:id/stickies/:stickyId\` | Remove sticker |
+| GET | \`/trilhas/:id/context[?node=<id>][&format=json]\` | **Pacote de contexto** em markdown: objetivo, guardrails, estado, bloco (briefing, critérios, resultado das dependências, refs, sinais) e como operar |
+| GET | \`/trilhas/:id/signals\` | Lista sinais (abertos e resolvidos) |
+| POST | \`/trilhas/:id/signals\` | Abre sinal \`{ kind: blocker\\|warning\\|question\\|pending, text, nodeId?, by? }\` |
+| PUT | \`/trilhas/:id/signals/:signalId\` | Resolve \`{ resolution?, by? }\` ou reabre \`{ status: "open" }\` |
+| DELETE | \`/trilhas/:id/signals/:signalId\` | Remove sinal |
+| GET | \`/trilhas/:id/refs\` | Referências a artefatos (com título resolvido; \`missing\` se o alvo sumiu) |
+| POST | \`/trilhas/:id/refs\` | Anexa \`{ kind: note\\|skill\\|macro\\|podcast\\|favorite, targetId, role?: context\\|guardrail, nodeId? }\`; sem \`nodeId\` fixa na trilha inteira |
+| DELETE | \`/trilhas/:id/refs/:refId\` | Remove referência |
+| GET | \`/trilhas/:id/arsenal[?q=]\` | Sem \`q\`: só o que vale para a trilha (fixados + guardrails ativos por tag). Com \`q\`: busca no acervo todo, agrupada em \`guardrails\`, \`skills\`, \`macros\`, \`notes\`, \`podcasts\`, \`favorites\` |
+| POST | \`/trilhas/:id/layout\` | Reorganiza blocos por \`group\` e dependência (aceita \`{ heights }\` medidas pela UI) |
+| POST | \`/trilhas/:id/macros/:macroRef/run\` | Executa macro \`{ input?, nodeId?, by? }\` e registra evento; devolve \`{ ok, code, output }\` |
+| GET | \`/trilhas/:id/stream\` | SSE: evento \`change\` a cada mudança (a UI refaz o GET) |
 
 Para delegar um nó a uma IA, copie o **ID do nó** e envie
-\`GET /trilhas/:id/nodes/:nodeId\` — o pacote contém título, briefing,
-relatório, critérios, status e dependências.
+\`GET /trilhas/:id/context?node=<id>\` — o pacote já traz guardrails,
+briefing, critérios, resultado das dependências, referências e sinais.
+
+### Harness: contexto, sinais e referências
+
+A trilha é o quadro compartilhado entre humano e agentes. Comece SEMPRE por
+\`GET /trilhas/:id/context\` (e \`?node=<id>\` para o seu bloco): ali estão os
+**guardrails (obrigatórios)**, o estado e como operar. Não repita playbook no
+\`details\`: anexe a skill/nota como referência.
+
+- **Sinais** = canal de alerta. Travou? \`POST .../signals { kind: "blocker", text, nodeId, by }\`
+  (o bloco vira \`blocked\` sozinho; resolver o último bloqueio o libera).
+  Precisa de decisão do humano? \`kind: "question"\` ou \`"pending"\`. Risco sem
+  trava? \`"warning"\`. Eles formam a fila **Atenção** que o humano acompanha.
+- **Referências** = ponte para o acervo. \`POST .../refs\` anexa nota, skill,
+  macro, podcast ou favorito a um bloco (ou fixa na trilha, sem \`nodeId\`).
+  Macro anexada vira botão ▶ no bloco. \`role: "guardrail"\` em uma nota a
+  torna regra inegociável. Notas com a tag \`i-guardrail\` que compartilham tag
+  com a trilha entram sozinhas como guardrail.
+- **Grupos**: \`group\` no bloco (ex.: nome da app) agrupa blocos em uma frente
+  no mapa; depois de criar vários blocos chame \`POST .../layout\`.
+- **Tags**: a tag da trilha liga ao acervo — notas \`i-guardrail\` com a mesma
+  tag valem como guardrail sem fixar; o resto o humano busca no Arsenal. Use as
+  duas tags \`[objetivo, i-item]\` nos artefatos.
 
 ### Loop de execução
 

@@ -1,81 +1,120 @@
-/* ════ Grafo de conhecimento ════ */
+/* ════ Grafo de conhecimento ════
+   O mapa ocupa a ilha inteira; os controles flutuam sobre ele (vidro),
+   em três âncoras: título (topo esq.), ferramentas (topo dir.) e
+   legenda-filtro (base). Cor de tipo de nó = variáveis --kg-*. */
 #mode-graph {
   flex-direction: column;
   position: relative;
-  /* cor por tipo de nó — lidas pelo graph.js via getComputedStyle */
-  --kg-note: #6ea8fe;
-  --kg-task: #f6a06a;
-  --kg-macro: #4ade80;
-  --kg-podcast: #f472b6;
-  --kg-favorite: #fbbf24;
-  --kg-skill: #22d3ee;
-  --kg-mock: #a8a29e;
-  --kg-trilha: #38bdf8;
-  --kg-agentchat: #a3e635;
-  --kg-notebook: #f5b638;
+  --kg-note: #6aa8ff;
+  --kg-task: #ff9f6b;
+  --kg-trilha: #35d3e6;
+  --kg-macro: #4fd6a0;
+  --kg-podcast: #f48fb1;
+  --kg-favorite: #e9cf63;
+  --kg-skill: #b69cff;
+  --kg-mock: #a9b6c9;
+  --kg-agentchat: #a8e04f;
   --kg-tag: var(--text-3);
+  --glass: color-mix(in srgb, var(--surface) 80%, transparent);
+}
+:root[data-theme='light'] #mode-graph {
+  --kg-note: #2f6fe0;
+  --kg-task: #e0662a;
+  --kg-trilha: #0a9db3;
+  --kg-macro: #0f9d6e;
+  --kg-podcast: #d6407f;
+  --kg-favorite: #b08900;
+  --kg-skill: #7c52e0;
+  --kg-mock: #6b7d96;
+  --kg-agentchat: #5f9a0e;
 }
 
-#kg-toolbar {
+/* ── Controles flutuantes ── */
+.kg-float {
+  position: absolute;
+  z-index: 5;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-md);
+}
+#kg-head {
+  top: 14px;
+  left: 14px;
+  height: 44px;
+  padding: 0 16px 0 14px;
 }
 .kg-title {
-  font-weight: 600;
-  color: var(--text);
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
+  font-size: var(--fs-lg);
+  font-weight: 650;
+  font-stretch: var(--stretch-display);
+  letter-spacing: -.015em;
+  color: var(--text);
+}
+.kg-title [data-icon] {
+  color: var(--accent);
 }
 .kg-title .ico {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
 }
 #kg-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+#kg-count .chip {
+  background: transparent;
+  padding: 0;
   color: var(--text-3);
-  font-size: 12px;
-  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
-.kg-tool-btn {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+#kg-count .chip b {
   color: var(--text-2);
-  border-radius: 7px;
-  padding: 5px 11px;
-  font-size: 12px;
-  font-family: var(--font-ui);
-  cursor: pointer;
+  font-weight: 650;
 }
-.kg-tool-btn:hover {
-  color: var(--text);
-  border-color: var(--border-hi);
+#kg-count .chip.warn {
+  background: var(--warn-dim);
+  color: var(--warn);
+  padding: 0 8px;
 }
 
+#kg-tools {
+  top: 14px;
+  right: 14px;
+  height: 44px;
+  padding: 0 6px 0 12px;
+  gap: 4px;
+}
+.kg-tools-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--border-mid);
+}
 #kg-tag-search-wrap {
-  width: min(240px, 100%);
+  width: 220px;
   height: 32px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--surface-2);
+  gap: 8px;
+  padding: 0 8px 0 4px;
   color: var(--text-3);
 }
 #kg-tag-search-wrap:focus-within {
-  border-color: var(--border-hi);
   color: var(--text-2);
 }
 #kg-tag-search-wrap .ico {
-  width: 14px;
-  height: 14px;
-  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
 }
 #kg-tag-search {
   min-width: 0;
@@ -84,20 +123,20 @@
   outline: 0;
   background: transparent;
   color: var(--text);
-  font: 12px var(--font-ui);
+  font-size: var(--fs-md);
 }
 #kg-tag-search::placeholder {
   color: var(--text-3);
 }
 #kg-tag-search-clear {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: none;
   align-items: center;
   justify-content: center;
   border: 0;
   padding: 0;
-  border-radius: 5px;
+  border-radius: var(--r-xs);
   background: transparent;
   color: var(--text-3);
   cursor: pointer;
@@ -110,28 +149,43 @@
   color: var(--text);
 }
 
+/* Legenda = filtro por tipo, base centralizada */
 #kg-legend {
-  display: flex;
-  gap: 12px;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 28px);
   flex-wrap: wrap;
-  margin-left: auto;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 16px;
 }
 .kg-leg {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  color: var(--text-3);
+  gap: 7px;
+  height: 30px;
+  padding: 0 11px 0 10px;
+  border-radius: 11px;
+  font-size: var(--fs-sm);
+  font-weight: 580;
+  color: var(--text-2);
   cursor: pointer;
   user-select: none;
-  transition: opacity .12s, color .12s;
+  transition: background var(--dur), color var(--dur), opacity var(--dur);
 }
 .kg-leg:hover {
+  background: var(--surface-3);
   color: var(--text);
 }
 .kg-leg.off {
-  opacity: .38;
-  text-decoration: line-through;
+  opacity: .42;
+}
+.kg-leg.off i {
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1.5px var(--text-3);
 }
 .kg-leg i {
   width: 9px;
@@ -139,47 +193,36 @@
   border-radius: 50%;
   display: inline-block;
 }
-.kg-leg-note i {
-  background: var(--kg-note);
+.kg-leg b {
+  font-weight: 560;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
 }
-.kg-leg-task i {
-  background: var(--kg-task);
-}
-.kg-leg-macro i {
-  background: var(--kg-macro);
-}
-.kg-leg-podcast i {
-  background: var(--kg-podcast);
-}
-.kg-leg-favorite i {
-  background: var(--kg-favorite);
-}
-.kg-leg-skill i {
-  background: var(--kg-skill);
-}
-.kg-leg-mock i {
-  background: var(--kg-mock);
-}
-.kg-leg-trilha i {
-  background: var(--kg-trilha);
-}
-.kg-leg-agentchat i {
-  background: var(--kg-agentchat);
-}
-.kg-leg-notebook i {
-  background: var(--kg-notebook);
-}
+.kg-leg-note i { background: var(--kg-note); }
+.kg-leg-task i { background: var(--kg-task); }
+.kg-leg-macro i { background: var(--kg-macro); }
+.kg-leg-podcast i { background: var(--kg-podcast); }
+.kg-leg-favorite i { background: var(--kg-favorite); }
+.kg-leg-skill i { background: var(--kg-skill); }
+.kg-leg-mock i { background: var(--kg-mock); }
+.kg-leg-trilha i { background: var(--kg-trilha); }
+.kg-leg-agentchat i { background: var(--kg-agentchat); }
 .kg-leg-tag i {
-  background: var(--kg-tag);
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--kg-tag);
 }
 
+/* ── Tela do mapa: grade de carta ── */
 #kg-canvas {
-  flex: 1;
-  min-height: 0;
-  position: relative;
-  background:
-    radial-gradient(1200px 700px at 50% 45%, rgba(255, 255, 255, .015),
-    transparent 70%), var(--bg);
+  position: absolute;
+  inset: 0;
+  background-color: var(--surface);
+  background-image:
+    radial-gradient(ellipse 70% 60% at 50% 48%, var(--surface-2) 0%, transparent 100%),
+    linear-gradient(var(--border-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
+  background-size: auto, 48px 48px, 48px 48px;
+  background-position: center;
 }
 svg#kg-svg {
   width: 100%;
@@ -192,22 +235,23 @@ svg#kg-svg:active {
 }
 
 .kg-link {
-  stroke: var(--border-hi);
-  stroke-width: 1.2;
-  stroke-opacity: .6;
+  vector-effect: non-scaling-stroke;
+  stroke: var(--text-4);
+  stroke-width: 1;
+  stroke-opacity: .45;
 }
 .kg-link-reference {
   stroke: var(--kg-task);
-  stroke-width: 2;
-  stroke-opacity: .85;
+  stroke-width: 1.6;
+  stroke-opacity: .8;
 }
 .kg-link.kg-hi {
   stroke: var(--accent);
-  stroke-width: 2.4;
+  stroke-width: 2;
   stroke-opacity: 1;
 }
 .kg-link.kg-dim {
-  opacity: .06;
+  opacity: .05;
 }
 
 .kg-node {
@@ -217,96 +261,88 @@ svg#kg-svg:active {
   pointer-events: none;
 }
 .kg-core {
-  stroke: var(--bg);
+  stroke: var(--surface);
   stroke-width: 2;
-  transition: transform .16s ease;
+  transition: transform .16s var(--ease);
+}
+.kg-node-tag .kg-core {
+  fill: var(--surface) !important;
+  stroke: var(--kg-tag);
+  stroke-width: 2;
 }
 .kg-node:hover .kg-core {
-  transform: scale(1.15);
+  transform: scale(1.2);
 }
+/* rótulos: semântica por zoom — só aparecem quando há espaço para ler */
 .kg-label {
   font-family: var(--font-ui);
-  font-size: 11px;
-  fill: var(--text-2);
+  font-size: 12px;
+  font-weight: 560;
+  fill: var(--text);
   pointer-events: none;
   paint-order: stroke;
-  stroke: var(--bg);
-  stroke-width: 3.5px;
+  stroke: var(--surface);
+  stroke-width: 4px;
   stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity .18s;
+}
+svg#kg-svg.kg-zoomed .kg-label,
+.kg-node:hover .kg-label,
+.kg-node.kg-selected .kg-label,
+svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
+  opacity: 1;
 }
 .kg-node-tag .kg-label {
   fill: var(--text-3);
-  font-style: italic;
 }
 .kg-node.kg-selected .kg-core {
-  stroke: var(--text);
+  stroke: var(--accent);
   stroke-width: 3;
 }
-.kg-node.kg-selected .kg-label {
-  fill: var(--text);
-  font-weight: 600;
-}
 .kg-node.kg-dim {
-  opacity: .15;
+  opacity: .12;
 }
 .kg-node.kg-dim .kg-label {
-  opacity: 0;
+  opacity: 0 !important;
+}
+
+/* tooltip do grafo (usa #tooltip global) */
+#tooltip strong {
+  font-weight: 650;
+}
+#tooltip .tip-meta {
+  display: block;
+  margin-top: 1px;
+  opacity: .66;
+  font-weight: 500;
 }
 
 #kg-empty {
   position: absolute;
   inset: 0;
   display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: var(--text-3);
-  text-align: center;
-  padding: 40px;
 }
 #kg-empty[data-show="1"] {
   display: flex;
 }
-.kg-empty-mark {
-  width: 44px;
-  height: 44px;
-  opacity: .4;
-}
-.kg-empty-hint {
-  font-size: 13px;
-  max-width: 340px;
-  line-height: 1.55;
-}
 
 /* ════════ Responsivo ════════ */
-@media (max-width: 600px) {
-  #kg-toolbar {
-    padding: 8px 10px;
-    gap: 8px;
-  }
-  .kg-title {
-    font-size: 14px;
-  }
-  .kg-tool-btn {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
+@media (max-width: 900px) {
   #kg-tag-search-wrap {
-    width: 100%;
-    order: 3;
+    width: 150px;
   }
-  #kg-legend {
-    gap: 8px;
-    margin-left: 0;
-    order: 4;
+  #kg-count {
+    display: none;
   }
-  .kg-leg {
-    font-size: 10px;
-    gap: 3px;
+}
+@media (max-width: 600px) {
+  #kg-tools {
+    left: 14px;
+    right: auto;
+    top: 66px;
   }
-  .kg-empty-hint {
-    font-size: 12px;
-    max-width: 260px;
+  .kg-leg b {
+    display: none;
   }
 }
