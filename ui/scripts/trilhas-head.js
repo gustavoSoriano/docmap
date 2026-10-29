@@ -176,31 +176,6 @@ const renderTrilhaHead = () => {
   applyTrilhaPanels();
 };
 
-// ── Organizar ──
-
-const applyTrilhaLayout = async () => {
-  if (!currentTrilhaDetail) return;
-  const ok = await confirmDialog(
-    'Reorganizar a posição dos blocos por frente e dependência?',
-    { okLabel: 'Organizar' },
-  );
-  if (!ok) return;
-  // Manda as alturas reais dos cartões: o servidor não consegue medi-los.
-  const heights = Object.fromEntries(trilhaNodeHeights);
-  const res = await fetch(`/trilhas/${currentTrilhaDetail.trilha.id}/layout`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ heights }),
-  });
-  if (!res.ok) {
-    toast('Falha ao organizar');
-    return;
-  }
-  await refreshCurrentTrilha();
-  trilhaZoomFit();
-  toast('Blocos organizados');
-};
-
 // ── Mapa vazio: ponto de partida guiado ──
 
 const renderTrilhaOnboard = () => {

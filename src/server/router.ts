@@ -16,7 +16,7 @@ import { createDebugHandler } from '../debug/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
 import { notFound } from './response.ts';
-import { isLoopbackHost, isPublicLanCanvasRequest } from './security.ts';
+import { isLoopbackHost } from './security.ts';
 import type { HandlerDeps } from './types.ts';
 
 export const createRouter = (deps: HandlerDeps) => {
@@ -39,10 +39,8 @@ export const createRouter = (deps: HandlerDeps) => {
     const url = new URL(req.url);
     const { pathname } = url;
 
-    if (
-      !isLoopbackHost(req.headers.get('host')) &&
-      !isPublicLanCanvasRequest(req.method, pathname)
-    ) {
+    // Defesa em profundidade (DNS rebinding): só aceita Host de loopback.
+    if (!isLoopbackHost(req.headers.get('host'))) {
       return new Response('Forbidden', { status: 403 });
     }
 

@@ -179,8 +179,8 @@ chamar `docmap-<os>-<arch>` (ex.: `docmap-macos-aarch64`) e ter um asset
   antes de ler
 - **Permissões Deno mínimas**: `--allow-read=<ROOT>` em produção, não
   `--allow-read` global
-- **UI principal** (`:3333`) bind padrão em `127.0.0.1`; `DOCMAP_HOST=0.0.0.0`
-  só deve expor rotas públicas do canvas
+- **UI principal** (`:3333`) bind fixo em `127.0.0.1` (sem override por env);
+  requisições com `Host` fora de loopback recebem 403
 - **AI API** (`:3334`) bind exclusivo em `127.0.0.1` — nunca em `0.0.0.0`
 - **Sem eval()** em qualquer módulo — especialmente nos handlers HTTP
 - **Sanitização de HTML** obrigatória antes de inserir dados do usuário no DOM

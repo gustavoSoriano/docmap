@@ -23,17 +23,3 @@ export const isLoopbackOrigin = (origin: string | null): boolean => {
     return false;
   }
 };
-
-export const isPublicLanCanvasRequest = (
-  method: string,
-  pathname: string,
-): boolean => {
-  if (method === 'GET' && pathname === '/canvas') return true;
-  if (method === 'GET' && pathname === '/canvas/info') return true;
-  if (method === 'GET' && pathname.startsWith('/canvas/vendor/quickdraw/')) {
-    return true;
-  }
-  if (method === 'POST' && pathname === '/canvas/frame') return true;
-  if (pathname === '/canvas/ws') return true;
-  return false;
-};

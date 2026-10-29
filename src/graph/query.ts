@@ -1,6 +1,7 @@
 // ════ Query do grafo — funções puras ════
-// Teto de 500 entidades (padrão e máximo): com busca no backend, o que
-// ficar de fora o usuário acha via ?q=. Evita travar o D3/SVG.
+// Teto de 500 NÓS (padrão e máximo), contando entidades + hubs de tag: é o
+// que o D3/SVG desenha. Com busca no backend, o que ficar de fora o usuário
+// acha via ?q=. O corte em si está em budget.ts.
 
 import type { EntityKind, GraphEntity } from './types.ts';
 
@@ -60,14 +61,4 @@ export const filterGraphEntities = (
     if (term && !matchesQuery(e, term)) return false;
     return true;
   });
-};
-
-export const limitGraphEntities = (
-  entities: readonly GraphEntity[],
-  limit: number,
-): { readonly page: GraphEntity[]; readonly truncated: boolean } => {
-  if (entities.length <= limit) {
-    return { page: [...entities], truncated: false };
-  }
-  return { page: entities.slice(0, limit), truncated: true };
 };

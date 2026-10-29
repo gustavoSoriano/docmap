@@ -102,9 +102,8 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
   {
     id: 'canvas',
     title: 'Canvas',
-    heading: 'Canvas — lousa realtime compartilhada na rede',
-    summary:
-      'Lousa única realtime: tablet na mesma rede desenha, todos veem, tudo persiste.',
+    heading: 'Canvas — lousa realtime local',
+    summary: 'Lousa única realtime local: a IA desenha direto, tudo persiste.',
     tags: ['canvas', 'realtime', 'whiteboard'],
   },
   {
@@ -146,15 +145,16 @@ protocolos especificos.
 
 - \`GET /graph\` — grafo das entidades do docmap (notas, tasks,
   trilhas, macros, podcasts, favoritos, skills, mocks, chats) conectadas por TEMA.
-  Read-only; reflete o estado atual do KV. Teto padrão \`?limit=2000\` (máx 5000);
-  o que ficar de fora ache via \`?q=\`.
+  Read-only; reflete o estado atual do KV. Teto padrão \`?limit=500\` (máx 500) de NÓS,
+  contando entidades + tags; o que ficar de fora ache via \`?q=\`.
   - Query: \`?q=texto\` (filtra label/tag antes do teto), \`?kind=note,task\`
     (só esses tipos), \`?limit=N\`.
   - \`nodes\`: \`{ id, label, kind, tags? }\` — \`id\` = \`"<tipo>:<uuid>"\` (entidade) ou
     \`"tag:<slug>"\` (tag). \`kind\` = \`note|task|trilha|macro|podcast|favorite|skill|mock|agentchat|tag\`.
   - \`links\`: \`{ source, target, kind }\` — \`kind\` = \`tagged\` (entidade→tag) ou
     \`reference\` (task→nota via \`noteId\`).
-  - Meta: \`{ total, limit, truncated }\` — \`truncated=true\` = use \`?q=\` para achar o resto.
+  - Meta: \`{ total, limit, truncated }\` — \`total\` = entidades após filtro (sem tags);
+    \`truncated=true\` = use \`?q=\` para achar o resto.
   - Cada tag é um NÓ próprio: entidades do mesmo tema ligam-se à mesma tag. Por
     isso vale usar tags consistentes — são o que conecta o grafo.
 
@@ -783,19 +783,18 @@ POST /favorites { type: "site", title: "DocMap docs", url: "...", category: "doc
 
 ---
 
-## Canvas — lousa realtime compartilhada na rede
+## Canvas — lousa realtime local
 
-O docmap tem uma lousa infinita onde **qualquer dispositivo na mesma rede
-desenha e todos veem ao vivo**: abra no tablet, desenhe com caneta/dedo e o
-PC (e outros na rede) acompanham em tempo real via WebSocket.
+O docmap tem uma lousa infinita no próprio computador: você e a IA
+desenham no mesmo board e as mudanças aparecem ao vivo via WebSocket.
+O docmap **não é exposto na rede** — só aceita conexões do próprio PC.
 
 Motor: Quickdraw vendored no app (MIT, zero dependencias, 100% offline na
 LAN — nenhum CDN externo).
 
 ### Acesso
 
-- **Tablet/celular**: \`http://<ip-do-pc>:3333/canvas\` (o IP aparece no topo
-  da propria pagina e em Configuracoes → "IP da rede" na UI desktop)
+- **Navegador local**: \`http://127.0.0.1:3333/canvas\`
 - **Rail do docmap**: botao "Canvas" na barra lateral (iframe da mesma pagina)
 
 ### Ferramentas (toolbar do board)
@@ -906,6 +905,19 @@ curl -X POST http://127.0.0.1:3333/canvas/shapes \\
   -d '{"shapes":[{"kind":"arrow","x1":100,"y1":100,"x2":300,"y2":200,"color":"red"}]}'
 \`\`\`
 
+### Forma vinculada a macro (botão no canvas)
+
+Uma forma \`geo\` pode ser vinculada a uma macro: o record ganha o campo
+\`macroId\` (só o id; título e \`inputLabel\` vêm da macro) e a lousa mostra um
+selo de executar no canto da forma. Na UI: selecione a forma → "Vincular
+macro" no topo. Clicar no selo chama \`POST /macros/:id/run\`; macros com
+\`inputLabel\` pedem o valor antes. O aviso final tem "Ver saída", que abre a
+saída completa (stdout e stderr, com copiar); se a macro sair com código
+diferente de 0, o painel abre sozinho. Se a macro
+for apagada, o selo fica cinza ("não encontrada"). O vínculo persiste no
+board e entra no desfazer. Hoje o vínculo é criado pela UI, não pelo
+\`POST /canvas/shapes\`.
+
 ### Canvas único persistido
 
 Não há collections nem desenhos salvos: o canvas é UM board só e o
@@ -942,10 +954,9 @@ curl -X POST http://127.0.0.1:3333/canvas/clear
 ### Rede
 
 - A UI (\`:3333\`) binda em \`127.0.0.1\` por padrão (somente local).
-- Use \`DOCMAP_HOST=0.0.0.0\` apenas para expor o canvas na LAN; rotas
-  sensíveis continuam bloqueadas fora de loopback.
+- Sem override: não existe \`DOCMAP_HOST\`. Requisições com \`Host\` fora de
+  loopback recebem 403.
 - A AI API (\`:3334\`) continua exclusiva em \`127.0.0.1\` (loopback).
-- \`GET /system/network\` lista os IPv4 da maquina (usado pela pagina e settings).
 
 ### Breaking change (v13)
 

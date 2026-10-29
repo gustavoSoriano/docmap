@@ -34434,9 +34434,6 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
                     <button class="icon-btn" onclick="openStickyModal()"
                       title="Novo sticker (nota solta)"
                       data-icon="sticky"></button>
-                    <button class="icon-btn" onclick="applyTrilhaLayout()"
-                      title="Organizar blocos por frente e dependência"
-                      data-icon="layers"></button>
                     <button class="icon-btn" id="trilha-arsenal-btn"
                       onclick="toggleTrilhaArsenal()"
                       title="Arsenal (guardrails, skills, macros, notas)"
@@ -35378,14 +35375,6 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
               data-icon="x"></button>
           </div>
           <div id="settings-body">
-            <div class="settings-row" id="settings-ip-row"
-              onclick="copyNetworkIp()" title="Clique para copiar">
-              <span class="settings-row-main">
-                <span class="settings-row-label">IP da rede</span>
-                <span class="settings-row-hint">Acesse o canvas de outro dispositivo</span>
-              </span>
-              <span class="settings-row-value" id="settings-ip-value"></span>
-            </div>
             <div class="settings-row" id="settings-theme-row"
               onclick="toggleTheme()">
               <span class="settings-row-main">
@@ -35790,7 +35779,6 @@ const openSettings = () => {
   if (label && typeof getStoredTheme === 'function') {
     label.textContent = getStoredTheme() === 'dark' ? 'Escuro' : 'Claro';
   }
-  loadNetworkIp();
   $('settings-overlay')?.classList.add('open');
 };
 
@@ -39469,31 +39457,6 @@ const renderTrilhaHead = () => {
     \${ready}\`;
   renderTrilhaFocus();
   applyTrilhaPanels();
-};
-
-// ── Organizar ──
-
-const applyTrilhaLayout = async () => {
-  if (!currentTrilhaDetail) return;
-  const ok = await confirmDialog(
-    'Reorganizar a posição dos blocos por frente e dependência?',
-    { okLabel: 'Organizar' },
-  );
-  if (!ok) return;
-  // Manda as alturas reais dos cartões: o servidor não consegue medi-los.
-  const heights = Object.fromEntries(trilhaNodeHeights);
-  const res = await fetch(\`/trilhas/\${currentTrilhaDetail.trilha.id}/layout\`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ heights }),
-  });
-  if (!res.ok) {
-    toast('Falha ao organizar');
-    return;
-  }
-  await refreshCurrentTrilha();
-  trilhaZoomFit();
-  toast('Blocos organizados');
 };
 
 // ── Mapa vazio: ponto de partida guiado ──
@@ -44157,6 +44120,7 @@ const drawKgGraph = () => {
   renderKnowledgeGraph({
     nodes,
     links,
+    shown: kgRaw.nodes.filter((n) => n.kind !== 'tag').length,
     total: kgRaw.total,
     truncated: kgRaw.truncated,
     limit: kgRaw.limit,
@@ -44199,10 +44163,12 @@ const renderKnowledgeGraph = (data) => {
 
   const countEl = $('kg-count');
   if (countEl) {
-    const chips = \`<span class="chip"><b>\${data.nodes.length}</b>&nbsp;entidades</span>\` +
+    const tagCount = data.nodes.filter((n) => n.kind === 'tag').length;
+    const chips = \`<span class="chip"><b>\${data.nodes.length - tagCount}</b>&nbsp;entidades</span>\` +
+      \`<span class="chip"><b>\${tagCount}</b>&nbsp;tags</span>\` +
       \`<span class="chip"><b>\${data.links.length}</b>&nbsp;conexões</span>\`;
     countEl.innerHTML = data.truncated
-      ? chips + \`<span class="chip warn" title="Use o filtro por tag para achar o resto">mostrando \${data.nodes.length} de \${data.total}</span>\`
+      ? chips + \`<span class="chip warn" title="O grafo desenha no máximo \${data.limit} nós (entidades + tags). Use a busca ou o filtro por tag para achar o resto.">mostrando \${data.shown} de \${data.total} entidades</span>\`
       : chips;
   }
 
@@ -44500,33 +44466,6 @@ const triggerRestore = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', initSystem);
-
-// ── IP de rede ──
-let networkIps = [];
-
-const loadNetworkIp = async () => {
-  const el = $('settings-ip-value');
-  if (!el) return;
-  el.textContent = '…';
-  try {
-    const res = await fetch('/system/network');
-    const data = await res.json();
-    networkIps = data.ips ?? [];
-    if (networkIps.length === 0) {
-      el.textContent = 'Sem rede';
-    } else {
-      el.textContent = networkIps[0].address;
-    }
-  } catch {
-    el.textContent = 'erro';
-  }
-};
-
-const copyNetworkIp = () => {
-  if (networkIps.length === 0) return;
-  const ips = networkIps.map((i) => \`\${i.address}\`).join(', ');
-  copyToClipboard(ips, 'IP copiado');
-};
 
 </script>
   </body>

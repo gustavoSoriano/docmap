@@ -68,7 +68,6 @@ const openSettings = () => {
   if (label && typeof getStoredTheme === 'function') {
     label.textContent = getStoredTheme() === 'dark' ? 'Escuro' : 'Claro';
   }
-  loadNetworkIp();
   $('settings-overlay')?.classList.add('open');
 };
 

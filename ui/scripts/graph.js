@@ -136,6 +136,7 @@ const drawKgGraph = () => {
   renderKnowledgeGraph({
     nodes,
     links,
+    shown: kgRaw.nodes.filter((n) => n.kind !== 'tag').length,
     total: kgRaw.total,
     truncated: kgRaw.truncated,
     limit: kgRaw.limit,
@@ -178,10 +179,12 @@ const renderKnowledgeGraph = (data) => {
 
   const countEl = $('kg-count');
   if (countEl) {
-    const chips = `<span class="chip"><b>${data.nodes.length}</b>&nbsp;entidades</span>` +
+    const tagCount = data.nodes.filter((n) => n.kind === 'tag').length;
+    const chips = `<span class="chip"><b>${data.nodes.length - tagCount}</b>&nbsp;entidades</span>` +
+      `<span class="chip"><b>${tagCount}</b>&nbsp;tags</span>` +
       `<span class="chip"><b>${data.links.length}</b>&nbsp;conexões</span>`;
     countEl.innerHTML = data.truncated
-      ? chips + `<span class="chip warn" title="Use o filtro por tag para achar o resto">mostrando ${data.nodes.length} de ${data.total}</span>`
+      ? chips + `<span class="chip warn" title="O grafo desenha no máximo ${data.limit} nós (entidades + tags). Use a busca ou o filtro por tag para achar o resto.">mostrando ${data.shown} de ${data.total} entidades</span>`
       : chips;
   }
 

@@ -4,6 +4,12 @@ import {
   FONT_CSS,
   TOKENS_CSS,
 } from '../server/handlers/ui-shared.gen.ts';
+import {
+  MACRO_LINKS_CSS,
+  MACRO_LINKS_HTML,
+  MACRO_LINKS_HUD,
+  MACRO_LINKS_JS,
+} from './macro-links.ts';
 
 // Lousa única: sem collections, sem desenhos salvos, sem propostas. Tudo que
 // a IA (POST /canvas/shapes) ou qualquer cliente (WS diffs) desenha cai no
@@ -33,15 +39,6 @@ button{font-family:inherit}
 .hud-title{display:flex;align-items:center;gap:9px;font-size:var(--fs-lg);font-weight:650;font-stretch:var(--stretch-display);letter-spacing:-.015em;white-space:nowrap}
 .hud-title .ico{width:17px;height:17px;color:var(--text-3)}
 .hud-sep{width:1px;height:18px;background:var(--border-mid);flex-shrink:0}
-#tablet-url{display:inline-flex;align-items:center;gap:8px;min-width:0;height:28px;padding:0 9px;border:1px solid var(--border-mid);border-radius:var(--r-sm);background:var(--surface-3);color:var(--text-2);cursor:pointer;transition:background var(--dur),border-color var(--dur),color var(--dur)}
-#tablet-url[hidden]{display:none}
-#tablet-url:hover{background:var(--surface-4);border-color:var(--border-hi);color:var(--text)}
-#tablet-url .ico{width:14px;height:14px}
-#tablet-url .url-label{font-size:var(--fs-xs);font-weight:600;color:var(--text-3)}
-#tablet-url .url-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);font-size:var(--fs-xs)}
-#tablet-url .ico-done{display:none;color:var(--ok)}
-#tablet-url.copied .ico-copy{display:none}
-#tablet-url.copied .ico-done{display:block}
 #canvas-status{flex-shrink:0;color:var(--text-2)}
 #peers{flex-shrink:0}
 #peers[hidden]{display:none}
@@ -106,13 +103,15 @@ button{font-family:inherit}
 #board .qd-text-edit{outline-color:var(--info-line)}
 
 @media (max-width:760px){
-  #canvas-status,#hud-left .hud-sep,#tablet-url .url-label{display:none}
+  #canvas-status,#hud-left .hud-sep{display:none}
 }
 @media (max-width:560px){
   #hud{top:8px;left:8px;right:8px}
   .hud-title span,#hud .ghost-btn span{display:none}
   .hud-group{padding-left:12px}
 }
+${MACRO_LINKS_CSS}
+#link-btn[hidden],#mpick-unlink[hidden],.mlink-run[hidden]{display:none}
 `;
 
 const ICON = (inner: string): string =>
@@ -137,19 +136,10 @@ const PAGE_BODY = `
   <div class="hud-group" id="hud-left">
     <h1 class="hud-title">${ICON_CANVAS}<span>Canvas</span></h1>
     <span class="hud-sep"></span>
-    <button id="tablet-url" type="button" hidden title="Copiar URL para abrir no tablet">
-      <span class="url-label">Tablet</span>
-      <span class="url-text"></span>
-      <span class="ico-copy">${
-  ICON(
-    '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
-  )
-}</span>
-      <span class="ico-done">${ICON('<path d="M20 6 9 17l-5-5"/>')}</span>
-    </button>
     <span id="canvas-status" class="chip" title="Lousa única: tudo é salvo automaticamente no servidor"></span>
   </div>
   <div class="hud-group" id="hud-right">
+    ${MACRO_LINKS_HUD}
     <span id="peers" class="chip" hidden title="Pessoas na lousa">${ICON_USERS}<span id="conn-count"></span></span>
     <span id="status" class="status warn"><span id="status-text">Conectando</span></span>
     <button class="ghost-btn danger" type="button" onclick="clearBoard()" title="Apagar tudo (para todos)">${ICON_TRASH}<span>Limpar</span></button>
@@ -163,6 +153,8 @@ const PAGE_BODY = `
   <div class="empty-title">Lousa vazia</div>
   <div class="empty-hint">Desenhe com as ferramentas abaixo ou peça para a IA desenhar. Tudo aparece aqui em tempo real e é salvo sozinho.</div>
 </div>
+
+${MACRO_LINKS_HTML}
 <div id="toast"></div>
 `;
 
@@ -178,14 +170,13 @@ window.addEventListener('message', function(e){
 `;
 
 const PAGE_MODULE = `
-import { createQuickdraw } from '/canvas/vendor/quickdraw/index.js';
+import { createQuickdraw, pageBounds } from '/canvas/vendor/quickdraw/index.js';
 
 var boardEl = document.getElementById('board');
 var statusEl = document.getElementById('status');
 var stxt = document.getElementById('status-text');
 var cnt = document.getElementById('conn-count');
 var peersEl = document.getElementById('peers');
-var urlEl = document.getElementById('tablet-url');
 var toastEl = document.getElementById('toast');
 var saveEl = document.getElementById('canvas-status');
 var emptyEl = document.getElementById('board-empty');
@@ -494,26 +485,6 @@ function connect(){
   };
 }
 
-// Mostra a URL do tablet (IP da LAN). O servidor já expõe /system/network.
-function loadTabletUrl(){
-  if (!urlEl) return;
-  fetch('/system/network').then(function(r){ return r.json(); }).then(function(data){
-    var ips = (data && data.ips) || [];
-    if (!ips.length) { urlEl.hidden = true; return; }
-    var addr = ips[0].address;
-    var url = 'http://' + addr + ':' + (location.port || '3333') + '/canvas';
-    urlEl.querySelector('.url-text').textContent = url;
-    urlEl.hidden = false;
-    urlEl.onclick = function(){
-      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function(){
-        showToast('URL do tablet copiada');
-        urlEl.classList.add('copied');
-        setTimeout(function(){ urlEl.classList.remove('copied'); }, 1600);
-      });
-    };
-  }).catch(function(){ urlEl.hidden = true; });
-}
-
 // ── Backup p/ Desfazer (limpeza) ──
 var lastBackup = null;
 
@@ -590,8 +561,8 @@ function guardedClearBoard(){
 }
 window.clearBoard = guardedClearBoard;
 
+${MACRO_LINKS_JS}
 updateSaveLabel();
-loadTabletUrl();
 connect();
 `;
 

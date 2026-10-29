@@ -1,6 +1,6 @@
 // ════ Handler do grafo de conhecimento — GET /graph ════
 // Monta o grafo a partir das entidades do KV (escopo global) com teto
-// máximo de 500 (?limit=). Com ?q= e ?kind= a busca roda no backend
+// máximo de 500 nós, entidades + hubs de tag (?limit=). Com ?q= e ?kind= a busca roda no backend
 // antes do teto — o que ficar de fora o usuário acha pela busca.
 // Read-only. Compartilhado pelos routers :3333 (UI) e :3334 (AI).
 
@@ -15,11 +15,8 @@ import { listTrilhas } from '../trilhas/store.ts';
 import { listChats } from '../agentchats/store.ts';
 import { buildKnowledgeGraph } from './build.ts';
 import { toGraphEntities } from './entities.ts';
-import {
-  filterGraphEntities,
-  limitGraphEntities,
-  parseGraphQuery,
-} from './query.ts';
+import { fitEntitiesToNodeBudget } from './budget.ts';
+import { filterGraphEntities, parseGraphQuery } from './query.ts';
 import { json } from '../server/response.ts';
 
 export const graphHandler =
@@ -60,7 +57,7 @@ export const graphHandler =
     const query = parseGraphQuery(url);
     const filtered = filterGraphEntities(entities, query);
     const total = filtered.length;
-    const { page, truncated } = limitGraphEntities(filtered, query.limit);
+    const { page, truncated } = fitEntitiesToNodeBudget(filtered, query.limit);
     const graph = buildKnowledgeGraph(page);
 
     return json({
