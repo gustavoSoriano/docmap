@@ -32,7 +32,12 @@ export type ClientMessage = {
 // ── Servidor → cliente ──
 
 export type ServerMessage =
-  | { readonly type: 'snapshot'; readonly snapshot: BoardSnapshot }
+  | {
+    readonly type: 'snapshot';
+    readonly snapshot: BoardSnapshot;
+    /** 'import' quando o board foi trocado por um arquivo importado. */
+    readonly reason?: 'import';
+  }
   | { readonly type: 'diff'; readonly diff: BoardDiff }
   | { readonly type: 'peers'; readonly count: number };
 

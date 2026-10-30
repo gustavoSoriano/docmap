@@ -1,6 +1,7 @@
 import { serveCanvasPage } from './page.ts';
 import { boardHub, validateDiff, validateFrame } from './hub.ts';
 import { validateShapeInputs } from './shapes.ts';
+import { routeCanvasTransfer } from './transfer-routes.ts';
 import { isVendorFile, serveVendorFile, vendorVersion } from './vendor.ts';
 import { json } from '../server/response.ts';
 import type { HandlerDeps } from '../server/types.ts';
@@ -22,7 +23,7 @@ const PNG_HEADERS = (updatedAt: string, shapes: number): HeadersInit => ({
   'X-Canvas-Shapes': String(shapes),
 });
 
-export const createCanvasHandler = (_deps: HandlerDeps) => {
+export const createCanvasHandler = ({ kv }: HandlerDeps) => {
   return (req: Request, url: URL): Response | Promise<Response> => {
     const { pathname } = url;
 
@@ -80,6 +81,10 @@ export const createCanvasHandler = (_deps: HandlerDeps) => {
     if (req.method === 'POST' && pathname === '/canvas/shapes') {
       return handleShapes(req);
     }
+
+    // Exportar/importar desenho + macros vinculadas (transfer-routes.ts).
+    const transfer = routeCanvasTransfer(kv, req, pathname);
+    if (transfer) return transfer;
 
     if (pathname === '/canvas/ws') {
       return handleWebSocket(req);

@@ -155,6 +155,9 @@ Para testar sem tocar no app real: `DOCMAP_UI_PORT`/`DOCMAP_API_PORT`/
 Toda mutação do hub (`src/canvas/hub.ts`) agenda save com debounce curto;
 o boot (`src/worker.ts`) restaura o arquivo. Sem collections, sem desenhos
 salvos, sem propostas — a IA desenha direto via `POST /canvas/shapes`.
+Exportar/importar (`bundle.ts` puro, `transfer.ts` I/O, `transfer-routes.ts`):
+pacote JSON com o snapshot + as macros vinculadas (com script); importar
+substitui a lousa para todos e reaproveita/cria macros, remapeando `macroId`.
 
 **Backup/restore:** `src/kv/backup.ts` — exporta/importa todo o KV em JSON.
 Endpoints `/system/backup` e `/system/restore`. (O board do canvas fica fora

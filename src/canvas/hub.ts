@@ -294,6 +294,21 @@ class BoardHub {
   }
 
   /**
+   * Troca o board inteiro por um snapshot importado (já validado) e
+   * difunde a TODOS — a página mostra "importado" com Desfazer.
+   */
+  replaceBoard(snapshot: BoardSnapshot): void {
+    this.#records.clear();
+    for (const rec of Object.values(snapshot.document.store)) {
+      this.#records.set(rec.id, rec);
+    }
+    this.#frame = null;
+    this.#updatedAt = new Date().toISOString();
+    this.#persist();
+    this.#broadcast({ type: 'snapshot', snapshot, reason: 'import' });
+  }
+
+  /**
    * Restaura o snapshot persistido no boot. Sem broadcast (ainda não há
    * conexões) e preservando o updatedAt gravado. Retorna erro se inválido.
    */

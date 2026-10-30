@@ -17,6 +17,8 @@ import {
   URL_LINKS_JS,
 } from './url-links.ts';
 import { CLIPBOARD_JS } from './clipboard.ts';
+import { TRANSFER_HUD, TRANSFER_JS } from './transfer-ui.ts';
+import { CONFIRM_CSS, CONFIRM_HTML, CONFIRM_JS } from './confirm-ui.ts';
 
 // Lousa única: sem collections, sem desenhos salvos, sem propostas. Tudo que
 // a IA (POST /canvas/shapes) ou qualquer cliente (WS diffs) desenha cai no
@@ -119,6 +121,7 @@ button{font-family:inherit}
 }
 ${MACRO_LINKS_CSS}
 ${URL_LINKS_CSS}
+${CONFIRM_CSS}
 #link-btn[hidden],#mpick-unlink[hidden],.mlink-run[hidden]{display:none}
 `;
 
@@ -151,6 +154,7 @@ const PAGE_BODY = `
     ${URL_LINKS_HUD}
     <span id="peers" class="chip" hidden title="Pessoas na lousa">${ICON_USERS}<span id="conn-count"></span></span>
     <span id="status" class="status warn"><span id="status-text">Conectando</span></span>
+    ${TRANSFER_HUD}
     <button class="ghost-btn danger" type="button" onclick="clearBoard()" title="Apagar tudo (para todos)">${ICON_TRASH}<span>Limpar</span></button>
   </div>
 </div>
@@ -165,6 +169,7 @@ const PAGE_BODY = `
 
 ${MACRO_LINKS_HTML}
 ${URL_LINKS_HTML}
+${CONFIRM_HTML}
 <div id="toast"></div>
 `;
 
@@ -459,6 +464,9 @@ function connect(){
         store.applyDiff(msg.diff, 'remote');
         try { detectAiDiff(msg.diff); } catch(errAi){}
       }
+      else if (msg.type === 'snapshot' && msg.snapshot && msg.reason === 'import') {
+        onImportSnapshot(msg.snapshot);
+      }
       else if (msg.type === 'snapshot' && msg.snapshot) {
         // Snapshot remoto: limpeza (própria ou de outro usuário).
         // Guarda backup para Desfazer antes de aplicar.
@@ -567,13 +575,16 @@ function doClearBoard(){
 }
 function guardedClearBoard(){
   if (store.size === 0) { showToast('A lousa já está vazia'); return; }
-  if (window.confirm('Limpar a lousa para todos?')) doClearBoard();
+  askConfirm('Apaga o desenho para todos. Logo depois dá para desfazer.', 'Limpar', true)
+    .then(function(ok){ if (ok) doClearBoard(); });
 }
 window.clearBoard = guardedClearBoard;
 
+${CONFIRM_JS}
 ${MACRO_LINKS_JS}
 ${URL_LINKS_JS}
 ${CLIPBOARD_JS}
+${TRANSFER_JS}
 updateSaveLabel();
 connect();
 `;

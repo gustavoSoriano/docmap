@@ -27,7 +27,9 @@ export const openFileDialog = async (
     const proc = new Deno.Command('osascript', {
       args: [
         '-e',
-        `POSIX path of (choose file with prompt "${prompt}" of type {"json"})`,
+        // `of type` casa por UTI: "json" sozinho deixa .json cinza no
+        // macOS recente; "public.json" é o tipo que o sistema atribui.
+        `POSIX path of (choose file with prompt "${prompt}" of type {"public.json", "json"})`,
       ],
       stdout: 'piped',
       stderr: 'piped',

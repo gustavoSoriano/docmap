@@ -823,6 +823,10 @@ UI; botão Tema no topo, acompanha a preferência salva).
 | POST | \`/canvas/frame\` | Viewers enviam o frame (body = PNG) |
 | POST | \`/canvas/shapes\` | IA desenha direto na lousa única |
 | POST | \`/canvas/clear\` | Apaga o board para todos |
+| GET | \`/canvas/export\` | Pacote JSON: desenho + macros vinculadas (links vão nas formas) |
+| POST | \`/canvas/export\` | Grava o pacote em \`~/Downloads/docmap-canvas-<data>.json\` |
+| POST | \`/canvas/import\` | Body = pacote JSON; substitui a lousa para todos |
+| POST | \`/canvas/import-pick\` | Mesmo, escolhendo o arquivo no diálogo nativo (macOS) |
 
 ### Protocolo WS \`/canvas/ws\`
 
@@ -948,6 +952,17 @@ o snapshot e late joiners recebem o board completo via WS.
 - \`POST /canvas/clear\` apaga para todos (a página pede confirmação e
   oferece Desfazer; o servidor persiste o board vazio).
 - O canvas não entra no \`/graph\` (não é entidade tagueável).
+
+### Exportar e importar
+
+O pacote \`{ kind: 'docmap-canvas', version: 1, exportedAt, snapshot, macros }\`
+leva o desenho inteiro (imagens, links \`url\` e vínculos \`macroId\` vivem nos
+records) e as macros referenciadas, com script. Importar **substitui** a lousa
+para todos. Cada macro: mesmo id já existe → reaproveita; mesmo nome e mesmo
+script → reaproveita; senão cria (nome livre, ex.: \`deploy-importada\`) e
+remapeia o \`macroId\` das formas. Resposta: \`{ ok, shapes, macrosCreated,
+macrosReused }\`. \`POST /canvas/import\` também aceita um \`board.json\` cru
+(\`{ version: 1, snapshot }\`), sem macros.
 
 ### Quick start
 
