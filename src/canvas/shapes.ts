@@ -36,6 +36,7 @@ export const SHAPE_DASHES = ['draw', 'solid', 'dashed', 'dotted'] as const;
 export const MAX_SHAPES_PER_REQUEST = 50;
 const MAX_TEXT_LEN = 500;
 const MAX_LABEL_LEN = 200;
+const MAX_URL_LEN = 2000;
 const MAX_COORD = 100_000;
 
 export type TextShapeInput = {
@@ -70,6 +71,8 @@ export type GeoShapeInput = {
   readonly fill?: string;
   readonly font?: string;
   readonly dash?: string;
+  /** Link http(s) aberto no navegador ao clicar no selo da forma. */
+  readonly url?: string;
 };
 
 export type ArrowShapeInput = {
@@ -121,6 +124,7 @@ export type PlacedShape =
     readonly fill: string;
     readonly font: string;
     readonly dash: string;
+    readonly url?: string;
   }
   | {
     readonly kind: 'arrow' | 'line';
@@ -135,6 +139,11 @@ export type PlacedShape =
 
 const isFiniteNum = (v: unknown): v is number =>
   typeof v === 'number' && Number.isFinite(v);
+
+/** Vazio = sem link. Senão: string http(s) sem espaços, tamanho limitado. */
+const isValidLinkUrl = (v: unknown): v is string =>
+  typeof v === 'string' &&
+  (v === '' || (v.length <= MAX_URL_LEN && /^https?:\/\/\S+$/i.test(v)));
 
 const inList = (v: unknown, list: readonly string[]): v is string =>
   typeof v === 'string' && (list as readonly string[]).includes(v);
@@ -244,6 +253,12 @@ export const validateShapeInputs = (
       if (!inList(dash, SHAPE_DASHES)) {
         return { error: `${err}: dash desconhecido` };
       }
+      const url = r.url === undefined ? '' : r.url;
+      if (!isValidLinkUrl(url)) {
+        return {
+          error: `${err}: url http(s) sem espaços, até ${MAX_URL_LEN} chars`,
+        };
+      }
       const x = optCoord(r.x);
       const y = optCoord(r.y);
       if (x === null || y === null) {
@@ -262,6 +277,7 @@ export const validateShapeInputs = (
         fill,
         font,
         dash,
+        ...(url ? { url } : {}),
       });
     } else if (r.kind === 'arrow' || r.kind === 'line') {
       const x2 = boundedCoord(r.x2);
@@ -418,6 +434,7 @@ export const placeShapes = (
         fill: s.fill ?? 'none',
         font: s.font ?? 'draw',
         dash: s.dash ?? 'solid',
+        ...(s.url ? { url: s.url } : {}),
       };
     }
     const x = s.x1 ?? AUTO_X;
@@ -497,6 +514,7 @@ export const buildRecords = (
         y: s.y,
         rot: 0,
         z,
+        ...(s.url ? { url: s.url } : {}),
         props: {
           geo: s.geo,
           w: s.w,

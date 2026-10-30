@@ -878,7 +878,7 @@ enviam frame de board vazio.
 |------|--------|--------|
 | \`text\` | \`text*\`, \`x?\`, \`y?\`, \`color?\`, \`size?\` (\`s/m/l/xl\`), \`font?\` | Texto digitado |
 | \`note\` | \`text*\`, \`x?\`, \`y?\`, \`color?\`, \`font?\` | Sticky note |
-| \`geo\` | \`geo?\` (\`rectangle/ellipse/triangle/diamond/hexagon/star\`), \`label?\`, \`w?\`, \`h?\`, \`x?\`, \`y?\`, \`color?\`, \`size?\`, \`fill?\`, \`font?\`, \`dash?\` | Forma (default 220×140, traço reto) |
+| \`geo\` | \`geo?\` (\`rectangle/ellipse/triangle/diamond/hexagon/star\`), \`label?\`, \`w?\`, \`h?\`, \`x?\`, \`y?\`, \`color?\`, \`size?\`, \`fill?\`, \`font?\`, \`dash?\`, \`url?\` | Forma (default 220×140, traço reto); \`url\` = link http(s) aberto no navegador ao clicar no selo |
 | \`arrow\`/\`line\` | \`x2*\`, \`y2*\`, \`x1?\`, \`y1?\`, \`bend?\`, \`color?\`, \`size?\` | Seta/linha por endpoints |
 
 - Cores: \`black/grey/light-violet/violet/blue/light-blue/yellow/orange/green/light-green/light-red/red\`
@@ -917,6 +917,23 @@ diferente de 0, o painel abre sozinho. Se a macro
 for apagada, o selo fica cinza ("não encontrada"). O vínculo persiste no
 board e entra no desfazer. Hoje o vínculo é criado pela UI, não pelo
 \`POST /canvas/shapes\`.
+
+### Forma vinculada a link (abre no navegador)
+
+Uma forma \`geo\` também pode ter um link: o record ganha o campo \`url\`
+(http/https, sem espaços, até 2000 chars) e a lousa mostra um selo ↗ no canto
+da forma (à esquerda do selo da macro, se houver os dois). Na UI: selecione a
+forma → "Vincular link" no topo; endereço sem esquema vira \`https://\`. Clicar
+no selo chama \`POST /system/open-url\` e abre no navegador padrão. Diferente
+da macro, o link também pode ser criado pela IA: \`url\` no \`geo\` de
+\`POST /canvas/shapes\` (valor inválido, como \`javascript:\`, retorna 400).
+
+### Copiar e colar na lousa
+
+Cmd/Ctrl + C/X/V funcionam na lousa e nos campos de texto dela. Copiar formas
+põe o **texto** delas no clipboard do sistema (as formas inteiras, com estilo
+e vínculos, ficam num clipboard interno e voltam ao colar no canvas). Colar
+texto de fora cria uma forma de texto na posição do cursor.
 
 ### Canvas único persistido
 

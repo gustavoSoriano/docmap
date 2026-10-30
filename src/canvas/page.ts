@@ -10,6 +10,13 @@ import {
   MACRO_LINKS_HUD,
   MACRO_LINKS_JS,
 } from './macro-links.ts';
+import {
+  URL_LINKS_CSS,
+  URL_LINKS_HTML,
+  URL_LINKS_HUD,
+  URL_LINKS_JS,
+} from './url-links.ts';
+import { CLIPBOARD_JS } from './clipboard.ts';
 
 // Lousa única: sem collections, sem desenhos salvos, sem propostas. Tudo que
 // a IA (POST /canvas/shapes) ou qualquer cliente (WS diffs) desenha cai no
@@ -111,6 +118,7 @@ button{font-family:inherit}
   .hud-group{padding-left:12px}
 }
 ${MACRO_LINKS_CSS}
+${URL_LINKS_CSS}
 #link-btn[hidden],#mpick-unlink[hidden],.mlink-run[hidden]{display:none}
 `;
 
@@ -140,6 +148,7 @@ const PAGE_BODY = `
   </div>
   <div class="hud-group" id="hud-right">
     ${MACRO_LINKS_HUD}
+    ${URL_LINKS_HUD}
     <span id="peers" class="chip" hidden title="Pessoas na lousa">${ICON_USERS}<span id="conn-count"></span></span>
     <span id="status" class="status warn"><span id="status-text">Conectando</span></span>
     <button class="ghost-btn danger" type="button" onclick="clearBoard()" title="Apagar tudo (para todos)">${ICON_TRASH}<span>Limpar</span></button>
@@ -155,6 +164,7 @@ const PAGE_BODY = `
 </div>
 
 ${MACRO_LINKS_HTML}
+${URL_LINKS_HTML}
 <div id="toast"></div>
 `;
 
@@ -170,7 +180,7 @@ window.addEventListener('message', function(e){
 `;
 
 const PAGE_MODULE = `
-import { createQuickdraw, pageBounds } from '/canvas/vendor/quickdraw/index.js';
+import { createQuickdraw, newId, pageBounds } from '/canvas/vendor/quickdraw/index.js';
 
 var boardEl = document.getElementById('board');
 var statusEl = document.getElementById('status');
@@ -562,6 +572,8 @@ function guardedClearBoard(){
 window.clearBoard = guardedClearBoard;
 
 ${MACRO_LINKS_JS}
+${URL_LINKS_JS}
+${CLIPBOARD_JS}
 updateSaveLabel();
 connect();
 `;
