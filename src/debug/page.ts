@@ -83,10 +83,62 @@ button{color:inherit}
 .kind-dot.info{background:var(--info)}
 #debug-sheet-actions{margin-left:auto;display:flex;gap:2px}
 #debug-sheet-actions .session-btn{height:28px;color:var(--text-2)}
+#debug-filters.map-mode #debug-sheet-actions{display:none}
+#debug-filters.map-mode .search,#debug-filters.map-mode #debug-kinds{display:none}
+#debug-filters.map-mode #debug-view-switch{margin-left:auto}
+#debug-view-switch{display:flex;align-items:center;gap:3px;padding:3px;border:1px solid var(--border-mid);border-radius:var(--r-md);background:var(--surface-2)}
+.debug-view-btn{height:26px;padding:0 10px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text-3);font-size:var(--fs-xs);font-weight:650;cursor:pointer}
+.debug-view-btn:hover{color:var(--text)}
+.debug-view-btn.active{background:var(--surface-4);color:var(--text)}
 
 /* ── Linha do tempo ── */
-#debug-entries{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding:8px}
-#debug-entries-content{display:block}
+#debug-entries{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:8px}
+#debug-entries-content{display:flex;flex:1;min-height:0;flex-direction:column}
+.debug-log-view{flex:1;min-height:0;overflow:auto}
+.debug-map-view{display:none;flex:1;min-height:0;flex-direction:column}
+.debug-map-view.visible{display:flex}
+.map-toolbar{flex-shrink:0;min-height:48px;padding:5px 10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);color:var(--text-2);font-size:var(--fs-xs)}
+.map-summary{display:flex;align-items:baseline;gap:7px;margin-right:auto;color:var(--text)}
+.map-summary strong{font-size:var(--fs-lg);font-variant-numeric:tabular-nums}
+.map-legend{display:flex;align-items:center;gap:12px;color:var(--text-3)}
+.map-hint{max-width:210px;overflow:hidden;color:var(--text-3);text-overflow:ellipsis;white-space:nowrap}
+.map-legend-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.map-legend-line{display:inline-block}
+.map-legend-line{width:22px;height:0;border-top:2px solid var(--info)}
+.map-legend-line.inferred{border-top:2px dashed var(--accent)}
+.map-actions{display:flex;gap:4px}
+.map-action{min-width:32px;height:30px;padding:0 9px;border:1px solid var(--border-mid);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text-2);font:600 var(--fs-sm) var(--font-ui);cursor:pointer}
+.map-action:hover{background:var(--surface-3);color:var(--text)}
+.map-action:focus-visible,.debug-view-btn:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.map-viewport{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;background-color:var(--bg);background-image:radial-gradient(var(--border-mid) .8px,transparent .8px);background-size:24px 24px;cursor:grab}
+.map-viewport.panning{cursor:grabbing}
+.map-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.map-edge-layer{position:absolute;inset:0;overflow:visible;pointer-events:none}
+.map-edge{fill:none;stroke:var(--info);stroke-width:2.5;vector-effect:non-scaling-stroke}
+.map-edge.chronological{stroke:var(--accent);stroke-dasharray:6 6}
+.map-lane-title{position:absolute;left:34px;color:var(--text-2);font-size:var(--fs-sm);font-weight:650;white-space:nowrap}
+.map-lane-title small{margin-left:9px;color:var(--text-3);font:12px var(--font-mono)}
+.map-node{position:absolute;width:300px;height:154px;padding:13px 15px;display:flex;flex-direction:column;gap:9px;border:1px solid var(--border-hi);border-radius:12px;background:var(--surface);color:var(--text);text-align:left;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
+.map-node:hover,.map-node.dragging{border-color:var(--info-line);background:var(--surface-3)}
+.map-node:active{cursor:grabbing}
+.map-node:focus-visible{outline:2px solid var(--info);outline-offset:3px}
+.map-node.sequential{border-color:var(--accent-line)}
+.map-node-head{display:flex;align-items:center;gap:8px;min-width:0;color:var(--text-3);font:12px var(--font-mono);font-variant-numeric:tabular-nums}
+.map-node-seq{color:var(--text-2);font-weight:700}
+.map-node-expiry{color:var(--text-3);font-size:10px;white-space:nowrap}
+.map-node-expiry.urgent{color:var(--warn)}
+.map-node-kind{margin-left:auto;padding:2px 6px;border-radius:4px;background:var(--surface-4);color:var(--text-2);font:600 12px var(--font-ui)}
+.map-node-kind.danger{background:var(--danger-dim);color:var(--danger)}
+.map-node-kind.warn{background:var(--warn-dim);color:var(--warn)}
+.map-node-title{overflow:hidden;font-size:14px;font-weight:650;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+.map-transition{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);align-items:center;gap:7px;margin-top:auto;padding-top:9px;border-top:1px solid var(--border)}
+.map-endpoint{min-width:0}
+.map-endpoint-label{display:block;margin-bottom:4px;color:var(--text-3);font-size:12px;font-weight:650}
+.map-endpoint-name{display:-webkit-box;overflow:hidden;color:var(--text);font:600 12px/1.25 var(--font-mono);text-overflow:ellipsis;white-space:normal;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.map-transition-arrow{color:var(--info);font-size:17px;text-align:center}
+.map-node.sequential .map-node-title{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.map-node-message{overflow:hidden;color:var(--text-2);font-size:12px;line-height:1.35;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.map-empty{position:absolute;left:36px;top:30px;color:var(--text-3);font-size:var(--fs-sm)}
 .tl-empty-note{padding:36px 12px;text-align:center;color:var(--text-3);font-size:var(--fs-md)}
 #debug-timeline{position:relative;display:flex;flex-direction:column;gap:16px;padding:8px 0}
 #debug-timeline::before{content:'';position:absolute;left:99px;top:18px;bottom:18px;width:1px;background:var(--border-mid)}
@@ -153,10 +205,24 @@ button{color:inherit}
 #debug-toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,8px);padding:9px 16px;border:1px solid var(--border-hi);border-radius:var(--r-lg);background:var(--surface-4);color:var(--text);font-size:var(--fs-sm);font-weight:560;box-shadow:var(--sh-md);opacity:0;pointer-events:none;transition:opacity .22s var(--ease),transform .22s var(--ease);z-index:100}
 #debug-toast.visible{opacity:1;transform:translate(-50%,0)}
 
+/* ── Payload aberto pelo duplo clique no mapa ── */
+#debug-payload-dialog{position:fixed;inset:0;margin:auto;width:min(820px,calc(100vw - 32px));max-height:min(82vh,760px);padding:0;overflow:hidden;border:1px solid var(--border-hi);border-radius:16px;background:var(--surface);color:var(--text);box-shadow:var(--sh-lg)}
+#debug-payload-dialog::backdrop{background:rgba(3,7,13,.78);backdrop-filter:blur(5px)}
+.payload-dialog-head{min-height:76px;padding:14px 18px;display:flex;align-items:center;gap:18px;border-bottom:1px solid var(--border)}
+.payload-dialog-heading{min-width:0;flex:1}
+.payload-dialog-meta{display:flex;align-items:center;gap:10px;margin-bottom:4px;color:var(--text-3);font:12px var(--font-mono);font-variant-numeric:tabular-nums}
+#debug-payload-seq{color:var(--info);font-weight:700}
+#debug-payload-title{overflow:hidden;font-size:var(--fs-md);font-weight:650;text-overflow:ellipsis;white-space:nowrap}
+#debug-payload-close{width:32px;height:32px;border:1px solid var(--border-mid);border-radius:8px;background:var(--surface-2);color:var(--text-2);font-size:22px;line-height:1;cursor:pointer}
+#debug-payload-close:hover{background:var(--surface-3);color:var(--text)}
+#debug-payload-json{margin:0;max-height:calc(82vh - 76px);padding:20px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface-2);font:13px/1.75 var(--font-mono);color:var(--text-2)}
+
 @media (max-width:1180px){
   #debug-sheet-actions{order:2}
   .kinds{order:3;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
   .kind-chip{flex-shrink:0}
+  #debug-view-switch{order:4;margin-left:auto}
+  .map-hint{display:none}
 }
 @media (max-width:760px){
   #debug-sessions{width:var(--sidebar-w-tablet)}
@@ -165,6 +231,8 @@ button{color:inherit}
   #debug-timeline::before{left:81px}
   .tl-seq{font-size:22px}
   #debug-search{width:170px}
+  .map-legend{display:none}
+  .map-hint{display:none}
 }
 @media (max-width:560px){
   #debug-main{flex-direction:column}
@@ -180,6 +248,10 @@ button{color:inherit}
   .tl-body pre{padding:12px;font-size:11px}
   #debug-header{padding:0 14px}
   #debug-update{display:none}
+  .map-toolbar{gap:6px;padding:4px 6px}
+  .map-summary{font-size:11px;gap:4px}
+  .map-actions{gap:2px}
+  .map-action{min-width:28px;padding:0 6px}
 }
 `;
 
@@ -215,6 +287,10 @@ const PAGE_BODY = `
           placeholder="Filtrar por texto" aria-label="Filtrar entradas por texto" autocomplete="off" />
       </label>
       <div class="kinds" id="debug-kinds"></div>
+      <div id="debug-view-switch" role="group" aria-label="Modo de visualização">
+        <button type="button" class="debug-view-btn active" data-debug-view="logs">Logs</button>
+        <button type="button" class="debug-view-btn" data-debug-view="map">Mapa</button>
+      </div>
       <div id="debug-sheet-actions">
         <button class="session-btn" id="tl-expand-all" title="Abrir todas as entradas">Expandir</button>
         <button class="session-btn" id="tl-collapse-all" title="Fechar todas as entradas">Recolher</button>
@@ -233,6 +309,16 @@ const PAGE_BODY = `
 </main>
 
 <div id="debug-toast"></div>
+<dialog id="debug-payload-dialog" aria-labelledby="debug-payload-title">
+  <div class="payload-dialog-head">
+    <div class="payload-dialog-heading">
+      <div class="payload-dialog-meta"><span id="debug-payload-seq"></span><time id="debug-payload-ts"></time></div>
+      <h2 id="debug-payload-title"></h2>
+    </div>
+    <button type="button" id="debug-payload-close" aria-label="Fechar payload" title="Fechar">×</button>
+  </div>
+  <pre id="debug-payload-json"></pre>
+</dialog>
 `;
 
 const PAGE_SCRIPT = `
@@ -253,6 +339,16 @@ const PAGE_SCRIPT = `
   var sessions = [];
   var refreshTimer = null;
   var visibleEntriesBySeq = new Map();
+  var allEntriesBySeq = new Map();
+  var activeView = 'logs';
+  var mapStates = new Map();
+  var activeMapState = null;
+  var mapRenderedSession = null;
+  var mapRenderSignature = '';
+  var mapDrag = null;
+  var pendingMapEntries = null;
+  var lastMapDragAt = 0;
+  var mapClickTimer = null;
   var TTL_MS = ${DEBUG_TTL_MS};
 
   // ── Tema: o app guarda localStorage['docmap-theme'] ('dark' | 'light').
@@ -382,7 +478,7 @@ const PAGE_SCRIPT = `
   var searchText = '';
   var lastScrolledSeq = 0;
 
-  var entriesContainer = function(){ return el('debug-entries'); };
+  var entriesContainer = function(){ return activeView === 'logs' ? el('debug-log-view') : el('debug-entries'); };
 
   // Acompanhar novas entradas só quando o usuário já está perto do topo.
   function nearTop(){
@@ -394,7 +490,7 @@ const PAGE_SCRIPT = `
     if (lastSeq <= lastScrolledSeq) return;
     var shouldFollow = lastScrolledSeq === 0 || nearTop();
     lastScrolledSeq = lastSeq;
-    if (!shouldFollow) return;
+    if (!shouldFollow || activeView !== 'logs') return;
     var box = entriesContainer();
     var first = box && box.querySelector('.tl-item:first-child');
     if (first) first.scrollIntoView({ block: 'start', behavior: 'smooth' });
@@ -442,6 +538,7 @@ const PAGE_SCRIPT = `
       if (currentKind && kindOf(e.payload) !== currentKind) return false;
       if (t) {
         var text = JSON.stringify(e.payload || {}).toLowerCase();
+        text += ' ' + JSON.stringify(e.link || {}).toLowerCase();
         var head = titleOf(e.payload, '').toLowerCase();
         if (text.indexOf(t) < 0 && head.indexOf(t) < 0) return false;
       }
@@ -513,8 +610,368 @@ const PAGE_SCRIPT = `
     var remainder = String(seconds % 60).padStart(2, '0');
     return {
       label: 'expira em ' + minutes + ':' + remainder,
-      urgent: remaining <= 5 * 60 * 1000
+      urgent: remaining <= 5 * 60 * 1000,
+      remainingMinutes: Math.ceil(remaining / 60000),
     };
+  }
+
+  function showPayload(entry){
+    var dialog = el('debug-payload-dialog');
+    if (!dialog || !entry) return;
+    var title = titleOf(entry.payload, 'Log #' + entry.seq);
+    el('debug-payload-seq').textContent = 'LOG #' + entry.seq;
+    el('debug-payload-ts').textContent = entry.ts || '';
+    el('debug-payload-title').textContent = title;
+    el('debug-payload-json').innerHTML = highlightJson(entry.payload);
+    if (!dialog.open) dialog.showModal();
+    el('debug-payload-close').focus();
+  }
+
+  function wirePayloadDialog(){
+    var dialog = el('debug-payload-dialog');
+    var close = el('debug-payload-close');
+    if (!dialog || dialog.dataset.wired) return;
+    dialog.dataset.wired = '1';
+    close.addEventListener('click', function(){ dialog.close(); });
+    dialog.addEventListener('click', function(ev){
+      if (ev.target === dialog) dialog.close();
+    });
+  }
+
+  function mapStateFor(sessionId){
+    if (!mapStates.has(sessionId)) {
+      mapStates.set(sessionId, {
+        scale: 1,
+        x: 36,
+        y: 30,
+        positions: new Map(),
+        fitted: false,
+        userNavigated: false,
+      });
+    }
+    return mapStates.get(sessionId);
+  }
+
+  function linkOf(entry){
+    var link = entry && entry.link;
+    if (!link || typeof link !== 'object' || !link.traceId) return null;
+    if (!link.from || !link.to || !link.from.id || !link.to.id) return null;
+    return {
+      traceId: String(link.traceId),
+      from: { id: String(link.from.id), label: String(link.from.label || link.from.id) },
+      to: { id: String(link.to.id), label: String(link.to.label || link.to.id) },
+    };
+  }
+
+  function mapSignature(entries){
+    return JSON.stringify(entries.map(function(entry){
+      return [entry.seq, linkOf(entry), titleOf(entry.payload, ''), kindOf(entry.payload)];
+    }));
+  }
+
+  function mapNodeKey(entry, link){
+    return link
+      ? 'trace:' + encodeURIComponent(link.traceId) + ':' + entry.seq
+      : 'sequence:' + entry.seq;
+  }
+
+  function mapPosition(index, top){
+    return { x: 42 + index * 360, y: top };
+  }
+
+  function mapEdgeGeometry(from, to){
+    var width = 300;
+    var height = 154;
+    var dx = (to.x + width / 2) - (from.x + width / 2);
+    var dy = (to.y + height / 2) - (from.y + height / 2);
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      var startX = from.x + (dx >= 0 ? width : 0);
+      var endX = to.x + (dx >= 0 ? 0 : width);
+      var startY = from.y + height / 2;
+      var endY = to.y + height / 2;
+      var middleX = (startX + endX) / 2;
+      return {
+        path: 'M ' + startX + ' ' + startY + ' C ' + middleX + ' ' + startY + ', ' + middleX + ' ' + endY + ', ' + endX + ' ' + endY,
+        labelX: middleX,
+        labelY: (startY + endY) / 2 - 8,
+      };
+    }
+    var startY = from.y + (dy >= 0 ? height : 0);
+    var endY = to.y + (dy >= 0 ? 0 : height);
+    var startX = from.x + width / 2;
+    var endX = to.x + width / 2;
+    var middleY = (startY + endY) / 2;
+    return {
+      path: 'M ' + startX + ' ' + startY + ' C ' + startX + ' ' + middleY + ', ' + endX + ' ' + middleY + ', ' + endX + ' ' + endY,
+      labelX: (startX + endX) / 2,
+      labelY: middleY - 8,
+    };
+  }
+
+  function mapTraceTitle(group){
+    var source = group.entries[0];
+    var title = titleOf(source && source.payload, 'Trilha de execução');
+    var match = title.match(/(?:^|\.)(create|update|delete|list|read)(?:\.|$)/i);
+    if (match) {
+      var names = { create: 'Criar nota', update: 'Editar nota', delete: 'Excluir nota', list: 'Listar notas', read: 'Abrir nota' };
+      return names[match[1].toLowerCase()] || title;
+    }
+    return title.replace(/^notes\.(ui\.)?/, '').replace(/\.(requested|start|saved|rendered|response|complete)$/i, '');
+  }
+
+  function mapEventTitle(entry){
+    var source = titleOf(entry.payload, 'Log #' + entry.seq);
+    var match = source.match(/^notes\.(?:ui\.)?(create|update|delete|list|read)\.(requested|start|saved|deleted|rendered|response|error|missing|found|complete|validation|invalid)$/i);
+    if (!match) return source;
+    var operation = match[1].toLowerCase();
+    var phase = match[2].toLowerCase();
+    var labels = {
+      'create.requested': 'Pedido para criar nota',
+      'create.start': 'Criação iniciada',
+      'create.saved': 'Nota persistida',
+      'create.rendered': 'Nota exibida no editor',
+      'create.response': 'Resposta recebida pelo editor',
+      'create.error': 'Falha ao criar nota',
+      'create.validation': 'Criação bloqueada: conteúdo obrigatório',
+      'create.invalid': 'Criação rejeitada: campo obrigatório',
+      'update.requested': 'Pedido para salvar alterações',
+      'update.start': 'Salvando alterações',
+      'update.saved': 'Alterações persistidas',
+      'update.rendered': 'Nota atualizada no editor',
+      'update.response': 'Resposta recebida pelo editor',
+      'update.error': 'Falha ao salvar alterações',
+      'delete.requested': 'Pedido para excluir nota',
+      'delete.start': 'Exclusão iniciada',
+      'delete.deleted': 'Nota removida',
+      'delete.response': 'Exclusão confirmada',
+      'delete.error': 'Falha ao excluir nota',
+      'delete.missing': 'Nota não encontrada',
+      'list.requested': 'Pedido para listar notas',
+      'list.start': 'Leitura da lista iniciada',
+      'list.complete': 'Lista de notas lida',
+      'list.rendered': 'Lista exibida',
+      'list.error': 'Falha ao listar notas',
+      'read.requested': 'Pedido para abrir nota',
+      'read.start': 'Leitura da nota iniciada',
+      'read.found': 'Nota encontrada',
+      'read.missing': 'Nota não encontrada',
+      'read.rendered': 'Nota aberta no editor',
+      'read.error': 'Falha ao abrir nota',
+    };
+    return labels[operation + '.' + phase] || source;
+  }
+
+  function mapNodeMarkup(entry, key, position, linked){
+    var payload = entry.payload && typeof entry.payload === 'object' ? entry.payload : {};
+    var title = mapEventTitle(entry);
+    var kind = kindOf(entry.payload);
+    var expiry = formatExpiry(entry.createdAt);
+    var head = '<span class="map-node-head"><span class="map-node-seq">#' + entry.seq + '</span>' +
+      '<time>' + escHtml(entry.ts) + '</time><span class="map-node-expiry' + (expiry.urgent ? ' urgent' : '') + '" title="' + escHtml(expiry.label) + '">TTL ' + expiry.remainingMinutes + 'm</span>' +
+      '<span class="map-node-kind ' + kindClassOf(kind) + '">' + escHtml(kind) + '</span></span>';
+    var body = '<span class="map-node-title" title="' + escHtml(title) + '">' + escHtml(title) + '</span>';
+    if (linked) {
+      var link = linkOf(entry);
+      body += '<span class="map-transition">' +
+        '<span class="map-endpoint"><span class="map-endpoint-label">Veio de</span><span class="map-endpoint-name" title="' + escHtml(link.from.label) + '">' + escHtml(link.from.label) + '</span></span>' +
+        '<span class="map-transition-arrow" aria-hidden="true">→</span>' +
+        '<span class="map-endpoint"><span class="map-endpoint-label">Foi para</span><span class="map-endpoint-name" title="' + escHtml(link.to.label) + '">' + escHtml(link.to.label) + '</span></span>' +
+      '</span>';
+    } else {
+      var message = typeof payload.message === 'string' ? payload.message :
+        (typeof payload.error === 'string' ? payload.error : '');
+      if (message.length > 140) message = message.slice(0, 137) + '…';
+      if (message) body += '<span class="map-node-message">' + escHtml(message) + '</span>';
+    }
+    return '<button type="button" class="map-node' + (linked ? '' : ' sequential') + '" data-map-node="' + escHtml(key) + '" data-seq="' + entry.seq + '" style="left:' + position.x + 'px;top:' + position.y + 'px" title="Arraste para reorganizar · clique abre o log · duplo clique mostra o payload #' + entry.seq + '">' + head + body + '</button>';
+  }
+
+  function renderMap(entries){
+    var ordered = entries.slice().sort(function(a, b){ return a.seq - b.seq; });
+    var groupsByTrace = new Map();
+    var unlinked = [];
+    ordered.forEach(function(entry){
+      var link = linkOf(entry);
+      if (!link) { unlinked.push(entry); return; }
+      if (!groupsByTrace.has(link.traceId)) groupsByTrace.set(link.traceId, { traceId: link.traceId, entries: [] });
+      groupsByTrace.get(link.traceId).entries.push(entry);
+    });
+
+    var groups = Array.from(groupsByTrace.values());
+    var laneTop = 26;
+    var worldWidth = 900;
+    var nodeMarkup = '';
+    var edgeMarkup = '';
+    var laneMarkup = '';
+
+    groups.forEach(function(group, groupIndex){
+      var nodeTop = laneTop + 46;
+      var laneHeight = 220;
+      laneMarkup += '<div class="map-lane-title" style="top:' + laneTop + 'px" title="' + escHtml(group.traceId) + '">' +
+        escHtml(mapTraceTitle(group)) + '<small>' + group.entries.length + ' etapas · ' + escHtml(group.traceId.slice(0, 8)) + '</small></div>';
+
+      group.entries.forEach(function(entry, index){
+        var link = linkOf(entry);
+        var key = mapNodeKey(entry, link);
+        var position = activeMapState.positions.get(key);
+        if (!position) {
+          position = mapPosition(index, nodeTop);
+          activeMapState.positions.set(key, position);
+        }
+        nodeMarkup += mapNodeMarkup(entry, key, position, true);
+        if (index > 0) {
+          var previous = group.entries[index - 1];
+          var previousKey = mapNodeKey(previous, linkOf(previous));
+          var previousPosition = activeMapState.positions.get(previousKey);
+          var geometry = mapEdgeGeometry(previousPosition, position);
+          edgeMarkup += '<g class="map-edge-group" data-map-from="' + escHtml(previousKey) + '" data-map-to="' + escHtml(key) + '">' +
+            '<path class="map-edge" d="' + geometry.path + '" marker-end="url(#map-arrow-linked)"/>' +
+          '</g>';
+        }
+      });
+      laneTop += laneHeight;
+      worldWidth = Math.max(worldWidth, 42 + group.entries.length * 360);
+    });
+
+    if (unlinked.length) {
+      laneMarkup += '<div class="map-lane-title" style="top:' + laneTop + 'px">Sequência cronológica<small>' + unlinked.length + ' logs sem vínculo explícito</small></div>';
+      var nodeTop = laneTop + 46;
+      unlinked.forEach(function(entry, index){
+        var key = mapNodeKey(entry, null);
+        var position = activeMapState.positions.get(key);
+        if (!position) {
+          position = mapPosition(index, nodeTop);
+          activeMapState.positions.set(key, position);
+        }
+        nodeMarkup += mapNodeMarkup(entry, key, position, false);
+        if (index > 0) {
+          var previous = unlinked[index - 1];
+          var previousKey = mapNodeKey(previous, null);
+          var previousPosition = activeMapState.positions.get(previousKey);
+          var geometry = mapEdgeGeometry(previousPosition, position);
+          edgeMarkup += '<g class="map-edge-group" data-map-from="' + escHtml(previousKey) + '" data-map-to="' + escHtml(key) + '">' +
+            '<path class="map-edge chronological" d="' + geometry.path + '" marker-end="url(#map-arrow-time)"/>' +
+          '</g>';
+        }
+      });
+      laneTop += 220;
+      worldWidth = Math.max(worldWidth, 42 + unlinked.length * 360);
+    }
+
+    if (!groups.length && !unlinked.length) {
+      laneMarkup = '<div class="map-empty">Esta sessão ainda não tem etapas para conectar.</div>';
+    }
+
+    var worldHeight = Math.max(210, laneTop + 24);
+    var totalLogs = groups.reduce(function(total, group){ return total + group.entries.length; }, unlinked.length);
+    var linkedLogs = groups.reduce(function(total, group){ return total + group.entries.length; }, 0);
+    var summary = '<strong>' + totalLogs + '</strong> logs · <strong>' + groups.length + '</strong> trilhas · <strong>' + unlinked.length + '</strong> sem vínculo';
+    return '<div id="debug-map-view" class="debug-map-view' + (activeView === 'map' ? ' visible' : '') + '">' +
+      '<div class="map-toolbar"><span class="map-summary">' + summary + '</span>' +
+        '<span class="map-legend"><span class="map-legend-item"><i class="map-legend-line"></i>trilha explícita</span><span class="map-legend-item"><i class="map-legend-line inferred"></i>ordem cronológica (sem vínculo)</span></span>' +
+        '<span class="map-hint" title="Arraste cartões para reposicionar; arraste o fundo para navegar; duplo clique abre o payload">Arraste · duplo clique: payload</span>' +
+        '<div class="map-actions"><button type="button" class="map-action" data-map-action="out" aria-label="Diminuir zoom" title="Diminuir zoom">−</button><button type="button" class="map-action" data-map-action="in" aria-label="Aumentar zoom" title="Aumentar zoom">+</button><button type="button" class="map-action" data-map-action="fit" title="Voltar ao início em escala legível">Visão inicial</button></div>' +
+      '</div>' +
+      '<div id="debug-map-viewport" class="map-viewport" tabindex="0" aria-label="Mapa navegável do caminho dos logs">' +
+        '<div id="debug-map-world" class="map-world" data-width="' + worldWidth + '" data-height="' + worldHeight + '" style="width:' + worldWidth + 'px;height:' + worldHeight + 'px">' +
+          '<svg class="map-edge-layer" width="' + worldWidth + '" height="' + worldHeight + '" viewBox="0 0 ' + worldWidth + ' ' + worldHeight + '">' +
+            '<defs><marker id="map-arrow-linked" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--info)"/></marker><marker id="map-arrow-time" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker></defs>' + edgeMarkup +
+          '</svg>' + laneMarkup + nodeMarkup +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function applyMapTransform(){
+    var world = el('debug-map-world');
+    if (!world || !activeMapState) return;
+    world.style.transform = 'translate(' + activeMapState.x + 'px,' + activeMapState.y + 'px) scale(' + activeMapState.scale + ')';
+  }
+
+  function updateMapEdges(){
+    var world = el('debug-map-world');
+    if (!world || !activeMapState) return;
+    var maxX = Number(world.dataset.width || 900);
+    var maxY = Number(world.dataset.height || 210);
+    world.querySelectorAll('.map-node').forEach(function(node){
+      var position = activeMapState.positions.get(node.dataset.mapNode);
+      if (!position) return;
+      maxX = Math.max(maxX, position.x + 330);
+      maxY = Math.max(maxY, position.y + 180);
+    });
+    world.style.width = maxX + 'px';
+    world.style.height = maxY + 'px';
+    var svg = world.querySelector('.map-edge-layer');
+    if (svg) {
+      svg.setAttribute('width', String(maxX));
+      svg.setAttribute('height', String(maxY));
+      svg.setAttribute('viewBox', '0 0 ' + maxX + ' ' + maxY);
+    }
+    world.querySelectorAll('.map-edge-group').forEach(function(group){
+      var from = activeMapState.positions.get(group.dataset.mapFrom);
+      var to = activeMapState.positions.get(group.dataset.mapTo);
+      if (!from || !to) return;
+      var geometry = mapEdgeGeometry(from, to);
+      var path = group.querySelector('.map-edge');
+      var label = group.querySelector('.map-edge-label');
+      if (path) path.setAttribute('d', geometry.path);
+      if (label) {
+        label.setAttribute('x', String(geometry.labelX));
+        label.setAttribute('y', String(geometry.labelY));
+      }
+    });
+  }
+
+  function updateMapExpiries(entries){
+    var bySeq = new Map(entries.map(function(entry){ return [String(entry.seq), entry]; }));
+    document.querySelectorAll('.map-node[data-seq] .map-node-expiry').forEach(function(badge){
+      var node = badge.closest('.map-node');
+      var entry = node && bySeq.get(node.dataset.seq);
+      if (!entry) return;
+      var expiry = formatExpiry(entry.createdAt);
+      badge.textContent = 'TTL ' + expiry.remainingMinutes + 'm';
+      badge.title = expiry.label;
+      badge.classList.toggle('urgent', expiry.urgent);
+    });
+  }
+
+  function fitMap(){
+    var viewport = el('debug-map-viewport');
+    var world = el('debug-map-world');
+    if (!viewport || !world || !activeMapState) return;
+    var maxY = 0;
+    world.querySelectorAll('.map-node').forEach(function(node){
+      var position = activeMapState.positions.get(node.dataset.mapNode);
+      if (!position) return;
+      maxY = Math.max(maxY, position.y + 154);
+    });
+    if (!maxY) maxY = Number(world.dataset.height || 210);
+    // Preserva a leitura dos cartões. Ajustamos a altura das trilhas; a extensão
+    // horizontal continua navegável por arraste para não reduzir dezenas de logs
+    // a miniaturas ilegíveis.
+    var scale = Math.min((viewport.clientHeight - 48) / maxY, 1);
+    activeMapState.scale = Math.max(.62, scale);
+    activeMapState.x = 24;
+    activeMapState.y = Math.max(20, (viewport.clientHeight - maxY * activeMapState.scale) / 2);
+    activeMapState.fitted = true;
+    applyMapTransform();
+  }
+
+  function setDebugView(view){
+    activeView = view === 'map' ? 'map' : 'logs';
+    var logView = el('debug-log-view');
+    var mapView = el('debug-map-view');
+    var filters = el('debug-filters');
+    if (logView) logView.style.display = activeView === 'logs' ? '' : 'none';
+    if (mapView) mapView.classList.toggle('visible', activeView === 'map');
+    if (filters) filters.classList.toggle('map-mode', activeView === 'map');
+    document.querySelectorAll('.debug-view-btn').forEach(function(button){
+      button.classList.toggle('active', button.dataset.debugView === activeView);
+    });
+    if (activeView === 'map') {
+      applyMapTransform();
+      if (activeMapState && !activeMapState.fitted) requestAnimationFrame(fitMap);
+    }
   }
 
   function toggleHtml(e, open, title, kind){
@@ -550,6 +1007,7 @@ const PAGE_SCRIPT = `
     var empty = el('debug-empty-state');
     var loading = el('debug-loading');
     visibleEntriesBySeq = new Map();
+    allEntriesBySeq = new Map();
 
     title.textContent = currentSessionId || 'Selecione uma sessão';
     title.classList.toggle('is-id', !!currentSessionId);
@@ -563,6 +1021,10 @@ const PAGE_SCRIPT = `
 
     if (!entries.length) {
       if (wrap) wrap.innerHTML = '';
+      mapRenderedSession = null;
+      mapRenderSignature = '';
+      mapDrag = null;
+      pendingMapEntries = null;
       if (wrap) wrap.style.display = 'none';
       if (empty) {
         empty.style.display = '';
@@ -574,6 +1036,8 @@ const PAGE_SCRIPT = `
     if (empty) empty.style.display = 'none';
     if (wrap) wrap.style.display = '';
 
+    var allEntries = entries.slice().sort(function(a, b){ return a.seq - b.seq; });
+    allEntriesBySeq = new Map(allEntries.map(function(entry){ return [entry.seq, entry]; }));
     var visible = filteredEntries(entries).sort(function(a, b){ return b.seq - a.seq; });
     visibleEntriesBySeq = new Map(visible.map(function(entry){ return [entry.seq, entry]; }));
     renderKindChips(entries);
@@ -589,9 +1053,34 @@ const PAGE_SCRIPT = `
       return toggleHtml(e, open, title, kind);
     }).join('');
 
-    wrap.innerHTML = visible.length
+    if (!wrap.querySelector('#debug-log-view')) {
+      wrap.innerHTML = '<div id="debug-log-view" class="debug-log-view"></div>';
+      mapRenderedSession = null;
+      mapRenderSignature = '';
+    }
+    var logMarkup = visible.length
       ? '<div id="debug-timeline">' + items + '</div>'
       : '<div id="debug-timeline"><div class="tl-empty-note">Nenhuma entrada bate com o filtro.</div></div>';
+    wrap.querySelector('#debug-log-view').innerHTML = logMarkup;
+
+    var signature = mapSignature(allEntries);
+    if (mapRenderedSession !== currentSessionId || signature !== mapRenderSignature) {
+      if (mapDrag && mapRenderedSession === currentSessionId) {
+        pendingMapEntries = allEntries;
+      } else {
+        mapDrag = null;
+        pendingMapEntries = null;
+        var oldMap = wrap.querySelector('#debug-map-view');
+        if (oldMap) oldMap.outerHTML = renderMap(allEntries);
+        else wrap.insertAdjacentHTML('beforeend', renderMap(allEntries));
+        mapRenderedSession = currentSessionId;
+        mapRenderSignature = signature;
+        applyMapTransform();
+        if (activeView === 'map' && activeMapState && !activeMapState.userNavigated) requestAnimationFrame(fitMap);
+      }
+    }
+    setDebugView(activeView);
+    updateMapExpiries(allEntries);
 
     if (setup.lastSeq) maybeAutoScroll(setup.lastSeq);
   }
@@ -622,6 +1111,7 @@ const PAGE_SCRIPT = `
           ts: entry.ts,
           sessionId: entry.sessionId,
           payload: entry.payload,
+          ...(entry.link ? { link: entry.link } : {}),
         };
         navigator.clipboard.writeText(JSON.stringify(log, null, 2))
           .then(function(){ showToast('Log #' + copySeq + ' copiado'); })
@@ -637,6 +1127,184 @@ const PAGE_SCRIPT = `
       if (open) { collapsedSet.add(seq); expandedSet.delete(seq); setItemOpen(item, false); }
       else { expandedSet.add(seq); collapsedSet.delete(seq); setItemOpen(item, true); }
     });
+  }
+
+  function wireMapEvents(){
+    var wrap = el('debug-entries-content');
+    var viewSwitch = el('debug-view-switch');
+    if (viewSwitch && !viewSwitch.dataset.wired) {
+      viewSwitch.dataset.wired = '1';
+      viewSwitch.addEventListener('click', function(ev){
+        var target = ev.target;
+        if (!(target instanceof Element)) return;
+        var button = target.closest('.debug-view-btn');
+        if (button) setDebugView(button.dataset.debugView || 'logs');
+      });
+    }
+    if (!wrap || wrap.dataset.mapWired) return;
+    wrap.dataset.mapWired = '1';
+
+    wrap.addEventListener('click', function(ev){
+      var target = ev.target;
+      if (!(target instanceof Element)) return;
+      var actionButton = target.closest('[data-map-action]');
+      if (actionButton && activeMapState) {
+        var action = actionButton.dataset.mapAction;
+        if (action === 'fit') {
+          activeMapState.userNavigated = false;
+          fitMap();
+        } else {
+          activeMapState.userNavigated = true;
+          activeMapState.scale = action === 'in'
+            ? Math.min(2.5, activeMapState.scale * 1.2)
+            : Math.max(.12, activeMapState.scale / 1.2);
+          applyMapTransform();
+        }
+        return;
+      }
+      var node = target.closest('.map-node[data-seq]');
+      if (!node || Date.now() - lastMapDragAt < 300) return;
+      var seq = Number(node.dataset.seq || 0);
+      clearTimeout(mapClickTimer);
+      mapClickTimer = setTimeout(function(){
+        mapClickTimer = null;
+        setDebugView('logs');
+        var log = el('debug-log-view') && el('debug-log-view').querySelector('.tl-item[data-seq="' + seq + '"]');
+        if (log) {
+          collapsedSet.delete(seq);
+          expandedSet.add(seq);
+          setItemOpen(log, true);
+          log.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+      }, 500);
+    });
+
+    wrap.addEventListener('dblclick', function(ev){
+      var target = ev.target;
+      if (!(target instanceof Element)) return;
+      var node = target.closest('.map-node[data-seq]');
+      if (!node || Date.now() - lastMapDragAt < 300) return;
+      ev.preventDefault();
+      clearTimeout(mapClickTimer);
+      mapClickTimer = null;
+      var entry = allEntriesBySeq.get(Number(node.dataset.seq || 0));
+      if (entry) showPayload(entry);
+    });
+
+    wrap.addEventListener('keydown', function(ev){
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      var target = ev.target;
+      if (!(target instanceof Element)) return;
+      var node = target.closest('.map-node[data-seq]');
+      if (!node) return;
+      ev.preventDefault();
+      node.click();
+    });
+
+    wrap.addEventListener('pointerdown', function(ev){
+      var target = ev.target;
+      if (!(target instanceof Element) || !activeMapState || activeView !== 'map') return;
+      if (ev.button !== undefined && ev.button !== 0) return;
+      if (target.closest('[data-map-action]')) return;
+      var viewport = target.closest('.map-viewport');
+      if (!viewport) return;
+      activeMapState.userNavigated = true;
+      var node = target.closest('.map-node');
+      var captureTarget = viewport;
+      if (node) {
+        captureTarget = node;
+        var key = node.dataset.mapNode;
+        var position = activeMapState.positions.get(key);
+        if (!position) return;
+        mapDrag = {
+          kind: 'node',
+          key: key,
+          node: node,
+          viewport: viewport,
+          pointerId: ev.pointerId,
+          startX: ev.clientX,
+          startY: ev.clientY,
+          originX: position.x,
+          originY: position.y,
+          moved: false,
+        };
+        node.classList.add('dragging');
+      } else {
+        mapDrag = {
+          kind: 'pan',
+          viewport: viewport,
+          pointerId: ev.pointerId,
+          startX: ev.clientX,
+          startY: ev.clientY,
+          originX: activeMapState.x,
+          originY: activeMapState.y,
+          moved: false,
+        };
+        viewport.classList.add('panning');
+      }
+      if (Number.isFinite(ev.pointerId) && captureTarget.setPointerCapture) {
+        try { captureTarget.setPointerCapture(ev.pointerId); } catch(e){}
+      }
+      ev.preventDefault();
+    }, true);
+
+    document.addEventListener('pointermove', function(ev){
+      if (!mapDrag || !activeMapState) return;
+      if (Number.isFinite(mapDrag.pointerId) && Number.isFinite(ev.pointerId) && ev.pointerId !== mapDrag.pointerId) return;
+      var dx = ev.clientX - mapDrag.startX;
+      var dy = ev.clientY - mapDrag.startY;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) mapDrag.moved = true;
+      if (mapDrag.kind === 'node') {
+        var x = Math.max(20, mapDrag.originX + dx / activeMapState.scale);
+        var y = Math.max(20, mapDrag.originY + dy / activeMapState.scale);
+        activeMapState.positions.set(mapDrag.key, { x: x, y: y });
+        mapDrag.node.style.left = x + 'px';
+        mapDrag.node.style.top = y + 'px';
+        updateMapEdges();
+      } else {
+        activeMapState.x = mapDrag.originX + dx;
+        activeMapState.y = mapDrag.originY + dy;
+        applyMapTransform();
+      }
+    }, true);
+
+    var endDrag = function(ev){
+      if (!mapDrag) return;
+      if (ev && Number.isFinite(mapDrag.pointerId) && Number.isFinite(ev.pointerId) && ev.pointerId !== mapDrag.pointerId) return;
+      if (mapDrag.kind === 'node' && mapDrag.moved) lastMapDragAt = Date.now();
+      if (mapDrag.node) mapDrag.node.classList.remove('dragging');
+      if (mapDrag.viewport) mapDrag.viewport.classList.remove('panning');
+      mapDrag = null;
+      if (pendingMapEntries && activeMapState) {
+        var entries = pendingMapEntries;
+        pendingMapEntries = null;
+        var oldMap = el('debug-map-view');
+        if (oldMap) oldMap.outerHTML = renderMap(entries);
+        mapRenderedSession = currentSessionId;
+        mapRenderSignature = mapSignature(entries);
+        applyMapTransform();
+        if (activeView === 'map' && !activeMapState.userNavigated) fitMap();
+      }
+    };
+    document.addEventListener('pointerup', endDrag, true);
+    document.addEventListener('pointercancel', endDrag, true);
+
+    wrap.addEventListener('wheel', function(ev){
+      var target = ev.target;
+      if (!(target instanceof Element) || !target.closest('.map-viewport') || !activeMapState || activeView !== 'map') return;
+      ev.preventDefault();
+      var viewport = el('debug-map-viewport');
+      if (!viewport) return;
+      var rect = viewport.getBoundingClientRect();
+      var anchorX = (ev.clientX - rect.left - activeMapState.x) / activeMapState.scale;
+      var anchorY = (ev.clientY - rect.top - activeMapState.y) / activeMapState.scale;
+      var scale = Math.max(.12, Math.min(2.5, activeMapState.scale * (ev.deltaY < 0 ? 1.08 : .92)));
+      activeMapState.userNavigated = true;
+      activeMapState.scale = scale;
+      activeMapState.x = ev.clientX - rect.left - anchorX * scale;
+      activeMapState.y = ev.clientY - rect.top - anchorY * scale;
+      applyMapTransform();
+    }, { passive: false });
   }
 
   function wireFilters(events){
@@ -711,6 +1379,12 @@ const PAGE_SCRIPT = `
 
   function selectSession(sessionId){
     currentSessionId = sessionId;
+    activeView = 'logs';
+    activeMapState = mapStateFor(sessionId);
+    mapRenderedSession = null;
+    mapRenderSignature = '';
+    mapDrag = null;
+    pendingMapEntries = null;
     renderSessions();
     resetEntryUIState();
     setLoading(true);
@@ -735,7 +1409,12 @@ const PAGE_SCRIPT = `
   function copyCurlExample(){
     var body = JSON.stringify({
       sessionId: 'exemplo',
-      payload: { type: 'log', title: 'Exemplo de debug', message: 'Teste de envio' }
+      payload: { type: 'info', title: 'Resposta da tela', message: 'A tela recebeu o retorno.' },
+      link: {
+        traceId: 'exemplo-123',
+        from: { id: 'notes.http.POST /notes', label: 'POST /notes' },
+        to: { id: 'notes.ui.editor', label: 'Editor da nota' },
+      },
     });
     var cmd = 'curl -X POST http://127.0.0.1:3334/debug -H "Content-Type: application/json" --data-raw ' + "'" + body + "'";
     navigator.clipboard.writeText(cmd)
@@ -745,6 +1424,12 @@ const PAGE_SCRIPT = `
 
   function clearDetail(){
     currentSessionId = null;
+    activeView = 'logs';
+    activeMapState = null;
+    mapRenderedSession = null;
+    mapRenderSignature = '';
+    mapDrag = null;
+    pendingMapEntries = null;
     resetEntryUIState();
     var title = el('debug-detail-title');
     var count = el('debug-detail-count');
@@ -810,7 +1495,9 @@ const PAGE_SCRIPT = `
     attachSessionListEvents();
     attachDetailEvents();
     el('debug-copy-example').addEventListener('click', copyCurlExample);
+    wirePayloadDialog();
     wireTimelineEvents();
+    wireMapEvents();
     wireFilters({ reload: function(){ if (currentSessionId) loadEntries(currentSessionId); } });
     refresh();
     refreshTimer = setInterval(refresh, 2000);

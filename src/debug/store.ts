@@ -2,7 +2,11 @@
 // Estado mutável isolado: este é o único arquivo do módulo debug que mantém
 // estado. Nenhuma persistência, nenhum acesso ao KV.
 
-import type { DebugEntry, DebugSessionSummary } from './types.ts';
+import type {
+  DebugEntry,
+  DebugEntryLink,
+  DebugSessionSummary,
+} from './types.ts';
 
 const MAX_ENTRIES = 1000;
 export const DEBUG_TTL_MS = 60 * 60 * 1000; // 1 hora
@@ -32,6 +36,7 @@ const cleanup = (): void => {
 export const addDebugEntry = (
   sessionId: string,
   payload: unknown,
+  link?: DebugEntryLink,
 ): Pick<DebugEntry, 'seq' | 'ts'> => {
   cleanup();
 
@@ -53,6 +58,7 @@ export const addDebugEntry = (
     ts,
     sessionId,
     payload,
+    ...(link ? { link } : {}),
     createdAt: Date.now(),
   };
   buffer.push(entry);

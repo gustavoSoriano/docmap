@@ -1059,6 +1059,32 @@ payload com \`type\` (\`log\`, \`error\`, \`warning\`, \`decision\`, \`todo\`) e
 }
 \`\`\`
 
+Opcionalmente, inclua \`link\` no nivel externo do body para ligar a entrada a
+uma transicao. Esse metadado fica separado de \`payload\`, que continua sendo
+JSON livre; a interface nunca interpreta campos do payload como vinculos.
+
+\`\`\`json
+{
+  "sessionId": "agent-123",
+  "payload": {
+    "type": "info",
+    "title": "registro persistido"
+  },
+  "link": {
+    "traceId": "job-a1b2",
+    "from": { "id": "worker.process", "label": "processarRegistro()" },
+    "to": { "id": "storage.put", "label": "storage.put()" }
+  }
+}
+\`\`\`
+
+Use o mesmo \`traceId\` nas entradas da mesma operacao. Em cada entrada,
+\`from\` e \`to\` descrevem a transicao daquele evento. O mapa desenha essas
+ligacoes explicitas em azul. Quando a origem ou o destino forem desconhecidos,
+omita \`link\`: a interface coloca a entrada na sequencia de chegada da sessao,
+em tracejado laranja, sem afirmar relacao causal. Mantenha \`link\` fora de
+\`payload\`; nao crie uma chave \`flow\` dentro do payload.
+
 Resposta **201**:
 
 \`\`\`json
@@ -1067,6 +1093,7 @@ Resposta **201**:
 
 - \`sessionId\`: escolhido pelo agente/IA.
 - \`payload\`: qualquer JSON, sem validacao.
+- \`link\` (opcional): metadado externo que conecta origem e destino sem alterar o payload.
 - \`seq\`: numero crescente dentro da sessao; cada sessao comeca em \`1\`.
 - \`ts\`: timestamp formatado como \`HH:MM:SS.mmm\`.
 
@@ -1076,7 +1103,7 @@ Resposta: array de entradas ordenadas por \`seq\`:
 
 \`\`\`json
 [
-  { "seq": 1, "ts": "14:32:10.042", "sessionId": "agent-123", "payload": { ... } }
+  { "seq": 1, "ts": "14:32:10.042", "sessionId": "agent-123", "payload": { ... }, "link": { "traceId": "...", "from": { ... }, "to": { ... } } }
 ]
 \`\`\`
 
@@ -1086,7 +1113,9 @@ Abra pelo app no botao **Debug** do rail lateral. A pagina mostra:
 
 - contagem de sessoes e entradas;
 - cards de sessao com copiar/excluir;
-- tabela de entradas com \`seq\`, \`ts\` e payload JSON formatado;
+- timeline e mapa do caminho; cada cartao representa um log e mostra origem e
+  destino. O mapa permite arrastar cartoes, navegar pelo fundo e ajustar o zoom;
+  logs sem vinculo explicito aparecem conectados pela ordem da sessao;
 - atualizacao automatica a cada 2 segundos.
 
 ---
