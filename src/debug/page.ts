@@ -103,7 +103,12 @@ button{color:inherit}
 .tl-expiry.urgent{color:var(--warn)}
 .tl-event{min-width:0;overflow:hidden;border:1px solid var(--border-mid);border-radius:14px;background:var(--surface);transition:border-color var(--dur)}
 .tl-item:hover .tl-event,.tl-item.open .tl-event{border-color:var(--border-hi)}
+.tl-row{display:grid;grid-template-columns:minmax(0,1fr) 40px;align-items:center}
 .tl-head{width:100%;min-height:58px;padding:12px 16px;display:grid;grid-template-columns:auto minmax(0,1fr) 18px;align-items:center;gap:14px;border:0;background:transparent;text-align:left;cursor:pointer}
+.tl-copy{width:30px;height:30px;display:grid;place-items:center;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text-3);cursor:pointer;transition:background var(--dur),color var(--dur)}
+.tl-copy:hover{background:var(--surface-3);color:var(--text)}
+.tl-copy:focus-visible{outline:2px solid var(--info);outline-offset:1px}
+.tl-copy .ico{width:15px;height:15px}
 .tl-kind{justify-self:start;display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:var(--r-xs);background:var(--surface-4);color:var(--text-2);font-size:var(--fs-xs);font-weight:600;max-width:100%}
 .tl-kind::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--text-4);flex-shrink:0}
 .tl-kind span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -247,6 +252,7 @@ const PAGE_SCRIPT = `
   var currentSessionId = null;
   var sessions = [];
   var refreshTimer = null;
+  var visibleEntriesBySeq = new Map();
   var TTL_MS = ${DEBUG_TTL_MS};
 
   // ── Tema: o app guarda localStorage['docmap-theme'] ('dark' | 'light').
@@ -520,10 +526,11 @@ const PAGE_SCRIPT = `
         '<span class="tl-seq">' + String(e.seq).padStart(2, '0') + '</span>' +
         '<span class="tl-ts">' + escHtml(e.ts) + '</span>' +
         '<span class="tl-expiry' + (expiry.urgent ? ' urgent' : '') + '" title="Retenção de uma hora">' + expiry.label + '</span>' +
-      '</div><div class="tl-event"><button type="button" class="tl-head" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+      '</div><div class="tl-event"><div class="tl-row"><button type="button" class="tl-head" aria-expanded="' + (open ? 'true' : 'false') + '">' +
         '<span class="tl-kind ' + kindClassOf(kind) + '"><span>' + escHtml(kind) + '</span></span>' +
         '<span class="tl-title" title="' + escHtml(title) + '">' + escHtml(title) + '</span>' +
         '<span class="tl-chev">' + icon('chevron-down') + '</span></button>' +
+        '<button type="button" class="tl-copy" data-seq="' + e.seq + '" title="Copiar este log" aria-label="Copiar log #' + e.seq + '">' + icon('copy') + '</button></div>' +
       '<div class="tl-body"><pre>' + json + '</pre></div></div>' +
     '</article>';
   }
@@ -542,6 +549,7 @@ const PAGE_SCRIPT = `
     var wrap = el('debug-entries-content');
     var empty = el('debug-empty-state');
     var loading = el('debug-loading');
+    visibleEntriesBySeq = new Map();
 
     title.textContent = currentSessionId || 'Selecione uma sessão';
     title.classList.toggle('is-id', !!currentSessionId);
@@ -567,6 +575,7 @@ const PAGE_SCRIPT = `
     if (wrap) wrap.style.display = '';
 
     var visible = filteredEntries(entries).sort(function(a, b){ return b.seq - a.seq; });
+    visibleEntriesBySeq = new Map(visible.map(function(entry){ return [entry.seq, entry]; }));
     renderKindChips(entries);
     var setup = renderSetupFor(visible.length ? visible : entries);
 
@@ -597,10 +606,28 @@ const PAGE_SCRIPT = `
     var wrap = el('debug-entries-content');
     if (!wrap || wrap.dataset.wired) return;
     wrap.dataset.wired = '1';
-    // Só o cabeçalho da linha alterna: clicar/selecionar o JSON não recolhe.
+    // Copiar e expandir/recolher são ações independentes.
     wrap.addEventListener('click', function(ev){
       var target = ev.target;
       if (!(target instanceof Element)) return;
+      var copyBtn = target.closest('.tl-copy');
+      if (copyBtn) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var copySeq = Number(copyBtn.dataset.seq || 0);
+        var entry = visibleEntriesBySeq.get(copySeq);
+        if (!entry) return;
+        var log = {
+          seq: entry.seq,
+          ts: entry.ts,
+          sessionId: entry.sessionId,
+          payload: entry.payload,
+        };
+        navigator.clipboard.writeText(JSON.stringify(log, null, 2))
+          .then(function(){ showToast('Log #' + copySeq + ' copiado'); })
+          .catch(function(){ showToast('Falha ao copiar o log'); });
+        return;
+      }
       if (!target.closest('.tl-head')) return;
       var item = target.closest('.tl-item');
       if (!item) return;
