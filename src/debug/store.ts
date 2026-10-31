@@ -5,9 +5,8 @@
 import type { DebugEntry, DebugSessionSummary } from './types.ts';
 
 const MAX_ENTRIES = 1000;
-const TTL_MS = 20 * 60 * 1000; // 20 minutos
+export const DEBUG_TTL_MS = 60 * 60 * 1000; // 1 hora
 
-let nextSeq = 1;
 const buffer: DebugEntry[] = [];
 
 const formatTs = (d = new Date()): string => {
@@ -19,12 +18,12 @@ const formatTs = (d = new Date()): string => {
 };
 
 const isExpired = (entry: DebugEntry): boolean =>
-  Date.now() - entry.createdAt > TTL_MS;
+  Date.now() - entry.createdAt > DEBUG_TTL_MS;
 
 const cleanup = (): void => {
   const now = Date.now();
   for (let i = buffer.length - 1; i >= 0; i--) {
-    if (now - buffer[i].createdAt > TTL_MS) {
+    if (now - buffer[i].createdAt > DEBUG_TTL_MS) {
       buffer.splice(i, 1);
     }
   }
@@ -36,11 +35,18 @@ export const addDebugEntry = (
 ): Pick<DebugEntry, 'seq' | 'ts'> => {
   cleanup();
 
+  const seq = buffer.reduce(
+    (max, entry) => {
+      if (entry.sessionId !== sessionId) return max;
+      return Math.max(max, entry.seq);
+    },
+    0,
+  ) + 1;
+
   while (buffer.length >= MAX_ENTRIES) {
     buffer.shift();
   }
 
-  const seq = nextSeq++;
   const ts = formatTs();
   const entry: DebugEntry = {
     seq,

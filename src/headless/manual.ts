@@ -1019,7 +1019,7 @@ renderizador de HTML.
 ## Debug Audit — log efemero para agentes
 
 Buffer in-memory (sem persistencia) para IA/agentes instrumentarem codigo e
-inspecionarem dados arbitrarios. Tudo expira em 20 minutos (TTL) e o buffer
+inspecionarem dados arbitrarios. Tudo expira em 1 hora (TTL) e o buffer
 global tem limite de 1000 entradas (ring buffer).
 
 Importante: o DEBUG **nao exige Origin** e nao bloqueia curl/servicos sem
@@ -1067,7 +1067,7 @@ Resposta **201**:
 
 - \`sessionId\`: escolhido pelo agente/IA.
 - \`payload\`: qualquer JSON, sem validacao.
-- \`seq\`: numero global monotonico crescente, nunca reseta.
+- \`seq\`: numero crescente dentro da sessao; cada sessao comeca em \`1\`.
 - \`ts\`: timestamp formatado como \`HH:MM:SS.mmm\`.
 
 ### GET /debug/:sessionId

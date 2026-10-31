@@ -22,6 +22,7 @@ export const readDebugBody = async (req: Request): Promise<unknown> => {
 
 export const handleDebugAdd = async (req: Request): Promise<Response> => {
   const body = await readDebugBody(req);
+  if (body === undefined) return badRequest('invalid_json');
   if (!isValidBody(body)) return badRequest('sessionId_required');
   const result = addDebugEntry(body.sessionId, body.payload);
   return json(result, 201);

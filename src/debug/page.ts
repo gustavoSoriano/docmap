@@ -8,6 +8,7 @@ import {
   FONT_CSS,
   TOKENS_CSS,
 } from '../server/handlers/ui-shared.gen.ts';
+import { DEBUG_TTL_MS } from './store.ts';
 
 const PAGE_CSS = `
 *{margin:0;padding:0;box-sizing:border-box}
@@ -26,6 +27,8 @@ button{color:inherit}
 .stat{height:24px;padding:0 9px;gap:6px}
 .stat strong{font-weight:650;color:var(--text);font-variant-numeric:tabular-nums}
 #debug-update{margin-left:auto;font-size:var(--fs-xs);color:var(--text-3);font-variant-numeric:tabular-nums}
+#debug-copy-example{height:30px;padding:0 10px;color:var(--text-2)}
+#debug-copy-example .ico{width:15px;height:15px}
 
 /* ── Ilhas: sessões à esquerda, detalhe à direita ── */
 #debug-main{flex:1;min-height:0;display:flex;gap:var(--gap);padding:0 var(--gap) var(--gap)}
@@ -85,11 +88,22 @@ button{color:inherit}
 #debug-entries{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding:8px}
 #debug-entries-content{display:block}
 .tl-empty-note{padding:36px 12px;text-align:center;color:var(--text-3);font-size:var(--fs-md)}
-#debug-timeline{--c-time:96px;--c-kind:92px;--c-gap:12px;display:flex;flex-direction:column;gap:2px}
-.tl-item{border-radius:var(--r-md);transition:background var(--dur)}
-.tl-item:hover,.tl-item.open{background:var(--surface-3)}
-.tl-head{width:100%;min-height:40px;padding:6px 12px;display:grid;grid-template-columns:var(--c-time) var(--c-kind) minmax(0,1fr) auto 16px;align-items:center;column-gap:var(--c-gap);border:0;background:transparent;text-align:left;cursor:pointer;border-radius:var(--r-md)}
-.tl-ts{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--text-3);font-variant-numeric:tabular-nums}
+#debug-timeline{position:relative;display:flex;flex-direction:column;gap:16px;padding:8px 0}
+#debug-timeline::before{content:'';position:absolute;left:99px;top:18px;bottom:18px;width:1px;background:var(--border-mid)}
+.tl-item{position:relative;display:grid;grid-template-columns:100px minmax(0,1fr);gap:18px}
+.tl-rail{position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding:4px 14px 0 0;text-align:right}
+.tl-rail-marker{position:absolute;z-index:1;top:8px;right:-5px;width:10px;height:10px;border:2px solid var(--bg);border-radius:50%;background:var(--text-4)}
+.tl-item[data-kind="error"] .tl-rail-marker{background:var(--danger)}
+.tl-item[data-kind="warning"] .tl-rail-marker{background:var(--warn)}
+.tl-item[data-kind="ok"] .tl-rail-marker,.tl-item[data-kind="done"] .tl-rail-marker{background:var(--ok)}
+.tl-item[data-kind="info"] .tl-rail-marker,.tl-item[data-kind="decision"] .tl-rail-marker,.tl-item[data-kind="todo"] .tl-rail-marker{background:var(--info)}
+.tl-seq{font-family:var(--font-mono);font-size:25px;line-height:1;font-weight:650;letter-spacing:-.07em;color:var(--text-2);font-variant-numeric:tabular-nums}
+.tl-ts{font-family:var(--font-mono);font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.tl-expiry{font-family:var(--font-mono);font-size:10px;color:var(--text-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tl-expiry.urgent{color:var(--warn)}
+.tl-event{min-width:0;overflow:hidden;border:1px solid var(--border-mid);border-radius:14px;background:var(--surface);transition:border-color var(--dur)}
+.tl-item:hover .tl-event,.tl-item.open .tl-event{border-color:var(--border-hi)}
+.tl-head{width:100%;min-height:58px;padding:12px 16px;display:grid;grid-template-columns:auto minmax(0,1fr) 18px;align-items:center;gap:14px;border:0;background:transparent;text-align:left;cursor:pointer}
 .tl-kind{justify-self:start;display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:var(--r-xs);background:var(--surface-4);color:var(--text-2);font-size:var(--fs-xs);font-weight:600;max-width:100%}
 .tl-kind::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--text-4);flex-shrink:0}
 .tl-kind span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -101,14 +115,19 @@ button{color:inherit}
 .tl-kind.ok::before{background:var(--ok)}
 .tl-kind.info{background:var(--info-dim);color:var(--info)}
 .tl-kind.info::before{background:var(--info)}
-.tl-title{min-width:0;font-size:13px;font-weight:560;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tl-seq{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--text-3);font-variant-numeric:tabular-nums}
+.tl-title{min-width:0;font-size:15px;font-weight:650;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tl-chev{display:grid;place-items:center;color:var(--text-3);transition:transform .18s var(--ease)}
 .tl-chev .ico{width:15px;height:15px}
 .tl-item.open .tl-chev{transform:rotate(180deg)}
-.tl-body{display:none;padding:0 12px 12px calc(12px + var(--c-time) + var(--c-kind) + var(--c-gap) * 2)}
+.tl-body{display:none;padding:0 16px 16px}
 .tl-item.open .tl-body{display:block}
-.tl-body pre{margin:0;padding:12px 14px;max-height:340px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-family:var(--font-mono);font-size:var(--fs-xs);line-height:1.6;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm)}
+.tl-body pre{margin:0;padding:16px;max-height:420px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-family:var(--font-mono);font-size:var(--fs-sm);line-height:1.75;color:var(--text-2);background:var(--surface-2);border-top:1px solid var(--border);border-radius:var(--r-sm)}
+.tl-head:focus-visible{outline:2px solid var(--info);outline-offset:-3px;border-radius:10px}
+.json-key{color:var(--info)}
+.json-string{color:var(--ok)}
+.json-number{color:var(--warn)}
+.json-literal{color:var(--accent)}
+.json-punct{color:var(--text-3)}
 
 /* ── Carregando ── */
 #debug-loading{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-3);font-size:var(--fs-md)}
@@ -136,18 +155,24 @@ button{color:inherit}
 }
 @media (max-width:760px){
   #debug-sessions{width:var(--sidebar-w-tablet)}
-  #debug-timeline{--c-time:84px;--c-kind:84px;--c-gap:10px}
-  .tl-seq{display:none}
-  .tl-head{grid-template-columns:var(--c-time) var(--c-kind) minmax(0,1fr) 16px}
+  #debug-timeline{gap:12px}
+  .tl-item{grid-template-columns:82px minmax(0,1fr);gap:14px}
+  #debug-timeline::before{left:81px}
+  .tl-seq{font-size:22px}
   #debug-search{width:170px}
 }
 @media (max-width:560px){
   #debug-main{flex-direction:column}
   #debug-sessions{width:auto;height:34%;flex-shrink:0}
-  #debug-timeline{--c-time:0px;--c-kind:78px}
-  .tl-ts{display:none}
-  .tl-head{grid-template-columns:var(--c-kind) minmax(0,1fr) 16px}
-  .tl-body{padding-left:12px}
+  .tl-item{grid-template-columns:72px minmax(0,1fr);gap:12px}
+  #debug-timeline::before{left:71px}
+  .tl-rail{padding-right:10px}
+  .tl-seq{font-size:19px}
+  .tl-expiry{font-size:9px}
+  .tl-head{grid-template-columns:auto minmax(0,1fr) 16px;gap:9px;padding:10px}
+  .tl-title{font-size:13px}
+  .tl-body{padding:0 10px 10px}
+  .tl-body pre{padding:12px;font-size:11px}
   #debug-header{padding:0 14px}
   #debug-update{display:none}
 }
@@ -161,6 +186,9 @@ const PAGE_BODY = `
     <span class="chip stat">Entradas <strong id="stat-entries">0</strong></span>
   </div>
   <span id="debug-update">Atualizado às --:--:--</span>
+  <button class="session-btn" id="debug-copy-example" title="Copiar exemplo curl para enviar um log" aria-label="Copiar exemplo curl">
+    <span data-icon="copy"></span><span class="lbl">curl</span>
+  </button>
 </header>
 
 <main id="debug-main">
@@ -172,6 +200,7 @@ const PAGE_BODY = `
     <div class="pane-head" id="debug-detail-head">
       <span id="debug-detail-title">Selecione uma sessão</span>
       <span class="chip" id="debug-detail-count"></span>
+      <span class="chip" title="Cada log é removido uma hora após ser recebido">Retenção 1 h</span>
       <div id="debug-detail-actions"></div>
     </div>
     <div id="debug-filters">
@@ -218,6 +247,7 @@ const PAGE_SCRIPT = `
   var currentSessionId = null;
   var sessions = [];
   var refreshTimer = null;
+  var TTL_MS = ${DEBUG_TTL_MS};
 
   // ── Tema: o app guarda localStorage['docmap-theme'] ('dark' | 'light').
   // Dark = sem atributo (como no index.html); reage ao evento 'storage'.
@@ -348,21 +378,20 @@ const PAGE_SCRIPT = `
 
   var entriesContainer = function(){ return el('debug-entries'); };
 
-  // Auto-scroll só quando o usuário já está perto do fim do feed.
-  function nearBottom(){
+  // Acompanhar novas entradas só quando o usuário já está perto do topo.
+  function nearTop(){
     var box = entriesContainer();
-    if (!box) return false;
-    return box.scrollTop + box.clientHeight >= box.scrollHeight - 80;
+    return !!box && box.scrollTop <= 80;
   }
 
   function maybeAutoScroll(lastSeq){
     if (lastSeq <= lastScrolledSeq) return;
-    var shouldFollow = lastScrolledSeq === 0 || nearBottom();
+    var shouldFollow = lastScrolledSeq === 0 || nearTop();
     lastScrolledSeq = lastSeq;
     if (!shouldFollow) return;
     var box = entriesContainer();
-    var last = box && box.querySelector('.tl-item:last-child');
-    if (last) last.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    var first = box && box.querySelector('.tl-item:first-child');
+    if (first) first.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
   // Tipo da entrada -> cor semântica do chip (danger / warn / ok / info / neutro).
@@ -427,23 +456,82 @@ const PAGE_SCRIPT = `
     box.innerHTML = chips.join('');
   }
 
+  function highlightJson(value){
+    var source = JSON.stringify(value, null, 2);
+    if (source === undefined) source = 'null';
+    var output = '';
+    var i = 0;
+    while (i < source.length) {
+      var ch = source.charAt(i);
+      if (ch === '"') {
+        var start = i++;
+        while (i < source.length) {
+          if (source.charCodeAt(i) === 92) { i += 2; continue; }
+          if (source.charAt(i++) === '"') break;
+        }
+        var token = source.slice(start, i);
+        var next = i;
+        while (next < source.length && source.charAt(next).trim() === '') next++;
+        var isKey = source.charAt(next) === ':';
+        output += '<span class="' + (isKey ? 'json-key' : 'json-string') + '">' +
+          escHtml(token) + '</span>';
+        continue;
+      }
+      if (ch === '{' || ch === '}' || ch === '[' || ch === ']' || ch === ',' || ch === ':') {
+        output += '<span class="json-punct">' + ch + '</span>';
+        i++;
+        continue;
+      }
+      if (ch === '-' || (ch >= '0' && ch <= '9')) {
+        var numberStart = i++;
+        while (i < source.length && /[0-9.eE+-]/.test(source.charAt(i))) i++;
+        output += '<span class="json-number">' + source.slice(numberStart, i) + '</span>';
+        continue;
+      }
+      if (/[a-z]/i.test(ch)) {
+        var literalStart = i++;
+        while (i < source.length && /[a-z]/i.test(source.charAt(i))) i++;
+        output += '<span class="json-literal">' + source.slice(literalStart, i) + '</span>';
+        continue;
+      }
+      output += ch;
+      i++;
+    }
+    return output;
+  }
+
+  function formatExpiry(createdAt){
+    var remaining = Math.max(0, TTL_MS - (Date.now() - Number(createdAt || 0)));
+    var seconds = Math.ceil(remaining / 1000);
+    var minutes = Math.floor(seconds / 60);
+    var remainder = String(seconds % 60).padStart(2, '0');
+    return {
+      label: 'expira em ' + minutes + ':' + remainder,
+      urgent: remaining <= 5 * 60 * 1000
+    };
+  }
+
   function toggleHtml(e, open, title, kind){
+    var json = highlightJson(e.payload);
+    var expiry = formatExpiry(e.createdAt);
     return '<article class="tl-item' + (open ? ' open' : '') + (isErrKind(kind) ? ' ' + kind : '') +
       '" data-seq="' + e.seq + '" data-kind="' + escHtml(kind) + '">' +
-      '<button type="button" class="tl-head" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+      '<div class="tl-rail"><span class="tl-rail-marker"></span>' +
+        '<span class="tl-seq">' + String(e.seq).padStart(2, '0') + '</span>' +
         '<span class="tl-ts">' + escHtml(e.ts) + '</span>' +
+        '<span class="tl-expiry' + (expiry.urgent ? ' urgent' : '') + '" title="Retenção de uma hora">' + expiry.label + '</span>' +
+      '</div><div class="tl-event"><button type="button" class="tl-head" aria-expanded="' + (open ? 'true' : 'false') + '">' +
         '<span class="tl-kind ' + kindClassOf(kind) + '"><span>' + escHtml(kind) + '</span></span>' +
         '<span class="tl-title" title="' + escHtml(title) + '">' + escHtml(title) + '</span>' +
-        '<span class="tl-seq">#' + e.seq + '</span>' +
         '<span class="tl-chev">' + icon('chevron-down') + '</span></button>' +
-      '<div class="tl-body"><pre>' + escHtml(JSON.stringify(e.payload, null, 2)) + '</pre></div>' +
+      '<div class="tl-body"><pre>' + json + '</pre></div></div>' +
     '</article>';
   }
 
   function renderSetupFor(entries){
     var errCount = entries.filter(function(e){ return isErrKind(kindOf(e.payload)); }).length;
-    var lastSeq = entries.length ? entries[entries.length - 1].seq : 0;
-    return { errCount: errCount, lastSeq: lastSeq };
+    var newestSeq = entries.reduce(function(max, e){ return Math.max(max, e.seq); }, 0);
+    return { errCount: errCount, lastSeq: newestSeq };
   }
 
   function renderEntries(entries){
@@ -478,7 +566,7 @@ const PAGE_SCRIPT = `
     if (empty) empty.style.display = 'none';
     if (wrap) wrap.style.display = '';
 
-    var visible = filteredEntries(entries);
+    var visible = filteredEntries(entries).sort(function(a, b){ return b.seq - a.seq; });
     renderKindChips(entries);
     var setup = renderSetupFor(visible.length ? visible : entries);
 
@@ -488,7 +576,7 @@ const PAGE_SCRIPT = `
       var open;
       if (collapsedSet.has(e.seq)) open = false;
       else if (expandedSet.has(e.seq)) open = true;
-      else open = e.seq === setup.lastSeq || isErrKind(kind) || visible.length <= 3;
+      else open = true;
       return toggleHtml(e, open, title, kind);
     }).join('');
 
@@ -554,13 +642,23 @@ const PAGE_SCRIPT = `
     if (expandBtn && !expandBtn.dataset.wired) {
       expandBtn.dataset.wired = '1';
       expandBtn.addEventListener('click', function(){
-        document.querySelectorAll('.tl-item').forEach(function(item){ setItemOpen(item, true); });
+        document.querySelectorAll('.tl-item').forEach(function(item){
+          var seq = Number(item.dataset.seq || 0);
+          expandedSet.add(seq);
+          collapsedSet.delete(seq);
+          setItemOpen(item, true);
+        });
       });
     }
     if (collapseBtn && !collapseBtn.dataset.wired) {
       collapseBtn.dataset.wired = '1';
       collapseBtn.addEventListener('click', function(){
-        document.querySelectorAll('.tl-item').forEach(function(item){ setItemOpen(item, false); });
+        document.querySelectorAll('.tl-item').forEach(function(item){
+          var seq = Number(item.dataset.seq || 0);
+          collapsedSet.add(seq);
+          expandedSet.delete(seq);
+          setItemOpen(item, false);
+        });
       });
     }
   }
@@ -568,6 +666,7 @@ const PAGE_SCRIPT = `
   function resetEntryUIState(){
     expandedSet = new Set();
     collapsedSet = new Set();
+    lastScrolledSeq = 0;
     currentKind = '';
     searchText = '';
     var search = el('debug-search');
@@ -603,6 +702,17 @@ const PAGE_SCRIPT = `
     var cmd = 'curl http://127.0.0.1:3334/debug/' + sessionId;
     navigator.clipboard.writeText(cmd)
       .then(function(){ showToast('Comando GET copiado'); })
+      .catch(function(){ showToast('Falha ao copiar'); });
+  }
+
+  function copyCurlExample(){
+    var body = JSON.stringify({
+      sessionId: 'exemplo',
+      payload: { type: 'log', title: 'Exemplo de debug', message: 'Teste de envio' }
+    });
+    var cmd = 'curl -X POST http://127.0.0.1:3334/debug -H "Content-Type: application/json" --data-raw ' + "'" + body + "'";
+    navigator.clipboard.writeText(cmd)
+      .then(function(){ showToast('Exemplo curl copiado'); })
       .catch(function(){ showToast('Falha ao copiar'); });
   }
 
@@ -672,6 +782,7 @@ const PAGE_SCRIPT = `
     hydrateIcons();
     attachSessionListEvents();
     attachDetailEvents();
+    el('debug-copy-example').addEventListener('click', copyCurlExample);
     wireTimelineEvents();
     wireFilters({ reload: function(){ if (currentSessionId) loadEntries(currentSessionId); } });
     refresh();
