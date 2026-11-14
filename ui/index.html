@@ -997,9 +997,10 @@
                     onclick="setGuardrailMode('edit')">Editar</button>
                 </div>
               </div>
-              <textarea id="trilha-guardrail-text" rows="8"
+              <textarea id="trilha-guardrail-text" rows="8" maxlength="1500"
                 placeholder="Ex: nunca rodar DROP sem backup"
                 oninput="onGuardrailInput()"></textarea>
+              <span id="trilha-guardrail-count" class="tr-field-hint">0 / 1.500 caracteres</span>
               <div id="trilha-guardrail-preview"></div>
             </div>
             <div class="app-modal-actions">

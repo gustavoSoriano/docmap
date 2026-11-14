@@ -16,7 +16,7 @@ const cleanGuardrails = (
   const seen = new Set<string>();
   const out: TrilhaGuardrail[] = [];
   for (const item of raw) {
-    const text = item.trim().slice(0, 500);
+    const text = item.trim().slice(0, 1500);
     if (!text || seen.has(text)) continue;
     seen.add(text);
     const prev = byText.get(text);

@@ -1,5 +1,5 @@
 import { createsCycle } from './dag.ts';
-import { createTrilha } from './store.ts';
+import { createTrilha, updateTrilha } from './store.ts';
 import {
   claimNode,
   createNode,
@@ -29,6 +29,16 @@ const withKv = async (run: (kv: Deno.Kv) => Promise<void>): Promise<void> => {
     await Deno.remove(dir, { recursive: true });
   }
 };
+
+Deno.test('guardrails aceitam até 1500 caracteres ao criar e atualizar', async () => {
+  await withKv(async (kv) => {
+    const text = 'a'.repeat(1500);
+    const trilha = await createTrilha(kv, { title: 'T', objective: 'O', guardrails: [text] });
+    assert(trilha.guardrails[0].text === text, 'preserva 1500 caracteres na criação');
+    const updated = await updateTrilha(kv, trilha.id, { guardrails: [text + 'b'] });
+    assert(updated?.guardrails[0].text === text, 'limita texto maior a 1500 caracteres');
+  });
+});
 
 Deno.test('dag rejeita ciclo direto e indireto', () => {
   assert(createsCycle([], 'a', 'a'), 'self-loop é ciclo');

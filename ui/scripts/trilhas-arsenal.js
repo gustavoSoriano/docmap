@@ -277,6 +277,7 @@ const setGuardrailMode = (mode) => {
 };
 
 const onGuardrailInput = () => {
+  $('trilha-guardrail-count').textContent = `${$('trilha-guardrail-text').value.length.toLocaleString('pt-BR')} / 1.500 caracteres`;
   if (guardrailMode === 'edit') renderGuardrailPreview();
 };
 
@@ -284,6 +285,7 @@ const openGuardrailModal = (gid) => {
   const g = gid ? (currentTrilhaDetail?.trilha.guardrails || []).find((x) => x.id === gid) : null;
   $('trilha-guardrail-edit-id').value = g?.id || '';
   $('trilha-guardrail-text').value = g?.text || '';
+  onGuardrailInput();
   $('trilha-guardrail-title-label').textContent = g ? 'Editar regra' : 'Nova regra';
   $('trilha-guardrail-modal-overlay').classList.add('visible');
   setGuardrailMode(g ? 'preview' : 'edit');

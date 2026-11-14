@@ -35285,9 +35285,10 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
                     onclick="setGuardrailMode('edit')">Editar</button>
                 </div>
               </div>
-              <textarea id="trilha-guardrail-text" rows="8"
+              <textarea id="trilha-guardrail-text" rows="8" maxlength="1500"
                 placeholder="Ex: nunca rodar DROP sem backup"
                 oninput="onGuardrailInput()"></textarea>
+              <span id="trilha-guardrail-count" class="tr-field-hint">0 / 1.500 caracteres</span>
               <div id="trilha-guardrail-preview"></div>
             </div>
             <div class="app-modal-actions">
@@ -42380,6 +42381,7 @@ const setGuardrailMode = (mode) => {
 };
 
 const onGuardrailInput = () => {
+  $('trilha-guardrail-count').textContent = \`\${$('trilha-guardrail-text').value.length.toLocaleString('pt-BR')} / 1.500 caracteres\`;
   if (guardrailMode === 'edit') renderGuardrailPreview();
 };
 
@@ -42387,6 +42389,7 @@ const openGuardrailModal = (gid) => {
   const g = gid ? (currentTrilhaDetail?.trilha.guardrails || []).find((x) => x.id === gid) : null;
   $('trilha-guardrail-edit-id').value = g?.id || '';
   $('trilha-guardrail-text').value = g?.text || '';
+  onGuardrailInput();
   $('trilha-guardrail-title-label').textContent = g ? 'Editar regra' : 'Nova regra';
   $('trilha-guardrail-modal-overlay').classList.add('visible');
   setGuardrailMode(g ? 'preview' : 'edit');
