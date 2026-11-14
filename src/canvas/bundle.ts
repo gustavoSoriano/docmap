@@ -7,7 +7,8 @@ import type { Macro } from '../macros/types.ts';
 import { validateSnapshot } from './hub.ts';
 import type { BoardRecord, BoardSnapshot } from './types.ts';
 
-export const BUNDLE_KIND = 'docmap-canvas';
+export const BUNDLE_KIND = 'docmap-blueprint';
+const LEGACY_BUNDLE_KIND = 'docmap-canvas';
 
 export interface CanvasBundle {
   readonly kind: typeof BUNDLE_KIND;
@@ -56,8 +57,11 @@ const isMacroLike = (v: unknown): v is Macro =>
  */
 export const parseBundle = (v: unknown): ParsedBundle => {
   if (!isObject(v)) return { error: 'arquivo deve ser um objeto JSON' };
-  if (v.kind !== undefined && v.kind !== BUNDLE_KIND) {
-    return { error: 'arquivo não é um canvas do docmap' };
+  if (
+    v.kind !== undefined && v.kind !== BUNDLE_KIND &&
+    v.kind !== LEGACY_BUNDLE_KIND
+  ) {
+    return { error: 'arquivo não é um blueprint do docmap' };
   }
   if (v.version !== 1) return { error: 'versão do arquivo não suportada' };
   const snapErr = validateSnapshot(v.snapshot);

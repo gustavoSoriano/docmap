@@ -61,11 +61,11 @@
         </button>
         <nav id="nav" aria-label="Navegação principal">
           <div class="nav-group">
-          <button class="nav-btn active" id="nav-graph" onclick="setMode('graph')" data-tip="Grafo" aria-label="Grafo">
-            <span class="nav-ico" data-icon="waypoints"></span><span class="nav-lbl">Grafo</span>
+          <button class="nav-btn active" id="nav-canvas" onclick="setMode('canvas')" data-tip="Blueprint" aria-label="Blueprint">
+            <span class="nav-ico" data-icon="canvas"></span><span class="nav-lbl">Blueprint</span>
           </button>
-          <button class="nav-btn" id="nav-canvas" onclick="setMode('canvas')" data-tip="Canvas" aria-label="Canvas">
-            <span class="nav-ico" data-icon="canvas"></span><span class="nav-lbl">Canvas</span>
+          <button class="nav-btn" id="nav-graph" onclick="setMode('graph')" data-tip="Grafo" aria-label="Grafo">
+            <span class="nav-ico" data-icon="waypoints"></span><span class="nav-lbl">Grafo</span>
           </button>
           </div>
           <span class="nav-sep" aria-hidden="true"></span>
@@ -1505,7 +1505,7 @@
         </main>
 
         <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
-        <main id="mode-canvas" class="mode">
+        <main id="mode-canvas" class="mode active">
           <div id="canvas-container">
             <iframe id="canvas-iframe" src="/canvas"
               sandbox="allow-scripts allow-same-origin"></iframe>
@@ -1521,7 +1521,7 @@
         </main>
 
         <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
-        <main id="mode-graph" class="mode active">
+        <main id="mode-graph" class="mode">
           <div id="kg-canvas">
             <svg id="kg-svg"></svg>
             <div id="kg-empty" class="empty-state">

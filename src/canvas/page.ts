@@ -145,7 +145,7 @@ const ICON_MARK = ICON(
 const PAGE_BODY = `
 <div id="hud">
   <div class="hud-group" id="hud-left">
-    <h1 class="hud-title">${ICON_CANVAS}<span>Canvas</span></h1>
+    <h1 class="hud-title">${ICON_CANVAS}<span>Blueprint</span></h1>
     <span class="hud-sep"></span>
     <span id="canvas-status" class="chip" title="Lousa única: tudo é salvo automaticamente no servidor"></span>
   </div>
@@ -594,7 +594,7 @@ const PAGE = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>docmap · canvas</title>
+<title>docmap · blueprint</title>
 <script>
 // Tema antes da primeira pintura (sem flash). Dark = sem atributo.
 try{if(localStorage.getItem('docmap-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}

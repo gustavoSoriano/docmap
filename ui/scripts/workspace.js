@@ -43,8 +43,8 @@ const handleDeepLink = () => {
     history.replaceState(null, '', '/');
     return;
   }
-  // Sem deep link → abre no grafo por padrão.
-  setMode('graph');
+  // Sem deep link → abre no blueprint por padrão.
+  setMode('canvas');
 };
 
 document.addEventListener('DOMContentLoaded', handleDeepLink);

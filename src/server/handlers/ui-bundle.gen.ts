@@ -33737,11 +33737,11 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
         </button>
         <nav id="nav" aria-label="Navegação principal">
           <div class="nav-group">
-          <button class="nav-btn active" id="nav-graph" onclick="setMode('graph')" data-tip="Grafo" aria-label="Grafo">
-            <span class="nav-ico" data-icon="waypoints"></span><span class="nav-lbl">Grafo</span>
+          <button class="nav-btn active" id="nav-canvas" onclick="setMode('canvas')" data-tip="Blueprint" aria-label="Blueprint">
+            <span class="nav-ico" data-icon="canvas"></span><span class="nav-lbl">Blueprint</span>
           </button>
-          <button class="nav-btn" id="nav-canvas" onclick="setMode('canvas')" data-tip="Canvas" aria-label="Canvas">
-            <span class="nav-ico" data-icon="canvas"></span><span class="nav-lbl">Canvas</span>
+          <button class="nav-btn" id="nav-graph" onclick="setMode('graph')" data-tip="Grafo" aria-label="Grafo">
+            <span class="nav-ico" data-icon="waypoints"></span><span class="nav-lbl">Grafo</span>
           </button>
           </div>
           <span class="nav-sep" aria-hidden="true"></span>
@@ -35181,7 +35181,7 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
         </main>
 
         <!-- ═══ MODE: CANVAS (realtime AI canvas) ═══ -->
-        <main id="mode-canvas" class="mode">
+        <main id="mode-canvas" class="mode active">
           <div id="canvas-container">
             <iframe id="canvas-iframe" src="/canvas"
               sandbox="allow-scripts allow-same-origin"></iframe>
@@ -35197,7 +35197,7 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
         </main>
 
         <!-- ═══ MODE: GRAPH (grafo de conhecimento) ═══ -->
-        <main id="mode-graph" class="mode active">
+        <main id="mode-graph" class="mode">
           <div id="kg-canvas">
             <svg id="kg-svg"></svg>
             <div id="kg-empty" class="empty-state">
@@ -35789,9 +35789,9 @@ document.addEventListener('DOMContentLoaded', () => {
     <script>
 // ════ App shell — alternância de modos e atalhos globais ════
 
-let currentMode = 'graph';
+let currentMode = 'canvas';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Blueprint', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -35846,8 +35846,8 @@ const setMode = (mode) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Em embed o grafo não carrega: só o artefato pedido.
-  if (!new URLSearchParams(window.location.search).has('embed')) loadGraph();
+  // Em embed o blueprint não carrega: só o artefato pedido.
+  if (!new URLSearchParams(window.location.search).has('embed')) loadCanvas();
 });
 
 // ── Settings modal ──
@@ -35954,8 +35954,8 @@ const handleDeepLink = () => {
     history.replaceState(null, '', '/');
     return;
   }
-  // Sem deep link → abre no grafo por padrão.
-  setMode('graph');
+  // Sem deep link → abre no blueprint por padrão.
+  setMode('canvas');
 };
 
 document.addEventListener('DOMContentLoaded', handleDeepLink);

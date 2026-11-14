@@ -1,8 +1,8 @@
 // ════ App shell — alternância de modos e atalhos globais ════
 
-let currentMode = 'graph';
+let currentMode = 'canvas';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Canvas', debug: 'Debug', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Blueprint', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -57,8 +57,8 @@ const setMode = (mode) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Em embed o grafo não carrega: só o artefato pedido.
-  if (!new URLSearchParams(window.location.search).has('embed')) loadGraph();
+  // Em embed o blueprint não carrega: só o artefato pedido.
+  if (!new URLSearchParams(window.location.search).has('embed')) loadCanvas();
 });
 
 // ── Settings modal ──

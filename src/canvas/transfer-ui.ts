@@ -19,7 +19,7 @@ const ICON_UPLOAD = SVG(
 /** Botões do HUD (antes do Limpar). */
 export const TRANSFER_HUD = `
     <button id="export-btn" class="ghost-btn" type="button" title="Salvar desenho, macros e links num arquivo em Downloads">${ICON_DOWNLOAD}<span>Exportar</span></button>
-    <button id="import-btn" class="ghost-btn" type="button" title="Abrir um canvas exportado (substitui a lousa para todos)">${ICON_UPLOAD}<span>Importar</span></button>`;
+    <button id="import-btn" class="ghost-btn" type="button" title="Abrir um blueprint exportado (substitui a lousa para todos)">${ICON_UPLOAD}<span>Importar</span></button>`;
 
 export const TRANSFER_JS = `
 // ── Exportar / importar ──
@@ -43,7 +43,7 @@ function exportBoard(){
 }
 
 function importSummary(d){
-  var parts = ['Canvas importado: ' + plural(d.shapes, 'forma', 'formas')];
+  var parts = ['Blueprint importado: ' + plural(d.shapes, 'forma', 'formas')];
   if (d.macrosCreated) parts.push(plural(d.macrosCreated, 'macro criada', 'macros criadas'));
   if (d.macrosReused) parts.push(plural(d.macrosReused, 'macro já existia', 'macros já existiam'));
   return parts.join(', ');
@@ -79,7 +79,7 @@ function onImportSnapshot(snapshot){
   fittedOnce = false;
   applySnapshot(snapshot);
   loadMacros();
-  if (!mine) showUndoToast('Outra pessoa importou um canvas');
+  if (!mine) showUndoToast('Outra pessoa importou um blueprint');
 }
 
 document.getElementById('export-btn').addEventListener('click', exportBoard);

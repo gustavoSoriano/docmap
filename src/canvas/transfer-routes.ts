@@ -3,7 +3,7 @@
 // grava direto em ~/Downloads e importar abre o diálogo nativo (osascript).
 //
 //   GET  /canvas/export       → pacote JSON bruto (curl / IA)
-//   POST /canvas/export       → grava ~/Downloads/docmap-canvas-<data>.json
+//   POST /canvas/export       → grava ~/Downloads/docmap-blueprint-<data>.json
 //   POST /canvas/import       → body = pacote JSON
 //   POST /canvas/import-pick  → diálogo nativo de arquivo
 
@@ -20,7 +20,7 @@ const stampOf = (iso: string): string =>
 
 const saveToDownloads = async (kv: Deno.Kv): Promise<Response> => {
   const bundle = await exportCanvas(kv);
-  const filename = `docmap-canvas-${stampOf(bundle.exportedAt)}.json`;
+  const filename = `docmap-blueprint-${stampOf(bundle.exportedAt)}.json`;
   const path = `${Deno.env.get('HOME') ?? '.'}/Downloads/${filename}`;
   await Deno.writeTextFile(path, JSON.stringify(bundle, null, 2));
   return json({
@@ -49,7 +49,7 @@ const readPicked = async (path: string): Promise<unknown> => {
 };
 
 const importPicked = async (kv: Deno.Kv): Promise<Response> => {
-  const path = await openFileDialog('Selecionar canvas do docmap');
+  const path = await openFileDialog('Selecionar blueprint do docmap');
   if (!path) return json({ cancelled: true });
   let body: unknown;
   try {

@@ -102,9 +102,9 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
   {
     id: 'canvas',
     title: 'Canvas',
-    heading: 'Canvas — lousa realtime local',
+    heading: 'Canvas (Blueprint) — lousa realtime local',
     summary: 'Lousa única realtime local: a IA desenha direto, tudo persiste.',
-    tags: ['canvas', 'realtime', 'whiteboard'],
+    tags: ['canvas', 'blueprint', 'realtime', 'whiteboard'],
   },
   {
     id: 'debug',
@@ -783,9 +783,11 @@ POST /favorites { type: "site", title: "DocMap docs", url: "...", category: "doc
 
 ---
 
-## Canvas — lousa realtime local
+## Canvas (Blueprint) — lousa realtime local
 
-O docmap tem uma lousa infinita no próprio computador: você e a IA
+Apelido: blueprint = canvas. Quando o usuário disser blueprint, use o canvas abaixo.
+
+O docmap tem uma lousa infinita no próprio computador (o blueprint): você e a IA
 desenham no mesmo board e as mudanças aparecem ao vivo via WebSocket.
 O docmap **não é exposto na rede** — só aceita conexões do próprio PC.
 
@@ -795,7 +797,7 @@ LAN — nenhum CDN externo).
 ### Acesso
 
 - **Navegador local**: \`http://127.0.0.1:3333/canvas\`
-- **Rail do docmap**: botao "Canvas" na barra lateral (iframe da mesma pagina)
+- **Rail do docmap**: botao "Blueprint" (antes "Canvas") na barra lateral (iframe da mesma pagina)
 
 ### Ferramentas (toolbar do board)
 
