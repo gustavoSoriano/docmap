@@ -20,6 +20,9 @@ const loadNotesList = async () => {
 };
 
 // Categorias vêm do cadastro próprio (com descrição). Fallback: deriva das notas.
+const catById = (id) => allCategories.find((c) => c.id === id) || null;
+const catDisplayName = (id) => catById(id)?.name || id || '';
+
 const categoryNames = () => {
   if (allCategories.length) return allCategories.map((c) => c.name).sort();
   return [...new Set(allNotes.map((n) => n.category).filter(Boolean))].sort();
@@ -34,13 +37,15 @@ const refreshCategoryOptions = () => {
 const NOTE_CHIPS_MAX = 2;
 
 const noteMetaHtml = (n) => {
+  const catName = catDisplayName(n.category);
   const cat = n.category
-    ? `<span class="note-item-cat"><span class="note-cat-dot" style="background:${catColor(n.category)}"></span><span class="note-item-cat-name">${escHtml(n.category)}</span></span>`
+    ? `<span class="note-item-cat"><span class="note-cat-dot" style="background:${catColor(n.category)}"></span><span class="note-item-cat-name">${escHtml(catName)}</span></span>`
     : '';
+  const obsolete = n.supersededBy ? `<span class="chip warn">obsoleta</span>` : '';
   const all = n.tags || [];
   const chips = all.slice(0, NOTE_CHIPS_MAX).map((t) => `<span class="chip">${escHtml(t)}</span>`).join('');
   const more = all.length > NOTE_CHIPS_MAX ? `<span class="chip chip-more">+${all.length - NOTE_CHIPS_MAX}</span>` : '';
-  return cat || chips ? `<div class="note-item-meta">${cat}${chips}${more}</div>` : '';
+  return cat || chips || obsolete ? `<div class="note-item-meta">${cat}${obsolete}${chips}${more}</div>` : '';
 };
 
 const renderNotesList = (notes) => {
@@ -68,9 +73,12 @@ const renderFilters = () => {
   const curCat = selCat.value;
   const curTag = selTag.value;
 
-  const cats = categoryNames();
-  selCat.innerHTML = '<option value="">Categorias</option>' +
-    cats.map((c) => `<option value="${escHtml(c)}"${c === curCat ? ' selected' : ''}>${escHtml(c)}</option>`).join('');
+  const cats = allCategories.length
+    ? [...allCategories].sort((a, b) => a.name.localeCompare(b.name))
+    : [...new Set(allNotes.map((n) => n.category).filter(Boolean))]
+      .map((id) => ({ id, name: id })).sort((a, b) => a.name.localeCompare(b.name));
+  selCat.innerHTML = '<option value="">Todas</option>' +
+    cats.map((c) => `<option value="${escHtml(c.id)}"${c.id === curCat ? ' selected' : ''}>${escHtml(c.name)}</option>`).join('');
 
   const tags = [...new Set(allNotes.flatMap((n) => n.tags || []))].sort();
   selTag.innerHTML = '<option value="">Tags</option>' +
@@ -131,8 +139,60 @@ const newNote = () => {
   $('note-id-badge').style.display = 'none';
   $('btn-copy-note').style.display = 'none';
   $('btn-delete-note').style.display = 'none';
+  const banner = $('note-obsolete-banner');
+  if (banner) banner.classList.add('hidden');
   showEditor();
   $('note-title-input').focus();
+};
+
+// Banner de obsolescência: claro, com motivo, link para a nova e ação de reverter.
+const renderObsoleteBanner = (note) => {
+  const banner = $('note-obsolete-banner');
+  if (!banner) return;
+  if (!note?.supersededBy) {
+    banner.classList.add('hidden');
+    banner.innerHTML = '';
+    return;
+  }
+  banner.classList.remove('hidden');
+  const reason = note.obsoleteReason ? ` — ${escHtml(note.obsoleteReason)}` : '';
+  banner.innerHTML = `<span>Obsoleta${reason} — <button class="ghost-btn" type="button" onclick="openNote('${escHtml(note.supersededBy)}')">abrir nova</button></span>
+    <button class="ghost-btn" type="button" onclick="clearObsoleteMark()">reverter</button>`;
+};
+
+const markCurrentNoteObsolete = async () => {
+  if (!currentNote) { toast('Salve a nota antes'); return; }
+  const target = prompt('ID da nota nova que substitui esta:');
+  if (!target?.trim()) return;
+  const reason = prompt('Motivo (máx 3 linhas, 280 caracteres):') || '';
+  try {
+    const res = await fetch('/notes/' + currentNote.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ supersededBy: target.trim(), obsoleteReason: reason.trim() }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    currentNote = await res.json();
+    fillEditor(currentNote, { keepBody: true });
+    await loadNotesList();
+    toast('Marcada como obsoleta');
+  } catch (err) { console.error(err); toast('ID inválido'); }
+};
+
+const clearObsoleteMark = async () => {
+  if (!currentNote?.supersededBy) return;
+  try {
+    const res = await fetch('/notes/' + currentNote.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clearSuperseded: true }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    currentNote = await res.json();
+    fillEditor(currentNote, { keepBody: true });
+    await loadNotesList();
+    toast('Obsolescência removida');
+  } catch (err) { console.error(err); toast('Erro ao reverter'); }
 };
 
 // keepBody: após salvar, mantém o editor como está (cursor e scroll intactos).
@@ -141,13 +201,14 @@ const fillEditor = (note, { keepBody = false } = {}) => {
   if (keepBody) noteEditorMarkSaved(note.content ?? '');
   else noteEditorSetMarkdown(note.content);
   $('note-tags-input').value = (note.tags || []).join(', ');
-  $('note-cat-input').value = note.category || '';
+  $('note-cat-input').value = catDisplayName(note.category) || '';
   updateCatDot();
   const badge = $('note-id-badge');
   badge.textContent = note.id.slice(0, 8);
   badge.style.display = 'inline-block';
   $('btn-copy-note').style.display = 'inline-flex';
   $('btn-delete-note').style.display = 'inline-flex';
+  renderObsoleteBanner(note);
   showEditor();
 };
 

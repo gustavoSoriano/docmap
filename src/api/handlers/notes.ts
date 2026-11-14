@@ -39,7 +39,11 @@ async (
     if (!input.title || !input.content) {
       return badRequest('title and content required');
     }
-    return json(await createNote(kv, input), 201);
+    try {
+      return json(await createNote(kv, input), 201);
+    } catch (err) {
+      return badRequest(err instanceof Error ? err.message : 'invalid supersededBy');
+    }
   }
 
   if (req.method === 'PUT' && noteId) {
@@ -49,8 +53,12 @@ async (
     } catch {
       return badRequest('Invalid JSON');
     }
-    const updated = await updateNote(kv, noteId, body as UpdateNoteInput);
-    return updated ? json(updated) : notFound();
+    try {
+      const updated = await updateNote(kv, noteId, body as UpdateNoteInput);
+      return updated ? json(updated) : notFound();
+    } catch (err) {
+      return badRequest(err instanceof Error ? err.message : 'invalid supersededBy');
+    }
   }
 
   if (req.method === 'DELETE' && noteId) {

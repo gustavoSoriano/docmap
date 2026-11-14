@@ -345,6 +345,30 @@
   display: none !important;
 }
 
+/* obsolescência: banner claro + selo na lista */
+#note-obsolete-banner {
+  margin: 16px var(--doc-pad) 0;
+  padding: 10px 12px;
+  border: 1px solid var(--warn-line, #8a6d1b);
+  border-left: 3px solid var(--warn, #d9a214);
+  border-radius: var(--r-md);
+  background: var(--warn-dim, rgba(217,162,20,.12));
+  color: var(--text);
+  font-size: var(--fs-sm);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#note-obsolete-banner.hidden { display: none; }
+#note-obsolete-banner button {
+  flex-shrink: 0;
+}
+.chip.warn {
+  border-color: var(--warn-line, #8a6d1b);
+  color: var(--warn, #d9a214);
+}
+
 /* corpo */
 #note-body {
   flex: 1;

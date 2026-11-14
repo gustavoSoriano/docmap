@@ -164,8 +164,8 @@ protocolos especificos.
 |--------|----------|-----------|
 | GET | \`/notes\` | Lista (id, title, tags, category, preview) |
 | GET | \`/notes/:id\` | Nota completa com \`content\` em markdown |
-| POST | \`/notes\` | Cria \`{ title, content, tags?, category? }\` |
-| PUT | \`/notes/:id\` | Edita (campos parciais) |
+| POST | \`/notes\` | Cria \`{ title, content, tags?, category?, supersededBy?, obsoleteReason? }\` |
+| PUT | \`/notes/:id\` | Edita (parciais; supersededBy marca obsoleta, clearSuperseded:true reverte) |
 | DELETE | \`/notes/:id\` | Remove (+ apaga imagens anexadas) |
 | GET | \`/search?q=termo\` | Busca full-text nas notas |
 
