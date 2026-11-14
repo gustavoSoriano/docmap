@@ -28026,7 +28026,9 @@ select {
   position: relative;
 }
 
-/* ── Mapa: fundo de carta náutica (grade 36px + pontos nas interseções) ── */
+/* ── Mapa: fundo liso, sem grade nem pontos ──
+   A cor vem do wrapper (--tr-map), que não escala com o zoom: o fundo fica
+   fixo na tela enquanto os blocos crescem/diminuem. */
 #trilha-map-wrap {
   position: absolute;
   inset: 0;
@@ -28041,16 +28043,10 @@ select {
   position: relative;
   min-width: 100%;
   min-height: 100%;
-  background-image:
-    radial-gradient(circle at center, var(--border-mid) 1.5px, transparent 2.2px),
-    linear-gradient(var(--border-soft) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
-  background-size: 36px 36px;
-  background-position: 18px 18px, 0 0, 0 0;
 }
-/* As três camadas descem 3 células da grade (108px) para o primeiro bloco
-   (y = 0 nos dados) não nascer sob o cabeçalho flutuante. O deslocamento é
-   dentro do canvas com zoom, então a matemática de zoom/pan não muda. */
+/* As quatro camadas ficam empilhadas sobre o canvas e escalam com o zoom
+   aplicado nele — a matemática de zoom/pan é a mesma das coordenadas dos
+   dados. */
 #trilha-groups,
 #trilha-edges,
 #trilha-nodes,
