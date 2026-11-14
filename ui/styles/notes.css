@@ -674,6 +674,17 @@
   line-height: 1.6;
   text-align: center;
 }
+/* Modal obsoleta: lista curta com scroll, não toma a tela */
+#obsolete-modal { max-height: 80vh; }
+#obsolete-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+#obsolete-modal .app-modal-body { overflow-y: auto; }
 .cats-more {
   align-self: center;
   margin: 2px auto 0;

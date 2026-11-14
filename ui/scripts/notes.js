@@ -138,6 +138,7 @@ const newNote = () => {
   updateCatDot();
   $('note-id-badge').style.display = 'none';
   $('btn-copy-note').style.display = 'none';
+  $('btn-obsolete-note').style.display = 'none';
   $('btn-delete-note').style.display = 'none';
   const banner = $('note-obsolete-banner');
   if (banner) banner.classList.add('hidden');
@@ -162,21 +163,59 @@ const renderObsoleteBanner = (note) => {
 
 const markCurrentNoteObsolete = async () => {
   if (!currentNote) { toast('Salve a nota antes'); return; }
-  const target = prompt('ID da nota nova que substitui esta:');
-  if (!target?.trim()) return;
-  const reason = prompt('Motivo (máx 3 linhas, 280 caracteres):') || '';
+  obsoleteTargetId = null;
+  $('obsolete-search').value = '';
+  $('obsolete-reason').value = '';
+  renderObsoleteTargets('');
+  $('obsolete-modal-overlay').classList.add('visible');
+  setTimeout(() => $('obsolete-search')?.focus(), 60);
+};
+
+let obsoleteTargetId = null;
+
+const closeObsoleteModal = (e) => {
+  if (e && e.target !== $('obsolete-modal-overlay')) return;
+  $('obsolete-modal-overlay').classList.remove('visible');
+};
+
+const filterObsoleteTargets = (q) => renderObsoleteTargets(q || '');
+
+const renderObsoleteTargets = (q) => {
+  const list = $('obsolete-list');
+  if (!list) return;
+  const term = q.trim().toLowerCase();
+  const items = allNotes.filter((n) => n.id !== currentNote?.id)
+    .filter((n) => !term || n.title.toLowerCase().includes(term) || n.id.toLowerCase().includes(term))
+    .slice(0, 8);
+  list.innerHTML = items.map((n) =>
+    `<div class="cat-row${obsoleteTargetId === n.id ? ' selected' : ''}" data-id="${n.id}" onclick="pickObsoleteTarget('${n.id}')">
+      <div class="cat-row-head"><strong>${escHtml(n.title)}</strong>${obsoleteTargetId === n.id ? '<span class="chip info">nova</span>' : ''}</div>
+    </div>`
+  ).join('') || '<div class="cats-empty">Nada encontrado.</div>';
+};
+
+const pickObsoleteTarget = (id) => {
+  obsoleteTargetId = id;
+  renderObsoleteTargets($('obsolete-search').value || '');
+};
+
+const saveObsoleteModal = async () => {
+  if (!currentNote) return;
+  if (!obsoleteTargetId) { toast('Escolha a nota nova'); return; }
+  const reason = $('obsolete-reason').value.trim().slice(0, 280);
   try {
     const res = await fetch('/notes/' + currentNote.id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ supersededBy: target.trim(), obsoleteReason: reason.trim() }),
+      body: JSON.stringify({ supersededBy: obsoleteTargetId, obsoleteReason: reason }),
     });
     if (!res.ok) throw new Error(await res.text());
     currentNote = await res.json();
     fillEditor(currentNote, { keepBody: true });
     await loadNotesList();
+    $('obsolete-modal-overlay').classList.remove('visible');
     toast('Marcada como obsoleta');
-  } catch (err) { console.error(err); toast('ID inválido'); }
+  } catch (err) { console.error(err); toast('Erro ao marcar'); }
 };
 
 const clearObsoleteMark = async () => {
@@ -207,6 +246,7 @@ const fillEditor = (note, { keepBody = false } = {}) => {
   badge.textContent = note.id.slice(0, 8);
   badge.style.display = 'inline-block';
   $('btn-copy-note').style.display = 'inline-flex';
+  $('btn-obsolete-note').style.display = 'inline-flex';
   $('btn-delete-note').style.display = 'inline-flex';
   renderObsoleteBanner(note);
   showEditor();

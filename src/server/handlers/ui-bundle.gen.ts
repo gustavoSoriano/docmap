@@ -25786,6 +25786,17 @@ select {
   line-height: 1.6;
   text-align: center;
 }
+/* Modal obsoleta: lista curta com scroll, não toma a tela */
+#obsolete-modal { max-height: 80vh; }
+#obsolete-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+#obsolete-modal .app-modal-body { overflow-y: auto; }
 .cats-more {
   align-self: center;
   margin: 2px auto 0;
@@ -33871,6 +33882,9 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
                   <button class="icon-btn" id="btn-copy-note" type="button"
                     style="display:none" onclick="copyNoteId()"
                     data-tip="Copiar ID" aria-label="Copiar ID"><span data-icon="hash"></span></button>
+                  <button class="icon-btn" id="btn-obsolete-note" type="button"
+                    style="display:none" onclick="markCurrentNoteObsolete()"
+                    data-tip="Marcar como obsoleta" aria-label="Marcar como obsoleta"><span data-icon="clock"></span></button>
                   <button class="icon-btn danger" id="btn-delete-note" type="button"
                     style="display:none" onclick="deleteCurrentNote()"
                     data-tip="Excluir nota" aria-label="Excluir nota"><span data-icon="trash"></span></button>
@@ -33914,6 +33928,42 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
             </div>
           </section>
         </main>
+
+        <!-- Obsoleta: escolhe a nota nova + motivo -->
+        <div class="app-modal-overlay" id="obsolete-modal-overlay"
+          onclick="closeObsoleteModal(event)">
+          <div class="app-modal" id="obsolete-modal" role="dialog"
+            aria-label="Marcar como obsoleta">
+            <div class="app-modal-head">
+              <span>Marcar como obsoleta</span>
+              <button type="button" onclick="closeObsoleteModal()"
+                title="Fechar" aria-label="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <label>
+                <span>Nota nova que substitui</span>
+                <input id="obsolete-search" type="text"
+                  placeholder="Buscar por título" autocomplete="off" spellcheck="false"
+                  oninput="filterObsoleteTargets(this.value)" />
+              </label>
+              <div id="obsolete-list"></div>
+              <label>
+                <span>Motivo (máx 280)</span>
+                <textarea id="obsolete-reason" rows="3"
+                  placeholder="Por que ficou obsoleta?"></textarea>
+              </label>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeObsoleteModal()">Cancelar</button>
+              <button type="button" class="app-primary-btn"
+                onclick="saveObsoleteModal()">
+                <span data-icon="check"></span>
+                <span>Marcar obsoleta</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- Categorias: cadastro com descrição ( ajuda a IA a entender o uso ) -->
         <div class="app-modal-overlay" id="cats-modal-overlay"
@@ -36732,6 +36782,7 @@ const newNote = () => {
   updateCatDot();
   $('note-id-badge').style.display = 'none';
   $('btn-copy-note').style.display = 'none';
+  $('btn-obsolete-note').style.display = 'none';
   $('btn-delete-note').style.display = 'none';
   const banner = $('note-obsolete-banner');
   if (banner) banner.classList.add('hidden');
@@ -36756,21 +36807,59 @@ const renderObsoleteBanner = (note) => {
 
 const markCurrentNoteObsolete = async () => {
   if (!currentNote) { toast('Salve a nota antes'); return; }
-  const target = prompt('ID da nota nova que substitui esta:');
-  if (!target?.trim()) return;
-  const reason = prompt('Motivo (máx 3 linhas, 280 caracteres):') || '';
+  obsoleteTargetId = null;
+  $('obsolete-search').value = '';
+  $('obsolete-reason').value = '';
+  renderObsoleteTargets('');
+  $('obsolete-modal-overlay').classList.add('visible');
+  setTimeout(() => $('obsolete-search')?.focus(), 60);
+};
+
+let obsoleteTargetId = null;
+
+const closeObsoleteModal = (e) => {
+  if (e && e.target !== $('obsolete-modal-overlay')) return;
+  $('obsolete-modal-overlay').classList.remove('visible');
+};
+
+const filterObsoleteTargets = (q) => renderObsoleteTargets(q || '');
+
+const renderObsoleteTargets = (q) => {
+  const list = $('obsolete-list');
+  if (!list) return;
+  const term = q.trim().toLowerCase();
+  const items = allNotes.filter((n) => n.id !== currentNote?.id)
+    .filter((n) => !term || n.title.toLowerCase().includes(term) || n.id.toLowerCase().includes(term))
+    .slice(0, 8);
+  list.innerHTML = items.map((n) =>
+    \`<div class="cat-row\${obsoleteTargetId === n.id ? ' selected' : ''}" data-id="\${n.id}" onclick="pickObsoleteTarget('\${n.id}')">
+      <div class="cat-row-head"><strong>\${escHtml(n.title)}</strong>\${obsoleteTargetId === n.id ? '<span class="chip info">nova</span>' : ''}</div>
+    </div>\`
+  ).join('') || '<div class="cats-empty">Nada encontrado.</div>';
+};
+
+const pickObsoleteTarget = (id) => {
+  obsoleteTargetId = id;
+  renderObsoleteTargets($('obsolete-search').value || '');
+};
+
+const saveObsoleteModal = async () => {
+  if (!currentNote) return;
+  if (!obsoleteTargetId) { toast('Escolha a nota nova'); return; }
+  const reason = $('obsolete-reason').value.trim().slice(0, 280);
   try {
     const res = await fetch('/notes/' + currentNote.id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ supersededBy: target.trim(), obsoleteReason: reason.trim() }),
+      body: JSON.stringify({ supersededBy: obsoleteTargetId, obsoleteReason: reason }),
     });
     if (!res.ok) throw new Error(await res.text());
     currentNote = await res.json();
     fillEditor(currentNote, { keepBody: true });
     await loadNotesList();
+    $('obsolete-modal-overlay').classList.remove('visible');
     toast('Marcada como obsoleta');
-  } catch (err) { console.error(err); toast('ID inválido'); }
+  } catch (err) { console.error(err); toast('Erro ao marcar'); }
 };
 
 const clearObsoleteMark = async () => {
@@ -36801,6 +36890,7 @@ const fillEditor = (note, { keepBody = false } = {}) => {
   badge.textContent = note.id.slice(0, 8);
   badge.style.display = 'inline-block';
   $('btn-copy-note').style.display = 'inline-flex';
+  $('btn-obsolete-note').style.display = 'inline-flex';
   $('btn-delete-note').style.display = 'inline-flex';
   renderObsoleteBanner(note);
   showEditor();

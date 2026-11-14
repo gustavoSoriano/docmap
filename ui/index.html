@@ -195,6 +195,9 @@
                   <button class="icon-btn" id="btn-copy-note" type="button"
                     style="display:none" onclick="copyNoteId()"
                     data-tip="Copiar ID" aria-label="Copiar ID"><span data-icon="hash"></span></button>
+                  <button class="icon-btn" id="btn-obsolete-note" type="button"
+                    style="display:none" onclick="markCurrentNoteObsolete()"
+                    data-tip="Marcar como obsoleta" aria-label="Marcar como obsoleta"><span data-icon="clock"></span></button>
                   <button class="icon-btn danger" id="btn-delete-note" type="button"
                     style="display:none" onclick="deleteCurrentNote()"
                     data-tip="Excluir nota" aria-label="Excluir nota"><span data-icon="trash"></span></button>
@@ -238,6 +241,42 @@
             </div>
           </section>
         </main>
+
+        <!-- Obsoleta: escolhe a nota nova + motivo -->
+        <div class="app-modal-overlay" id="obsolete-modal-overlay"
+          onclick="closeObsoleteModal(event)">
+          <div class="app-modal" id="obsolete-modal" role="dialog"
+            aria-label="Marcar como obsoleta">
+            <div class="app-modal-head">
+              <span>Marcar como obsoleta</span>
+              <button type="button" onclick="closeObsoleteModal()"
+                title="Fechar" aria-label="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <label>
+                <span>Nota nova que substitui</span>
+                <input id="obsolete-search" type="text"
+                  placeholder="Buscar por título" autocomplete="off" spellcheck="false"
+                  oninput="filterObsoleteTargets(this.value)" />
+              </label>
+              <div id="obsolete-list"></div>
+              <label>
+                <span>Motivo (máx 280)</span>
+                <textarea id="obsolete-reason" rows="3"
+                  placeholder="Por que ficou obsoleta?"></textarea>
+              </label>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeObsoleteModal()">Cancelar</button>
+              <button type="button" class="app-primary-btn"
+                onclick="saveObsoleteModal()">
+                <span data-icon="check"></span>
+                <span>Marcar obsoleta</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- Categorias: cadastro com descrição ( ajuda a IA a entender o uso ) -->
         <div class="app-modal-overlay" id="cats-modal-overlay"
