@@ -371,9 +371,9 @@ Bloqueio: \`blockedReason\` diz o que falta (fila "aguardando humano").
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | GET | \`/trilhas\` | Lista com \`nodeCount\` + \`deepLink\` |
-| POST | \`/trilhas\` | Cria \`{ title, objective, description?, tags? }\` |
+| POST | \`/trilhas\` | Cria \`{ title, objective, description?, tags?, guardrails?: string[] }\` |
 | GET | \`/trilhas/:id\` | Trilha + \`nodes\` + \`edges\` + \`stickies\` + \`refs\` + \`signals\` + \`attention\` + \`health\` |
-| PUT | \`/trilhas/:id\` | Edita (parcial, inclui \`status\`) |
+| PUT | \`/trilhas/:id\` | Edita (parcial, inclui \`status\` e \`guardrails?: string[]\` — regras próprias, 1 por linha na UI) |
 | DELETE | \`/trilhas/:id\` | Remove trilha + nós + arestas + stickers + eventos |
 | GET | \`/trilhas/:id/next?by=<nome>\` | Próximo bloco acionável (todo + deps done); com \`by\`, já reserva; 404 \`no_work\` se vazio |
 | GET | \`/trilhas/:id/events?limit=100\` | Log append-only (criações, status, claims, setas) |

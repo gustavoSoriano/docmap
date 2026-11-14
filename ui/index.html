@@ -931,6 +931,45 @@
           </form>
         </div>
 
+        <!-- Regra da trilha: criar/editar guardrail próprio -->
+        <div class="app-modal-overlay" id="trilha-guardrail-modal-overlay"
+          onclick="closeGuardrailModal(event)">
+          <form class="app-modal" id="trilha-guardrail-modal-form"
+            onsubmit="saveGuardrailFromModal(event)">
+            <div class="app-modal-head">
+              <span id="trilha-guardrail-title-label">Nova regra</span>
+              <button type="button" onclick="closeGuardrailModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="trilha-guardrail-edit-id" type="hidden" value="">
+              <div class="tr-field-row">
+                <div class="tr-field-text">
+                  <span class="app-field-label">Regra (markdown)</span>
+                </div>
+                <div class="seg" role="tablist" aria-label="Modo da regra">
+                  <button type="button" id="trilha-guardrail-tab-preview"
+                    onclick="setGuardrailMode('preview')">Ler</button>
+                  <button type="button" id="trilha-guardrail-tab-edit"
+                    onclick="setGuardrailMode('edit')">Editar</button>
+                </div>
+              </div>
+              <textarea id="trilha-guardrail-text" rows="8"
+                placeholder="Ex: nunca rodar DROP sem backup"
+                oninput="onGuardrailInput()"></textarea>
+              <div id="trilha-guardrail-preview"></div>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeGuardrailModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="check"></span>
+                <span>Salvar regra</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
         <!-- Bloco modal: criar/editar nó -->
         <div class="app-modal-overlay" id="trilha-node-modal-overlay"
           onclick="closeNodeModal(event)">

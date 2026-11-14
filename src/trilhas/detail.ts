@@ -32,12 +32,17 @@ export const loadTrilhaDetail = async (
   return { trilha, nodes, edges, stickies, refs, signals, attention, health };
 };
 
-// Guardrails = notas fixadas como guardrail + notas com a tag i-guardrail que
-// compartilham alguma tag com a trilha. Sempre lidas frescas do acervo.
+// Guardrails = regras próprias da trilha (primeiro) + notas fixadas como
+// guardrail + notas com a tag i-guardrail que compartilham tag com a trilha.
+// Sempre lidas frescas do acervo.
 export const loadGuardrails = async (
   kv: Deno.Kv,
   detail: TrilhaDetail,
 ): Promise<GuardrailText[]> => {
+  const own = detail.trilha.guardrails?.map((g) => ({
+    title: `Regra da trilha (${g.id.slice(0, 8)})`,
+    content: g.text,
+  })) ?? [];
   const ids = new Set(
     detail.refs.filter((r) =>
       r.kind === 'note' && r.role === 'guardrail' && !r.missing
@@ -51,6 +56,9 @@ export const loadGuardrails = async (
     }
   }
   const notes = await Promise.all([...ids].map((id) => getNoteById(kv, id)));
-  return notes.filter((n) => n !== null)
-    .map((n) => ({ title: n.title, content: n.content }));
+  return [
+    ...own,
+    ...notes.filter((n) => n !== null)
+      .map((n) => ({ title: n.title, content: n.content })),
+  ];
 };

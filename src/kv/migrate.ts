@@ -295,6 +295,21 @@ const migrations: Migration[] = [
       );
     }
   },
+
+  // v22 — trilhas ganham guardrails próprias (lista inline).
+  // Backfill: trilhas antigas sem o campo ganham `guardrails: []`.
+  // Idempotente.
+  async (kv) => {
+    for await (
+      const entry of kv.list<{ guardrails?: unknown }>({
+        prefix: ['trilhas', '_global_'],
+      })
+    ) {
+      const v = entry.value;
+      if (!v || Array.isArray(v.guardrails)) continue;
+      await kv.set(entry.key, { ...v, guardrails: [] });
+    }
+  },
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

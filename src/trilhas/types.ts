@@ -22,12 +22,20 @@ export type Assignee = {
   readonly label: string;
 };
 
+export type TrilhaGuardrail = {
+  readonly id: string;
+  readonly text: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+};
+
 export type Trilha = {
   readonly id: string;
   readonly title: string;
   readonly objective: string;
   readonly description: string;
   readonly tags: readonly string[];
+  readonly guardrails: readonly TrilhaGuardrail[];
   readonly status: TrilhaStatus;
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -179,6 +187,7 @@ export type CreateTrilhaInput = {
   readonly objective: string;
   readonly description?: string;
   readonly tags?: readonly string[];
+  readonly guardrails?: readonly string[];
 };
 
 export type UpdateTrilhaInput = {
@@ -186,6 +195,7 @@ export type UpdateTrilhaInput = {
   readonly objective?: string;
   readonly description?: string;
   readonly tags?: readonly string[];
+  readonly guardrails?: readonly string[];
   readonly status?: TrilhaStatus;
 };
 

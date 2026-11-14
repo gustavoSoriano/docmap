@@ -1096,6 +1096,20 @@
   flex: 1;
   min-height: 260px;
 }
+#trilha-guardrail-preview {
+  display: none;
+  padding: 12px 16px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  overflow-y: auto;
+  min-height: 160px;
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+}
+#trilha-guardrail-preview.visible {
+  display: block;
+}
 #trilha-node-details-preview:empty::before {
   content: 'Sem detalhes ainda. Use Editar para escrever em markdown.';
   color: var(--text-3);

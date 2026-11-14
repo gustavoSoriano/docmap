@@ -113,6 +113,9 @@ export const trilhasHandler =
       if (!input || !input.title?.trim() || !input.objective?.trim()) {
         return badRequest('title and objective required');
       }
+      if (input.guardrails !== undefined && !Array.isArray(input.guardrails)) {
+        return badRequest('guardrails must be string[]');
+      }
       const trilha = await createTrilha(kv, input);
       await logEvent(kv, trilha.id, 'trilha.created');
       return json({ ...trilha, deepLink: deepLink(trilha.id) }, 201);
@@ -134,6 +137,9 @@ export const trilhasHandler =
       }
       if (req.method === 'PUT') {
         const body = await readBody(req) as UpdateTrilhaInput;
+        if (body.guardrails !== undefined && !Array.isArray(body.guardrails)) {
+          return badRequest('guardrails must be string[]');
+        }
         const before = await getTrilha(kv, id);
         const updated = await updateTrilha(kv, id, body);
         if (!updated) return notFound();

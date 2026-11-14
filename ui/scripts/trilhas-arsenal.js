@@ -22,7 +22,7 @@ let trilhaRefFocus = null; // { kind, id, title } — mapa mostra só quem usa e
 
 const trilhaArsenalSignature = () => {
   const { trilha, refs } = currentTrilhaDetail;
-  return JSON.stringify([trilha.id, trilha.tags, refs.map((r) => [r.id, r.role, r.missing])]);
+  return JSON.stringify([trilha.id, trilha.tags, trilha.guardrails, refs.map((r) => [r.id, r.role, r.missing])]);
 };
 
 // Só busca de novo quando algo que muda o Arsenal mudou (tags ou refs).
@@ -170,11 +170,16 @@ const trilhaScopeBar = (node) => `
 
 // Sem busca: só o que já está vinculado + guardrails ativos por tag.
 const trilhaLinkedHtml = (node) => {
+  const { trilha } = currentTrilhaDetail;
   const refs = currentTrilhaDetail.refs;
+  const own = (trilha.guardrails || []).map((g) =>
+    `<div class="tr-dock-item"><div class="tr-dock-line"><button type="button" class="tr-dock-open" onclick="openGuardrailModal('${g.id}')" title="Editar regra">${ICON('shield')}<span>${escHtml(g.text.slice(0, 120))}</span></button><button type="button" class="icon-btn danger" onclick="deleteTrilhaGuardrail('${g.id}')" title="Apagar regra">${ICON('x')}</button></div></div>`
+  ).join('');
+  const ownSec = `<section class="tr-dock-sec"><div class="tr-dock-sec-h">${ICON('shield')}<span>Regras da trilha</span><span class="chip">${(trilha.guardrails || []).length}</span><button type="button" class="ghost-btn" onclick="openGuardrailModal()">+ nova regra</button></div>${own || '<div class="tr-dock-hint">Sem regras próprias — crie a primeira.</div>'}</section>`;
   const pinned = refs.filter((r) => !r.nodeId).map(trilhaItemFromRef);
   const here = node ? refs.filter((r) => r.nodeId === node.id).map(trilhaItemFromRef) : [];
   const byTag = (trilhaArsenalData?.guardrails || []).filter((g) => g.via === 'tag' && !g.pinned);
-  const html = trilhaDockSection('Na trilha inteira', 'Todos os blocos e agentes recebem estes itens.', pinned, 'bookmark') +
+  const html = ownSec + trilhaDockSection('Na trilha inteira', 'Todos os blocos e agentes recebem estes itens.', pinned, 'bookmark') +
     (node ? trilhaDockSection('Neste bloco', `Só para “${escHtml(node.title)}”.`, here, 'link') : '') +
     trilhaDockSection('Guardrails ativos por tag', 'Valem sem fixar, porque a nota tem i-guardrail e a tag da trilha.', byTag, 'shield');
   return html || `<div class="tr-dock-empty">Nada vinculado ainda.<br>Busque acima uma nota, skill, macro, podcast ou favorito e vincule à trilha ou a um bloco.</div>`;
@@ -245,6 +250,94 @@ const unlinkTrilhaRef = async (refId, scope) => {
   }
   await refreshCurrentTrilha();
   toast(`Vínculo removido d${scope}`);
+};
+
+// ── Guardrails próprios: modal com markdown, lista no arsenal ──
+
+let guardrailMode = 'edit';
+
+const renderGuardrailPreview = () => {
+  const ta = $('trilha-guardrail-text');
+  const pv = $('trilha-guardrail-preview');
+  if (!ta || !pv) return;
+  pv.innerHTML = renderMarkdown(ta.value);
+};
+
+const setGuardrailMode = (mode) => {
+  guardrailMode = mode === 'preview' ? 'preview' : 'edit';
+  const ta = $('trilha-guardrail-text');
+  const pv = $('trilha-guardrail-preview');
+  if (!ta || !pv) return;
+  const edit = guardrailMode === 'edit';
+  ta.style.display = edit ? '' : 'none';
+  pv.classList.toggle('visible', !edit);
+  $('trilha-guardrail-tab-preview')?.classList.toggle('on', !edit);
+  $('trilha-guardrail-tab-edit')?.classList.toggle('on', edit);
+  if (!edit) renderGuardrailPreview();
+};
+
+const onGuardrailInput = () => {
+  if (guardrailMode === 'edit') renderGuardrailPreview();
+};
+
+const openGuardrailModal = (gid) => {
+  const g = gid ? (currentTrilhaDetail?.trilha.guardrails || []).find((x) => x.id === gid) : null;
+  $('trilha-guardrail-edit-id').value = g?.id || '';
+  $('trilha-guardrail-text').value = g?.text || '';
+  $('trilha-guardrail-title-label').textContent = g ? 'Editar regra' : 'Nova regra';
+  $('trilha-guardrail-modal-overlay').classList.add('visible');
+  setGuardrailMode(g ? 'preview' : 'edit');
+  setTimeout(() => $('trilha-guardrail-text')?.focus(), 60);
+};
+
+const closeGuardrailModal = (e) => {
+  if (e && e.target !== $('trilha-guardrail-modal-overlay')) return;
+  $('trilha-guardrail-modal-overlay').classList.remove('visible');
+};
+
+const saveGuardrailFromModal = async (e) => {
+  e.preventDefault();
+  if (!currentTrilhaDetail) return;
+  const gid = $('trilha-guardrail-edit-id').value;
+  const text = $('trilha-guardrail-text').value.trim();
+  if (!text) { $('trilha-guardrail-text').focus(); return; }
+  const cur = (currentTrilhaDetail.trilha.guardrails || []).map((g) => g.text);
+  let next;
+  if (gid) {
+    next = (currentTrilhaDetail.trilha.guardrails || []).map((g) =>
+      g.id === gid ? text : g.text);
+  } else {
+    next = [...cur, text];
+  }
+  try {
+    const res = await fetch(`/trilhas/${currentTrilhaDetail.trilha.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guardrails: next }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    $('trilha-guardrail-modal-overlay').classList.remove('visible');
+    await refreshCurrentTrilha();
+    toast(gid ? 'Regra atualizada' : 'Regra criada');
+  } catch (err) {
+    toast(err.message || 'Falha ao salvar regra');
+  }
+};
+
+const deleteTrilhaGuardrail = async (gid) => {
+  if (!currentTrilhaDetail) return;
+  const ok = await confirmDialog('Apagar esta regra da trilha?', { danger: true, okLabel: 'Apagar' });
+  if (!ok) return;
+  const next = (currentTrilhaDetail.trilha.guardrails || [])
+    .filter((g) => g.id !== gid).map((g) => g.text);
+  const res = await fetch(`/trilhas/${currentTrilhaDetail.trilha.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ guardrails: next }),
+  });
+  if (!res.ok) return toast('Falha ao apagar');
+  await refreshCurrentTrilha();
+  toast('Regra apagada');
 };
 
 // Linha de vínculo no painel do bloco (herdado = vem da trilha inteira).

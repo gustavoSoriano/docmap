@@ -1,5 +1,34 @@
-import type { CreateTrilhaInput, Trilha, UpdateTrilhaInput } from './types.ts';
+import type {
+  CreateTrilhaInput,
+  Trilha,
+  TrilhaGuardrail,
+  UpdateTrilhaInput,
+} from './types.ts';
 import { normalizeTags } from '../tags/normalize.ts';
+
+const cleanGuardrails = (
+  raw: readonly string[] | undefined,
+  existing: readonly TrilhaGuardrail[] = [],
+): TrilhaGuardrail[] | undefined => {
+  if (raw === undefined) return undefined;
+  const now = new Date().toISOString();
+  const byText = new Map(existing.map((g) => [g.text, g]));
+  const seen = new Set<string>();
+  const out: TrilhaGuardrail[] = [];
+  for (const item of raw) {
+    const text = item.trim().slice(0, 500);
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    const prev = byText.get(text);
+    out.push(prev ?? {
+      id: crypto.randomUUID(),
+      text,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+  return out;
+};
 
 const GLOBAL = '_global_';
 const PREFIX = ['trilhas', GLOBAL] as const;
@@ -32,6 +61,7 @@ export const createTrilha = async (
     objective: input.objective.trim(),
     description: input.description ?? '',
     tags: normalizeTags(input.tags),
+    guardrails: cleanGuardrails(input.guardrails) ?? [],
     status: 'draft',
     createdAt: now,
     updatedAt: now,
@@ -59,6 +89,9 @@ export const updateTrilha = async (
       ? { description: input.description }
       : {}),
     ...(input.tags !== undefined ? { tags: normalizeTags(input.tags) } : {}),
+    ...(input.guardrails !== undefined
+      ? { guardrails: cleanGuardrails(input.guardrails, existing.guardrails) ?? [] }
+      : {}),
     status,
     ...(status === 'done' && !existing.completedAt ? { completedAt: now } : {}),
     updatedAt: now,
