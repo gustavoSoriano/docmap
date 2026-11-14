@@ -44,6 +44,7 @@
     <link rel="stylesheet" href="/styles/podcasts.css">
     <link rel="stylesheet" href="/styles/graph.css">
     <link rel="stylesheet" href="/styles/agentchats.css">
+    <link rel="stylesheet" href="/styles/monitors.css">
   </head>
   <body>
     <div id="body-main">
@@ -90,6 +91,9 @@
           </button>
           <button class="nav-btn" id="nav-agentchats" onclick="setMode('agentchats')" data-tip="Chats" aria-label="Chats">
             <span class="nav-ico" data-icon="message-square"></span><span class="nav-lbl">Chats</span>
+          </button>
+          <button class="nav-btn" id="nav-monitors" onclick="setMode('monitors')" data-tip="Monitores" aria-label="Monitores">
+            <span class="nav-ico" data-icon="clock"></span><span class="nav-lbl">Monitores</span>
           </button>
           </div>
           <span class="nav-sep" aria-hidden="true"></span>
@@ -1341,6 +1345,230 @@
           </section>
         </main>
 
+        <!-- ═══ MODE: MONITORS ═══ -->
+        <main id="mode-monitors" class="mode">
+          <aside id="mon-sidebar">
+            <div id="mon-sidebar-head">
+              <div>
+                <div id="mon-sidebar-title">Monitores</div>
+                <div id="mon-sidebar-count">0</div>
+              </div>
+              <button id="mon-new-btn" onclick="openMonitorModal()"
+                title="Novo monitor" aria-label="Novo monitor"
+                data-icon="plus"></button>
+            </div>
+            <div id="mon-search-wrap">
+              <span data-icon="search"></span>
+              <input id="mon-search" class="field" type="text"
+                placeholder="Buscar monitores" autocomplete="off"
+                spellcheck="false" oninput="renderMonitorsList()">
+            </div>
+            <div id="mon-list"></div>
+          </aside>
+
+          <section id="mon-workspace">
+            <div id="mon-empty" class="empty-state">
+              <div class="empty-mark" data-icon="clock"></div>
+              <div class="empty-title">Vigias que acordam sozinhos</div>
+              <div class="empty-hint">Você define o objetivo, o intervalo e as
+                travas. O docmap controla o relógio e o orçamento; a IA que você
+                já usa traz as fontes e ferramentas.</div>
+              <ol id="mon-empty-steps">
+                <li>Crie o monitor com objetivo e guardrails</li>
+                <li>Copie o prompt e cole na sua IA</li>
+                <li>Acompanhe cada execução na timeline</li>
+              </ol>
+              <button class="app-primary-btn" onclick="openMonitorModal()">
+                <span data-icon="plus"></span> Novo monitor
+              </button>
+            </div>
+
+            <div id="mon-active" hidden>
+              <header id="mon-toolbar">
+                <div id="mon-toolbar-top">
+                  <div id="mon-title-wrap">
+                    <div id="mon-title" class="display"></div>
+                    <span id="mon-status" class="chip"></span>
+                  </div>
+                  <div id="mon-toolbar-actions">
+                    <button id="mon-playpause" class="tool-btn"
+                      onclick="toggleMonitorPause()" title="Pausar monitor">
+                      <span data-icon="pause"></span>
+                      <span id="mon-playpause-label">Pausar</span>
+                    </button>
+                    <button class="icon-btn" onclick="kickCurrentMonitor()"
+                      title="Rodar agora" aria-label="Rodar agora"
+                      data-icon="zap"></button>
+                    <button class="tool-btn" onclick="copyMonitorId()"
+                      title="Copiar o id do monitor">
+                      <span data-icon="copy"></span><span>Copiar ID</span>
+                    </button>
+                    <button class="tool-btn" onclick="copyMonitorPrompt()"
+                      title="Copiar prompt para colar na IA">
+                      <span data-icon="copy"></span><span>Copiar prompt</span>
+                    </button>
+                    <button class="icon-btn"
+                      onclick="openMonitorModal(currentMonitorId)"
+                      title="Editar monitor" aria-label="Editar monitor"
+                      data-icon="pencil"></button>
+                    <button class="icon-btn danger"
+                      onclick="deleteCurrentMonitor()"
+                      title="Excluir monitor" aria-label="Excluir monitor"
+                      data-icon="trash"></button>
+                  </div>
+                </div>
+                <div id="mon-objective"></div>
+              </header>
+
+              <div id="mon-review" class="mon-review" hidden></div>
+
+              <div id="mon-stats"></div>
+
+              <div id="mon-body">
+                <section id="mon-timeline-wrap">
+                  <div class="mon-section-head">
+                    <span>Timeline de execuções</span>
+                    <span id="mon-run-count" class="chip">0</span>
+                    <span class="mon-spacer"></span>
+                    <button class="icon-btn" onclick="refreshCurrentMonitor()"
+                      title="Recarregar" aria-label="Recarregar"
+                      data-icon="refresh-cw"></button>
+                  </div>
+                  <div id="mon-timeline"></div>
+                </section>
+
+                <aside id="mon-side">
+                  <section class="mon-card">
+                    <h3>Guardrails</h3>
+                    <div id="mon-guardrails" class="mon-list-text"></div>
+                  </section>
+                  <section class="mon-card">
+                    <h3>Critérios de conclusão</h3>
+                    <div id="mon-criteria" class="mon-list-text"></div>
+                  </section>
+                  <section class="mon-card">
+                    <h3>Estado</h3>
+                    <div id="mon-state"></div>
+                  </section>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- Monitor: criar/editar -->
+        <div class="app-modal-overlay" id="mon-modal-overlay"
+          onclick="closeMonitorModal(event)">
+          <form class="app-modal wide" id="mon-modal-form"
+            onsubmit="saveMonitorFromModal(event)">
+            <div class="app-modal-head">
+              <span id="mon-modal-title">Novo monitor</span>
+              <button type="button" onclick="closeMonitorModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="mon-f-id" type="hidden" value="">
+              <label><span class="app-field-label">Título</span>
+                <input id="mon-f-title" type="text" required
+                  placeholder="Acompanhar um tema e agir quando houver novidade">
+              </label>
+              <label><span class="app-field-label">Objetivo</span>
+                <textarea id="mon-f-objective" rows="4" required
+                  placeholder="Verificar uma fonte de atualizações. Se houver algo novo, avaliar o que mudou, executar a ação permitida e registrar um relatório."></textarea>
+              </label>
+              <label><span class="app-field-label">Intervalo (min)</span>
+                <input id="mon-f-interval" type="number" min="5" value="30">
+              </label>
+              <div class="mon-list-field">
+                <span class="app-field-label">Guardrails (um por vez)</span>
+                <div id="mon-f-guardrails-list" class="mon-edit-list"></div>
+                <div class="mon-add-row">
+                  <input id="mon-f-guardrail-input" type="text"
+                    placeholder="Ex: nunca reiniciar um serviço sem aprovação"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();addMonitorGuardrail();}">
+                  <button type="button" class="app-secondary-btn"
+                    onclick="addMonitorGuardrail()">
+                    <span data-icon="plus"></span> Adicionar
+                  </button>
+                </div>
+              </div>
+              <div class="mon-list-field">
+                <span class="app-field-label">Critérios de conclusão (um por vez)</span>
+                <div id="mon-f-criteria-list" class="mon-edit-list"></div>
+                <div class="mon-add-row">
+                  <input id="mon-f-criterion-input" type="text"
+                    placeholder="Ex: relatório publicado no canal combinado"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();addMonitorCriterion();}">
+                  <button type="button" class="app-secondary-btn"
+                    onclick="addMonitorCriterion()">
+                    <span data-icon="plus"></span> Adicionar
+                  </button>
+                </div>
+              </div>
+              <div class="mon-form-grid mon-form-grid-3">
+                <label><span class="app-field-label">Runs/dia</span>
+                  <input id="mon-f-runs-day" type="number" min="1" value="50">
+                </label>
+                <label><span class="app-field-label">Tokens/dia</span>
+                  <input id="mon-f-tokens-day" type="number" min="1000" value="200000">
+                </label>
+                <label><span class="app-field-label">US$/dia</span>
+                  <input id="mon-f-cost-day" type="number" min="0" step="0.01" value="5">
+                </label>
+                <label><span class="app-field-label">Falhas seguidas</span>
+                  <input id="mon-f-failures" type="number" min="1" value="5">
+                </label>
+                <label><span class="app-field-label">Idle até pausar</span>
+                  <input id="mon-f-idle" type="number" min="1" value="6">
+                </label>
+                <label><span class="app-field-label">Lease (min)</span>
+                  <input id="mon-f-timeout" type="number" min="1" value="15">
+                </label>
+              </div>
+              <div class="mon-form-grid">
+                <label><span class="app-field-label">Prazo final</span>
+                  <input id="mon-f-expires" type="date">
+                </label>
+              <div class="mon-switch-row">
+                <span class="app-field-label">Exigir minha confirmação antes de concluir</span>
+                <button type="button" id="mon-f-approval" class="mon-switch"
+                  role="switch" aria-checked="false"
+                  onclick="toggleMonitorApproval()">
+                  <span class="mon-switch-track"><span class="mon-switch-thumb"></span></span>
+                  <span id="mon-f-approval-label" class="mon-switch-label">Não</span>
+                </button>
+              </div>
+              </div>
+              <label><span class="app-field-label">Tags (separadas por vírgula)</span>
+                <input id="mon-f-tags" type="text" placeholder="infra, alertas">
+              </label>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeMonitorModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="check"></span><span>Salvar monitor</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Monitor: relatório de uma execução -->
+        <div class="app-modal-overlay" id="mon-report-overlay"
+          onclick="closeMonitorReport(event)">
+          <div class="app-modal wide" id="mon-report-modal" role="dialog"
+            aria-modal="true" aria-labelledby="mon-report-title">
+            <div class="app-modal-head">
+              <span id="mon-report-title">Relatório</span>
+              <button type="button" onclick="closeMonitorReport()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <div id="mon-report-body" class="mon-report"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Agent chat modal: criar/editar em formulário único -->
         <div class="app-modal-overlay" id="ac-modal-overlay"
           onclick="closeAgentChatModal(event)">
@@ -1878,6 +2106,7 @@
     <script src="/scripts/trilhas-embed.js"></script>
     <script src="/scripts/trilhas-live.js"></script>
     <script src="/scripts/agentchats.js"></script>
+    <script src="/scripts/monitors.js"></script>
     <script src="/scripts/mocks.js"></script>
     <script src="/scripts/favorites.js"></script>
     <script src="/scripts/podcasts.js"></script>

@@ -310,6 +310,10 @@ const migrations: Migration[] = [
       await kv.set(entry.key, { ...v, guardrails: [] });
     }
   },
+
+  // v23 — monitors (vigias autônomos com lease, orçamento e timeline).
+  // Prefixos novos (monitors, monitor_runs), sem dados para transformar.
+  async (_kv) => {},
 ];
 
 export const CURRENT_SCHEMA = migrations.length;

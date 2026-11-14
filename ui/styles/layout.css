@@ -270,9 +270,9 @@ textarea {
    Todo painel que preenche um modo. Os arquivos por modo cuidam só do
    conteúdo interno (nunca de borda/raio/fundo da ilha). */
 #notes-col, #macros-col, #skills-col, #mocks-col, #fav-sidebar, #pod-col,
-#trilha-sidebar, #ac-sidebar,
+#trilha-sidebar, #ac-sidebar, #mon-sidebar,
 #notes-editor, #macros-editor, #skills-editor, #mocks-editor, #fav-main,
-#pod-player, #trilha-workspace, #ac-workspace,
+#pod-player, #trilha-workspace, #ac-workspace, #mon-workspace,
 #mode-graph, #canvas-container {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -282,7 +282,7 @@ textarea {
   overflow: hidden;
 }
 #notes-editor, #macros-editor, #skills-editor, #mocks-editor, #fav-main,
-#pod-player, #trilha-workspace, #ac-workspace {
+#pod-player, #trilha-workspace, #ac-workspace, #mon-workspace {
   flex: 1;
 }
 #mode-graph {
@@ -309,7 +309,7 @@ textarea {
 
 /* sidebars: largura padrão + recolher (botão do topbar) */
 #notes-col, #skills-col, #pod-col, #trilha-sidebar, #macros-col, #mocks-col,
-#fav-sidebar, #ac-sidebar {
+#fav-sidebar, #ac-sidebar, #mon-sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
   display: flex;
@@ -324,7 +324,8 @@ textarea {
 .col-collapsed#fav-sidebar,
 .col-collapsed#pod-col,
 .col-collapsed#trilha-sidebar,
-.col-collapsed#ac-sidebar {
+.col-collapsed#ac-sidebar,
+.col-collapsed#mon-sidebar {
   width: 0;
   min-width: 0;
   margin-right: calc(-1 * var(--gap));
@@ -337,7 +338,7 @@ textarea {
    head: título em fonte de exibição + contador + botão novo
    search → (collections) → lista rolável → footer discreto */
 #notes-col-head, #skills-col-head, #pod-col-head, #macros-col-head,
-#mocks-col-head {
+#mocks-col-head, #mon-sidebar-head {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -345,7 +346,8 @@ textarea {
   padding: 0 14px 0 20px;
   flex-shrink: 0;
 }
-#notes-col-title, #skills-col-title, #macros-col-title, #mocks-col-title {
+#notes-col-title, #skills-col-title, #macros-col-title, #mocks-col-title,
+#mon-sidebar-title {
   flex: 1;
   font-size: var(--fs-xl);
   font-weight: 650;
@@ -355,7 +357,7 @@ textarea {
 }
 /* botão "novo": contorno âmbar, preenche no hover */
 #notes-new-btn, #skills-new-btn, #macros-new-btn, #mocks-new-btn,
-#trilha-new-btn, #ac-new-btn {
+#trilha-new-btn, #ac-new-btn, #mon-new-btn {
   width: 32px;
   height: 32px;
   border: 1px solid var(--accent-line);
@@ -369,16 +371,19 @@ textarea {
   transition: background var(--dur), color var(--dur), transform var(--dur);
 }
 #notes-new-btn:hover, #skills-new-btn:hover, #macros-new-btn:hover,
-#mocks-new-btn:hover, #trilha-new-btn:hover, #ac-new-btn:hover {
+#mocks-new-btn:hover, #trilha-new-btn:hover, #ac-new-btn:hover,
+#mon-new-btn:hover {
   background: var(--accent);
   color: var(--on-accent);
 }
 #notes-new-btn:active, #skills-new-btn:active, #macros-new-btn:active,
-#mocks-new-btn:active, #trilha-new-btn:active, #ac-new-btn:active {
+#mocks-new-btn:active, #trilha-new-btn:active, #ac-new-btn:active,
+#mon-new-btn:active {
   transform: scale(.94);
 }
 #notes-new-btn .ico, #skills-new-btn .ico, #macros-new-btn .ico,
-#mocks-new-btn .ico, #trilha-new-btn .ico, #ac-new-btn .ico {
+#mocks-new-btn .ico, #trilha-new-btn .ico, #ac-new-btn .ico,
+#mon-new-btn .ico {
   width: 17px;
   height: 17px;
 }

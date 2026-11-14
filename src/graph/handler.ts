@@ -13,6 +13,7 @@ import { listSkills } from '../skills/store.ts';
 import { listMocks } from '../mocks/store.ts';
 import { listTrilhas } from '../trilhas/store.ts';
 import { listChats } from '../agentchats/store.ts';
+import { listMonitors } from '../monitors/store.ts';
 import { buildKnowledgeGraph } from './build.ts';
 import { toGraphEntities } from './entities.ts';
 import { fitEntitiesToNodeBudget } from './budget.ts';
@@ -31,6 +32,7 @@ export const graphHandler =
       mocks,
       trilhas,
       agentchats,
+      monitors,
     ] = await Promise.all([
       listNotes(kv),
       listTasks(kv),
@@ -41,6 +43,7 @@ export const graphHandler =
       listMocks(kv),
       listTrilhas(kv),
       listChats(kv),
+      listMonitors(kv),
     ]);
 
     const entities = toGraphEntities({
@@ -53,6 +56,7 @@ export const graphHandler =
       mocks,
       trilhas,
       agentchats,
+      monitors,
     });
     const query = parseGraphQuery(url);
     const filtered = filterGraphEntities(entities, query);

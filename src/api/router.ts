@@ -12,6 +12,7 @@ import { mocksHandler } from '../mocks/handler.ts';
 import { podcastsHandler } from '../podcasts/handler.ts';
 import { trilhasHandler } from '../trilhas/handler.ts';
 import { agentChatsHandler } from '../agentchats/handler.ts';
+import { monitorsHandler } from '../monitors/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
 import { notFound } from '../server/response.ts';
 import { isLoopbackOrigin } from '../server/security.ts';
@@ -54,6 +55,7 @@ export const createApiRouter = (deps: HandlerDeps) => {
   const mocks = mocksHandler(deps.kv);
   const podcasts = podcastsHandler(deps.kv);
   const trilhas = trilhasHandler(deps.kv);
+  const monitors = monitorsHandler(deps.kv);
   const agentChats = agentChatsHandler(deps.kv);
   const debug = createDebugApiHandler();
 
@@ -93,6 +95,8 @@ export const createApiRouter = (deps: HandlerDeps) => {
     else if (pathname.startsWith('/trilhas')) res = await trilhas(req, url);
     else if (pathname.startsWith('/agentchats')) {
       res = await agentChats(req, url);
+    } else if (pathname.startsWith('/monitors')) {
+      res = await monitors(req, url);
     } else res = notFound();
 
     return withCors(res, origin);

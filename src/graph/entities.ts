@@ -28,6 +28,7 @@ export type GraphInput = {
   readonly mocks: readonly MockLike[];
   readonly trilhas: readonly Titled[];
   readonly agentchats: readonly Titled[];
+  readonly monitors: readonly Titled[];
 };
 
 export const toGraphEntities = (input: GraphInput): GraphEntity[] => [
@@ -85,5 +86,11 @@ export const toGraphEntities = (input: GraphInput): GraphEntity[] => [
     kind: 'agentchat' as const,
     label: c.title,
     tags: c.tags,
+  })),
+  ...input.monitors.map((m) => ({
+    id: m.id,
+    kind: 'monitor' as const,
+    label: m.title,
+    tags: m.tags,
   })),
 ];

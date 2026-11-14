@@ -23882,9 +23882,9 @@ textarea {
    Todo painel que preenche um modo. Os arquivos por modo cuidam só do
    conteúdo interno (nunca de borda/raio/fundo da ilha). */
 #notes-col, #macros-col, #skills-col, #mocks-col, #fav-sidebar, #pod-col,
-#trilha-sidebar, #ac-sidebar,
+#trilha-sidebar, #ac-sidebar, #mon-sidebar,
 #notes-editor, #macros-editor, #skills-editor, #mocks-editor, #fav-main,
-#pod-player, #trilha-workspace, #ac-workspace,
+#pod-player, #trilha-workspace, #ac-workspace, #mon-workspace,
 #mode-graph, #canvas-container {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -23894,7 +23894,7 @@ textarea {
   overflow: hidden;
 }
 #notes-editor, #macros-editor, #skills-editor, #mocks-editor, #fav-main,
-#pod-player, #trilha-workspace, #ac-workspace {
+#pod-player, #trilha-workspace, #ac-workspace, #mon-workspace {
   flex: 1;
 }
 #mode-graph {
@@ -23921,7 +23921,7 @@ textarea {
 
 /* sidebars: largura padrão + recolher (botão do topbar) */
 #notes-col, #skills-col, #pod-col, #trilha-sidebar, #macros-col, #mocks-col,
-#fav-sidebar, #ac-sidebar {
+#fav-sidebar, #ac-sidebar, #mon-sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
   display: flex;
@@ -23936,7 +23936,8 @@ textarea {
 .col-collapsed#fav-sidebar,
 .col-collapsed#pod-col,
 .col-collapsed#trilha-sidebar,
-.col-collapsed#ac-sidebar {
+.col-collapsed#ac-sidebar,
+.col-collapsed#mon-sidebar {
   width: 0;
   min-width: 0;
   margin-right: calc(-1 * var(--gap));
@@ -23949,7 +23950,7 @@ textarea {
    head: título em fonte de exibição + contador + botão novo
    search → (collections) → lista rolável → footer discreto */
 #notes-col-head, #skills-col-head, #pod-col-head, #macros-col-head,
-#mocks-col-head {
+#mocks-col-head, #mon-sidebar-head {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -23957,7 +23958,8 @@ textarea {
   padding: 0 14px 0 20px;
   flex-shrink: 0;
 }
-#notes-col-title, #skills-col-title, #macros-col-title, #mocks-col-title {
+#notes-col-title, #skills-col-title, #macros-col-title, #mocks-col-title,
+#mon-sidebar-title {
   flex: 1;
   font-size: var(--fs-xl);
   font-weight: 650;
@@ -23967,7 +23969,7 @@ textarea {
 }
 /* botão "novo": contorno âmbar, preenche no hover */
 #notes-new-btn, #skills-new-btn, #macros-new-btn, #mocks-new-btn,
-#trilha-new-btn, #ac-new-btn {
+#trilha-new-btn, #ac-new-btn, #mon-new-btn {
   width: 32px;
   height: 32px;
   border: 1px solid var(--accent-line);
@@ -23981,16 +23983,19 @@ textarea {
   transition: background var(--dur), color var(--dur), transform var(--dur);
 }
 #notes-new-btn:hover, #skills-new-btn:hover, #macros-new-btn:hover,
-#mocks-new-btn:hover, #trilha-new-btn:hover, #ac-new-btn:hover {
+#mocks-new-btn:hover, #trilha-new-btn:hover, #ac-new-btn:hover,
+#mon-new-btn:hover {
   background: var(--accent);
   color: var(--on-accent);
 }
 #notes-new-btn:active, #skills-new-btn:active, #macros-new-btn:active,
-#mocks-new-btn:active, #trilha-new-btn:active, #ac-new-btn:active {
+#mocks-new-btn:active, #trilha-new-btn:active, #ac-new-btn:active,
+#mon-new-btn:active {
   transform: scale(.94);
 }
 #notes-new-btn .ico, #skills-new-btn .ico, #macros-new-btn .ico,
-#mocks-new-btn .ico, #trilha-new-btn .ico, #ac-new-btn .ico {
+#mocks-new-btn .ico, #trilha-new-btn .ico, #ac-new-btn .ico,
+#mon-new-btn .ico {
   width: 17px;
   height: 17px;
 }
@@ -32492,6 +32497,7 @@ body.embed #stage {
   --kg-skill: #b69cff;
   --kg-mock: #a9b6c9;
   --kg-agentchat: #a8e04f;
+  --kg-monitor: #9fb3ff;
   --kg-tag: var(--text-3);
   --glass: color-mix(in srgb, var(--surface) 80%, transparent);
 }
@@ -32505,6 +32511,7 @@ body.embed #stage {
   --kg-skill: #7c52e0;
   --kg-mock: #6b7d96;
   --kg-agentchat: #5f9a0e;
+  --kg-monitor: #4b5bd6;
 }
 
 /* ── Controles flutuantes ── */
@@ -32685,6 +32692,7 @@ body.embed #stage {
 .kg-leg-mock i { background: var(--kg-mock); }
 .kg-leg-trilha i { background: var(--kg-trilha); }
 .kg-leg-agentchat i { background: var(--kg-agentchat); }
+.kg-leg-monitor i { background: var(--kg-monitor); }
 .kg-leg-tag i {
   background: transparent;
   box-shadow: inset 0 0 0 2px var(--kg-tag);
@@ -33727,6 +33735,604 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
 }
 
 </style>
+    <style>
+/* ════════════════════════════════════════════════════════════════
+   Monitores — relógio + ledger. A IA executa; a timeline é a prova.
+   Ilhas vêm de layout.css; aqui só o conteúdo interno.
+   ════════════════════════════════════════════════════════════════ */
+
+#mode-monitors {
+  flex-direction: row;
+}
+
+/* ════════ Sidebar ════════ */
+#mon-sidebar-count {
+  margin-top: 1px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+#mon-search-wrap {
+  position: relative;
+  padding: 0 14px 10px;
+  flex-shrink: 0;
+}
+#mon-search-wrap > span {
+  position: absolute;
+  left: 28px;
+  top: 11px;
+  display: grid;
+  color: var(--text-3);
+  pointer-events: none;
+}
+#mon-search-wrap .ico {
+  width: 16px;
+  height: 16px;
+}
+#mon-search {
+  width: 100%;
+  padding-left: 36px;
+  border-color: transparent;
+}
+
+#mon-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mon-list-empty {
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+
+.mon-card-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background var(--dur), border-color var(--dur);
+}
+.mon-card-item:hover {
+  background: var(--surface-2);
+}
+.mon-card-item.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
+}
+.mon-card-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.mon-card-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-md);
+  font-weight: 560;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mon-card-meta {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  display: flex;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status: ponto colorido + rótulo curto */
+.mon-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--text-3);
+}
+.mon-dot.active {
+  background: var(--ok);
+}
+.mon-dot.paused {
+  background: var(--text-3);
+}
+.mon-dot.halted {
+  background: var(--danger);
+}
+.mon-dot.review {
+  background: var(--warn);
+}
+.mon-dot.done {
+  background: var(--info);
+}
+
+/* ════════ Workspace ════════ */
+#mon-workspace {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#mon-active {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#mon-empty[hidden],
+#mon-active[hidden] {
+  display: none !important;
+}
+
+#mon-toolbar {
+  padding: 18px 22px 12px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+#mon-toolbar-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+#mon-title-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+#mon-title {
+  font-size: var(--fs-xl);
+  font-weight: 650;
+  font-stretch: var(--stretch-display);
+  letter-spacing: -.015em;
+  line-height: 1.15;
+}
+#mon-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+#mon-objective {
+  margin-top: 8px;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 84px;
+  overflow: auto;
+}
+
+#mon-status.active {
+  color: var(--ok);
+}
+#mon-status.paused {
+  color: var(--text-3);
+}
+#mon-status.halted {
+  color: var(--danger);
+}
+#mon-status.review {
+  color: var(--warn);
+}
+#mon-status.done {
+  color: var(--info);
+}
+
+/* ════════ Stats ════════ */
+.mon-review {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 22px;
+  background: var(--warn-dim);
+  border-bottom: 1px solid var(--warn);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  flex-shrink: 0;
+}
+.mon-review[hidden] {
+  display: none !important;
+}
+.mon-review-actions {
+  display: flex;
+  gap: 6px;
+}
+
+#mon-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mon-stat {
+  background: var(--surface);
+  padding: 10px 16px;
+  min-width: 0;
+}
+.mon-stat-label {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  text-transform: none;
+}
+.mon-stat-value {
+  margin-top: 2px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ════════ Corpo: timeline + lateral ════════ */
+#mon-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  overflow: hidden;
+}
+#mon-timeline-wrap {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+.mon-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mon-spacer {
+  flex: 1;
+}
+
+#mon-timeline {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mon-run {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.mon-run-main {
+  min-width: 0;
+}
+.mon-run-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mon-run-seq {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+.mon-run-summary {
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.mon-run-meta {
+  margin-top: 6px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.mon-run-meta button {
+  border: none;
+  background: none;
+  color: var(--info);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+}
+.mon-run-time {
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+.mon-run-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.mon-run-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+.mon-run-status.leased::before,
+.mon-run-status.working::before {
+  background: var(--accent);
+}
+.mon-run-status.no-change::before {
+  background: var(--info);
+}
+.mon-run-status.done::before {
+  background: var(--ok);
+}
+.mon-run-status.failed::before,
+.mon-run-status.expired::before {
+  background: var(--danger);
+}
+
+.mon-timeline-empty {
+  padding: 32px 8px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+
+/* ════════ Lateral ════════ */
+#mon-side {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mon-card h3 {
+  margin: 0 0 6px;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mon-list-text {
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  line-height: 1.55;
+}
+.mon-list-text ul {
+  margin: 0;
+  padding-left: 16px;
+}
+.mon-list-text li {
+  margin: 2px 0;
+}
+.mon-muted {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+
+.mon-state-grid {
+  display: grid;
+  gap: 6px;
+  font-size: var(--fs-sm);
+}
+.mon-state-row {
+  display: flex;
+  gap: 8px;
+}
+.mon-state-row b {
+  color: var(--text-3);
+  font-weight: 500;
+  min-width: 62px;
+}
+.mon-state-row span {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+/* ════════ Editor de guardrails (um por vez) ════════ */
+.mon-list-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.mon-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mon-edit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.mon-edit-item span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.mon-add-row {
+  display: flex;
+  gap: 6px;
+}
+.mon-add-row input {
+  flex: 1;
+}
+.mon-add-row .app-secondary-btn {
+  height: 40px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ════════ Modal ════════ */
+.mon-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.mon-form-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.mon-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 20px;
+}
+.mon-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  flex-shrink: 0;
+}
+.mon-switch-track {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-mid);
+  transition: background var(--dur), border-color var(--dur);
+}
+.mon-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-3);
+  transition: transform var(--dur), background var(--dur);
+}
+.mon-switch[aria-checked="true"] .mon-switch-track {
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
+}
+.mon-switch[aria-checked="true"] .mon-switch-thumb {
+  transform: translateX(16px);
+  background: var(--accent);
+}
+.mon-switch-label {
+  min-width: 26px;
+  text-align: left;
+}
+
+/* ════════ Relatório ════════ */
+.mon-report {
+  font-size: var(--fs-md);
+  line-height: 1.65;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.mon-report h1,
+.mon-report h2,
+.mon-report h3 {
+  margin: 18px 0 8px;
+  line-height: 1.2;
+}
+.mon-report h1 {
+  font-size: var(--fs-xl);
+}
+.mon-report h2 {
+  font-size: var(--fs-lg);
+}
+.mon-report h3 {
+  font-size: var(--fs-md);
+}
+.mon-report p {
+  margin: 8px 0;
+}
+.mon-report ul,
+.mon-report ol {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+.mon-report pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  overflow-x: auto;
+}
+.mon-report code {
+  font-family: var(--font-mono, monospace);
+  font-size: .92em;
+}
+
+/* ════════ Responsivo ════════ */
+@media (max-width: 1080px) {
+  #mon-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  #mon-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #mon-side {
+    border-top: 1px solid var(--border);
+  }
+  #mon-timeline-wrap {
+    border-right: none;
+  }
+}
+
+</style>
   </head>
   <body>
     <div id="body-main">
@@ -33773,6 +34379,9 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
           </button>
           <button class="nav-btn" id="nav-agentchats" onclick="setMode('agentchats')" data-tip="Chats" aria-label="Chats">
             <span class="nav-ico" data-icon="message-square"></span><span class="nav-lbl">Chats</span>
+          </button>
+          <button class="nav-btn" id="nav-monitors" onclick="setMode('monitors')" data-tip="Monitores" aria-label="Monitores">
+            <span class="nav-ico" data-icon="clock"></span><span class="nav-lbl">Monitores</span>
           </button>
           </div>
           <span class="nav-sep" aria-hidden="true"></span>
@@ -35024,6 +35633,230 @@ svg#kg-svg.kg-has-sel .kg-node:not(.kg-dim) .kg-label {
           </section>
         </main>
 
+        <!-- ═══ MODE: MONITORS ═══ -->
+        <main id="mode-monitors" class="mode">
+          <aside id="mon-sidebar">
+            <div id="mon-sidebar-head">
+              <div>
+                <div id="mon-sidebar-title">Monitores</div>
+                <div id="mon-sidebar-count">0</div>
+              </div>
+              <button id="mon-new-btn" onclick="openMonitorModal()"
+                title="Novo monitor" aria-label="Novo monitor"
+                data-icon="plus"></button>
+            </div>
+            <div id="mon-search-wrap">
+              <span data-icon="search"></span>
+              <input id="mon-search" class="field" type="text"
+                placeholder="Buscar monitores" autocomplete="off"
+                spellcheck="false" oninput="renderMonitorsList()">
+            </div>
+            <div id="mon-list"></div>
+          </aside>
+
+          <section id="mon-workspace">
+            <div id="mon-empty" class="empty-state">
+              <div class="empty-mark" data-icon="clock"></div>
+              <div class="empty-title">Vigias que acordam sozinhos</div>
+              <div class="empty-hint">Você define o objetivo, o intervalo e as
+                travas. O docmap controla o relógio e o orçamento; a IA que você
+                já usa traz as fontes e ferramentas.</div>
+              <ol id="mon-empty-steps">
+                <li>Crie o monitor com objetivo e guardrails</li>
+                <li>Copie o prompt e cole na sua IA</li>
+                <li>Acompanhe cada execução na timeline</li>
+              </ol>
+              <button class="app-primary-btn" onclick="openMonitorModal()">
+                <span data-icon="plus"></span> Novo monitor
+              </button>
+            </div>
+
+            <div id="mon-active" hidden>
+              <header id="mon-toolbar">
+                <div id="mon-toolbar-top">
+                  <div id="mon-title-wrap">
+                    <div id="mon-title" class="display"></div>
+                    <span id="mon-status" class="chip"></span>
+                  </div>
+                  <div id="mon-toolbar-actions">
+                    <button id="mon-playpause" class="tool-btn"
+                      onclick="toggleMonitorPause()" title="Pausar monitor">
+                      <span data-icon="pause"></span>
+                      <span id="mon-playpause-label">Pausar</span>
+                    </button>
+                    <button class="icon-btn" onclick="kickCurrentMonitor()"
+                      title="Rodar agora" aria-label="Rodar agora"
+                      data-icon="zap"></button>
+                    <button class="tool-btn" onclick="copyMonitorId()"
+                      title="Copiar o id do monitor">
+                      <span data-icon="copy"></span><span>Copiar ID</span>
+                    </button>
+                    <button class="tool-btn" onclick="copyMonitorPrompt()"
+                      title="Copiar prompt para colar na IA">
+                      <span data-icon="copy"></span><span>Copiar prompt</span>
+                    </button>
+                    <button class="icon-btn"
+                      onclick="openMonitorModal(currentMonitorId)"
+                      title="Editar monitor" aria-label="Editar monitor"
+                      data-icon="pencil"></button>
+                    <button class="icon-btn danger"
+                      onclick="deleteCurrentMonitor()"
+                      title="Excluir monitor" aria-label="Excluir monitor"
+                      data-icon="trash"></button>
+                  </div>
+                </div>
+                <div id="mon-objective"></div>
+              </header>
+
+              <div id="mon-review" class="mon-review" hidden></div>
+
+              <div id="mon-stats"></div>
+
+              <div id="mon-body">
+                <section id="mon-timeline-wrap">
+                  <div class="mon-section-head">
+                    <span>Timeline de execuções</span>
+                    <span id="mon-run-count" class="chip">0</span>
+                    <span class="mon-spacer"></span>
+                    <button class="icon-btn" onclick="refreshCurrentMonitor()"
+                      title="Recarregar" aria-label="Recarregar"
+                      data-icon="refresh-cw"></button>
+                  </div>
+                  <div id="mon-timeline"></div>
+                </section>
+
+                <aside id="mon-side">
+                  <section class="mon-card">
+                    <h3>Guardrails</h3>
+                    <div id="mon-guardrails" class="mon-list-text"></div>
+                  </section>
+                  <section class="mon-card">
+                    <h3>Critérios de conclusão</h3>
+                    <div id="mon-criteria" class="mon-list-text"></div>
+                  </section>
+                  <section class="mon-card">
+                    <h3>Estado</h3>
+                    <div id="mon-state"></div>
+                  </section>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- Monitor: criar/editar -->
+        <div class="app-modal-overlay" id="mon-modal-overlay"
+          onclick="closeMonitorModal(event)">
+          <form class="app-modal wide" id="mon-modal-form"
+            onsubmit="saveMonitorFromModal(event)">
+            <div class="app-modal-head">
+              <span id="mon-modal-title">Novo monitor</span>
+              <button type="button" onclick="closeMonitorModal()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <input id="mon-f-id" type="hidden" value="">
+              <label><span class="app-field-label">Título</span>
+                <input id="mon-f-title" type="text" required
+                  placeholder="Acompanhar um tema e agir quando houver novidade">
+              </label>
+              <label><span class="app-field-label">Objetivo</span>
+                <textarea id="mon-f-objective" rows="4" required
+                  placeholder="Verificar uma fonte de atualizações. Se houver algo novo, avaliar o que mudou, executar a ação permitida e registrar um relatório."></textarea>
+              </label>
+              <label><span class="app-field-label">Intervalo (min)</span>
+                <input id="mon-f-interval" type="number" min="5" value="30">
+              </label>
+              <div class="mon-list-field">
+                <span class="app-field-label">Guardrails (um por vez)</span>
+                <div id="mon-f-guardrails-list" class="mon-edit-list"></div>
+                <div class="mon-add-row">
+                  <input id="mon-f-guardrail-input" type="text"
+                    placeholder="Ex: nunca reiniciar um serviço sem aprovação"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();addMonitorGuardrail();}">
+                  <button type="button" class="app-secondary-btn"
+                    onclick="addMonitorGuardrail()">
+                    <span data-icon="plus"></span> Adicionar
+                  </button>
+                </div>
+              </div>
+              <div class="mon-list-field">
+                <span class="app-field-label">Critérios de conclusão (um por vez)</span>
+                <div id="mon-f-criteria-list" class="mon-edit-list"></div>
+                <div class="mon-add-row">
+                  <input id="mon-f-criterion-input" type="text"
+                    placeholder="Ex: relatório publicado no canal combinado"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();addMonitorCriterion();}">
+                  <button type="button" class="app-secondary-btn"
+                    onclick="addMonitorCriterion()">
+                    <span data-icon="plus"></span> Adicionar
+                  </button>
+                </div>
+              </div>
+              <div class="mon-form-grid mon-form-grid-3">
+                <label><span class="app-field-label">Runs/dia</span>
+                  <input id="mon-f-runs-day" type="number" min="1" value="50">
+                </label>
+                <label><span class="app-field-label">Tokens/dia</span>
+                  <input id="mon-f-tokens-day" type="number" min="1000" value="200000">
+                </label>
+                <label><span class="app-field-label">US$/dia</span>
+                  <input id="mon-f-cost-day" type="number" min="0" step="0.01" value="5">
+                </label>
+                <label><span class="app-field-label">Falhas seguidas</span>
+                  <input id="mon-f-failures" type="number" min="1" value="5">
+                </label>
+                <label><span class="app-field-label">Idle até pausar</span>
+                  <input id="mon-f-idle" type="number" min="1" value="6">
+                </label>
+                <label><span class="app-field-label">Lease (min)</span>
+                  <input id="mon-f-timeout" type="number" min="1" value="15">
+                </label>
+              </div>
+              <div class="mon-form-grid">
+                <label><span class="app-field-label">Prazo final</span>
+                  <input id="mon-f-expires" type="date">
+                </label>
+              <div class="mon-switch-row">
+                <span class="app-field-label">Exigir minha confirmação antes de concluir</span>
+                <button type="button" id="mon-f-approval" class="mon-switch"
+                  role="switch" aria-checked="false"
+                  onclick="toggleMonitorApproval()">
+                  <span class="mon-switch-track"><span class="mon-switch-thumb"></span></span>
+                  <span id="mon-f-approval-label" class="mon-switch-label">Não</span>
+                </button>
+              </div>
+              </div>
+              <label><span class="app-field-label">Tags (separadas por vírgula)</span>
+                <input id="mon-f-tags" type="text" placeholder="infra, alertas">
+              </label>
+            </div>
+            <div class="app-modal-actions">
+              <button type="button" class="app-secondary-btn"
+                onclick="closeMonitorModal()">Cancelar</button>
+              <button type="submit" class="app-primary-btn">
+                <span data-icon="check"></span><span>Salvar monitor</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Monitor: relatório de uma execução -->
+        <div class="app-modal-overlay" id="mon-report-overlay"
+          onclick="closeMonitorReport(event)">
+          <div class="app-modal wide" id="mon-report-modal" role="dialog"
+            aria-modal="true" aria-labelledby="mon-report-title">
+            <div class="app-modal-head">
+              <span id="mon-report-title">Relatório</span>
+              <button type="button" onclick="closeMonitorReport()"
+                title="Fechar" data-icon="x"></button>
+            </div>
+            <div class="app-modal-body">
+              <div id="mon-report-body" class="mon-report"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Agent chat modal: criar/editar em formulário único -->
         <div class="app-modal-overlay" id="ac-modal-overlay"
           onclick="closeAgentChatModal(event)">
@@ -35837,7 +36670,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let currentMode = 'canvas';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Blueprint', debug: 'Debug', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', monitors: 'Monitores', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Blueprint', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -35850,6 +36683,7 @@ const PANEL_BY_MODE = {
   podcasts:  'pod-col',
   trilhas: 'trilha-sidebar',
   agentchats: 'ac-sidebar',
+  monitors: 'mon-sidebar',
 };
 
 const toggleSidebar = () => {
@@ -35883,6 +36717,7 @@ const setMode = (mode) => {
   else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
   else if (mode === 'trilhas') loadTrilhas();
   else if (mode === 'agentchats') loadAgentChatsList();
+  else if (mode === 'monitors') loadMonitorsList();
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();
@@ -35997,6 +36832,13 @@ const handleDeepLink = () => {
   if (trilha) {
     setMode('trilhas');
     openTrilha(trilha[1]);
+    history.replaceState(null, '', '/');
+    return;
+  }
+  const monitor = hash.match(/^#monitor\\/([a-f0-9-]{36})$/);
+  if (monitor) {
+    setMode('monitors');
+    openMonitor(monitor[1]);
     history.replaceState(null, '', '/');
     return;
   }
@@ -42314,6 +43156,534 @@ document.addEventListener('keydown', (e) => {
 
 </script>
     <script>
+// ════ Monitores — relógio + ledger de execuções de agentes externos ════
+
+let allMonitors = [];
+let currentMonitorId = null;
+let currentMonitor = null;
+let monPollTimer = null;
+
+const MON_STATUS_LABEL = {
+  active: 'Ativo',
+  paused: 'Pausado',
+  halted: 'Parado',
+  review: 'Revisão',
+  done: 'Concluído',
+};
+
+const MON_RUN_LABEL = {
+  leased: 'Reservado',
+  working: 'Executando',
+  'no-change': 'Sem novidade',
+  done: 'Concluído',
+  failed: 'Falhou',
+  expired: 'Expirado',
+};
+
+const monFmt = (iso) => {
+  const t = Date.parse(iso || '');
+  if (!Number.isFinite(t)) return '—';
+  return new Date(t).toLocaleString('pt-BR', {
+    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+  });
+};
+
+const monAgo = (iso) => {
+  const t = Date.parse(iso || '');
+  if (!Number.isFinite(t)) return '—';
+  const min = Math.floor((Date.now() - t) / 60000);
+  if (min < 1) return 'agora';
+  if (min < 60) return \`\${min} min atrás\`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return \`\${h} h atrás\`;
+  return monFmt(iso);
+};
+
+const monIn = (iso) => {
+  const t = Date.parse(iso || '');
+  if (!Number.isFinite(t)) return '—';
+  const min = Math.ceil((t - Date.now()) / 60000);
+  if (min <= 0) return 'agora';
+  if (min < 60) return \`em \${min} min\`;
+  const h = Math.round(min / 60);
+  return \`em \${h} h\`;
+};
+
+const monK = (n) => {
+  const v = Number(n) || 0;
+  if (v >= 1000000) return (v / 1000000).toFixed(1) + 'M';
+  if (v >= 1000) return Math.round(v / 1000) + 'k';
+  return String(v);
+};
+
+// ── Lista ──
+const loadMonitorsList = async () => {
+  try {
+    const res = await fetch('/monitors');
+    allMonitors = await res.json();
+    renderMonitorsList();
+    ensureMonitorPoll();
+  } catch (err) {
+    console.error('Erro ao carregar monitores:', err);
+  }
+};
+
+const renderMonitorsList = () => {
+  const q = ($('mon-search')?.value || '').toLowerCase();
+  const list = $('mon-list');
+  if (!list) return;
+  const filtered = allMonitors.filter((m) =>
+    !q || (m.title || '').toLowerCase().includes(q) ||
+    (m.objective || '').toLowerCase().includes(q) ||
+    (m.tags || []).join(' ').toLowerCase().includes(q)
+  );
+  $('mon-sidebar-count').textContent = allMonitors.length === 1
+    ? '1 monitor'
+    : allMonitors.length + ' monitores';
+  const emptyMsg = allMonitors.length
+    ? 'Nenhum monitor encontrado.'
+    : 'Nenhum monitor ainda. Crie o primeiro.';
+  list.innerHTML = filtered.map((m) => {
+    const next = m.status === 'active' ? monIn(m.nextRunAt) : MON_STATUS_LABEL[m.status] || m.status;
+    return \`<button class="mon-card-item \${m.id === currentMonitorId ? 'active' : ''}"
+      onclick="openMonitor('\${m.id}')">
+      <div class="mon-card-head">
+        <span class="mon-dot \${escHtml(m.status)}"></span>
+        <span class="mon-card-title">\${escHtml(m.title || 'Sem título')}</span>
+      </div>
+      <div class="mon-card-meta">
+        <span>a cada \${m.intervalMinutes} min</span>
+        <span>\${escHtml(next)}</span>
+      </div>
+    </button>\`;
+  }).join('') || \`<div class="mon-list-empty">\${emptyMsg}</div>\`;
+};
+
+// ── Detalhe ──
+const openMonitor = async (id) => {
+  currentMonitorId = id;
+  renderMonitorsList();
+  await refreshCurrentMonitor();
+};
+
+const refreshCurrentMonitor = async (silent = false) => {
+  if (!currentMonitorId) return;
+  try {
+    const res = await fetch('/monitors/' + currentMonitorId);
+    if (!res.ok) throw new Error('monitor não encontrado');
+    currentMonitor = await res.json();
+    renderMonitorDetail(currentMonitor);
+  } catch (err) {
+    console.error('Erro ao carregar monitor:', err);
+    if (!silent) toast('Não consegui carregar o monitor');
+  }
+};
+
+const renderMonitorDetail = (m) => {
+  $('mon-empty').hidden = true;
+  $('mon-active').hidden = false;
+
+  $('mon-title').textContent = m.title || 'Sem título';
+  const status = $('mon-status');
+  status.textContent = MON_STATUS_LABEL[m.status] || m.status;
+  status.className = 'chip ' + m.status;
+  $('mon-objective').textContent = m.objective || '(sem objetivo)';
+
+  const review = $('mon-review');
+  if (m.status === 'review') {
+    review.hidden = false;
+    review.innerHTML =
+      \`<div><b>Conclusão proposta.</b> \${escHtml(m.haltReason || 'A IA considera o objetivo concluído.')}</div>\` +
+      \`<div class="mon-review-actions">\` +
+      \`<button class="app-primary-btn" onclick="decideMonitor('accept')">Aceitar e concluir</button>\` +
+      \`<button class="app-secondary-btn" onclick="decideMonitor('reject')">Rejeitar</button>\` +
+      \`</div>\`;
+  } else {
+    review.hidden = true;
+    review.innerHTML = '';
+  }
+
+  // Play/pause
+  const btn = $('mon-playpause');
+  const canResume = m.status === 'paused' || m.status === 'halted';
+  btn.disabled = !(m.status === 'active' || canResume);
+  if (m.status === 'active') {
+    btn.innerHTML = \`\${ICON('pause')}<span>Pausar</span>\`;
+    btn.title = 'Pausar monitor';
+  } else if (canResume) {
+    btn.innerHTML = \`\${ICON('play')}<span>Retomar</span>\`;
+    btn.title = 'Retomar monitor';
+  } else {
+    btn.innerHTML = \`\${ICON('pause')}<span>Indisponível</span>\`;
+    btn.title = 'Este monitor não está ativo';
+  }
+
+  renderMonitorStats(m);
+  renderMonitorSide(m);
+  renderMonitorTimeline(m);
+};
+
+const renderMonitorStats = (m) => {
+  const el = $('mon-stats');
+  if (!el) return;
+  const u = m.usage || {};
+  const l = m.limits || {};
+  const next = m.status === 'active' ? monIn(m.nextRunAt) : (MON_STATUS_LABEL[m.status] || m.status);
+  const items = [
+    ['Intervalo', \`a cada \${m.intervalMinutes} min\`],
+    ['Próxima', next],
+    ['Hoje', \`\${u.runsToday ?? 0}/\${l.maxRunsPerDay ?? '—'}\`],
+    ['Tokens hoje', \`\${monK(u.tokensToday)}/\${monK(l.maxTokensPerDay)}\`],
+    ['Custo hoje', \`US$ \${u.costToday ?? 0}/\${l.maxCostUsdPerDay ?? '—'}\`],
+  ];
+  el.innerHTML = items.map(([k, v]) =>
+    \`<div class="mon-stat"><div class="mon-stat-label">\${k}</div>\` +
+    \`<div class="mon-stat-value" title="\${escHtml(v)}">\${escHtml(v)}</div></div>\`
+  ).join('');
+};
+
+const monListText = (items, empty) => {
+  if (!items || !items.length) return \`<div class="mon-muted">\${empty}</div>\`;
+  return \`<ul>\${items.map((i) => \`<li>\${escHtml(i)}</li>\`).join('')}</ul>\`;
+};
+
+const monOrderedText = (items, empty) => {
+  if (!items || !items.length) return \`<div class="mon-muted">\${empty}</div>\`;
+  return \`<ol>\${items.map((i) => \`<li>\${escHtml(i)}</li>\`).join('')}</ol>\`;
+};
+
+const renderMonitorSide = (m) => {
+  $('mon-guardrails').innerHTML = monListText(m.guardrails, 'Nenhum guardrail escrito.');
+  $('mon-criteria').innerHTML = monOrderedText(m.doneCriteria, 'Sem critério definido — a IA propõe e você decide.');
+
+  const state = m.state || {};
+  const limits = m.limits || {};
+  $('mon-state').innerHTML =
+    \`<div class="mon-state-grid">\` +
+    \`<div class="mon-state-row"><b>Conclusão</b><span>\${escHtml(m.requireDoneApproval ? 'exige sua confirmação' : 'a IA conclui sozinha')}</span></div>\` +
+    \`<div class="mon-state-row"><b>Cursor</b><span>\${escHtml(state.cursor || '—')}</span></div>\` +
+    \`<div class="mon-state-row"><b>Memória</b><span>\${escHtml(state.memory || '—')}</span></div>\` +
+    \`<div class="mon-state-row"><b>Falhas</b><span>\${state.consecutiveFailures || 0}/\${limits.maxConsecutiveFailures}</span></div>\` +
+    \`<div class="mon-state-row"><b>Sem mudança</b><span>\${state.consecutiveNoChange || 0}/\${limits.idleRunsToPause}</span></div>\` +
+    \`<div class="mon-state-row"><b>Lease</b><span>\${limits.runTimeoutMinutes} min</span></div>\` +
+    \`<div class="mon-state-row"><b>Prazo</b><span>\${escHtml(limits.expiresAt ? monFmt(limits.expiresAt) : 'sem prazo')}</span></div>\` +
+    (m.haltReason
+      ? \`<div class="mon-state-row"><b>Motivo</b><span>\${escHtml(m.haltReason)}</span></div>\`
+      : '') +
+    \`</div>\`;
+
+};
+
+const renderMonitorTimeline = (m) => {
+  const wrap = $('mon-timeline');
+  const scroll = wrap.scrollTop;
+  const runs = m.runs || [];
+  $('mon-run-count').textContent = runs.length;
+
+  wrap.innerHTML = runs.length
+    ? runs.map((r) => {
+      const tokens = (r.tokensIn || 0) + (r.tokensOut || 0);
+      const summary = r.summary || r.error || '—';
+      const criteria = r.criteria || [];
+      const criteriaDone = criteria.filter((c) => c.done).length;
+      const criteriaMeta = criteria.length
+        ? \`<span>critérios \${criteriaDone}/\${criteria.length}</span>\`
+        : '';
+      return \`<div class="mon-run">
+        <div class="mon-run-time">\${escHtml(monFmt(r.leasedAt))}<br>#\${r.seq}</div>
+        <div class="mon-run-main">
+          <div class="mon-run-top">
+            <span class="mon-run-status \${escHtml(r.status)}">\${escHtml(MON_RUN_LABEL[r.status] || r.status)}</span>
+            <span class="mon-run-seq">\${escHtml(r.agent || 'agente')}</span>
+          </div>
+          <div class="mon-run-summary">\${escHtml(summary)}</div>
+          <div class="mon-run-meta">
+            <span>\${monK(tokens)} tokens</span>
+            <span>US$ \${r.costUsd ?? 0}</span>
+            \${criteriaMeta}
+            <span>\${escHtml(monAgo(r.finishedAt || r.leasedAt))}</span>
+            \${r.hasReport ? \`<button onclick="openMonitorReport('\${r.id}')">Abrir relatório</button>\` : ''}
+          </div>
+        </div>
+      </div>\`;
+    }).join('')
+    : '<div class="mon-timeline-empty">Nenhuma execução ainda. O relógio começa quando uma IA entrar no inbox.</div>';
+
+  wrap.scrollTop = scroll;
+};
+
+// ── Ações do topo ──
+const copyMonitorId = () => {
+  if (!currentMonitor) return;
+  copyToClipboard(currentMonitor.id, 'ID do monitor copiado');
+};
+
+const copyMonitorPrompt = async () => {
+  if (!currentMonitor) return;
+  try {
+    const res = await fetch('/monitors/' + currentMonitor.id + '/prompt');
+    const text = await res.text();
+    await navigator.clipboard.writeText(text);
+    toast('Prompt copiado — cole na IA que vai executar');
+  } catch {
+    toast('Falha ao copiar o prompt');
+  }
+};
+
+const toggleMonitorPause = async () => {
+  if (!currentMonitor) return;
+  const id = currentMonitor.id;
+  if (currentMonitor.status === 'active') {
+    const res = await fetch(\`/monitors/\${id}/pause\`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: 'Pausado por você.' }),
+    });
+    if (!res.ok) return toast('Não consegui pausar');
+    toast('Monitor pausado. A IA para na próxima checagem.');
+  } else if (currentMonitor.status === 'paused' || currentMonitor.status === 'halted') {
+    const res = await fetch(\`/monitors/\${id}/resume\`, { method: 'POST' });
+    if (!res.ok) {
+      const msg = await res.text();
+      return toast(msg === 'expired'
+        ? 'Prazo vencido — edite o prazo antes de retomar'
+        : 'Não consegui retomar');
+    }
+    toast('Monitor retomado. Avise a IA para voltar ao inbox.');
+  } else {
+    return toast('Este monitor não pode ser retomado agora');
+  }
+  await loadMonitorsList();
+  await refreshCurrentMonitor(true);
+};
+
+const kickCurrentMonitor = async () => {
+  if (!currentMonitor) return;
+  if (currentMonitor.status !== 'active') {
+    return toast('Só monitor ativo pode rodar agora');
+  }
+  const res = await fetch(\`/monitors/\${currentMonitor.id}/kick\`, { method: 'POST' });
+  if (!res.ok) return toast('Não consegui antecipar');
+  toast('Antecipado. A IA acorda no próximo inbox (até 2s).');
+  await refreshCurrentMonitor(true);
+};
+
+const decideMonitor = async (decision) => {
+  if (!currentMonitor) return;
+  const res = await fetch(\`/monitors/\${currentMonitor.id}/decide\`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ decision, by: 'user' }),
+  });
+  if (!res.ok) return toast('Não consegui registrar a decisão');
+  toast(decision === 'accept' ? 'Monitor concluído' : 'Conclusão rejeitada');
+  await loadMonitorsList();
+  await refreshCurrentMonitor(true);
+};
+
+// ── Modal criar/editar ──
+const openMonitorModal = (id) => {
+  const m = id && currentMonitor && currentMonitor.id === id ? currentMonitor : null;
+  $('mon-modal-title').textContent = m ? 'Editar monitor' : 'Novo monitor';
+  $('mon-f-id').value = m?.id || '';
+  $('mon-f-title').value = m?.title || '';
+  $('mon-f-objective').value = m?.objective || '';
+  $('mon-f-interval').value = m?.intervalMinutes ?? 30;
+  setMonitorGuardrails(m?.guardrails || []);
+  $('mon-f-guardrail-input').value = '';
+  setMonitorCriteria(m?.doneCriteria || []);
+  $('mon-f-criterion-input').value = '';
+  $('mon-f-runs-day').value = m?.limits?.maxRunsPerDay ?? 50;
+  $('mon-f-tokens-day').value = m?.limits?.maxTokensPerDay ?? 200000;
+  $('mon-f-cost-day').value = m?.limits?.maxCostUsdPerDay ?? 5;
+  $('mon-f-failures').value = m?.limits?.maxConsecutiveFailures ?? 5;
+  $('mon-f-idle').value = m?.limits?.idleRunsToPause ?? 6;
+  $('mon-f-timeout').value = m?.limits?.runTimeoutMinutes ?? 15;
+  $('mon-f-expires').value = m?.limits?.expiresAt
+    ? new Date(m.limits.expiresAt).toISOString().slice(0, 10)
+    : '';
+  setMonitorApproval(m ? m.requireDoneApproval === true : false);
+  $('mon-f-tags').value = (m?.tags || []).join(', ');
+  $('mon-modal-overlay').classList.add('visible');
+};
+
+const closeMonitorModal = (e) => {
+  if (e && e.target !== $('mon-modal-overlay')) return;
+  $('mon-modal-overlay').classList.remove('visible');
+};
+
+let monGuardrailDraft = [];
+
+const renderMonitorGuardrailsEditor = () => {
+  const el = $('mon-f-guardrails-list');
+  if (!el) return;
+  el.innerHTML = monGuardrailDraft.length
+    ? monGuardrailDraft.map((text, i) =>
+      \`<div class="mon-edit-item"><span>\${escHtml(text)}</span>\` +
+      \`<button type="button" class="icon-btn danger" onclick="removeMonitorGuardrail(\${i})" \` +
+      \`title="Remover" aria-label="Remover guardrail">\${ICON('x')}</button></div>\`
+    ).join('')
+    : '<div class="mon-muted">Nenhum guardrail adicionado.</div>';
+};
+
+const setMonitorGuardrails = (items) => {
+  monGuardrailDraft = (Array.isArray(items) ? items : []).slice();
+  renderMonitorGuardrailsEditor();
+};
+
+const addMonitorGuardrail = () => {
+  const input = $('mon-f-guardrail-input');
+  const text = String(input?.value || '').trim();
+  if (!text) return;
+  if (!monGuardrailDraft.includes(text)) monGuardrailDraft.push(text);
+  input.value = '';
+  renderMonitorGuardrailsEditor();
+};
+
+const removeMonitorGuardrail = (index) => {
+  monGuardrailDraft = monGuardrailDraft.filter((_, i) => i !== index);
+  renderMonitorGuardrailsEditor();
+};
+
+let monCriteriaDraft = [];
+
+const renderMonitorCriteriaEditor = () => {
+  const el = $('mon-f-criteria-list');
+  if (!el) return;
+  el.innerHTML = monCriteriaDraft.length
+    ? monCriteriaDraft.map((text, i) =>
+      \`<div class="mon-edit-item"><span>\${escHtml(text)}</span>\` +
+      \`<button type="button" class="icon-btn danger" onclick="removeMonitorCriterion(\${i})" \` +
+      \`title="Remover" aria-label="Remover critério">\${ICON('x')}</button></div>\`
+    ).join('')
+    : '<div class="mon-muted">Nenhum critério adicionado.</div>';
+};
+
+const setMonitorCriteria = (items) => {
+  monCriteriaDraft = (Array.isArray(items) ? items : []).slice();
+  renderMonitorCriteriaEditor();
+};
+
+const addMonitorCriterion = () => {
+  const input = $('mon-f-criterion-input');
+  const text = String(input?.value || '').trim();
+  if (!text) return;
+  if (!monCriteriaDraft.includes(text)) monCriteriaDraft.push(text);
+  input.value = '';
+  renderMonitorCriteriaEditor();
+};
+
+const removeMonitorCriterion = (index) => {
+  monCriteriaDraft = monCriteriaDraft.filter((_, i) => i !== index);
+  renderMonitorCriteriaEditor();
+};
+
+const setMonitorApproval = (on) => {
+  const btn = $('mon-f-approval');
+  btn.setAttribute('aria-checked', on ? 'true' : 'false');
+  $('mon-f-approval-label').textContent = on ? 'Sim' : 'Não';
+};
+
+const toggleMonitorApproval = () => {
+  const btn = $('mon-f-approval');
+  setMonitorApproval(btn.getAttribute('aria-checked') !== 'true');
+};
+
+const saveMonitorFromModal = async (e) => {
+  e.preventDefault();
+  const id = $('mon-f-id').value;
+  const expiresRaw = $('mon-f-expires').value;
+  let expiresAt = null;
+  if (expiresRaw) {
+    const [y, m, d] = expiresRaw.split('-').map(Number);
+    expiresAt = new Date(y, m - 1, d, 23, 59, 0).toISOString();
+  }
+  const payload = {
+    title: $('mon-f-title').value,
+    objective: $('mon-f-objective').value,
+    intervalMinutes: Number($('mon-f-interval').value),
+    guardrails: monGuardrailDraft,
+    doneCriteria: monCriteriaDraft,
+    requireDoneApproval: $('mon-f-approval').getAttribute('aria-checked') === 'true',
+    tags: String($('mon-f-tags').value || '')
+      .split(',').map((v) => v.trim()).filter(Boolean),
+    limits: {
+      maxRunsPerDay: Number($('mon-f-runs-day').value),
+      maxTokensPerDay: Number($('mon-f-tokens-day').value),
+      maxCostUsdPerDay: Number($('mon-f-cost-day').value),
+      maxConsecutiveFailures: Number($('mon-f-failures').value),
+      idleRunsToPause: Number($('mon-f-idle').value),
+      runTimeoutMinutes: Number($('mon-f-timeout').value),
+      expiresAt,
+    },
+  };
+
+  const res = await fetch(id ? '/monitors/' + id : '/monitors', {
+    method: id ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    return toast(msg || 'Não consegui salvar');
+  }
+  const saved = await res.json();
+  closeMonitorModal();
+  toast(id ? 'Monitor atualizado' : 'Monitor criado — copie o prompt para a IA');
+  await loadMonitorsList();
+  await openMonitor(saved.id);
+};
+
+const deleteCurrentMonitor = async () => {
+  if (!currentMonitor) return;
+  const ok = await confirmDialog(
+    \`Excluir "\${currentMonitor.title}" e todo o histórico de execuções?\`,
+    { okLabel: 'Excluir', danger: true },
+  );
+  if (!ok) return;
+  const res = await fetch('/monitors/' + currentMonitor.id, { method: 'DELETE' });
+  if (!res.ok) return toast('Não consegui excluir');
+  toast('Monitor excluído');
+  currentMonitor = null;
+  currentMonitorId = null;
+  $('mon-active').hidden = true;
+  $('mon-empty').hidden = false;
+  await loadMonitorsList();
+};
+
+// ── Relatório ──
+const openMonitorReport = async (runId) => {
+  try {
+    const res = await fetch('/monitors/runs/' + runId + '/report');
+    if (!res.ok) return toast('Relatório não encontrado');
+    const md = await res.text();
+    const run = (currentMonitor?.runs || []).find((r) => r.id === runId);
+    $('mon-report-title').textContent = run
+      ? \`Relatório — execução #\${run.seq}\`
+      : 'Relatório';
+    $('mon-report-body').innerHTML = renderMarkdown(md);
+    $('mon-report-overlay').classList.add('visible');
+  } catch {
+    toast('Falha ao abrir o relatório');
+  }
+};
+
+const closeMonitorReport = (e) => {
+  if (e && e.target !== $('mon-report-overlay')) return;
+  $('mon-report-overlay').classList.remove('visible');
+};
+
+// ── Polling suave enquanto o modo está aberto ──
+const ensureMonitorPoll = () => {
+  if (monPollTimer) return;
+  monPollTimer = setInterval(() => {
+    if (currentMode !== 'monitors' || document.hidden) return;
+    if (currentMonitorId) refreshCurrentMonitor(true);
+  }, 8000);
+};
+
+</script>
+    <script>
 // ════ Mocks — HTTP Mock Server Manager ════
 
 const MOCK_SERVER = 'http://127.0.0.1:3335';
@@ -44316,11 +45686,11 @@ let kgBackendQuery = '';
 let kgSearchTimer = null;
 const kgHidden = new Set(); // tipos de nó ocultados pelo usuário
 
-const KG_KINDS = ['note', 'task', 'trilha', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'agentchat', 'tag'];
+const KG_KINDS = ['note', 'task', 'trilha', 'macro', 'podcast', 'favorite', 'skill', 'mock', 'agentchat', 'monitor', 'tag'];
 const KG_LABELS = {
   note: 'Notas', task: 'Tasks', trilha: 'Trilhas', macro: 'Macros',
   podcast: 'Podcasts', favorite: 'Favoritos', skill: 'Skills', mock: 'Mocks',
-  agentchat: 'Chats', tag: 'Tags',
+  agentchat: 'Chats', monitor: 'Monitores', tag: 'Tags',
 };
 const KG_COLOR = {};
 
@@ -44360,6 +45730,7 @@ const OPEN_BY_KIND = {
   trilha: (id) => { setMode('trilhas'); if (typeof openTrilha === 'function') openTrilha(id); },
   mock: (id) => { setMode('mocks'); if (typeof openMockEditor === 'function') openMockEditor(id); },
   agentchat: (id) => { setMode('agentchats'); if (typeof openAgentChat === 'function') openAgentChat(id); },
+  monitor: (id) => { setMode('monitors'); if (typeof openMonitor === 'function') openMonitor(id); },
   // Favorito é um link salvo → abre a URL no browser (registra acesso).
   favorite: async (id) => {
     try {

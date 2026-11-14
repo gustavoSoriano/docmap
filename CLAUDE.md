@@ -95,6 +95,9 @@ linhas, é sinal de que precisa ser dividido.
 ["trilha_refs",    "_global_", refId]            → TrilhaRef (kind+targetId; nodeId ausente = fixada na trilha)
 ["trilha_signals", "_global_", signalId]         → TrilhaSignal (blocker|warning|question|pending)
 ["trilha_events",  "_global_", trilhaId, iso, id]→ TrilhaEvent (log append-only, máx. 500)
+["monitors",       "_global_", monitorId]        → Monitor (relógio, limites, estado e uso)
+["monitor_runs",   monitorId, runId]             → MonitorRun (lease + timeline)
+["monitor_runs_by_id", runId]                    → { monitorId, seq } (índice)
 ["mock_collections", id]                         → MockCollection
 ["mocks_data",     collectionId, mockId]         → Mock
 ```
@@ -149,6 +152,19 @@ carrega o próprio app em `/?embed=<note|skill|macro|podcast>:<id>`
 (`workspace.js` + `embed.css`), então evolui junto com a tela original.
 Para testar sem tocar no app real: `DOCMAP_UI_PORT`/`DOCMAP_API_PORT`/
 `DOCMAP_MOCK_PORT` mudam as portas e `HOME` isola os dados.
+
+**Monitors (vigias autônomos):** `src/monitors/` é relógio + ledger, não um
+motor de IA. O docmap nunca chama LLM: agentes externos fazem long-poll em
+`GET /monitors/inbox` e só recebem um run quando vence. O agente traz as
+fontes/ferramentas e decide as próprias ações; o docmap guarda
+`cursor`/`memory`, aplica limites (runs/tokens/custo por dia, falhas
+seguidas, idle, prazo, lease) e recusa ticks quando o monitor está
+`paused`/`halted`/`review`/`done`. `done` exige `evidence` e todos os
+`doneCriteria` marcados no report (422 com `missing` se faltar). Regras
+puras em `policy.ts` e `criteria.ts`;
+leases/relatórios em `runs.ts`; relatórios completos ficam em
+`<dataDir>/monitors/<id>/<runId>.md` (KV só guarda metadados). O prompt
+copiável sai de `GET /monitors/:id/prompt`; a UI mostra timeline por run.
 
 **Canvas (lousa única):** `src/canvas/` não usa o KV — o board persiste em
 `<dataDir>/canvas/board.json` (`src/canvas/board-file.ts`, teto 20MB).

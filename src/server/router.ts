@@ -13,6 +13,7 @@ import { createCanvasHandler } from '../canvas/handler.ts';
 import { trilhasHandler } from '../trilhas/handler.ts';
 import { agentChatsHandler } from '../agentchats/handler.ts';
 import { createDebugHandler } from '../debug/handler.ts';
+import { monitorsHandler } from '../monitors/handler.ts';
 import { headlessHandler } from '../headless/handler.ts';
 import { serveIndex } from './handlers/ui.ts';
 import { notFound } from './response.ts';
@@ -33,6 +34,7 @@ export const createRouter = (deps: HandlerDeps) => {
   const podcasts = podcastsHandler(deps.kv);
   const canvas = createCanvasHandler(deps);
   const trilhas = trilhasHandler(deps.kv);
+  const monitors = monitorsHandler(deps.kv);
   const agentChats = agentChatsHandler(deps.kv);
   const debug = createDebugHandler();
   return (req: Request): Response | Promise<Response> => {
@@ -63,6 +65,7 @@ export const createRouter = (deps: HandlerDeps) => {
     if (pathname.startsWith('/canvas')) return canvas(req, url);
     if (pathname.startsWith('/trilhas')) return trilhas(req, url);
     if (pathname.startsWith('/agentchats')) return agentChats(req, url);
+    if (pathname.startsWith('/monitors')) return monitors(req, url);
 
     return notFound();
   };

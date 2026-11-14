@@ -16,7 +16,8 @@ export type EntityKind =
   | 'skill'
   | 'mock'
   | 'trilha'
-  | 'agentchat';
+  | 'agentchat'
+  | 'monitor';
 
 export type NodeKind = EntityKind | 'tag';
 

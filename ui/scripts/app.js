@@ -2,7 +2,7 @@
 
 let currentMode = 'canvas';
 
-const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Blueprint', debug: 'Debug', graph: 'Grafo' };
+const MODE_LABEL = { notes: 'Notas', macros: 'Macros', skills: 'Skills', tasks: 'Kanban', trilhas: 'Trilhas', agentchats: 'Chats', monitors: 'Monitores', mocks: 'Mocks', favorites: 'Favoritos', podcasts: 'Podcasts', canvas: 'Blueprint', debug: 'Debug', graph: 'Grafo' };
 
 // ── Sidebar panel collapse (notes-col, macros-col, etc.) ──
 // depends on: dom.js ($)
@@ -15,6 +15,7 @@ const PANEL_BY_MODE = {
   podcasts:  'pod-col',
   trilhas: 'trilha-sidebar',
   agentchats: 'ac-sidebar',
+  monitors: 'mon-sidebar',
 };
 
 const toggleSidebar = () => {
@@ -48,6 +49,7 @@ const setMode = (mode) => {
   else if (mode === 'tasks')     { loadProjects(); loadTasks(); }
   else if (mode === 'trilhas') loadTrilhas();
   else if (mode === 'agentchats') loadAgentChatsList();
+  else if (mode === 'monitors') loadMonitorsList();
   else if (mode === 'mocks')     loadMocksData();
   else if (mode === 'favorites') loadFavoritesData();
   else if (mode === 'podcasts')  loadPodcastsList();

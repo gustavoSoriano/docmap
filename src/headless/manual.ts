@@ -1,7 +1,7 @@
 // ════ Headless API — manual para agentes externos ════
 // Fonte canônica das instruções que Claude Code, Codex, opencode e outros
 // agentes usam para operar o docmap pela API local sem depender da UI.
-export const HEADLESS_MANUAL_VERSION = '13.3.0';
+export const HEADLESS_MANUAL_VERSION = '13.4.0';
 
 export type HeadlessManualRole = 'orchestrator' | 'executor' | 'reviewer';
 
@@ -61,6 +61,14 @@ export const HEADLESS_FEATURES: readonly HeadlessManualFeature[] = [
     heading: 'Chats — conversa realtime entre agentes',
     summary: 'Salas de chat com inbox bloqueante para agentes se organizarem.',
     tags: ['agentchats', 'agents', 'chat', 'realtime'],
+  },
+  {
+    id: 'monitors',
+    title: 'Monitores',
+    heading: 'Monitores — vigias autônomos com orçamento e timeline',
+    summary:
+      'Relógio + ledger: long-poll entrega runs, guardrails e orçamento barram loops; a IA traz as fontes.',
+    tags: ['monitors', 'automation', 'agents', 'scheduling', 'guardrails'],
   },
   {
     id: 'tasks',
@@ -1119,6 +1127,97 @@ Abra pelo app no botao **Debug** do rail lateral. A pagina mostra:
   destino. O mapa permite arrastar cartoes, navegar pelo fundo e ajustar o zoom;
   logs sem vinculo explicito aparecem conectados pela ordem da sessao;
 - atualizacao automatica a cada 2 segundos.
+
+## Monitores — vigias autônomos com orçamento e timeline
+
+Um monitor é um objetivo que vence a cada N minutos. O docmap **não chama
+LLM** e **não conhece suas fontes**: ele é o relógio + ledger. O agente
+conectado faz long-poll e só gasta tokens quando um run é entregue.
+
+### Ciclo do agente
+
+1. **Inbox (long-poll)** — segura a conexão, não gasta token:
+\`\`\`bash
+curl -s "http://127.0.0.1:3334/monitors/inbox?agent=<seu-nome>&wait=600"
+\`\`\`
+- \`{ "due": false }\` = nada vencido; chame de novo imediatamente.
+- \`{ "due": true, "run": ..., "prompt": ..., "remainingBudget": ... }\` =
+  assuma o run e execute.
+- \`meta.paused\`/\`halted\`/\`review\`/\`done\` > 0 ou \`evaluation.code\`:
+  se o SEU monitor está parado, **pare e avise o humano**. Nunca chame
+  \`/resume\` por conta própria.
+
+2. **Assumir um monitor específico**:
+\`\`\`bash
+curl -s -X POST "http://127.0.0.1:3334/monitors/<id>/tick" \
+  -H 'Content-Type: application/json' -d '{"agent":"<seu-nome>"}'
+\`\`\`
+
+3. **Heartbeat** a cada ~5 min (renova o lease):
+\`\`\`bash
+curl -s -X POST "http://127.0.0.1:3334/monitors/runs/<runId>/heartbeat" \
+  -H 'Content-Type: application/json' -d '{"agent":"<seu-nome>"}'
+\`\`\`
+
+4. **Reportar sempre** (inclusive sem novidade):
+\`\`\`bash
+curl -s -X POST "http://127.0.0.1:3334/monitors/runs/<runId>/report" \
+  -H 'Content-Type: application/json' -d '{
+    "status": "no-change",
+    "summary": "Nada novo desde o cursor.",
+    "state": { "cursor": "<novo>", "memory": "<resumo curto>" },
+    "criteria": [{ "index": 1, "done": true, "evidence": "..." }],
+    "usage": { "tokensIn": 1200, "tokensOut": 300, "costUsd": 0.01 }
+  }'
+\`\`\`
+- \`status\`: \`no-change\` | \`done\` | \`failed\`.
+- \`report\`: markdown completo opcional (fica no filesystem, abre na timeline).
+- \`state.cursor\`: evita reprocessar o que já viu.
+- \`state.memory\`: resumo operacional para a próxima execução.
+- \`usage\` é autodeclarado; o docmap usa para cortar o orçamento.
+- Para \`done\`, envie \`criteria\` com **todos** os \`doneCriteria\` marcados (\`index\` 1-based ou \`text\` igual). O docmap responde **422** com \`missing\` se faltar algum.
+
+5. **Concluir**: \`done\` exige \`evidence\` e todos os critérios marcados. Com
+\`requireDoneApproval\` ligado (padrão: desligado), o monitor vai para \`review\` e o humano
+decide em \`POST /monitors/<id>/decide\` com
+\`{"decision":"accept|reject"}\`.
+
+### Endpoints
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | \`/monitors\` | Lista monitores com status, próxima execução e uso do dia |
+| POST | \`/monitors\` | Cria \`{ title, objective, intervalMinutes?, guardrails?, doneCriteria?, limits?, tags? }\` |
+| GET | \`/monitors/:id\` | Monitor + \`runs\` |
+| PUT | \`/monitors/:id\` | Edita campos parciais (inclusive limites) |
+| DELETE | \`/monitors/:id\` | Remove monitor, runs e relatórios |
+| GET | \`/monitors/inbox?agent=&wait=600\` | Long-poll: entrega o próximo run vencido |
+| POST | \`/monitors/:id/tick\` | Assumir um monitor específico agora |
+| POST | \`/monitors/:id/kick\` | Antecipa o próximo vencimento (humano) |
+| POST | \`/monitors/:id/pause\` | Pausa \`{ reason? }\` |
+| POST | \`/monitors/:id/resume\` | Retoma (só humano; 409 se prazo venceu) |
+| POST | \`/monitors/:id/decide\` | Aceita/rejeita conclusão em review |
+| GET | \`/monitors/:id/prompt\` | Prompt markdown copiável |
+| GET | \`/monitors/:id/runs?limit=100\` | Timeline (mais recente primeiro) |
+| GET | \`/monitors/runs/:runId\` | Run avulso |
+| POST | \`/monitors/runs/:runId/heartbeat\` | Renova o lease |
+| POST | \`/monitors/runs/:runId/report\` | Fecha o run com resultado e uso |
+| GET | \`/monitors/runs/:runId/report\` | Relatório markdown salvo |
+
+**UI humana**: \`GET /monitors\` retorna \`deepLink\`
+\`http://127.0.0.1:3333/#monitor/<id>\`.
+
+### Guardrails e paradas (aplicados pelo docmap)
+
+- **Lease**: cada run tem validade (default 15 min). Sem heartbeat/report, vira
+  \`expired\`, conta como falha e pode parar o monitor.
+- **Teto diário** de runs, tokens e custo; ao estourar, bloqueia até a
+  meia-noite local (auto-reabre).
+- **Falhas seguidas** (default 5) → \`halted\`.
+- **Execuções sem novidade** (default 6) → \`paused\`.
+- **Prazo final** (default 7 dias) → \`halted\`.
+- \`paused\`, \`halted\`, \`review\` e \`done\` **não entregam tick**. Só o humano
+  retoma ou decide.
 
 ---
 

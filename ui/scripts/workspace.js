@@ -43,6 +43,13 @@ const handleDeepLink = () => {
     history.replaceState(null, '', '/');
     return;
   }
+  const monitor = hash.match(/^#monitor\/([a-f0-9-]{36})$/);
+  if (monitor) {
+    setMode('monitors');
+    openMonitor(monitor[1]);
+    history.replaceState(null, '', '/');
+    return;
+  }
   // Sem deep link → abre no blueprint por padrão.
   setMode('canvas');
 };

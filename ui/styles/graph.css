@@ -14,6 +14,7 @@
   --kg-skill: #b69cff;
   --kg-mock: #a9b6c9;
   --kg-agentchat: #a8e04f;
+  --kg-monitor: #9fb3ff;
   --kg-tag: var(--text-3);
   --glass: color-mix(in srgb, var(--surface) 80%, transparent);
 }
@@ -27,6 +28,7 @@
   --kg-skill: #7c52e0;
   --kg-mock: #6b7d96;
   --kg-agentchat: #5f9a0e;
+  --kg-monitor: #4b5bd6;
 }
 
 /* ── Controles flutuantes ── */
@@ -207,6 +209,7 @@
 .kg-leg-mock i { background: var(--kg-mock); }
 .kg-leg-trilha i { background: var(--kg-trilha); }
 .kg-leg-agentchat i { background: var(--kg-agentchat); }
+.kg-leg-monitor i { background: var(--kg-monitor); }
 .kg-leg-tag i {
   background: transparent;
   box-shadow: inset 0 0 0 2px var(--kg-tag);

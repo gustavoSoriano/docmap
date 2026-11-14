@@ -24,6 +24,7 @@ const VALID_KINDS: readonly EntityKind[] = [
   'mock',
   'trilha',
   'agentchat',
+  'monitor',
 ];
 
 const isEntityKind = (v: string): v is EntityKind =>

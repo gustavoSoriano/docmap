@@ -49,6 +49,7 @@ Ideal para:
 | **🎬 Slides sincronizados**  | CSS art puro animado que troca conforme o áudio avança               |
 | **✅ Kanban de tarefas**     | Organize tarefas e vincule a notas                                   |
 | **🗺️ Trilhas visuais**        | Fluxograma editável humano+IA com blocos, status e paralelas         |
+| **⏱️ Monitores**             | Vigias com orçamento, guardrails e timeline por execução              |
 | **🔖 Favoritos**             | Bookmarks inteligentes com tags, categorias e contador de acesso     |
 | **🧪 Mocks HTTP**            | Servidor local de mocks para testar integrações                      |
 | **🤖 API para agentes**      | Endpoint local para agentes e integrações próprias                   |
